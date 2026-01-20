@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c5b8b",
+                        "background-light": "#ffffff",
+                        "background-dark": "#22262a",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>BAIBEBALO - Erreur Serveur</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-[#131416] dark:text-white transition-colors duration-200">
+<!-- Main Container for iOS Phone Form Factor -->
+<div class="relative flex h-screen w-full flex-col max-w-[430px] mx-auto overflow-hidden">
+<!-- TopAppBar / Header -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pt-6 justify-between">
+<div class="flex size-10 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-2xl cursor-pointer">arrow_back_ios</span>
+</div>
+<div class="flex-grow text-center">
+<span class="text-sm font-bold tracking-tight uppercase opacity-60">Baibebalo</span>
+</div>
+<div class="flex size-10 shrink-0 items-center justify-end">
+<span class="material-symbols-outlined text-2xl cursor-pointer">help_outline</span>
+</div>
+</header>
+<!-- Content Area: Center aligned error message -->
+<main class="flex flex-1 flex-col items-center justify-center px-8 text-center">
+<!-- Illustration: Broken Plate / Error State -->
+<div class="relative mb-10 w-full max-w-[280px]">
+<div class="aspect-square w-full rounded-full bg-primary/5 dark:bg-primary/20 flex items-center justify-center relative overflow-hidden">
+<!-- Stylized "Broken Plate" Visual using CSS/Icons -->
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-[120px] text-primary/40 select-none" style="font-variation-settings: 'FILL' 0, 'wght' 200;">
+                            restaurant
+                        </span>
+</div>
+<!-- Crack Overlay Visual -->
+<div class="absolute inset-0 bg-center bg-no-repeat bg-contain opacity-20" data-alt="Stylized geometric cracks and broken lines pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAkbB1g-ZvvGSB5qRJOLgsd0lU7p8WGOU5_A_y_yQIek2YtfDOTGQ3Bc6-P8-GRfS8N7OGuBsP0_2JMAJ1YvLdBcpRtD6sX1iZC_DRpFdyhiLDRP_9ZT7-IFFo7RvZBiIPXDC6i4aFqS5ghil1ETDFJ8LMZpz6Z1Vhv6vGXV7MTM7iDM-vt9JfSJqAefrPN7jYd_lNkAzj4VzLWcyqvIbRbIGcAp3Vbclufu489cX2Dq5MWVGBxMQNEWGFDTvdvNS5Xb-mgPfNePVn_");'>
+</div>
+<!-- Central Icon -->
+<div class="z-10 bg-background-light dark:bg-background-dark p-6 rounded-full shadow-xl">
+<span class="material-symbols-outlined text-6xl text-primary" style="font-variation-settings: 'FILL' 1;">
+                            warning
+                        </span>
+</div>
+</div>
+</div>
+<!-- Text Content -->
+<div class="space-y-4 max-w-[320px]">
+<h1 class="text-3xl font-bold leading-tight tracking-tight text-[#131416] dark:text-white">
+                    Oups !
+                </h1>
+<div class="space-y-2">
+<p class="text-lg font-semibold text-primary/80 dark:text-primary/90 leading-tight">
+                        Quelque chose s'est mal passé.
+                    </p>
+<p class="text-sm font-normal text-[#131416]/60 dark:text-white/60 leading-relaxed">
+                        Notre équipe technique est déjà sur le coup. Ne vous inquiétez pas, on s'en occupe !
+                    </p>
+</div>
+</div>
+</main>
+<!-- Footer / Action Area -->
+<footer class="p-6 pb-12">
+<div class="flex flex-col gap-3">
+<!-- SingleButton Component -->
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-wide shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+<span class="truncate">Retour à l'accueil</span>
+</button>
+<!-- Secondary Support Action -->
+<button class="flex w-full cursor-pointer items-center justify-center h-12 px-5 bg-transparent text-primary dark:text-primary/90 text-sm font-bold border border-primary/20 dark:border-primary/40 rounded-xl">
+<span class="truncate">Contacter le support</span>
+</button>
+</div>
+<!-- iOS Indicator Mock -->
+<div class="mt-8 flex justify-center">
+<div class="w-32 h-1.5 bg-black/10 dark:bg-white/10 rounded-full"></div>
+</div>
+</footer>
+</div>
+</body></html>

@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&amp;family=Work+Sans:wght@400;500;600&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#d95c26",
+              "status-unavailable": "#8C5750",
+              "background-light": "#fdfcfc",
+              "background-dark": "#22262a",
+            },
+            fontFamily: {
+              "display": ["Epilogue", "sans-serif"],
+              "body": ["Work Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Work Sans', sans-serif; }
+        .font-display { font-family: 'Epilogue', sans-serif; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#171312] dark:text-white min-h-screen">
+<!-- Sticky Header Overlay -->
+<div class="fixed top-0 left-0 right-0 z-50 flex items-center justify-between p-4">
+<button class="flex items-center justify-center size-10 rounded-full bg-white/90 dark:bg-black/40 backdrop-blur-sm shadow-sm text-primary">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-white/90 dark:bg-black/40 backdrop-blur-sm shadow-sm text-[#171312] dark:text-white">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+<!-- Hero Image Section -->
+<div class="relative w-full aspect-[4/3] @container overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover grayscale-[30%] opacity-80" data-alt="Grilled fish with attiéké and vegetables traditional dish" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB63Uk-MBPZ_-uurwnaMC0Ve3xUXfxeuBGUlwskszn-GHg5kJBPBphok0hgwfBTK3Ak2Y5vIPRYGEfVH_OojdnMRG1Lyz_P0oMuOaRyMCma6U1RHMaHwvk6cVHmRjmpOpm_a0sBIJ2qi_w4M3BF-kN_9iZAH1QShihLKeqCI-Xbuc6M97DZALDq-5SMUlxA9K0icKNV3vB16qqhSxo_8iuUdt62oAAj-uB4g8UIr9Rj42DpLae_WOqJUKu4NfTNT0uMh_DiZvqqj1te");'>
+</div>
+<div class="absolute inset-0 bg-gradient-to-t from-background-light dark:from-background-dark via-transparent to-transparent"></div>
+<div class="absolute bottom-4 left-4">
+<span class="bg-status-unavailable text-white px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Épuisé</span>
+</div>
+</div>
+<!-- Product Info Section -->
+<div class="relative -mt-8 px-4 pb-8 z-10">
+<div class="bg-white dark:bg-[#2c3136] rounded-xl p-6 shadow-xl shadow-black/5 border border-black/5 dark:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<h1 class="font-display text-2xl font-bold leading-tight text-[#171312] dark:text-white">Attiéké Poisson Grillé Prestige</h1>
+<p class="font-display text-xl font-bold text-primary">4.500 FCFA</p>
+</div>
+<div class="flex items-center gap-2 mb-4">
+<div class="flex text-yellow-500">
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px] fill-current">star</span>
+<span class="material-symbols-outlined text-[18px]">star_half</span>
+</div>
+<span class="text-xs text-[#866f65] dark:text-gray-400 font-medium">(120+ avis)</span>
+</div>
+<p class="text-[#171312]/80 dark:text-gray-300 text-sm leading-relaxed mb-6">
+                Un délicieux plat traditionnel d'attiéké accompagné d'un gros poisson braisé, d'alloco et d'une sauce pimentée signature. Préparé avec des ingrédients frais du jour pour une saveur authentique.
+            </p>
+<!-- Availability Alert -->
+<div class="flex items-start gap-3 p-4 rounded-lg bg-status-unavailable/10 border border-status-unavailable/20 mb-6">
+<span class="material-symbols-outlined text-status-unavailable mt-0.5">info</span>
+<div>
+<p class="text-status-unavailable font-bold text-sm">Désolé, ce plat n'est plus disponible aujourd'hui.</p>
+<p class="text-status-unavailable/80 text-xs mt-1">Victime de son succès, il sera de retour dès demain matin.</p>
+</div>
+</div>
+<!-- Disabled Button -->
+<button class="w-full h-14 bg-status-unavailable/40 text-white rounded-xl font-bold flex items-center justify-center gap-2 cursor-not-allowed" disabled="">
+<span class="material-symbols-outlined">event_busy</span>
+                Rupture de stock
+            </button>
+</div>
+</div>
+<!-- Similar Dishes Section -->
+<div class="px-4 pb-12">
+<div class="flex items-center justify-between mb-6">
+<h2 class="font-display text-lg font-bold">Vous aimerez aussi</h2>
+<button class="text-primary text-sm font-bold">Voir tout</button>
+</div>
+<div class="space-y-4">
+<!-- Suggestion Item 1 -->
+<div class="flex gap-4 p-3 bg-white dark:bg-[#2c3136] rounded-xl border border-black/5 dark:border-white/5 shadow-sm">
+<div class="size-20 shrink-0 rounded-lg bg-center bg-cover" data-alt="Ivorian garba dish with tuna" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBAUVxqZcFGZHzDkAvDyHqs_PwtUvWc5LrQcJsVkVlaxL6rslWs7aq0Pe9gG8YiOL0HdjP3ivlqWt_kys-Eb_vyc8YQBU8ciissDwtD2-UuCKTDrZIbQQKwgFuerVZlMDiIkkDqCr1um1IkbCev2EgAQ0u8JdX_iyHIegS1wkjUHJLj6J6OmphdS3KAViHyYP5uDbaRljrEH1ICCSMy5giryh7vSXudiPv5jB-ov6PQId_8XvcGZZ0p2Oa4TEzCdeeZxCah2_0Qwq1M");'></div>
+<div class="flex flex-col justify-between py-0.5 flex-1">
+<div>
+<h3 class="font-bold text-sm">Garba Spécial Thon</h3>
+<p class="text-xs text-[#866f65] dark:text-gray-400">Chez Maman Gbagbo</p>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold text-sm">2.500 FCFA</span>
+<button class="bg-primary/10 text-primary p-1 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Suggestion Item 2 -->
+<div class="flex gap-4 p-3 bg-white dark:bg-[#2c3136] rounded-xl border border-black/5 dark:border-white/5 shadow-sm">
+<div class="size-20 shrink-0 rounded-lg bg-center bg-cover" data-alt="Healthy salad bowl with avocado" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDgfZ65ScZowQY6ztJjEngdy8JgSrFp9HyCMa5I1KkdkcYxnjNXNOJyQEEpie4heTymq5ijFQZcbt5B_2QzRBT-Z5U355pdd4f2NqFUNa2nT7eQDeAE3zh5g_2ttRq-4qahi8rkPjASgJvyC8yeGHw9AskrjD6jyS5_9wd_jlCDEi2XOkYoXeopM4MEeb0h48UrXS9JeqFXOK72QbSMlSCLwtTRD8YPmsYGTBfDPBviRO9tD7GzuF_W5BG036LDcV9Bi9BM5yP1s7Ri");'></div>
+<div class="flex flex-col justify-between py-0.5 flex-1">
+<div>
+<h3 class="font-bold text-sm">Plat de Kedjenou Poulet</h3>
+<p class="text-xs text-[#866f65] dark:text-gray-400">Le Gourmet Ivoirien</p>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold text-sm">5.000 FCFA</span>
+<button class="bg-primary/10 text-primary p-1 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Suggestion Item 3 -->
+<div class="flex gap-4 p-3 bg-white dark:bg-[#2c3136] rounded-xl border border-black/5 dark:border-white/5 shadow-sm">
+<div class="size-20 shrink-0 rounded-lg bg-center bg-cover" data-alt="Gilled tilapia with fried plantain" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAjJATMstIi8q69EYwC9QvS8B5LjaxnYgRmqPpwV6Lb45kDcHn0mhusqNW-MJXebuXaBAgKfe4B_JFE1o0wJC6iAOIqV8YP6qTiFWod50GJa4DQMOTq6ZKbj1KqSB7rNlEfPAFNSbmeMeBJhVZPeIOG6hAxsNQZ4OfFvKUF0lS7dNGnbhfQcdc0JzE4HdAhYj4bduMxPTJDKnrzJzrMdNomE3d-eyCCNL9b7_7xoqAIeNAO86AseO-MAv-OVzJ2E7AW5lmjjBEWJk38");'></div>
+<div class="flex flex-col justify-between py-0.5 flex-1">
+<div>
+<h3 class="font-bold text-sm">Tilapia Braisé &amp; Alloco</h3>
+<p class="text-xs text-[#866f65] dark:text-gray-400">Espace Poisson</p>
+</div>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold text-sm">3.500 FCFA</span>
+<button class="bg-primary/10 text-primary p-1 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Tab Bar Navigation -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-black/5 dark:border-white/5 px-6 py-3 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-current">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">explore</span>
+<span class="text-[10px] font-medium">Découvrir</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Compte</span>
+</button>
+</div>
+<!-- Safe area spacing for bottom bar -->
+<div class="h-20"></div>
+</body></html>

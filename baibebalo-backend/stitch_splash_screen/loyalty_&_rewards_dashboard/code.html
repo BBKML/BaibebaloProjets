@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&amp;family=Noto+Sans:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#298fa3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#131d1f",
+                        "accent-gold": "#C9A961",
+                        "accent-silver": "#A0AEC0",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue"],
+                        "sans": ["Noto Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>Loyalty &amp; Rewards Dashboard</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<!-- Main Container (iOS Phone Ratio Mockup) -->
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark shadow-2xl overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-20 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-primary flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-3xl">menu</span>
+</div>
+<h2 class="text-[#121617] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display uppercase tracking-widest">BAIBEBALO</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 w-10 bg-primary/10 text-primary">
+<span class="material-symbols-outlined">person</span>
+</button>
+</div>
+</div>
+<!-- Hero Points Section -->
+<div class="flex flex-col items-center pt-10 pb-6 px-4 relative">
+<!-- Decorative Glow -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-48 h-48 bg-primary/10 blur-[60px] rounded-full"></div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="mb-2 px-4 py-1 rounded-full bg-accent-silver/20 border border-accent-silver/30 flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-silver text-sm" style="font-variation-settings: 'FILL' 1">stars</span>
+<span class="text-accent-silver font-bold text-xs uppercase tracking-wider">Niveau Argent</span>
+</div>
+<h1 class="text-[#121617] dark:text-white tracking-tight text-[56px] font-bold leading-none py-2 drop-shadow-sm">
+                    250 <span class="text-lg font-medium text-gray-400">pts</span>
+</h1>
+</div>
+</div>
+<!-- Progress Section -->
+<div class="px-6 mb-8">
+<div class="bg-white dark:bg-gray-800/50 p-5 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex flex-col gap-3">
+<div class="flex gap-6 justify-between items-end">
+<p class="text-[#121617] dark:text-gray-200 text-sm font-semibold leading-normal">Progression vers le niveau Or</p>
+<p class="text-accent-gold text-lg font-bold leading-normal">50%</p>
+</div>
+<div class="rounded-full bg-gray-100 dark:bg-gray-700 h-3 w-full overflow-hidden relative">
+<div class="h-full rounded-full bg-primary" style="width: 50%;"></div>
+<!-- Target Marker -->
+<div class="absolute right-0 top-0 h-full w-1 bg-accent-gold"></div>
+</div>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">info</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">Plus que 250 points pour débloquer les avantages Or !</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section Header: Rewards -->
+<div class="px-4 pb-2 flex justify-between items-center">
+<h2 class="text-[#121617] dark:text-white text-[20px] font-bold leading-tight tracking-[-0.015em]">Récompenses Disponibles</h2>
+<span class="text-primary text-xs font-bold uppercase cursor-pointer">Voir tout</span>
+</div>
+<!-- Rewards Grid -->
+<div class="grid grid-cols-1 gap-4 px-4 pb-24">
+<!-- Reward Card 1 -->
+<div class="flex bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 items-center gap-4">
+<div class="h-16 w-16 bg-primary/10 rounded-lg flex items-center justify-center text-primary shrink-0">
+<span class="material-symbols-outlined text-3xl">percent</span>
+</div>
+<div class="flex-1">
+<h3 class="text-[#121617] dark:text-white font-bold text-sm">-10% sur prochaine commande</h3>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Échangez 150 points</p>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg">Utiliser</button>
+</div>
+<!-- Reward Card 2 -->
+<div class="flex bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 items-center gap-4">
+<div class="h-16 w-16 bg-accent-gold/10 rounded-lg flex items-center justify-center text-accent-gold shrink-0">
+<span class="material-symbols-outlined text-3xl">local_shipping</span>
+</div>
+<div class="flex-1">
+<h3 class="text-[#121617] dark:text-white font-bold text-sm">Livraison gratuite</h3>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Échangez 100 points</p>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg">Utiliser</button>
+</div>
+<!-- Reward Card 3 -->
+<div class="flex bg-white dark:bg-gray-800 p-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 items-center gap-4">
+<div class="h-16 w-16 bg-blue-100 rounded-lg flex items-center justify-center text-blue-600 shrink-0">
+<span class="material-symbols-outlined text-3xl">local_bar</span>
+</div>
+<div class="flex-1">
+<h3 class="text-[#121617] dark:text-white font-bold text-sm">Boisson offerte</h3>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Échangez 80 points</p>
+</div>
+<button class="bg-primary text-white text-xs font-bold px-4 py-2 rounded-lg">Utiliser</button>
+</div>
+<!-- Locked Reward Card -->
+<div class="flex bg-gray-50 dark:bg-gray-900/40 p-4 rounded-xl border border-dashed border-gray-200 dark:border-gray-700 items-center gap-4 opacity-60">
+<div class="h-16 w-16 bg-gray-200 dark:bg-gray-800 rounded-lg flex items-center justify-center text-gray-400 shrink-0">
+<span class="material-symbols-outlined text-3xl">lock</span>
+</div>
+<div class="flex-1">
+<h3 class="text-gray-400 font-bold text-sm">Bon d'achat 5 000 FCFA</h3>
+<p class="text-gray-400 text-xs mt-1">Requis : Niveau Or</p>
+</div>
+<button class="bg-gray-200 dark:bg-gray-800 text-gray-400 text-xs font-bold px-4 py-2 rounded-lg cursor-not-allowed">Bloqué</button>
+</div>
+</div>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 px-6 py-3 pb-8 flex justify-between items-center z-30">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">grid_view</span>
+<span class="text-[10px] font-medium">Services</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">loyalty</span>
+<span class="text-[10px] font-bold">Fidélité</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+</div>
+</body></html>

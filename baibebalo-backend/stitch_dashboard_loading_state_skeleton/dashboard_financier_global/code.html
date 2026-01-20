@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Financier Global - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3e5574",
+                        "background-light": "#f6f7f7",
+                        "background-dark": "#16191c",
+                        "accent-success": "#07883b",
+                        "accent-danger": "#e73908",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .chart-bar { transition: height 0.3s ease; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #d7dbe0; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#121417] dark:text-gray-100">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-[#d7dbe0] dark:border-gray-800 bg-white dark:bg-background-dark flex flex-col justify-between py-6">
+<div class="flex flex-col gap-8 px-4">
+<div class="flex items-center gap-3 px-2">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-base font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-xs text-gray-500 dark:text-gray-400">Phase 4 Finance</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary font-semibold" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">receipt_long</span>
+<span class="text-sm">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">leaderboard</span>
+<span class="text-sm">Analyses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+<span class="text-sm">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm">Paramètres</span>
+</a>
+</nav>
+</div>
+<div class="px-4 border-t border-gray-100 dark:border-gray-800 pt-6">
+<a class="flex items-center gap-3 px-3 py-2.5 text-gray-600 dark:text-gray-400 hover:text-accent-danger transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">logout</span>
+<span class="text-sm">Déconnexion</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Top Navbar -->
+<header class="h-16 flex items-center justify-between border-b border-[#d7dbe0] dark:border-gray-800 bg-white dark:bg-background-dark px-8">
+<div class="flex items-center gap-4 flex-1">
+<h2 class="text-lg font-bold">Dashboard Financier Global</h2>
+<div class="max-w-md w-full ml-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-xl">search</span>
+<input class="w-full bg-gray-50 dark:bg-gray-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20" placeholder="Rechercher une transaction..." type="text"/>
+</div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-accent-danger rounded-full border-2 border-white dark:border-background-dark"></span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors">
+<span class="material-symbols-outlined text-[18px]">download</span>
+<span>Exporter</span>
+</button>
+<div class="h-8 w-px bg-gray-200 dark:bg-gray-700 mx-2"></div>
+<div class="flex items-center gap-3">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold">Admin User</p>
+<p class="text-[10px] text-gray-500 uppercase tracking-wider">Super Admin</p>
+</div>
+<div class="size-9 rounded-full bg-cover bg-center border-2 border-gray-100 dark:border-gray-800" data-alt="User profile avatar portrait" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDa9HmbrRY4zQSPUL7VvyNK7PH3OVzoex-5z1RF2TOVinlIhioYytcmKIvgXMMwHxjehcr3peXirEhbvAFxyV8s256B_kxzpl_VqI9TYk9FdA28mhNjPErAimSouXrz9HSAnDDYJty-WEp77tTgys-kBXA370j8jGz6wvlabiBIielYKfmpIEXh1Ii8QeY5iqJyy5bRADGOQAS1jJ0Q5QtFcQPNh1kJfwRgqEl7A5rhzpyaJwNQUc1ntJ9VzoLGevuzXOCXRzeKsMA6');"></div>
+</div>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-8 bg-background-light dark:bg-background-dark">
+<!-- KPI Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-background-dark border border-[#d7dbe0] dark:border-gray-800 p-6 rounded-xl flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-primary/10 text-primary rounded-lg">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-accent-success text-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +12.5%
+                            </span>
+</div>
+<div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Total Revenue</p>
+<h3 class="text-2xl font-bold mt-1 tracking-tight">2.45M FCFA</h3>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark border border-[#d7dbe0] dark:border-gray-800 p-6 rounded-xl flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded-lg">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<span class="text-accent-success text-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +8.2%
+                            </span>
+</div>
+<div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Commission Earned</p>
+<h3 class="text-2xl font-bold mt-1 tracking-tight">367K FCFA</h3>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark border border-[#d7dbe0] dark:border-gray-800 p-6 rounded-xl flex flex-col gap-4">
+<div class="flex justify-between items-start">
+<div class="p-2 bg-orange-100 text-orange-600 dark:bg-orange-900/30 dark:text-orange-400 rounded-lg">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<span class="text-accent-danger text-sm font-medium flex items-center gap-1">
+<span class="material-symbols-outlined text-[16px]">trending_down</span> -3.1%
+                            </span>
+</div>
+<div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Pending Payouts</p>
+<h3 class="text-2xl font-bold mt-1 tracking-tight">125K FCFA</h3>
+</div>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<!-- Bar Chart: Revenue Evolution -->
+<div class="lg:col-span-2 bg-white dark:bg-background-dark border border-[#d7dbe0] dark:border-gray-800 rounded-xl p-6">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="font-bold text-gray-900 dark:text-white">Évolution du CA</h4>
+<p class="text-xs text-gray-500">Revenus cumulés sur les 6 derniers mois</p>
+</div>
+<select class="bg-gray-50 dark:bg-gray-800 border-none text-xs rounded-lg px-3 py-1.5 focus:ring-0">
+<option>Derniers 6 mois</option>
+<option>Dernières 12 mois</option>
+</select>
+</div>
+<div class="h-64 flex items-end justify-between px-2 gap-4">
+<!-- Chart Bar Item -->
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-lg relative group h-[60%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">340k</div>
+</div>
+<span class="text-[11px] font-semibold text-gray-400 uppercase">Jan</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-lg relative group h-[45%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">210k</div>
+</div>
+<span class="text-[11px] font-semibold text-gray-400 uppercase">Fév</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-lg relative group h-[85%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">520k</div>
+</div>
+<span class="text-[11px] font-semibold text-gray-400 uppercase">Mar</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/20 hover:bg-primary transition-colors rounded-t-lg relative group h-[30%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">180k</div>
+</div>
+<span class="text-[11px] font-semibold text-gray-400 uppercase">Avr</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary/40 hover:bg-primary transition-colors rounded-t-lg relative group h-[95%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">680k</div>
+</div>
+<span class="text-[11px] font-semibold text-gray-400 uppercase">Mai</span>
+</div>
+<div class="flex-1 flex flex-col items-center gap-3">
+<div class="w-full bg-primary rounded-t-lg relative group h-[75%]">
+<div class="absolute -top-8 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-[10px] px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity">520k</div>
+</div>
+<span class="text-[11px] font-semibold text-gray-900 dark:text-white uppercase">Juin</span>
+</div>
+</div>
+</div>
+<!-- Doughnut Chart: Distribution -->
+<div class="bg-white dark:bg-background-dark border border-[#d7dbe0] dark:border-gray-800 rounded-xl p-6 flex flex-col">
+<h4 class="font-bold text-gray-900 dark:text-white mb-1">Répartition des Paiements</h4>
+<p class="text-xs text-gray-500 mb-8">Cash vs Mobile Money</p>
+<div class="flex-1 flex items-center justify-center relative">
+<!-- Visual representation of a doughnut -->
+<div class="size-44 rounded-full border-[18px] border-primary flex items-center justify-center relative">
+<div class="absolute inset-[-18px] border-[18px] border-primary/20 rounded-full" style="clip-path: polygon(50% 50%, 50% 0%, 100% 0%, 100% 100%, 0% 100%, 0% 50%);"></div>
+<div class="text-center">
+<p class="text-2xl font-extrabold tracking-tight">72%</p>
+<p class="text-[10px] text-gray-400 font-bold uppercase">Mobile</p>
+</div>
+</div>
+</div>
+<div class="mt-8 grid grid-cols-2 gap-4">
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary"></div>
+<div class="flex flex-col">
+<span class="text-xs text-gray-500">Mobile Money</span>
+<span class="text-sm font-bold">1.76M FCFA</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="size-3 rounded-full bg-primary/20"></div>
+<div class="flex flex-col">
+<span class="text-xs text-gray-500">Cash</span>
+<span class="text-sm font-bold">690K FCFA</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Transaction Table -->
+<div class="bg-white dark:bg-background-dark border border-[#d7dbe0] dark:border-gray-800 rounded-xl overflow-hidden">
+<div class="p-6 border-b border-[#d7dbe0] dark:border-gray-800 flex items-center justify-between">
+<h4 class="font-bold">Dernières Transactions</h4>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="text-[11px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 dark:bg-gray-800/50">
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4">Type</th>
+<th class="px-6 py-4">Description</th>
+<th class="px-6 py-4 text-right">Montant</th>
+<th class="px-6 py-4 text-center">Statut</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">24 Oct 2023</td>
+<td class="px-6 py-4 text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-success text-lg">arrow_downward</span>
+<span>Dépôt</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Order #1234 - Mobile Money</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-accent-success">+45,000 FCFA</td>
+<td class="px-6 py-4 text-center">
+<span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase">Réussi</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">23 Oct 2023</td>
+<td class="px-6 py-4 text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-danger text-lg">arrow_upward</span>
+<span>Retrait</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Paiement Commission Agent #09</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-accent-danger">-12,500 FCFA</td>
+<td class="px-6 py-4 text-center">
+<span class="px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full text-[10px] font-bold uppercase">En cours</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">23 Oct 2023</td>
+<td class="px-6 py-4 text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-success text-lg">arrow_downward</span>
+<span>Dépôt</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Recharge Compte Cash #882</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-accent-success">+120,000 FCFA</td>
+<td class="px-6 py-4 text-center">
+<span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase">Réussi</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">22 Oct 2023</td>
+<td class="px-6 py-4 text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-success text-lg">arrow_downward</span>
+<span>Dépôt</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Order #1232 - Cash Payment</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-accent-success">+15,000 FCFA</td>
+<td class="px-6 py-4 text-center">
+<span class="px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full text-[10px] font-bold uppercase">Réussi</span>
+</td>
+</tr>
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-sm text-gray-600 dark:text-gray-300">21 Oct 2023</td>
+<td class="px-6 py-4 text-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-danger text-lg">arrow_upward</span>
+<span>Retrait</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Payout #991 - Transfert Mobile</td>
+<td class="px-6 py-4 text-sm font-bold text-right text-accent-danger">-200,000 FCFA</td>
+<td class="px-6 py-4 text-center">
+<span class="px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full text-[10px] font-bold uppercase">Annulé</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

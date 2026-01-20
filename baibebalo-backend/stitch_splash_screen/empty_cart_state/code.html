@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff8c66",
+                        "background-light": "#fffcfa",
+                        "background-dark": "#1b2a2c",
+                        "sage": "#9BBFBC",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .ios-tab-shadow {
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#181210] dark:text-white antialiased">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-[430px] mx-auto bg-white dark:bg-background-dark">
+<!-- TopAppBar -->
+<header class="flex items-center bg-white dark:bg-background-dark px-6 pt-12 pb-4 justify-between shrink-0">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-[#181210] dark:text-white" style="font-size: 24px;">arrow_back_ios_new</span>
+</div>
+<h2 class="text-[#181210] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Mon Panier</h2>
+</header>
+<!-- Main Content (Empty State) -->
+<main class="flex-1 flex flex-col items-center justify-center px-8 text-center">
+<!-- Illustration Container -->
+<div class="relative mb-10 w-full max-w-[280px] aspect-square flex items-center justify-center">
+<!-- Decorative Abstract Shapes for distinctive look -->
+<div class="absolute inset-0 bg-primary/10 dark:bg-primary/5 rounded-full scale-90 blur-3xl"></div>
+<div class="relative z-10 w-full h-full flex items-center justify-center">
+<div class="bg-white dark:bg-gray-800 p-8 rounded-full shadow-xl shadow-primary/10">
+<div class="w-32 h-32 rounded-full border-4 border-dashed border-sage/40 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" style="font-size: 80px; font-variation-settings: 'FILL' 0, 'wght' 200;">shopping_basket</span>
+</div>
+</div>
+<!-- Floating small elements -->
+<div class="absolute top-4 right-4 bg-sage/20 p-3 rounded-xl rotate-12">
+<span class="material-symbols-outlined text-sage" style="font-size: 24px;">restaurant</span>
+</div>
+<div class="absolute bottom-10 left-0 bg-primary/20 p-3 rounded-xl -rotate-12">
+<span class="material-symbols-outlined text-primary" style="font-size: 20px;">local_pizza</span>
+</div>
+</div>
+</div>
+<!-- Text Content -->
+<div class="space-y-3 max-w-[280px]">
+<h3 class="text-[#181210] dark:text-white text-2xl font-bold tracking-tight">Votre panier est vide</h3>
+<p class="text-gray-500 dark:text-gray-400 text-base leading-relaxed">
+                    Ajoutez de délicieux plats de nos meilleurs restaurants pour commencer.
+                </p>
+</div>
+<!-- Primary CTA -->
+<div class="mt-12 w-full">
+<button class="w-full bg-primary hover:bg-primary/90 text-white h-14 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Voir le menu</span>
+<span class="material-symbols-outlined" style="font-size: 20px;">arrow_forward</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="ios-tab-shadow bg-white/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 px-6 pb-8 pt-3">
+<div class="flex items-center justify-between">
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 26px; font-variation-settings: 'FILL' 0;">home</span>
+</div>
+<span class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Accueil</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 26px; font-variation-settings: 'FILL' 0;">search</span>
+</div>
+<span class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Recherche</span>
+</a>
+<a class="flex flex-col items-center gap-1 relative" href="#">
+<div class="text-primary">
+<div class="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full"></div>
+<span class="material-symbols-outlined" style="font-size: 26px; font-variation-settings: 'FILL' 1;">shopping_bag</span>
+</div>
+<span class="text-[10px] font-bold text-primary uppercase tracking-wider">Panier</span>
+</a>
+<a class="flex flex-col items-center gap-1 group" href="#">
+<div class="text-gray-400 dark:text-gray-500 group-hover:text-primary transition-colors">
+<span class="material-symbols-outlined" style="font-size: 26px; font-variation-settings: 'FILL' 0;">person</span>
+</div>
+<span class="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider">Profil</span>
+</a>
+</div>
+</nav>
+<!-- Home Indicator -->
+<div class="flex justify-center pb-2 bg-white dark:bg-background-dark">
+<div class="w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+</div>
+</div>
+</body></html>

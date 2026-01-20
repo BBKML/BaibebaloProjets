@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Admin - Tablet Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#044ff1",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#16181d",
+                        "surface-dark": "#1F2228",
+                        "border-dark": "#2f426a",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            height: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2f426a;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<!-- Top Navigation Bar (Tablet Optimized) -->
+<header class="sticky top-0 z-50 flex items-center justify-between px-6 py-4 bg-background-light dark:bg-background-dark border-b border-slate-200 dark:border-border-dark">
+<div class="flex items-center gap-4">
+<!-- Hamburger Menu for Tablet -->
+<button class="flex items-center justify-center p-2 rounded-lg bg-slate-100 dark:bg-surface-dark text-slate-600 dark:text-white h-11 w-11">
+<span class="material-symbols-outlined">menu</span>
+</button>
+<div class="flex items-center gap-2">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h1 class="text-lg font-bold tracking-tight">BAIBEBALO</h1>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center h-11 w-11 rounded-lg bg-slate-100 dark:bg-surface-dark text-slate-600 dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-10 w-10 rounded-full bg-cover bg-center border-2 border-primary" data-alt="User profile avatar showing professional portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCd_yYdyyEzv3nvOiq1HfLtG9jIkmhkVv1OhoRiD6Ht8SwVjiXDJji0DujX9gcXLqhn_kUUHer9E90dwKP3ccXcgbcZo3qgt15Po68t6ejtJpPJ8h2O-IL6H_fsI5a9UR40nxNGK4udLv2yV9PRGmBvVyb568eezQFaq5W9YeF8FfJtI6_3xqe14N7-kfEP-P_D08WidMg8U-sBRyDSILL8W31kSFZSaHmHlePF9lyfZRXKbaMoMsXbx6jAe9-RDiq12mucJoq08ghW");'>
+</div>
+</div>
+</header>
+<main class="max-w-[768px] mx-auto p-6 space-y-6">
+<!-- Welcome Header -->
+<div class="flex justify-between items-end">
+<div>
+<p class="text-sm text-slate-500 dark:text-slate-400 font-medium uppercase tracking-wider">Overview</p>
+<h2 class="text-2xl font-bold">Dashboard</h2>
+</div>
+<button class="bg-primary text-white h-11 px-6 rounded-lg font-bold flex items-center gap-2 shadow-lg shadow-primary/20 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-sm">download</span>
+                Export
+            </button>
+</div>
+<!-- KPI Grid (2x2 Tablet Optimized) -->
+<div class="grid grid-cols-2 gap-4">
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-primary bg-primary/10 p-2 rounded-lg">payments</span>
+<span class="text-emerald-500 text-xs font-bold">+5.2%</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase">Revenue</p>
+<p class="text-xl font-bold">$45,231.89</p>
+</div>
+</div>
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-amber-500 bg-amber-500/10 p-2 rounded-lg">shopping_cart</span>
+<span class="text-amber-500 text-xs font-bold">12 new</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase">Active Orders</p>
+<p class="text-xl font-bold">1,254</p>
+</div>
+</div>
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-indigo-500 bg-indigo-500/10 p-2 rounded-lg">group</span>
+<span class="text-emerald-500 text-xs font-bold">+12.5%</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase">Growth</p>
+<p class="text-xl font-bold">3,842</p>
+</div>
+</div>
+<div class="p-5 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark flex flex-col gap-2">
+<div class="flex justify-between items-start">
+<span class="material-symbols-outlined text-rose-500 bg-rose-500/10 p-2 rounded-lg">bolt</span>
+<span class="text-rose-500 text-xs font-bold">-0.5%</span>
+</div>
+<div>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase">Conversion</p>
+<p class="text-xl font-bold">4.2%</p>
+</div>
+</div>
+</div>
+<!-- Revenue Line Chart -->
+<div class="p-6 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark">
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-lg font-bold">Revenue Trend</h3>
+<div class="flex gap-2">
+<button class="text-xs font-bold px-3 py-1.5 rounded-full bg-primary text-white">W</button>
+<button class="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-slate-300">M</button>
+<button class="text-xs font-bold px-3 py-1.5 rounded-full bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-slate-300">Y</button>
+</div>
+</div>
+<div class="w-full h-48 py-4">
+<svg fill="none" height="100%" preserveaspectratio="none" viewbox="0 0 472 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25" stroke="#044ff1" stroke-linecap="round" stroke-width="4"></path>
+<path d="M0 109C18 109 18 21 36 21C54 21 54 41 72 41C90 41 90 93 108 93C127 93 127 33 145 33C163 33 163 101 181 101C199 101 199 61 217 61C236 61 236 45 254 45C272 45 272 121 290 121C308 121 308 149 326 149C344 149 344 1 363 1C381 1 381 81 399 81C417 81 417 129 435 129C453 129 453 25 472 25V150H0V109Z" fill="url(#blue_gradient)" fill-opacity="0.1"></path>
+<defs>
+<lineargradient gradientunits="userSpaceOnUse" id="blue_gradient" x1="236" x2="236" y1="1" y2="150">
+<stop stop-color="#044ff1"></stop>
+<stop offset="1" stop-color="#044ff1" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+</div>
+<div class="flex justify-between mt-4">
+<span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Mon</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Wed</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Fri</span>
+<span class="text-xs text-slate-500 dark:text-slate-400 font-bold">Sun</span>
+</div>
+</div>
+<!-- Order Distribution (Doughnut Replacement with High Touch Area) -->
+<div class="grid grid-cols-1 gap-6">
+<div class="p-6 rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark flex flex-col md:flex-row items-center gap-8">
+<div class="relative size-40 shrink-0">
+<svg class="size-full -rotate-90" viewbox="0 0 36 36">
+<circle class="stroke-slate-200 dark:stroke-border-dark" cx="18" cy="18" fill="none" r="16" stroke-width="4"></circle>
+<circle class="stroke-primary" cx="18" cy="18" fill="none" r="16" stroke-dasharray="65, 100" stroke-linecap="round" stroke-width="4"></circle>
+<circle class="stroke-emerald-500" cx="18" cy="18" fill="none" r="16" stroke-dasharray="25, 100" stroke-dashoffset="-65" stroke-linecap="round" stroke-width="4"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<span class="text-2xl font-bold">1.2k</span>
+<span class="text-[10px] uppercase font-bold text-slate-500">Orders</span>
+</div>
+</div>
+<div class="flex-1 w-full space-y-4">
+<h3 class="text-lg font-bold">Distribution</h3>
+<div class="space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-primary"></span>
+<span class="text-sm font-medium">Standard Shipping</span>
+</div>
+<span class="text-sm font-bold">65%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-emerald-500"></span>
+<span class="text-sm font-medium">Express</span>
+</div>
+<span class="text-sm font-bold">25%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-3 rounded-full bg-slate-300 dark:bg-slate-600"></span>
+<span class="text-sm font-medium">Other</span>
+</div>
+<span class="text-sm font-bold">10%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Orders Table (Optimized for Tablet) -->
+<div class="rounded-xl bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark overflow-hidden">
+<div class="p-5 border-b border-slate-200 dark:border-border-dark flex justify-between items-center">
+<h3 class="text-lg font-bold">Recent Orders</h3>
+<button class="text-primary text-sm font-bold">View All</button>
+</div>
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50">
+<th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">ID</th>
+<th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Amount</th>
+<th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500">Status</th>
+<th class="px-5 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 text-right">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-border-dark">
+<tr>
+<td class="px-5 py-4 font-mono text-sm">#ORD-7721</td>
+<td class="px-5 py-4 font-bold text-sm">$450.00</td>
+<td class="px-5 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500">Complete</span>
+</td>
+<td class="px-5 py-4 text-right">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="px-5 py-4 font-mono text-sm">#ORD-7720</td>
+<td class="px-5 py-4 font-bold text-sm">$1,205.50</td>
+<td class="px-5 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-500/10 text-amber-500">Pending</span>
+</td>
+<td class="px-5 py-4 text-right">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="px-5 py-4 font-mono text-sm">#ORD-7719</td>
+<td class="px-5 py-4 font-bold text-sm">$89.99</td>
+<td class="px-5 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-rose-500/10 text-rose-500">Cancelled</span>
+</td>
+<td class="px-5 py-4 text-right">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</td>
+</tr>
+<tr>
+<td class="px-5 py-4 font-mono text-sm">#ORD-7718</td>
+<td class="px-5 py-4 font-bold text-sm">$230.15</td>
+<td class="px-5 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-500">Complete</span>
+</td>
+<td class="px-5 py-4 text-right">
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-border-dark text-slate-600 dark:text-slate-300">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</main>
+<!-- Floating Action Button for Tablet -->
+<button class="fixed bottom-6 right-6 size-14 rounded-full bg-primary text-white shadow-2xl flex items-center justify-center active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</body></html>

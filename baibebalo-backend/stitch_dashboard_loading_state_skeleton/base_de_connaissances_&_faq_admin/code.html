@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Base de Connaissances &amp; FAQ Admin - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f66ad",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121920",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1e262f",
+                        "border-light": "#e8edf2",
+                        "border-dark": "#2d3844",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0f141a] dark:text-slate-200 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-surface-light dark:bg-surface-dark border-b border-border-light dark:border-border-dark px-6 lg:px-10 py-3">
+<div class="max-w-[1440px] mx-auto flex items-center justify-between gap-8">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">account_balance</span>
+</div>
+<h2 class="text-[#0f141a] dark:text-white text-lg font-bold leading-tight tracking-tight hidden md:block">BAIBEBALO Admin</h2>
+</div>
+<nav class="hidden xl:flex items-center gap-8">
+<a class="text-sm font-semibold text-[#537393] hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-sm font-semibold text-[#537393] hover:text-primary transition-colors" href="#">Utilisateurs</a>
+<a class="text-sm font-semibold text-[#537393] hover:text-primary transition-colors" href="#">Transactions</a>
+<a class="text-sm font-semibold text-primary border-b-2 border-primary py-1" href="#">Support</a>
+</nav>
+</div>
+<div class="flex-1 max-w-xl hidden md:block">
+<div class="relative group">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-[#537393]">
+<span class="material-symbols-outlined text-xl">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border-none bg-background-light dark:bg-background-dark/50 rounded-lg focus:ring-2 focus:ring-primary/20 text-sm placeholder:text-[#537393]" placeholder="Rechercher une documentation..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-sm">add</span>
+<span class="hidden sm:inline">Nouvel Article</span>
+</button>
+<div class="h-10 w-10 rounded-full border-2 border-primary/10 bg-center bg-cover" data-alt="User profile avatar circle" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDoGZFWF8aEznhqjngbEeKDr7dMXHJ5kmRWDhNERVmlsUUKCjfRdsXk4vpklU4P-h3PZqXwqFfQD-Y6DKV7woE1Bddr8_CZY3l-5GQwy2boYuqMID9rtDaknNKDnEZUc1znKAF1hvwp8LyvFeWUA0vrALwLEYbAoGVZLHEbzwDJMju2yj8A5ne8wo3v4a4HVVKWrNAKGXPz78t30pLB_s-UsUijbYTVO87ug05ihXlSJy_RPDD_qCQaNQ-I2oLYK82s6t8dcHjRszaX");'>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-6 lg:px-10 py-8">
+<!-- Page Heading -->
+<div class="mb-10">
+<h1 class="text-3xl lg:text-4xl font-black text-[#0f141a] dark:text-white tracking-tight mb-2">Base de Connaissances</h1>
+<p class="text-[#537393] dark:text-slate-400 text-lg max-w-2xl">
+                Centre de ressources interne pour la gestion des procédures, guides techniques et assistance client.
+            </p>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+<!-- Left Column: Categories and Main Content -->
+<div class="xl:col-span-8 space-y-10">
+<!-- Category Grid -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-[#0f141a] dark:text-white">Catégories Principales</h3>
+<a class="text-primary text-sm font-semibold hover:underline" href="#">Voir tout</a>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Card 1 -->
+<div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/40 transition-all cursor-pointer group shadow-sm">
+<div class="size-12 bg-primary/10 text-primary rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">verified_user</span>
+</div>
+<h4 class="text-[#0f141a] dark:text-white font-bold mb-2">Validation</h4>
+<p class="text-[#537393] dark:text-slate-400 text-sm leading-relaxed">Procédures d'approbation des comptes et flux KYC.</p>
+</div>
+<!-- Card 2 -->
+<div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/40 transition-all cursor-pointer group shadow-sm">
+<div class="size-12 bg-amber-500/10 text-amber-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">gavel</span>
+</div>
+<h4 class="text-[#0f141a] dark:text-white font-bold mb-2">Litiges</h4>
+<p class="text-[#537393] dark:text-slate-400 text-sm leading-relaxed">Protocoles de résolution des conflits et remboursements.</p>
+</div>
+<!-- Card 3 -->
+<div class="bg-surface-light dark:bg-surface-dark p-6 rounded-xl border border-border-light dark:border-border-dark hover:border-primary/40 transition-all cursor-pointer group shadow-sm">
+<div class="size-12 bg-emerald-500/10 text-emerald-600 rounded-lg flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined">settings_suggest</span>
+</div>
+<h4 class="text-[#0f141a] dark:text-white font-bold mb-2">Technique</h4>
+<p class="text-[#537393] dark:text-slate-400 text-sm leading-relaxed">Maintenance de la plateforme et documentation API.</p>
+</div>
+</div>
+</section>
+<!-- Detailed Article Feed -->
+<section>
+<div class="flex items-center justify-between mb-6">
+<h3 class="text-xl font-bold text-[#0f141a] dark:text-white">Articles Récents</h3>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-primary/5 rounded-lg text-[#537393]">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<div class="space-y-4">
+<!-- Article Item 1 -->
+<div class="flex flex-col md:flex-row gap-6 p-5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl hover:shadow-md transition-shadow">
+<div class="md:w-48 h-32 flex-shrink-0 bg-center bg-cover rounded-lg overflow-hidden" data-alt="System documentation visualization diagram" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCIq5mr82XRqErJpw86tINq32Xf0Ot9V7UGSBydNiDvmt5Snrd6nxxU-BS9hCV3edhu1M2oqzbu3SGDEGsrnZoaEUsBv9g-fb-y6cOVKsQrWPiUwYDuxeRAALY2DoKJk-TNj1VhLgDsclokeH6xu764TkidSttSQk1ul1aBCxPb0bY7EUdjg1yvP6uDGxGcIu0IsFJWdhKN_kfWbmfUSzK_1JhbYJuNVVti_bopFZRW9tAFFHr6j8kx-gsXm-xELgcmCCn5_74Tht4-");'>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2 py-0.5 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded tracking-wider">KYC &amp; Compliance</span>
+<span class="text-[#537393] text-xs">• Mis à jour il y a 2h</span>
+</div>
+<h5 class="text-lg font-bold text-[#0f141a] dark:text-white mb-2 hover:text-primary cursor-pointer transition-colors">
+                                        Nouveau workflow d'approbation pour les comptes Business
+                                    </h5>
+<p class="text-[#537393] dark:text-slate-400 text-sm line-clamp-2">
+                                        Cette procédure détaille les étapes de vérification manuelle pour les entreprises à haut volume transactionnel suite à la mise à jour de sécurité v4.2...
+                                    </p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-white dark:border-surface-dark bg-cover bg-center" data-alt="Author 1" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB7W6nMYtaoOL7uINKY1Erqqv1BfS7YsGhnVRCy_CPiPeq0UHXQKlPooH0IKi1e0tzEH691cmslWxRoZfc4EOZnPh0pGLEypSAerH-Mh8DJaK6ZqtiI7GhPZUV_G1Jayd35tX9NNqsDjFnn18d9e5LpJ-8SVujrZc49iPwvXOfxX_RM-0DEP9jq2i9KIyaicq-o1WlSxxopQyboocHh4iwkJRacQV-lwQvz92zjUtFTJ0sbfLHWxn9Dmn5744vuod7attJ4H0l8zUba");'></div>
+<div class="size-6 rounded-full border border-white dark:border-surface-dark bg-cover bg-center" data-alt="Author 2" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB0GZ2QRNQuXR1as6Zl0M3hLSAI4NkcP1OkOJXIXpUak7guMCcAWQBPsnskPXBK2Jyffs_U7azxwxgvY5afCgUTeIRepx-gzvcX_JSXaZspIkK_r89kU2LzXpkOg5F347ItViNoVkgLG8FxjGghl5m-JfvdXoJCwls26j5-jgY6JiXKT0096b4IwTA8HBoHHPnhb61q532_zVttgd0HPRtO_D2FZlqIB7OJYDJ8yfemMUvXy0BoLNQUi9jBODPM_IGfEZqwh2QeamFh");'></div>
+</div>
+<button class="text-sm font-semibold text-primary flex items-center gap-1 group">
+                                        Lire l'article <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Article Item 2 -->
+<div class="flex flex-col md:flex-row gap-6 p-5 bg-surface-light dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-xl hover:shadow-md transition-shadow">
+<div class="md:w-48 h-32 flex-shrink-0 bg-center bg-cover rounded-lg overflow-hidden" data-alt="Blue abstract data visualization pattern" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDBHfzKvbqsx1CaF1rHUSn8dC0NjAc5_-rf6KUZYfMO_tsBIlq0TNPFekeinXW4D71k_8BSuaMqrANK1HYNSEGp7kFNIuiovABhG0gnWXqbl5HRSSTvCWLH9MrYMn5EOoHiWhXYMirQOaYdVXfL4MQDS1uwVAKyWTUyQ0ddfP3WPO-R9bX7QLtwwUTSIr2v-XVzf5DG0qTzPZ_mFXTF2xetzO71ead3y18w2Rju3eeCGD-vxBlYQ_VLHuF9_rKMeWQbOFEI7W9Cw8lP");'>
+</div>
+<div class="flex-1 flex flex-col justify-between">
+<div>
+<div class="flex items-center gap-3 mb-2">
+<span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-600 text-[10px] font-bold uppercase rounded tracking-wider">Maintenance</span>
+<span class="text-[#537393] text-xs">• Mis à jour hier</span>
+</div>
+<h5 class="text-lg font-bold text-[#0f141a] dark:text-white mb-2 hover:text-primary cursor-pointer transition-colors">
+                                        Guide de réinitialisation des accès administrateur Niveau 2
+                                    </h5>
+<p class="text-[#537393] dark:text-slate-400 text-sm line-clamp-2">
+                                        En cas de perte de clé 2FA, suivez ce protocole rigoureux pour restaurer les accès sans compromettre l'intégrité de la plateforme...
+                                    </p>
+</div>
+<div class="mt-4 flex items-center justify-between">
+<div class="flex -space-x-2">
+<div class="size-6 rounded-full border border-white dark:border-surface-dark bg-cover bg-center" data-alt="Author 3" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB13Sggjq3WOaDtVDRsGrgGVw4KweoCX-FKHywQj8cdPiNhilOH98fjaMR7nPZz2TbSByVQVipeOhWpE-jFuBmiYyVTfXReYgHiiZmGGXeicS6H51xX6WEtjXqG6rNeqM8KsITHYwCnLCBb32LzoqvzSNmBPsf7DahwCOCUKfGFmAqvPVKiVRe7x1k5YCQTxGZnqR0JcKavMHtxmly8rJ2fbb_FZMOh9ZQO0l3dp2TLmpyuCfoW3SZcwxf_T4XemkYES0bLhzG8voh9");'></div>
+</div>
+<button class="text-sm font-semibold text-primary flex items-center gap-1 group">
+                                        Lire l'article <span class="material-symbols-outlined text-sm transition-transform group-hover:translate-x-1">arrow_forward</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</section>
+</div>
+<!-- Right Column: Sidebar -->
+<div class="xl:col-span-4 space-y-8">
+<!-- Quick Search / Filter for Sidebar -->
+<div class="bg-primary/5 rounded-xl p-6 border border-primary/10">
+<h4 class="text-sm font-bold text-primary uppercase tracking-widest mb-4">Besoin d'aide rapide ?</h4>
+<p class="text-[#537393] text-sm mb-4">Consultez notre assistant de documentation intelligent.</p>
+<button class="w-full bg-white dark:bg-surface-dark border border-primary/20 text-primary py-2 rounded-lg font-bold text-sm hover:bg-primary/5 transition-all">
+                        Lancer l'assistant
+                    </button>
+</div>
+<!-- Trending / Most Viewed -->
+<section class="bg-surface-light dark:bg-surface-dark rounded-xl border border-border-light dark:border-border-dark overflow-hidden">
+<div class="p-5 border-b border-border-light dark:border-border-dark flex items-center justify-between">
+<h4 class="font-bold text-[#0f141a] dark:text-white">Les plus consultés</h4>
+<span class="material-symbols-outlined text-amber-500 text-lg">trending_up</span>
+</div>
+<div class="divide-y divide-border-light dark:divide-border-dark">
+<a class="block p-4 hover:bg-background-light dark:hover:bg-background-dark/30 transition-colors" href="#">
+<p class="text-sm font-semibold text-[#0f141a] dark:text-white line-clamp-1 mb-1">Guide de connexion Admin sécurisée</p>
+<span class="text-[11px] text-[#537393]">1.2k vues • Support</span>
+</a>
+<a class="block p-4 hover:bg-background-light dark:hover:bg-background-dark/30 transition-colors" href="#">
+<p class="text-sm font-semibold text-[#0f141a] dark:text-white line-clamp-1 mb-1">Remboursements transactions erronées</p>
+<span class="text-[11px] text-[#537393]">840 vues • Litiges</span>
+</a>
+<a class="block p-4 hover:bg-background-light dark:hover:bg-background-dark/30 transition-colors" href="#">
+<p class="text-sm font-semibold text-[#0f141a] dark:text-white line-clamp-1 mb-1">Configuration des webhooks</p>
+<span class="text-[11px] text-[#537393]">520 vues • Technique</span>
+</a>
+</div>
+<div class="p-4 bg-background-light/50 dark:bg-background-dark/20 text-center">
+<button class="text-xs font-bold text-primary uppercase tracking-tighter">Voir toutes les statistiques</button>
+</div>
+</section>
+<!-- Tags Cloud -->
+<section>
+<h4 class="font-bold text-[#0f141a] dark:text-white mb-4">Mots-clés populaires</h4>
+<div class="flex flex-wrap gap-2">
+<span class="px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full text-xs text-[#537393] hover:border-primary cursor-pointer transition-all">#KYC</span>
+<span class="px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full text-xs text-[#537393] hover:border-primary cursor-pointer transition-all">#Remboursement</span>
+<span class="px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full text-xs text-[#537393] hover:border-primary cursor-pointer transition-all">#API</span>
+<span class="px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full text-xs text-[#537393] hover:border-primary cursor-pointer transition-all">#Sécurité</span>
+<span class="px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full text-xs text-[#537393] hover:border-primary cursor-pointer transition-all">#Bugs</span>
+<span class="px-3 py-1 bg-white dark:bg-surface-dark border border-border-light dark:border-border-dark rounded-full text-xs text-[#537393] hover:border-primary cursor-pointer transition-all">#Workflow</span>
+</div>
+</section>
+<!-- Maintenance Alert -->
+<div class="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 p-5 rounded-xl">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-amber-600">info</span>
+<div>
+<p class="text-sm font-bold text-amber-900 dark:text-amber-400 mb-1">Mise à jour système</p>
+<p class="text-xs text-amber-800 dark:text-amber-500/80 leading-relaxed">
+                                Les guides pour la version 5.0 seront disponibles dès lundi prochain. Les anciennes procédures resteront archivées.
+                            </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Meta -->
+<footer class="mt-20 border-t border-border-light dark:border-border-dark py-10 px-10 text-center">
+<p class="text-[#537393] text-sm">© 2024 BAIBEBALO Internal Admin • Documentation v4.8.2</p>
+</footer>
+</body></html>

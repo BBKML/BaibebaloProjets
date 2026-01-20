@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestion des Codes Promo Globaux - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#196ee6",
+                        "background-light": "#fafaf9",
+                        "background-dark": "#1c1e22",
+                        "surface-dark": "#243347",
+                        "border-dark": "#344865",
+                        "text-muted": "#93a9c8"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen">
+<div class="layout-container flex h-full grow flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark bg-background-light dark:bg-background-dark px-10 py-3 sticky top-0 z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4">
+<div class="size-6 text-primary">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em]">BAIBEBALO Admin</h2>
+</div>
+<label class="flex flex-col min-w-40 h-10 max-w-64">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-text-muted flex border-none bg-surface-dark items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-surface-dark text-white focus:ring-0 h-full placeholder:text-text-muted px-4 rounded-r-lg text-sm font-normal" placeholder="Rechercher un code..." value=""/>
+</div>
+</label>
+</div>
+<div class="flex flex-1 justify-end gap-8">
+<nav class="flex items-center gap-9">
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-medium leading-normal text-primary" href="#">Marketing</a>
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Produits</a>
+<a class="text-sm font-medium leading-normal hover:text-primary transition-colors" href="#">Commandes</a>
+</nav>
+<div class="flex items-center gap-4">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-10 px-4 bg-primary text-white text-sm font-bold leading-normal tracking-[0.015em] hover:bg-blue-600 transition-all shadow-lg shadow-primary/20">
+<span class="truncate">Créer un Code Promo</span>
+</button>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-border-dark" data-alt="Admin user avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDf7vFsbeIHVzdeQe9r2MCovx3jZEfVTVLXbQRPLyf7LQUrdLrye4LRBEw8jicQwxc0hhgEkdQ09Qzk05smiiRjX1LTg-mKqYJPoAUyStRE2tuxrT3LxJMCmxdqbwWr0Fyzz6FHpQEzNhHcvHO8ZtB4rqOgemR4j2Y1L4kNmDXLWY8Cw5u42u_RXfP1HcFnBTvRiPxtKrM0b0O9AdGx6iaBjv9hBHeJPBUNPn_gyqYD3STv3GzXut996sQbajWV7V4mjKg3BDP6lUOW");'></div>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-[1280px] mx-auto w-full px-10 py-8">
+<!-- Page Heading -->
+<div class="flex flex-wrap justify-between items-end gap-3 mb-8">
+<div class="flex flex-col gap-2">
+<h1 class="text-4xl font-black leading-tight tracking-[-0.033em]">Gestion des Codes Promo Globaux</h1>
+<p class="text-text-muted text-base font-normal">Configurez et suivez l'efficacité de vos campagnes de coupons marketing.</p>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 rounded-lg border border-border-dark hover:bg-surface-dark transition-colors text-sm font-medium">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+                        Exporter
+                    </button>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-border-dark bg-surface-dark/30 backdrop-blur-sm">
+<div class="flex justify-between items-start">
+<p class="text-text-muted text-sm font-medium uppercase tracking-wider">Économies Totales Utilisateurs</p>
+<span class="material-symbols-outlined text-primary">savings</span>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-white tracking-tight text-3xl font-bold">12 450,00 €</p>
+<p class="text-[#0bda5e] text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                            12%
+                        </p>
+</div>
+<div class="mt-2 h-1 w-full bg-border-dark rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-border-dark bg-surface-dark/30 backdrop-blur-sm">
+<div class="flex justify-between items-start">
+<p class="text-text-muted text-sm font-medium uppercase tracking-wider">Taux de Conversion Promo</p>
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-white tracking-tight text-3xl font-bold">18.5%</p>
+<p class="text-[#0bda5e] text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-[16px]">trending_up</span>
+                            2.4%
+                        </p>
+</div>
+<div class="mt-2 h-1 w-full bg-border-dark rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[40%]"></div>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-border-dark bg-surface-dark/30 backdrop-blur-sm">
+<div class="flex justify-between items-start">
+<p class="text-text-muted text-sm font-medium uppercase tracking-wider">Codes Actifs</p>
+<span class="material-symbols-outlined text-primary">confirmation_number</span>
+</div>
+<div class="flex items-baseline gap-2">
+<p class="text-white tracking-tight text-3xl font-bold">24</p>
+<p class="text-text-muted text-sm font-medium">sur 150 créés</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-6 border border-border-dark bg-primary/10 backdrop-blur-sm border-primary/20">
+<div class="flex justify-between items-start">
+<p class="text-primary text-sm font-bold uppercase tracking-wider">Meilleur Code</p>
+<span class="material-symbols-outlined text-primary">star</span>
+</div>
+<div class="flex flex-col">
+<p class="text-white tracking-tight text-2xl font-bold">WELCOME20</p>
+<p class="text-text-muted text-sm font-medium">842 utilisations ce mois</p>
+</div>
+</div>
+</div>
+<!-- Table Section -->
+<div class="bg-surface-dark/20 border border-border-dark rounded-xl overflow-hidden backdrop-blur-sm">
+<!-- Filters/Tabs Row -->
+<div class="flex items-center justify-between border-b border-border-dark px-6">
+<div class="flex gap-8">
+<a class="flex items-center border-b-[3px] border-primary text-white py-4 px-1" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Tous les codes</p>
+<span class="ml-2 bg-surface-dark px-2 py-0.5 rounded text-[10px]">152</span>
+</a>
+<a class="flex items-center border-b-[3px] border-transparent text-text-muted py-4 px-1 hover:text-white transition-colors" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Actifs</p>
+</a>
+<a class="flex items-center border-b-[3px] border-transparent text-text-muted py-4 px-1 hover:text-white transition-colors" href="#">
+<p class="text-sm font-bold tracking-[0.015em]">Expirés</p>
+</a>
+</div>
+<div class="flex items-center gap-4 py-2">
+<button class="p-2 text-text-muted hover:text-white transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</div>
+<!-- Actual Table -->
+<div class="@container">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-dark/40">
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Code Promo</th>
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Type</th>
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Valeur</th>
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Utilisation</th>
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Validité</th>
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Statut</th>
+<th class="px-6 py-4 text-text-muted text-xs font-bold uppercase tracking-wider">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-dark/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">W20</div>
+<span class="text-white font-semibold">WELCOME20</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-200">
+                                            Pourcentage
+                                        </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-primary font-bold">20%</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1.5 w-32">
+<div class="flex justify-between text-[10px] text-text-muted font-bold">
+<span>60</span>
+<span>100</span>
+</div>
+<div class="h-1.5 w-full bg-border-dark rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[60%]"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="text-xs text-text-muted">
+<p class="font-medium text-slate-300">01 Jan 2024</p>
+<p class="text-[10px]">au 31 Déc 2024</p>
+</div>
+</td>
+<td class="px-6 py-5">
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+<span class="ml-2 text-xs font-bold text-[#0bda5e]">ACTIF</span>
+</label>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-slate-700 rounded text-text-muted hover:text-white">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 hover:bg-red-500/20 rounded text-text-muted hover:text-red-500">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-dark/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-orange-500/20 flex items-center justify-center text-orange-500 font-bold text-xs">S5</div>
+<span class="text-white font-semibold">SUMMER5</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-200">
+                                            Remise Fixe
+                                        </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-primary font-bold">5.00 €</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1.5 w-32">
+<div class="flex justify-between text-[10px] text-text-muted font-bold">
+<span>12</span>
+<span>Unlimited</span>
+</div>
+<div class="h-1.5 w-full bg-border-dark rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[12%]"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="text-xs text-text-muted">
+<p class="font-medium text-slate-300">01 Juin 2024</p>
+<p class="text-[10px]">au 31 Août 2024</p>
+</div>
+</td>
+<td class="px-6 py-5">
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-9 h-5 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-primary"></div>
+<span class="ml-2 text-xs font-bold text-text-muted">OFF</span>
+</label>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-slate-700 rounded text-text-muted hover:text-white">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+</button>
+<button class="p-1.5 hover:bg-red-500/20 rounded text-text-muted hover:text-red-500">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-dark/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded bg-red-500/20 flex items-center justify-center text-red-500 font-bold text-xs">W10</div>
+<span class="text-white font-semibold">WINTER10</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-200">
+                                            Pourcentage
+                                        </span>
+</td>
+<td class="px-6 py-5">
+<span class="text-primary font-bold">10%</span>
+</td>
+<td class="px-6 py-5">
+<div class="flex flex-col gap-1.5 w-32">
+<div class="flex justify-between text-[10px] text-text-muted font-bold">
+<span>100</span>
+<span>100</span>
+</div>
+<div class="h-1.5 w-full bg-border-dark rounded-full overflow-hidden">
+<div class="bg-red-500 h-full w-full"></div>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="text-xs text-text-muted">
+<p class="font-medium text-slate-300 italic line-through">01 Nov 2023</p>
+<p class="text-[10px]">Expiré</p>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-red-500 text-[18px]">event_busy</span>
+<span class="text-xs font-bold text-red-500 uppercase">Expiré</span>
+</div>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-slate-700 rounded text-text-muted hover:text-white" title="Dupliquer">
+<span class="material-symbols-outlined text-[18px]">content_copy</span>
+</button>
+<button class="p-1.5 hover:bg-red-500/20 rounded text-text-muted hover:text-red-500">
+<span class="material-symbols-outlined text-[18px]">delete</span>
+</button>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Pagination Footer -->
+<div class="flex items-center justify-between px-6 py-4 border-t border-border-dark bg-surface-dark/10">
+<p class="text-xs text-text-muted">Affichage de 1 à 3 sur 152 codes</p>
+<div class="flex items-center gap-2">
+<button class="p-1 rounded hover:bg-surface-dark text-text-muted" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<button class="size-8 rounded bg-primary text-white text-xs font-bold">1</button>
+<button class="size-8 rounded hover:bg-surface-dark text-white text-xs font-bold">2</button>
+<button class="size-8 rounded hover:bg-surface-dark text-white text-xs font-bold">3</button>
+<button class="p-1 rounded hover:bg-surface-dark text-text-muted">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</div>
+<!-- Floating Action Button for Mobile Context (hidden on desktop usually but kept for modern feel) -->
+<div class="fixed bottom-8 right-8 lg:hidden">
+<button class="size-14 rounded-full bg-primary shadow-xl flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-[30px]">add</span>
+</button>
+</div>
+</body></html>

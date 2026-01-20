@@ -1,0 +1,187 @@
+# ══════════════════════════════════════════════════════════════
+# BAIBEBALO Backend - .gitignore
+# ══════════════════════════════════════════════════════════════
+
+# ================================
+# Environment & Configuration
+# ================================
+.env
+.env.local
+.env.production
+.env.*.local
+config/firebase-service-account.json
+config/*.pem
+config/*.key
+
+# ================================
+# Dependencies
+# ================================
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# ================================
+# Logs
+# ================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ================================
+# Testing & Coverage
+# ================================
+coverage/
+*.lcov
+.nyc_output
+.grunt
+lib-cov
+.jest-cache/
+
+# ================================
+# Uploads & Generated Files
+# ================================
+uploads/
+temp/
+tmp/
+dist/
+build/
+*.pdf
+*.xlsx
+*.docx
+
+# ================================
+# OS Files
+# ================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.directory
+.Trash-*
+.nfs*
+
+# ================================
+# IDEs & Editors
+# ================================
+# VSCode
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+.history/
+
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+[._]*.s[a-v][a-z]
+[._]*.sw[a-p]
+[._]s[a-rt-v][a-z]
+[._]ss[a-gi-z]
+[._]sw[a-p]
+Session.vim
+Sessionx.vim
+.netrwhist
+
+# ================================
+# Database
+# ================================
+*.sql
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+backups/
+
+# ================================
+# Docker
+# ================================
+docker-compose.override.yml
+.dockerignore
+
+# ================================
+# PM2
+# ================================
+.pm2/
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# ================================
+# Sécurité & Credentials
+# ================================
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+credentials.json
+secrets/
+
+# ================================
+# Documentation générée
+# ================================
+docs/generated/
+api-docs/
+
+# ================================
+# Misc
+# ================================
+.cache/
+.temp/
+.sass-cache/
+*.swp
+*.swo
+*.bak
+*.orig

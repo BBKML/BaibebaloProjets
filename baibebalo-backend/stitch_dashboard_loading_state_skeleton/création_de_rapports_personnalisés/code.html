@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Création de Rapports Personnalisés - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#198cb3",
+                        "background-light": "#f9fafb",
+                        "background-dark": "#121d21",
+                        "card-dark": "#1c2a2f",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .step-active .icon-container {
+            background-color: #198cb3;
+            color: white;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #253e46;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-background-dark shrink-0">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary rounded-lg p-2 flex items-center justify-center">
+<span class="material-symbols-outlined text-white">analytics</span>
+</div>
+<div>
+<h1 class="font-bold text-sm tracking-tight">BAIBEBALO Admin</h1>
+<p class="text-[10px] text-primary uppercase font-bold tracking-widest">Phase 5: Rapports</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 overflow-y-auto custom-scrollbar">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors group" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">package_2</span>
+<span class="text-sm font-medium">Produits</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">bar_chart</span>
+<span class="text-sm font-bold">Rapports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 px-2">
+<div class="size-8 rounded-full bg-slate-300 dark:bg-slate-700 overflow-hidden">
+<img class="w-full h-full object-cover" data-alt="Photo de profil de l'administrateur" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCLBya9z3jzXCFv8MNBuh1gGD38rLkKQQdPmEiOVgGIqDyO9LOUmJK2qWqnRnkGiOKcEXdDfQor1w9Gz-FsLko_9LWDVDALASiT0qSioDnfK-TMDpha9HKtLDXRDY7OLdwtREuNsuVdtSeQTUnm-KsCF7-Y09xgdLt-qsfZsvuLE9IsW9dzYzzeSiR6d5JzQMRyx_aQv9BC8_ME76G8L9RPZ7rAGdHmmQjpKBU9CZbesSlrgFCTTgYQK-iDMA9IYyNzaj95nPZdgsSP"/>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-xs font-bold truncate">Admin Central</p>
+<p class="text-[10px] text-slate-500 truncate">admin@baibebalo.com</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area: Wizard Layout -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- Page Header -->
+<header class="h-20 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white dark:bg-background-dark/50 backdrop-blur-md">
+<div class="flex flex-col">
+<h2 class="text-xl font-black text-slate-900 dark:text-white tracking-tight">Création de Rapports Personnalisés</h2>
+<p class="text-xs text-slate-500 dark:text-[#95bac6]">Configurez et planifiez vos analyses de données en temps réel.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="px-4 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-all">
+                        Annuler
+                    </button>
+<button class="px-6 py-2 bg-primary text-white text-sm font-bold rounded-lg shadow-lg shadow-primary/20 hover:brightness-110 transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">bolt</span>
+                        Générer maintenant
+                    </button>
+</div>
+</header>
+<!-- Wizard Columns -->
+<div class="flex-1 flex overflow-hidden">
+<!-- Left Panel: Configuration Wizard -->
+<div class="w-[450px] border-r border-slate-200 dark:border-slate-800 flex flex-col bg-white dark:bg-background-dark overflow-y-auto custom-scrollbar">
+<!-- Stepper Progress -->
+<div class="px-8 py-8 space-y-8">
+<!-- Step 1: Metrics -->
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="size-8 rounded-full bg-primary flex items-center justify-center text-white text-xs font-bold">1</div>
+<h3 class="font-bold text-lg dark:text-white">Sélection des indicateurs</h3>
+</div>
+<div class="grid grid-cols-1 gap-3 pl-12">
+<label class="group flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-card-dark/50 cursor-pointer hover:border-primary/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-500">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div>
+<p class="text-sm font-bold dark:text-white">Chiffre d'affaires</p>
+<p class="text-[11px] text-slate-500 dark:text-[#95bac6]">Revenus totaux générés</p>
+</div>
+</div>
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent size-5" type="checkbox"/>
+</label>
+<label class="group flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-card-dark/50 cursor-pointer hover:border-primary/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-amber-500/10 text-amber-500">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<div>
+<p class="text-sm font-bold dark:text-white">Volume de commandes</p>
+<p class="text-[11px] text-slate-500 dark:text-[#95bac6]">Nombre total de transactions</p>
+</div>
+</div>
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent size-5" type="checkbox"/>
+</label>
+<label class="group flex items-center justify-between p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-card-dark/50 cursor-pointer hover:border-primary/50 transition-all">
+<div class="flex items-center gap-3">
+<div class="p-2 rounded-lg bg-blue-500/10 text-blue-500">
+<span class="material-symbols-outlined">person_add</span>
+</div>
+<div>
+<p class="text-sm font-bold dark:text-white">Nouveaux utilisateurs</p>
+<p class="text-[11px] text-slate-500 dark:text-[#95bac6]">Inscriptions sur la période</p>
+</div>
+</div>
+<input class="rounded border-slate-300 dark:border-slate-600 text-primary focus:ring-primary bg-transparent size-5" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- Step 2: Visualizations -->
+<div class="space-y-4">
+<div class="flex items-center gap-4">
+<div class="size-8 rounded-full border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold">2</div>
+<h3 class="font-bold text-lg dark:text-white">Mise en page &amp; Visualisation</h3>
+</div>
+<div class="grid grid-cols-3 gap-3 pl-12">
+<button class="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-primary bg-primary/5 transition-all">
+<span class="material-symbols-outlined text-primary text-3xl">show_chart</span>
+<span class="text-[11px] font-bold dark:text-white uppercase tracking-tighter">Courbe</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-transparent transition-all">
+<span class="material-symbols-outlined text-slate-500 text-3xl">bar_chart_4_bars</span>
+<span class="text-[11px] font-bold dark:text-white uppercase tracking-tighter">Barres</span>
+</button>
+<button class="flex flex-col items-center gap-3 p-4 rounded-xl border-2 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700 bg-transparent transition-all">
+<span class="material-symbols-outlined text-slate-500 text-3xl">table_chart</span>
+<span class="text-[11px] font-bold dark:text-white uppercase tracking-tighter">Tableau</span>
+</button>
+</div>
+</div>
+<!-- Step 3: Schedule -->
+<div class="space-y-4 pb-12">
+<div class="flex items-center gap-4">
+<div class="size-8 rounded-full border-2 border-slate-200 dark:border-slate-700 flex items-center justify-center text-slate-400 text-xs font-bold">3</div>
+<h3 class="font-bold text-lg dark:text-white">Planification automatique</h3>
+</div>
+<div class="pl-12 space-y-4">
+<div>
+<label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Fréquence d'envoi</label>
+<div class="flex p-1 bg-slate-100 dark:bg-card-dark rounded-lg">
+<button class="flex-1 py-2 text-xs font-bold rounded-md transition-all">Quotidien</button>
+<button class="flex-1 py-2 text-xs font-bold bg-white dark:bg-slate-700 shadow-sm rounded-md transition-all">Hebdo</button>
+<button class="flex-1 py-2 text-xs font-bold rounded-md transition-all">Mensuel</button>
+</div>
+</div>
+<div>
+<label class="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-2">Destinataires (email)</label>
+<input class="w-full bg-slate-100 dark:bg-card-dark border-none rounded-lg text-sm focus:ring-2 focus:ring-primary py-3" placeholder="marketing@baibebalo.com, admin@baibebalo.com" type="text"/>
+</div>
+<button class="w-full py-4 bg-slate-800 dark:bg-slate-700 text-white rounded-xl font-bold flex items-center justify-center gap-3 hover:bg-slate-900 transition-all border border-slate-700">
+<span class="material-symbols-outlined">calendar_month</span>
+                                    Planifier le rapport
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Panel: Live Preview -->
+<div class="flex-1 bg-slate-50 dark:bg-[#0d1518] p-10 overflow-y-auto custom-scrollbar flex flex-col items-center">
+<!-- Floating Preview Label -->
+<div class="mb-8 flex items-center gap-2 px-4 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-[10px] font-black uppercase tracking-[0.2em]">
+<span class="relative flex h-2 w-2">
+<span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-primary opacity-75"></span>
+<span class="relative inline-flex rounded-full h-2 w-2 bg-primary"></span>
+</span>
+                        Aperçu en temps réel
+                    </div>
+<!-- Report Mockup Card -->
+<div class="w-full max-w-2xl bg-white dark:bg-[#1c2a2f] shadow-2xl rounded-2xl border border-slate-200 dark:border-slate-800 p-8 space-y-8 min-h-[700px]">
+<!-- Report Header -->
+<div class="flex justify-between items-start border-b border-slate-100 dark:border-slate-800 pb-6">
+<div>
+<h4 class="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Rapport d'activité hebdomadaire</h4>
+<p class="text-sm text-slate-500">Période : 01 Oct — 07 Oct 2023</p>
+</div>
+<div class="h-10 w-24 bg-slate-100 dark:bg-slate-800 rounded flex items-center justify-center">
+<span class="text-[10px] font-bold text-slate-400 italic">LOGOTYPE</span>
+</div>
+</div>
+<!-- KPI Summary -->
+<div class="grid grid-cols-2 gap-4">
+<div class="p-6 rounded-2xl bg-slate-50 dark:bg-[#121d21] border border-slate-100 dark:border-slate-800">
+<p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Revenu Total</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-black text-emerald-500">42,890€</span>
+<span class="text-[10px] font-bold text-emerald-500/80">+12% vs last week</span>
+</div>
+</div>
+<div class="p-6 rounded-2xl bg-slate-50 dark:bg-[#121d21] border border-slate-100 dark:border-slate-800">
+<p class="text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">Commandes</p>
+<div class="flex items-baseline gap-2">
+<span class="text-2xl font-black text-amber-500">1,248</span>
+<span class="text-[10px] font-bold text-amber-500/80">+5% vs last week</span>
+</div>
+</div>
+</div>
+<!-- Main Visualization: Trend Line Placeholder -->
+<div class="space-y-4">
+<div class="flex items-center justify-between">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Évolution des ventes</p>
+<div class="flex gap-2">
+<div class="size-2 rounded-full bg-primary"></div>
+<div class="size-2 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+</div>
+</div>
+<div class="w-full h-48 bg-slate-50 dark:bg-[#121d21] rounded-2xl border border-slate-100 dark:border-slate-800 flex items-end p-4 gap-2">
+<!-- Abstract Bar chart representing line graph points for minimalist look -->
+<div class="flex-1 bg-primary/20 rounded-t-lg h-[40%]"></div>
+<div class="flex-1 bg-primary/30 rounded-t-lg h-[60%]"></div>
+<div class="flex-1 bg-primary/40 rounded-t-lg h-[55%]"></div>
+<div class="flex-1 bg-primary/60 rounded-t-lg h-[80%]"></div>
+<div class="flex-1 bg-primary/50 rounded-t-lg h-[65%]"></div>
+<div class="flex-1 bg-primary/80 rounded-t-lg h-[95%]"></div>
+<div class="flex-1 bg-primary rounded-t-lg h-[85%]"></div>
+</div>
+</div>
+<!-- Data Breakdown Skeleton -->
+<div class="space-y-4">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Détail par jour</p>
+<div class="space-y-2">
+<div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-slate-200"></div>
+<span class="text-xs text-slate-600 dark:text-slate-400">Lundi 01 Oct</span>
+</div>
+<span class="text-xs font-bold">5,200€</span>
+</div>
+<div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-slate-200"></div>
+<span class="text-xs text-slate-600 dark:text-slate-400">Mardi 02 Oct</span>
+</div>
+<span class="text-xs font-bold">6,140€</span>
+</div>
+<div class="flex items-center justify-between p-3 border-b border-slate-100 dark:border-slate-800 opacity-50">
+<div class="flex items-center gap-3">
+<div class="size-2 rounded-full bg-slate-200"></div>
+<span class="text-xs text-slate-600 dark:text-slate-400">Mercredi 03 Oct</span>
+</div>
+<span class="text-xs font-bold">...</span>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<div class="pt-8 text-center">
+<p class="text-[10px] text-slate-400 uppercase tracking-widest font-medium">Généré automatiquement par BAIBEBALO Admin Intelligence</p>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#22252a",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121715] dark:text-white transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto overflow-hidden shadow-2xl bg-white dark:bg-background-dark">
+<!-- TopAppBar Area -->
+<div class="flex items-center justify-end px-6 pt-12 pb-2">
+<button class="text-primary text-base font-bold leading-normal tracking-wide hover:opacity-80 transition-opacity">
+                Passer
+            </button>
+</div>
+<!-- Main Content Container -->
+<div class="flex-1 flex flex-col px-6">
+<!-- Hero Image Section -->
+<div class="mt-4 @container">
+<div class="relative w-full aspect-[4/5] rounded-xl overflow-hidden shadow-lg border border-white/10">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-700 hover:scale-105" data-alt="Delicious traditional Ivorian Garba dish with fried tuna and cassava semolina" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCfd58L7VuPhl44m-jj-Xh5HxG2kI64VnoQLdPDgr0rGWui1K-cLSBbQCguHQC-eNUAsna8ABtCdvCi656hJlq5wknbZl4IR0DbBt0RjX4ehIazQ-SHIS273vbOYIW_GwRyDrzB39TDmLYGA59XmyyIgPZlchXhtt-K6qvNdmAS7FR7RyYVAUXOVF0ViYXFcpKwRSLDdjzZhsPkmaekSIBj2bL99B4AHgpMPuor1dJIG5x-v_zslKbuLpc-prsM98LekgSK1Uvh-zoy");'>
+</div>
+<!-- Subtle Gradient Overlay for depth -->
+<div class="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent"></div>
+</div>
+</div>
+<!-- Headline and Subtitle -->
+<div class="mt-10 space-y-3">
+<h1 class="text-[#121715] dark:text-white tracking-tight text-3xl font-extrabold leading-tight text-center">
+                    Bienvenue sur <span class="text-primary">BAIBEBALO</span>
+</h1>
+<p class="text-[#4b5563] dark:text-gray-400 text-lg font-medium leading-relaxed text-center px-4">
+                    Vos plats préférés livrés chez vous en un clic.
+                </p>
+</div>
+</div>
+<!-- Bottom Navigation Area -->
+<div class="px-6 pb-12 flex flex-col items-center gap-8">
+<!-- Page Indicators -->
+<div class="flex flex-row items-center justify-center gap-2">
+<div class="h-2 w-6 rounded-full bg-primary transition-all duration-300"></div>
+<div class="h-2 w-2 rounded-full bg-[#dce5e2] dark:bg-gray-700 transition-all duration-300"></div>
+<div class="h-2 w-2 rounded-full bg-[#dce5e2] dark:bg-gray-700 transition-all duration-300"></div>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full bg-primary text-white py-4 px-6 rounded-xl font-bold text-lg shadow-[0_8px_20px_rgba(34,195,142,0.3)] active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                Suivant
+                <span class="material-symbols-outlined font-bold text-xl">arrow_forward</span>
+</button>
+</div>
+<!-- Decorative element for a "designed" feel -->
+<div class="absolute -bottom-24 -left-24 w-64 h-64 bg-primary/5 rounded-full blur-3xl pointer-events-none"></div>
+<div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/10 rounded-full blur-3xl pointer-events-none"></div>
+</div>
+</body></html>

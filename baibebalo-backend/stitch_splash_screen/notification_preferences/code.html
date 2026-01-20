@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Préférences de notification - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c5b8b",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#21242c",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-switch:checked + div {
+            background-color: #3c5b8b;
+            justify-content: flex-end;
+        }
+        .ios-switch + div {
+            transition: all 0.2s ease-in-out;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#131416] dark:text-gray-100 min-h-screen pb-12">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-3 border-b border-gray-100 dark:border-gray-800">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-primary">arrow_back_ios_new</span>
+</button>
+<h1 class="flex-1 text-center text-lg font-bold tracking-tight pr-10">Préférences de notification</h1>
+</header>
+<main class="max-w-md mx-auto px-4 mt-6 space-y-6">
+<!-- Global Master Toggle -->
+<section class="bg-white dark:bg-[#2c313a] rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+<div class="flex items-center gap-4 px-4 py-4 justify-between">
+<div class="flex items-center gap-4">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 dark:bg-primary/20 text-primary shrink-0 size-10">
+<span class="material-symbols-outlined">notifications_active</span>
+</div>
+<p class="text-base font-bold leading-normal">Activer toutes les notifications</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Commandes Section -->
+<section class="space-y-2">
+<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-1">Commandes</h3>
+<div class="bg-white dark:bg-[#2c313a] rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-800">
+<!-- Status -->
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Statut de la commande</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Mises à jour sur la préparation</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+<!-- Tracking -->
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Suivi de livraison</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Alertes en temps réel sur le livreur</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+<!-- Reviews -->
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Avis et commentaires</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Notez votre expérience culinaire</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Promotions Section -->
+<section class="space-y-2">
+<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-1">Promotions</h3>
+<div class="bg-white dark:bg-[#2c313a] rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-800">
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Offres spéciales</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Codes promos et ventes flash</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Nouveaux restaurants</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Découvrez de nouvelles saveurs</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Fidélité Section -->
+<section class="space-y-2">
+<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-1">Fidélité</h3>
+<div class="bg-white dark:bg-[#2c313a] rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 divide-y divide-gray-50 dark:divide-gray-800">
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Points cumulés</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Solde de points Baibebalo</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+<div class="flex items-center gap-4 px-4 py-3.5 justify-between">
+<div class="flex flex-col">
+<p class="text-base font-semibold leading-tight">Récompenses disponibles</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Cadeaux et bons d'achat</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input checked="" class="ios-switch invisible absolute peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+</div>
+</section>
+<!-- Mode Silencieux Section -->
+<section class="space-y-2">
+<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 px-1">Options Avancées</h3>
+<div class="bg-white dark:bg-[#2c313a] rounded-xl shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden divide-y divide-gray-50 dark:divide-gray-800">
+<div class="flex items-center gap-4 px-4 py-4 justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">do_not_disturb_on</span>
+<p class="text-base font-semibold leading-tight">Mode silencieux</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f1f2f3] dark:bg-gray-700 p-0.5">
+<input class="ios-switch invisible absolute peer" id="silent-mode" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md flex transition-all peer-checked:translate-x-5"></div>
+</label>
+</div>
+<!-- Time Selection -->
+<div class="bg-gray-50/50 dark:bg-gray-800/30 px-4 py-3 flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium text-gray-600 dark:text-gray-300">De</span>
+<div class="bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold text-primary">
+                            22:00
+                        </div>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm font-medium text-gray-600 dark:text-gray-300">À</span>
+<div class="bg-gray-200 dark:bg-gray-700 px-3 py-1.5 rounded-lg text-sm font-bold text-primary">
+                            07:00
+                        </div>
+</div>
+</div>
+</div>
+<p class="px-2 text-[11px] leading-relaxed text-gray-400 dark:text-gray-500">
+                Pendant le mode silencieux, les notifications ne produiront ni son ni vibration, sauf pour les alertes de livraison critiques.
+            </p>
+</section>
+<!-- Footer Logo/Branding -->
+<div class="flex flex-col items-center justify-center pt-8 pb-4 opacity-30 grayscale">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-white text-xl">restaurant</span>
+</div>
+<p class="text-[10px] font-extrabold uppercase tracking-[0.2em]">Baibebalo</p>
+</div>
+</main>
+<!-- Fixed Action Button (Optional but nice for UX) -->
+<div class="fixed bottom-6 right-6 lg:hidden">
+<button class="bg-primary text-white shadow-xl flex items-center justify-center size-14 rounded-full active:scale-95 transition-transform">
+<span class="material-symbols-outlined">save</span>
+</button>
+</div>
+</body></html>

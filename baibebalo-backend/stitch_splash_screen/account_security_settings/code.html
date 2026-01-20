@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Sécurité du compte - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#28518a",
+                        "background-light": "#fafafa",
+                        "background-dark": "#121417",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#1f252e",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121417] dark:text-white transition-colors duration-200">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto overflow-x-hidden border-x border-gray-100 dark:border-gray-800 shadow-sm bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center bg-white dark:bg-surface-dark p-4 pb-2 border-b border-gray-100 dark:border-gray-800">
+<button aria-label="Retour" class="text-[#121417] dark:text-white flex size-12 shrink-0 items-center justify-start focus:outline-none">
+<span class="material-symbols-outlined text-[28px]">arrow_back</span>
+</button>
+<h2 class="text-[#121417] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Sécurité du compte</h2>
+</header>
+<main class="flex-1 pb-10">
+<!-- Section Header: Authentification -->
+<div class="px-4 pt-6 pb-2">
+<h3 class="text-[#121417] dark:text-white text-sm font-bold uppercase tracking-wider opacity-60">Authentification</h3>
+</div>
+<!-- List of Security Options -->
+<div class="flex flex-col gap-px bg-gray-100 dark:bg-gray-800 mx-0">
+<!-- ListItem: PIN Change -->
+<div class="flex items-center gap-4 bg-white dark:bg-surface-dark px-4 min-h-[84px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-opacity-80 cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-normal line-clamp-1">Changer le code PIN</p>
+<p class="text-[#687382] dark:text-gray-400 text-xs font-normal leading-normal line-clamp-2">Requis pour vos paiements mobile money</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-[#687382] dark:text-gray-400">chevron_right</span>
+</div>
+</div>
+<!-- ListItem: Biometry Toggle -->
+<div class="flex items-center gap-4 bg-white dark:bg-surface-dark px-4 min-h-[84px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">fingerprint</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-normal line-clamp-1">Activer la biométrie</p>
+<p class="text-[#687382] dark:text-gray-400 text-xs font-normal leading-normal line-clamp-2">Utilisez FaceID ou votre empreinte pour vous connecter</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-300">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Section Header: Appareils -->
+<div class="px-4 pt-8 pb-2">
+<h3 class="text-[#121417] dark:text-white text-sm font-bold uppercase tracking-wider opacity-60">Appareils &amp; Sessions</h3>
+</div>
+<div class="flex flex-col gap-px bg-gray-100 dark:bg-gray-800">
+<!-- ListItem: Manage Devices -->
+<div class="flex items-center gap-4 bg-white dark:bg-surface-dark px-4 min-h-[84px] py-3 justify-between hover:bg-gray-50 dark:hover:bg-opacity-80 cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">devices</span>
+</div>
+<div class="flex flex-col justify-center">
+<div class="flex items-center gap-2">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-normal line-clamp-1">Gérer les appareils</p>
+<span class="bg-primary/10 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded-full">2 Actifs</span>
+</div>
+<p class="text-[#687382] dark:text-gray-400 text-xs font-normal leading-normal line-clamp-2">Voir et déconnecter vos sessions actives</p>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-[#687382] dark:text-gray-400">chevron_right</span>
+</div>
+</div>
+</div>
+<!-- Privacy Tip Card -->
+<div class="m-4 mt-8 p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/10">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+<div>
+<h4 class="text-primary text-sm font-bold">Conseil de sécurité</h4>
+<p class="text-[#121417]/70 dark:text-white/70 text-xs mt-1 leading-relaxed">
+                            BAIBEBALO ne vous demandera jamais votre code PIN par SMS ou par téléphone. Ne partagez jamais vos identifiants.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Security Footer -->
+<div class="px-4 mt-4 text-center">
+<p class="text-[#687382] dark:text-gray-500 text-[11px] font-medium">
+                    Dernière modification du PIN : 12 Oct 2023
+                </p>
+<div class="mt-8">
+<button class="text-[#D62828] text-sm font-bold hover:bg-red-50 dark:hover:bg-red-900/20 px-4 py-2 rounded-lg transition-colors">
+                        Supprimer le compte
+                    </button>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Decoration (iOS indicator feel) -->
+<div class="h-8 bg-white dark:bg-surface-dark flex items-center justify-center">
+<div class="w-32 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full"></div>
+</div>
+</div>
+</body></html>

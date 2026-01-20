@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Actions en Masse - Clients | BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#07a5ed",
+                        "accent-orange": "#FF6B35",
+                        "background-light": "#ffffff",
+                        "background-dark": "#14161A",
+                        "surface-dark": "#23262B",
+                        "border-dark": "#2D3139",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #2D3139;
+            border-radius: 10px;
+        }
+        .row-hover:hover {
+            background-color: rgba(7, 165, 237, 0.04);
+        }
+        .floating-action-bar {
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.5);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-40 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-dark px-6 py-3">
+<div class="max-w-[1400px] mx-auto flex items-center justify-between">
+<div class="flex items-center gap-10">
+<!-- Logo BAIBEBALO in Orange -->
+<div class="flex items-center gap-2">
+<div class="w-8 h-8 rounded-lg bg-accent-orange flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">database</span>
+</div>
+<h1 class="text-[#FF6B35] text-xl font-black tracking-tighter">BAIBEBALO</h1>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium" href="#">Dashboard</a>
+<a class="text-primary border-b-2 border-primary py-4 -mb-4 text-sm font-semibold" href="#">Clients</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium" href="#">Analytics</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary transition-colors text-sm font-medium" href="#">Paramètres</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 group-focus-within:text-primary">
+<span class="material-symbols-outlined text-lg">search</span>
+</span>
+<input class="bg-slate-100 dark:bg-surface-dark border-none rounded-full py-2 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-primary placeholder:text-slate-500 transition-all" placeholder="Recherche globale..." type="text"/>
+</div>
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-border-dark rounded-full transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full border-2 border-background-dark"></span>
+</button>
+<div class="h-8 w-8 rounded-full bg-slate-200 dark:bg-border-dark overflow-hidden border border-border-dark">
+<img alt="Admin" class="w-full h-full object-cover" data-alt="Admin profile avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA-NiSBhF5jg-pne1Vt3LDdBNdkxr_YUh8K_0vI8IyW2TpFuv5g6RDR3eKfeKVrNI74Fh_J4GSLZA1-UWZqb-zCh2YZhnHD7_XLqUgahpfQOYN-KZK8m3jKr20uJK0p-1EAEUrs3MV1Aa1z_z_aYeOdOrt48WDAdnRPwRn7lLQcLMS6VG0VgZm6m0CyXE5TucA55L8K8JTBRhO-0px-PANnQnaqmzXwQLE4ZA-Pr1So3G0PgNsK-A2lguE8X1QIFmM61BkLSXAA7Ed3"/>
+</div>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-[1400px] mx-auto w-full px-6 py-8">
+<!-- Breadcrumbs & Heading -->
+<div class="mb-8">
+<div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400 mb-4">
+<a class="hover:text-primary" href="#">Admin</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary" href="#">Gestion Utilisateurs</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-white font-medium">Actions en Masse</span>
+</div>
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div>
+<h2 class="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Actions en Masse - Clients</h2>
+<p class="text-slate-500 dark:text-slate-400 max-w-2xl">Visualisez et gérez votre base d'utilisateurs. Sélectionnez plusieurs lignes pour appliquer des modifications groupées instantanément.</p>
+</div>
+<div class="flex gap-2">
+<button class="bg-slate-100 dark:bg-surface-dark hover:bg-slate-200 dark:hover:bg-border-dark text-slate-900 dark:text-white px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-lg">filter_list</span>
+                        Filtres Avancés
+                    </button>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2.5 rounded-lg font-semibold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined text-lg">person_add</span>
+                        Nouveau Client
+                    </button>
+</div>
+</div>
+</div>
+<!-- Filters & Tabs -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-border-dark mb-6 overflow-hidden">
+<div class="flex border-b border-slate-200 dark:border-border-dark px-4 overflow-x-auto custom-scrollbar">
+<a class="flex items-center gap-2 px-4 py-4 border-b-2 border-primary text-primary font-bold text-sm whitespace-nowrap" href="#">
+<span class="material-symbols-outlined text-sm">group</span>
+                    Tous les clients
+                    <span class="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] ml-1">1,248</span>
+</a>
+<a class="flex items-center gap-2 px-4 py-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors whitespace-nowrap" href="#">
+<span class="material-symbols-outlined text-sm">check_circle</span>
+                    Actifs
+                </a>
+<a class="flex items-center gap-2 px-4 py-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors whitespace-nowrap" href="#">
+<span class="material-symbols-outlined text-sm">block</span>
+                    Suspendus
+                </a>
+<a class="flex items-center gap-2 px-4 py-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white font-bold text-sm transition-colors whitespace-nowrap" href="#">
+<span class="material-symbols-outlined text-sm">bolt</span>
+                    Nouveaux
+                </a>
+</div>
+<div class="p-4 flex flex-col md:flex-row items-center gap-4">
+<div class="relative w-full md:flex-1 group">
+<span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-lg">search</span>
+</span>
+<input class="w-full bg-slate-50 dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-slate-500" placeholder="Rechercher par nom, email ou ID..." type="text"/>
+</div>
+<div class="flex items-center gap-2 w-full md:w-auto">
+<select class="bg-slate-50 dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-lg py-2.5 pl-3 pr-10 text-sm focus:ring-1 focus:ring-primary text-slate-500 dark:text-slate-400">
+<option>Rôle: Tous</option>
+<option>Client</option>
+<option>Partenaire</option>
+<option>Admin</option>
+</select>
+<button class="p-2.5 text-slate-500 dark:text-slate-400 bg-slate-50 dark:bg-background-dark/50 border border-slate-200 dark:border-border-dark rounded-lg hover:bg-slate-100 dark:hover:bg-border-dark">
+<span class="material-symbols-outlined">sync</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Data Table -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-border-dark overflow-hidden shadow-sm">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 dark:bg-border-dark/50 text-slate-500 dark:text-slate-400 text-xs font-bold uppercase tracking-wider">
+<tr>
+<th class="px-6 py-4 w-12">
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</th>
+<th class="px-6 py-4">Client</th>
+<th class="px-6 py-4">Status</th>
+<th class="px-6 py-4">Dernière Activité</th>
+<th class="px-6 py-4">Rôle</th>
+<th class="px-6 py-4 text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-border-dark">
+<!-- Row 1: Selected -->
+<tr class="row-hover bg-primary/5 dark:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-border-dark overflow-hidden border border-border-dark">
+<img alt="Jean Dupont" class="w-full h-full object-cover" data-alt="User avatar Jean Dupont" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTAohmEp89J6CjmFkhOYuOgUddz5D8z2le7CpYQVw2bHqMYpN5S_-SxHnXfHg4gUgHUZ7z0l1UQ3ZPREjj6NZsP3C3vUakB4t3YEogxvoINWiBn04Y_6A8JHxDNUaAjA6v7ut2lPJ2iHjxjrZYRpT2Gxp8gUjS_1o5m_OLYAxULtXegE1EYlg7I7_QKeZVR08Rh1bu2uf6oOaGTFRIuHLMdJFDZUUYwvEl0QR2XBs00MCxRHQOiI2-ZSNqVb8TSNGtX6HqzdArFFng"/>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900 dark:text-white">Jean Dupont</div>
+<div class="text-xs text-slate-500 dark:text-slate-400">j.dupont@email.com</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                                    Actif
+                                </span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">Il y a 2 heures</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">Client Premium</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 2: Selected -->
+<tr class="row-hover bg-primary/5 dark:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-border-dark overflow-hidden border border-border-dark">
+<img alt="Marie Curie" class="w-full h-full object-cover" data-alt="User avatar Marie Curie" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAlIujucK52JZIzMPlIQi4dwJwYE1AnCTrcKBEMo41Ly4yAkJ9PJL45Qzh8lfgeIulcsRgElJxmfLlG_qvaGKfvO3ey0lQwxrt4wLZYd2DIMQmZckyjRpdFRujfsjX5a_1UmHbEuQ6ZeW-y3mufbm4nMWcAwnbCoXd9V0GzMVQMt8fd2XbYKKFnOSaJjmteeP7rPjyoKhVdhRWRYQ9dwy17EV-7OPonaYDSfikv4olQS82vOYIpjzpMbx66-zvKYMFuLCtPcDwqw2AF"/>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900 dark:text-white">Marie Curie</div>
+<div class="text-xs text-slate-500 dark:text-slate-400">m.curie@science.fr</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-100 text-slate-800 dark:bg-slate-800 dark:text-slate-400">
+<span class="w-1.5 h-1.5 rounded-full bg-slate-500 mr-1.5"></span>
+                                    En pause
+                                </span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">Il y a 1 jour</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">Chercheur</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 3: Selected -->
+<tr class="row-hover bg-primary/5 dark:bg-primary/5 transition-colors">
+<td class="px-6 py-4">
+<input checked="" class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-border-dark overflow-hidden border border-border-dark">
+<img alt="Lucas Martin" class="w-full h-full object-cover" data-alt="User avatar Lucas Martin" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6ILqQaAdyEYeMftf71PAHtFgAN8XZMkvNbLDTmsa0GMt3_r6GWWRv4E7Zmh4aRYsYss4HMwx6it7WQ0CJc2pInXUfZ7JPbz13vOYFEM5Np5A-8EtvD38oYJsFaY891O1_L_48DNGwhctcmPk3kF1x5AEOILqGOPbXEALdHfUuoX2vy-APV6kfWRjpvDBvYkgwYgXHN5dPfWMYqZZrrNGG0aStGmrKOxdy1zh3oNj_hFNyovW0rncz6K7fJM65BfoLBwX-4pDVPZwM"/>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900 dark:text-white">Lucas Martin</div>
+<div class="text-xs text-slate-500 dark:text-slate-400">l.martin@provider.com</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400">
+<span class="w-1.5 h-1.5 rounded-full bg-red-500 mr-1.5"></span>
+                                    Suspendu
+                                </span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">Il y a 3 jours</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">Client Standard</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+</td>
+</tr>
+<!-- Row 4: Unselected -->
+<tr class="row-hover transition-colors">
+<td class="px-6 py-4">
+<input class="rounded border-slate-300 dark:border-slate-600 bg-transparent text-primary focus:ring-primary h-4 w-4" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-slate-100 dark:bg-border-dark overflow-hidden border border-border-dark">
+<img alt="Sophie Lefebvre" class="w-full h-full object-cover" data-alt="User avatar Sophie Lefebvre" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAXUADban6F40UF5PzUe7TR9ZVhNFZSGVvfTyWtz983CiZuOmPxJxdWhp_JrW8OUhD0keZ0QaVyMRr1CVqTq9x-ECIe5011OkK_s5f3t42GAURCwxF5O9pzajL2Ogw9lRdAhJ0iAAFpb_ThTjj_G8y4wE65nhRD5twg_9DUVmn96KEXjfg6OkzYWC6-P_sgQlkRqzMsw_Af0ezNL8967cvZcR9V9vkc1oLmdKIIpbYjWpbaO0VpBGdFdCLi4NOmby6kwcexBdolng3s"/>
+</div>
+<div>
+<div class="text-sm font-bold text-slate-900 dark:text-white">Sophie Lefebvre</div>
+<div class="text-xs text-slate-500 dark:text-slate-400">sophie.l@agency.fr</div>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400">
+<span class="w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1.5"></span>
+                                    Actif
+                                </span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500 dark:text-slate-400 italic">En ligne</td>
+<td class="px-6 py-4 text-sm font-medium text-slate-700 dark:text-slate-300">Moderateur</td>
+<td class="px-6 py-4 text-right">
+<button class="p-1 hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">more_vert</span></button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="p-4 bg-slate-50 dark:bg-border-dark/30 border-t border-slate-200 dark:border-border-dark flex items-center justify-between">
+<div class="text-xs text-slate-500 dark:text-slate-400">
+                    Affichage de <span class="font-bold text-slate-900 dark:text-white">1-10</span> sur <span class="font-bold text-slate-900 dark:text-white">1,248</span>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2 rounded hover:bg-slate-200 dark:hover:bg-border-dark disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-lg leading-none">first_page</span>
+</button>
+<button class="p-2 rounded hover:bg-slate-200 dark:hover:bg-border-dark disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined text-lg leading-none">chevron_left</span>
+</button>
+<div class="flex items-center px-2 gap-1">
+<span class="w-8 h-8 rounded bg-primary text-white flex items-center justify-center text-xs font-bold">1</span>
+<span class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-border-dark flex items-center justify-center text-xs font-medium cursor-pointer">2</span>
+<span class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-border-dark flex items-center justify-center text-xs font-medium cursor-pointer">3</span>
+<span class="px-1 text-slate-400">...</span>
+<span class="w-8 h-8 rounded hover:bg-slate-200 dark:hover:bg-border-dark flex items-center justify-center text-xs font-medium cursor-pointer">125</span>
+</div>
+<button class="p-2 rounded hover:bg-slate-200 dark:hover:bg-border-dark">
+<span class="material-symbols-outlined text-lg leading-none">chevron_right</span>
+</button>
+<button class="p-2 rounded hover:bg-slate-200 dark:hover:bg-border-dark">
+<span class="material-symbols-outlined text-lg leading-none">last_page</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Bulk Action Bar -->
+<div class="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-2xl px-6 z-50">
+<div class="floating-action-bar bg-slate-900/95 dark:bg-surface-dark/95 backdrop-blur-xl border border-white/10 rounded-2xl p-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="h-10 w-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary border border-primary/30">
+<span class="text-sm font-black">3</span>
+</div>
+<div>
+<div class="text-sm font-bold text-white leading-tight">3 Clients sélectionnés</div>
+<div class="text-[10px] uppercase tracking-widest text-primary font-black">Actions Groupées</div>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="bg-white/10 hover:bg-white/20 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-lg">download</span>
+<span class="hidden md:inline">Export CSV</span>
+</button>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-lg shadow-primary/30 transition-all">
+<span class="material-symbols-outlined text-lg">campaign</span>
+<span>Notification</span>
+</button>
+<button class="bg-accent-orange hover:bg-accent-orange/90 text-white px-4 py-2 rounded-lg text-sm font-semibold flex items-center gap-2 shadow-lg shadow-accent-orange/30 transition-all">
+<span class="material-symbols-outlined text-lg">block</span>
+<span>Suspendre</span>
+</button>
+</div>
+<button class="absolute -top-3 -right-3 h-8 w-8 bg-slate-800 border border-border-dark rounded-full flex items-center justify-center text-slate-400 hover:text-white transition-colors shadow-lg">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#fafafa",
+                        "background-dark": "#18181b",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center justify-center p-4">
+<!-- Mock Background App Content (Blurred) -->
+<div class="fixed inset-0 z-0 overflow-hidden opacity-20 blur-sm pointer-events-none">
+<div class="p-4 space-y-4">
+<div class="h-48 w-full bg-gray-200 dark:bg-zinc-800 rounded-xl"></div>
+<div class="h-8 w-1/2 bg-gray-200 dark:bg-zinc-800 rounded-lg"></div>
+<div class="h-4 w-full bg-gray-200 dark:bg-zinc-800 rounded-lg"></div>
+<div class="h-4 w-3/4 bg-gray-200 dark:bg-zinc-800 rounded-lg"></div>
+</div>
+</div>
+<!-- Backdrop Dimmer -->
+<div class="fixed inset-0 bg-black/40 dark:bg-black/60 z-10"></div>
+<!-- Main Order Confirmation Modal -->
+<div class="relative z-20 w-full max-w-md bg-white dark:bg-zinc-900 rounded-xl shadow-2xl overflow-hidden flex flex-col items-stretch">
+<!-- Bottom Sheet Handle (Visual indicator for modal) -->
+<div class="flex h-5 w-full items-center justify-center pt-2">
+<div class="h-1.5 w-12 rounded-full bg-gray-200 dark:bg-zinc-700"></div>
+</div>
+<div class="px-6 pb-8 pt-4 flex flex-col items-center text-center">
+<!-- Success Icon Animation Container -->
+<div class="relative mb-6">
+<div class="absolute inset-0 bg-primary/10 rounded-full scale-150 blur-xl"></div>
+<div class="relative flex items-center justify-center w-24 h-24 bg-primary text-white rounded-full shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined !text-5xl">check_circle</span>
+</div>
+</div>
+<!-- Headline Text -->
+<h1 class="text-zinc-900 dark:text-white tracking-tight text-3xl font-bold leading-tight mb-2">
+                Commande confirmée !
+            </h1>
+<!-- Order ID Badge -->
+<div class="inline-flex items-center px-3 py-1 bg-primary/10 dark:bg-primary/20 rounded-full mb-4">
+<span class="text-primary font-bold text-sm tracking-wide">ID DE COMMANDE #BAIB-12345</span>
+</div>
+<!-- Body Text / ETA -->
+<div class="flex flex-col items-center space-y-1 mb-8">
+<p class="text-zinc-500 dark:text-zinc-400 text-base font-medium">
+                    Merci pour votre confiance !
+                </p>
+<div class="flex items-center text-zinc-900 dark:text-zinc-100 font-semibold gap-2 bg-zinc-50 dark:bg-zinc-800 px-4 py-2 rounded-lg">
+<span class="material-symbols-outlined text-primary text-xl">schedule</span>
+<span>Arrivée prévue à 12:45</span>
+</div>
+</div>
+<!-- Illustrative Map Snippet -->
+<div class="w-full h-32 mb-8 rounded-xl overflow-hidden relative border border-zinc-100 dark:border-zinc-800">
+<div class="absolute inset-0 bg-center bg-no-repeat bg-cover" data-alt="Map view showing delivery route in Abidjan" data-location="Abidjan, Ivory Coast" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCyf6l4_jYJERvUidcDwaLPui7kOmPcY6_VqbSs_MYaJ6lPbBM19JrULi5CEUQmxvsF53JESBTMdOD-zduEQHrCdMOvrXPRb9PQJPx6QKAZhWl1QL92o0VIL3AGx15HHgr4pTxuUDk0H2d2pYaaiI4asxU6BEqrmXFjcwkmVTr-TN0DohSvaIFZdiAg-xb-202_SculByXqJhpN8dAYivPmV2-teN2Av3Ir-F5kos-zNklA4ul9EsoqEMMRnKWZii0OjqNmOp_d1p71"); filter: grayscale(0.2) contrast(1.1);'>
+</div>
+<!-- Delivery Indicator Overlay -->
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-white dark:bg-zinc-900 p-2 rounded-lg shadow-md flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+<span class="text-xs font-bold text-zinc-800 dark:text-zinc-200 uppercase">Livreur en route</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="w-full space-y-3">
+<!-- Primary Action -->
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined">local_shipping</span>
+                    Suivre ma commande
+                </button>
+<!-- Secondary Action -->
+<button class="w-full bg-transparent hover:bg-zinc-50 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400 font-semibold py-4 px-6 rounded-lg transition-colors border border-zinc-200 dark:border-zinc-700">
+                    Retour à l'accueil
+                </button>
+</div>
+</div>
+<!-- Footer / Safety Area -->
+<div class="h-6 bg-white dark:bg-zinc-900"></div>
+</div>
+<!-- Small Help Link -->
+<div class="relative z-20 mt-6 text-center">
+<a class="text-zinc-300 dark:text-zinc-600 text-sm font-medium underline underline-offset-4 decoration-zinc-400" href="#">
+            Un problème avec votre commande ? Contactez le support
+        </a>
+</div>
+</body></html>

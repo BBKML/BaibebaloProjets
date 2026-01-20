@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Funnel de Conversion Analytics - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#098dec",
+                        "accent-purple": "#7C3AED",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101b22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .funnel-clip { clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%, 10% 50%); }
+        .funnel-clip-first { clip-path: polygon(0% 0%, 90% 0%, 100% 50%, 90% 100%, 0% 100%); }
+        .funnel-clip-last { clip-path: polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 10% 50%); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d161c] dark:text-slate-50 min-h-screen flex">
+<!-- SideNavBar -->
+<aside class="w-64 border-r border-[#e7eef4] dark:border-slate-800 bg-white dark:bg-background-dark hidden lg:flex flex-col sticky top-0 h-screen">
+<div class="p-6 flex flex-col gap-8 h-full">
+<div class="flex items-center gap-3">
+<div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-[#0d161c] dark:text-white text-base font-bold leading-none">BAIBEBALO</h1>
+<p class="text-[#487a9d] text-xs font-medium">Phase 5 Admin</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 grow">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">bar_chart</span>
+<span class="text-sm font-bold">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm font-medium">Produits</span>
+</a>
+<div class="mt-auto pt-4 border-t border-[#e7eef4] dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</div>
+</nav>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between border-b border-[#e7eef4] dark:border-slate-800 bg-white dark:bg-background-dark px-8 py-4 sticky top-0 z-10">
+<div class="flex flex-col">
+<h2 class="text-xl font-bold tracking-tight">Funnel de Conversion Analytics</h2>
+<p class="text-xs text-slate-400">Dernière mise à jour: Aujourd'hui, 10:45</p>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden md:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-2 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary/50" placeholder="Rechercher un segment..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Exporter Rapport
+                    </button>
+</div>
+</div>
+</header>
+<div class="p-8 flex flex-col gap-8 max-w-[1400px] mx-auto w-full">
+<!-- Filters -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+<!-- SegmentedButtons -->
+<div class="bg-slate-100 dark:bg-slate-800 p-1 rounded-xl flex items-center shadow-sm">
+<button class="px-6 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-all">7 jours</button>
+<button class="px-6 py-2 text-sm font-bold bg-white dark:bg-slate-700 rounded-lg shadow-sm text-primary">30 jours</button>
+<button class="px-6 py-2 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 transition-all">90 jours</button>
+</div>
+<!-- Chips -->
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-xs font-medium hover:border-primary transition-colors shadow-sm">
+<span class="size-2 rounded-full bg-primary"></span>
+                        Platform: All
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-xs font-medium hover:border-primary transition-colors shadow-sm">
+<span class="size-2 rounded-full bg-accent-purple"></span>
+                        Region: Europe
+                        <span class="material-symbols-outlined text-xs">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Stats Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-[#e7eef4] dark:border-slate-800 shadow-sm flex flex-col gap-1">
+<p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Total Inscriptions</p>
+<div class="flex items-end gap-3">
+<h3 class="text-3xl font-extrabold">1,000</h3>
+<span class="text-green-500 text-sm font-bold flex items-center mb-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            +5.2%
+                        </span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-full"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-[#e7eef4] dark:border-slate-800 shadow-sm flex flex-col gap-1">
+<p class="text-slate-500 text-xs font-bold uppercase tracking-wider">Taux de Conversion</p>
+<div class="flex items-end gap-3">
+<h3 class="text-3xl font-extrabold">27.0%</h3>
+<span class="text-red-500 text-sm font-bold flex items-center mb-1">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+                            -1.5%
+                        </span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[27%]"></div>
+</div>
+</div>
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-[#e7eef4] dark:border-slate-800 shadow-sm flex flex-col gap-1">
+<p class="text-slate-500 text-xs font-bold uppercase tracking-wider">LTV Moyen</p>
+<div class="flex items-end gap-3">
+<h3 class="text-3xl font-extrabold">85.00 €</h3>
+<span class="text-green-500 text-sm font-bold flex items-center mb-1">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            +0.8%
+                        </span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1 mt-4 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-[65%]"></div>
+</div>
+</div>
+</div>
+<!-- Funnel and Insights Grid -->
+<div class="grid grid-cols-1 xl:grid-cols-4 gap-8">
+<!-- Main Funnel Visualization -->
+<div class="xl:col-span-3 bg-white dark:bg-background-dark rounded-xl border border-[#e7eef4] dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+<div class="p-6 border-b border-[#e7eef4] dark:border-slate-800 flex justify-between items-center">
+<h4 class="font-bold text-lg">Visualisation du Funnel</h4>
+<div class="flex items-center gap-2 text-xs font-semibold text-slate-400">
+<span class="flex items-center gap-1"><span class="size-2 rounded-full bg-primary"></span> Actif</span>
+<span class="flex items-center gap-1"><span class="size-2 rounded-full bg-accent-purple/40"></span> Drop-off</span>
+</div>
+</div>
+<div class="p-10 flex flex-col gap-16">
+<!-- Funnel Container -->
+<div class="flex items-center w-full">
+<!-- Stage 1 -->
+<div class="flex-1 relative">
+<div class="h-40 bg-primary/10 dark:bg-primary/5 border-2 border-primary border-dashed rounded-xl flex flex-col items-center justify-center gap-2 p-4 relative z-10 transition-transform hover:scale-[1.02]">
+<span class="text-xs font-black uppercase text-primary tracking-widest">Inscription</span>
+<span class="text-4xl font-extrabold">1,000</span>
+<span class="text-[10px] text-slate-500 font-bold">100% du total</span>
+</div>
+<!-- Drop-off line -->
+<div class="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center text-accent-purple group cursor-help">
+<span class="material-symbols-outlined text-lg">arrow_downward</span>
+<span class="text-xs font-bold">-550 (55%)</span>
+</div>
+</div>
+<!-- Connector 1 -->
+<div class="w-16 h-[2px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center relative">
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded text-[10px] font-bold text-slate-500 z-10">45%</div>
+</div>
+<!-- Stage 2 -->
+<div class="flex-[0.85] relative">
+<div class="h-40 bg-primary/20 dark:bg-primary/10 border-2 border-primary rounded-xl flex flex-col items-center justify-center gap-2 p-4 relative z-10 transition-transform hover:scale-[1.02]">
+<span class="text-xs font-black uppercase text-primary tracking-widest">1ère Commande</span>
+<span class="text-4xl font-extrabold">450</span>
+<span class="text-[10px] text-slate-500 font-bold">45.0% de conversion</span>
+</div>
+<!-- Drop-off line -->
+<div class="absolute -bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center text-accent-purple group cursor-help">
+<span class="material-symbols-outlined text-lg">arrow_downward</span>
+<span class="text-xs font-bold">-180 (40%)</span>
+</div>
+</div>
+<!-- Connector 2 -->
+<div class="w-16 h-[2px] bg-slate-200 dark:bg-slate-700 flex items-center justify-center relative">
+<div class="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2 py-1 rounded text-[10px] font-bold text-slate-500 z-10">60%</div>
+</div>
+<!-- Stage 3 -->
+<div class="flex-[0.7] relative">
+<div class="h-40 bg-primary text-white rounded-xl flex flex-col items-center justify-center gap-2 p-4 relative z-10 shadow-lg shadow-primary/30 transition-transform hover:scale-[1.05]">
+<span class="text-xs font-black uppercase text-white/70 tracking-widest">Client Régulier</span>
+<span class="text-4xl font-extrabold">270</span>
+<span class="text-[10px] text-white/80 font-bold">27.0% Net Fin</span>
+</div>
+</div>
+</div>
+<!-- Legend/Context -->
+<div class="grid grid-cols-3 gap-8 pt-8 border-t border-[#e7eef4] dark:border-slate-800">
+<div class="flex flex-col gap-2">
+<h5 class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Entrée Funnel</h5>
+<p class="text-sm">Toutes les sources organiques et payantes combinées sur les 30 derniers jours.</p>
+</div>
+<div class="flex flex-col gap-2">
+<h5 class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Engagement</h5>
+<p class="text-sm">Utilisateurs ayant complété leur profil à 100% avant le premier achat.</p>
+</div>
+<div class="flex flex-col gap-2">
+<h5 class="text-xs font-bold text-slate-400 uppercase tracking-tighter">Rétention</h5>
+<p class="text-sm">Clients avec au moins 3 commandes distinctes sur une période de 45 jours.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Insights Panel -->
+<div class="xl:col-span-1 flex flex-col gap-6">
+<div class="bg-white dark:bg-background-dark p-6 rounded-xl border border-[#e7eef4] dark:border-slate-800 shadow-sm flex flex-col gap-4">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-accent-purple">lightbulb</span>
+<h4 class="font-bold text-lg">Conversion Insights</h4>
+</div>
+<div class="flex flex-col gap-6">
+<div class="space-y-2">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Points Critiques</p>
+<div class="p-3 bg-red-50 dark:bg-red-900/10 border-l-4 border-red-500 rounded-r-lg">
+<p class="text-sm font-semibold text-red-700 dark:text-red-400">Frais de port au checkout</p>
+<p class="text-xs text-red-600/70 mt-1">Cause #1 du drop-off entre Inscription et 1ère commande (32% des abandons).</p>
+</div>
+<div class="p-3 bg-orange-50 dark:bg-orange-900/10 border-l-4 border-orange-500 rounded-r-lg">
+<p class="text-sm font-semibold text-orange-700 dark:text-orange-400">Temps de livraison Zone B</p>
+<p class="text-xs text-orange-600/70 mt-1">Impact direct sur la transformation en Client Régulier.</p>
+</div>
+</div>
+<div class="space-y-3">
+<p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Opportunités</p>
+<div class="flex items-start gap-3">
+<div class="p-2 bg-green-100 dark:bg-green-900/20 rounded-lg text-green-600">
+<span class="material-symbols-outlined text-base">percent</span>
+</div>
+<div>
+<p class="text-sm font-bold">Coupons de réactivation</p>
+<p class="text-xs text-slate-500">Augmente le passage à la 2ème commande de +12%.</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="p-2 bg-blue-100 dark:bg-blue-900/20 rounded-lg text-blue-600">
+<span class="material-symbols-outlined text-base">smartphone</span>
+</div>
+<div>
+<p class="text-sm font-bold">Optimisation Mobile</p>
+<p class="text-xs text-slate-500">Le taux de rebond est 15% plus élevé sur iOS que sur Web.</p>
+</div>
+</div>
+</div>
+<button class="w-full py-3 border-2 border-dashed border-slate-200 dark:border-slate-700 rounded-xl text-slate-400 hover:text-primary hover:border-primary transition-all text-xs font-bold">
+                                VOIR ANALYSE DÉTAILLÉE
+                            </button>
+</div>
+</div>
+<!-- Side Mini Chart Card -->
+<div class="bg-gradient-to-br from-primary to-blue-600 p-6 rounded-xl shadow-lg text-white">
+<p class="text-xs font-bold opacity-80 uppercase tracking-widest mb-1">Cible Phase 5</p>
+<h4 class="text-2xl font-black mb-4">Objectif 35% <span class="text-sm font-normal opacity-70">Conv. Globale</span></h4>
+<div class="w-full bg-white/20 h-2 rounded-full overflow-hidden mb-2">
+<div class="bg-white h-full w-[77%]"></div>
+</div>
+<p class="text-[10px] font-medium opacity-80 text-right">Progress: 77% of target</p>
+</div>
+</div>
+</div>
+<!-- Table breakdown -->
+<div class="bg-white dark:bg-background-dark rounded-xl border border-[#e7eef4] dark:border-slate-800 shadow-sm overflow-hidden mb-8">
+<div class="p-6 border-b border-[#e7eef4] dark:border-slate-800">
+<h4 class="font-bold text-lg">Performance par Cohorte</h4>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Semaine</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">Inscriptions</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">S1 (1ère Comm.)</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-center">S2 (Régulier)</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Taux Final</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#e7eef4] dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 font-semibold text-sm text-slate-400">W42 (16 - 22 Oct)</td>
+<td class="px-6 py-4 text-center font-bold text-sm">245</td>
+<td class="px-6 py-4 text-center">
+<div class="bg-primary/10 text-primary text-xs font-bold py-1 px-2 rounded-full inline-block">48%</div>
+</td>
+<td class="px-6 py-4 text-center">
+<div class="bg-primary/20 text-primary text-xs font-bold py-1 px-2 rounded-full inline-block">29%</div>
+</td>
+<td class="px-6 py-4 text-right font-black text-sm text-primary">29.4%</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 font-semibold text-sm text-slate-400">W41 (09 - 15 Oct)</td>
+<td class="px-6 py-4 text-center font-bold text-sm">260</td>
+<td class="px-6 py-4 text-center">
+<div class="bg-primary/10 text-primary text-xs font-bold py-1 px-2 rounded-full inline-block">44%</div>
+</td>
+<td class="px-6 py-4 text-center">
+<div class="bg-primary/20 text-primary text-xs font-bold py-1 px-2 rounded-full inline-block">26%</div>
+</td>
+<td class="px-6 py-4 text-right font-black text-sm text-primary">26.1%</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 font-semibold text-sm text-slate-400">W40 (02 - 08 Oct)</td>
+<td class="px-6 py-4 text-center font-bold text-sm">210</td>
+<td class="px-6 py-4 text-center">
+<div class="bg-primary/10 text-primary text-xs font-bold py-1 px-2 rounded-full inline-block">51%</div>
+</td>
+<td class="px-6 py-4 text-center">
+<div class="bg-primary/20 text-primary text-xs font-bold py-1 px-2 rounded-full inline-block">31%</div>
+</td>
+<td class="px-6 py-4 text-right font-black text-sm text-primary">31.2%</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</body></html>

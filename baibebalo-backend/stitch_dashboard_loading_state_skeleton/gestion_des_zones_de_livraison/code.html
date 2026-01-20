@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Admin - Gestion des Zones de Livraison</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#196ee6",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111821",
+                        "panel-dark": "#1a2432",
+                        "border-dark": "#243347",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .active-tool {
+            background-color: #196ee6;
+            color: white;
+        }
+        .map-polygon-overlay {
+            background: rgba(25, 110, 230, 0.1);
+            border: 2px solid #196ee6;
+        }
+        /* Custom scrollbar for sidebar */
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #111821;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #243347;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white overflow-hidden">
+<div class="flex flex-col h-screen">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between whitespace-nowrap border-b border-solid border-border-dark px-6 py-3 bg-background-dark">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3 text-white">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-white">map</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-tight">BAIBEBALO Admin</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-[#93a9c8] hover:text-white text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-[#93a9c8] hover:text-white text-sm font-medium transition-colors" href="#">Commandes</a>
+<a class="text-white text-sm font-bold border-b-2 border-primary pb-1" href="#">Logistique</a>
+<a class="text-[#93a9c8] hover:text-white text-sm font-medium transition-colors" href="#">Paramètres</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="hidden lg:flex items-center bg-panel-dark rounded-lg px-3 py-1.5 border border-border-dark">
+<span class="material-symbols-outlined text-[#93a9c8] text-sm mr-2">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-48 placeholder:text-[#93a9c8]" placeholder="Rechercher une zone..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-panel-dark hover:bg-border-dark text-[#93a9c8] transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-8 rounded-full bg-cover bg-center border border-border-dark" data-alt="Photo de profil de l'administrateur" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAqZS6BHCOiOrX1yekiwD8ORiMwHMblWEbz5gqnCM9wtb0N2QR2wKsNITLRcy5tSbUj1b9ZL2rDbB-99uTj3a6H3UlONd2tTtie0nl5ZZvXvdWErLYnQRkYvvYOYEmyT5_w1WoBuX1FjD3AvLfSA6lyDtck5KEJ05Ctxf-MgDjsSoXgy-2p86iBYyKBHsQ24ePTzJOSnXJyPg4sXUP_fVSTdX1AfKx1SPoQGnYf8KWb9j_a8yd4IqAs35OXNE2O6Wu9a2WU4sBWYbH5");'></div>
+</div>
+</header>
+<main class="flex flex-1 overflow-hidden">
+<!-- Left Sidebar: Zone Management -->
+<aside class="w-80 flex flex-col border-r border-border-dark bg-background-dark">
+<div class="p-4 border-b border-border-dark">
+<div class="flex items-center justify-between mb-2">
+<h1 class="text-lg font-bold text-white">Livraison Korhogo</h1>
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-2 py-0.5 rounded-full uppercase tracking-wider">12 Zones</span>
+</div>
+<p class="text-[#93a9c8] text-xs">Configurez les tarifs et périmètres par quartier.</p>
+</div>
+<div class="flex-1 overflow-y-auto p-4 space-y-3">
+<!-- Zone Card 1 (Active/Selected) -->
+<div class="group cursor-pointer p-4 rounded-xl bg-panel-dark border-2 border-primary shadow-lg shadow-primary/5 transition-all">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-bold text-sm text-white">Centre-ville (Commerce)</h3>
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+</div>
+<div class="grid grid-cols-2 gap-2 mb-3">
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Tarif Base</p>
+<p class="text-xs font-semibold">1,000 FCFA</p>
+</div>
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Délai Est.</p>
+<p class="text-xs font-semibold">15-25 min</p>
+</div>
+</div>
+<div class="flex justify-end gap-2 opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-border-dark rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">edit</span></button>
+<button class="p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">delete</span></button>
+</div>
+</div>
+<!-- Zone Card 2 -->
+<div class="group cursor-pointer p-4 rounded-xl bg-panel-dark/40 border border-border-dark hover:border-primary/50 transition-all">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-bold text-sm text-white">Quartier Soba</h3>
+<div class="w-2 h-2 rounded-full bg-emerald-500 mt-1.5"></div>
+</div>
+<div class="grid grid-cols-2 gap-2 mb-3">
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Tarif Base</p>
+<p class="text-xs font-semibold">1,500 FCFA</p>
+</div>
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Délai Est.</p>
+<p class="text-xs font-semibold">30-45 min</p>
+</div>
+</div>
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-border-dark rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">edit</span></button>
+<button class="p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">delete</span></button>
+</div>
+</div>
+<!-- Zone Card 3 -->
+<div class="group cursor-pointer p-4 rounded-xl bg-panel-dark/40 border border-border-dark hover:border-primary/50 transition-all">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-bold text-sm text-white">Petit Paris</h3>
+<div class="w-2 h-2 rounded-full bg-orange-500 mt-1.5"></div>
+</div>
+<div class="grid grid-cols-2 gap-2 mb-3">
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Tarif Base</p>
+<p class="text-xs font-semibold">1,200 FCFA</p>
+</div>
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Délai Est.</p>
+<p class="text-xs font-semibold">20-35 min</p>
+</div>
+</div>
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-border-dark rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">edit</span></button>
+<button class="p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">delete</span></button>
+</div>
+</div>
+<!-- Zone Card 4 -->
+<div class="group cursor-pointer p-4 rounded-xl bg-panel-dark/40 border border-border-dark hover:border-primary/50 transition-all">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-bold text-sm text-white">Quartier Résidentiel</h3>
+<div class="w-2 h-2 rounded-full bg-purple-500 mt-1.5"></div>
+</div>
+<div class="grid grid-cols-2 gap-2 mb-3">
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Tarif Base</p>
+<p class="text-xs font-semibold">2,000 FCFA</p>
+</div>
+<div class="bg-background-dark/50 p-2 rounded-lg">
+<p class="text-[10px] text-[#93a9c8] uppercase font-bold">Délai Est.</p>
+<p class="text-xs font-semibold">40-55 min</p>
+</div>
+</div>
+<div class="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-1.5 hover:bg-border-dark rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">edit</span></button>
+<button class="p-1.5 hover:bg-red-500/20 hover:text-red-500 rounded text-[#93a9c8]"><span class="material-symbols-outlined text-xs">delete</span></button>
+</div>
+</div>
+</div>
+<!-- Sidebar Footer Actions -->
+<div class="p-4 bg-background-dark border-t border-border-dark space-y-2">
+<button class="flex w-full items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-2.5 rounded-lg font-bold text-sm transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm">add_location_alt</span>
+<span>Nouvelle Zone</span>
+</button>
+<div class="flex gap-2">
+<button class="flex-1 flex items-center justify-center gap-1 bg-panel-dark hover:bg-border-dark text-[#93a9c8] py-2 rounded-lg font-medium text-xs transition-colors border border-border-dark">
+<span class="material-symbols-outlined text-xs">upload</span>
+<span>Import</span>
+</button>
+<button class="flex-1 flex items-center justify-center gap-1 bg-panel-dark hover:bg-border-dark text-[#93a9c8] py-2 rounded-lg font-medium text-xs transition-colors border border-border-dark">
+<span class="material-symbols-outlined text-xs">download</span>
+<span>Export</span>
+</button>
+</div>
+</div>
+</aside>
+<!-- Main Content: Map Interface -->
+<section class="flex-1 relative bg-[#0d1117]">
+<!-- Interactive Map Canvas -->
+<div class="absolute inset-0 z-0 bg-cover bg-center" data-location="Korhogo, Ivory Coast" style='background-image: linear-gradient(rgba(17, 24, 33, 0.4), rgba(17, 24, 33, 0.4)), url("https://lh3.googleusercontent.com/aida-public/AB6AXuD8F3e-pEaPNNJxM0bLfTE945eR2TJwomz3pe5WPEIqXQs7YM-f8fBWeNmgxpH5mN6MrJqL-o82UHi6-_DNArvl_I6v5JYI5P27DaoSjP8QsmnW4Bxk3xJPboeIr1lghKwAzmgubDt1_tmdJWJTgLyZ0GFq3j1P14GlPSiR4k1Fsxwil8Y5DFzpQlHt-yKCsI1c84jeDAAgFi_EfiGSD1mo4hIhps2RKen9ZRPoc0dCXA9pi_6xtuUbS9fdNy2UVayTk0VD9H0jXjIV");'>
+<!-- Simulated Polygons (SVG Overlay) -->
+<svg class="absolute inset-0 w-full h-full pointer-events-none opacity-60">
+<polygon fill="rgba(25, 110, 230, 0.3)" points="400,300 600,250 700,450 450,550" stroke="#196ee6" stroke-width="3"></polygon>
+<polygon fill="rgba(16, 185, 129, 0.2)" points="200,400 350,350 400,500 250,600" stroke="#10b981" stroke-width="2"></polygon>
+<polygon fill="rgba(249, 115, 22, 0.2)" points="650,500 850,450 900,600 700,700" stroke="#f97316" stroke-width="2"></polygon>
+</svg>
+<!-- Tooltip Marker -->
+<div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-10">
+<div class="bg-panel-dark border border-border-dark rounded-xl p-3 shadow-2xl animate-pulse">
+<div class="flex items-center gap-2 mb-1">
+<span class="w-2 h-2 rounded-full bg-primary"></span>
+<p class="text-xs font-bold text-white uppercase tracking-wider">Zone Selectionnée</p>
+</div>
+<h4 class="text-base font-bold">Centre-ville</h4>
+<div class="mt-2 text-[10px] text-[#93a9c8]">84 Livraisons aujourd'hui</div>
+</div>
+</div>
+</div>
+<!-- Floating Toolbar: Drawing Controls -->
+<div class="absolute top-6 left-6 flex items-center bg-panel-dark/95 backdrop-blur-md rounded-xl p-1.5 border border-border-dark shadow-2xl z-20">
+<div class="flex items-center gap-1 border-r border-border-dark pr-2 mr-1">
+<button class="p-2.5 rounded-lg text-[#93a9c8] hover:bg-border-dark transition-colors" title="Curseur">
+<span class="material-symbols-outlined">near_me</span>
+</button>
+</div>
+<div class="flex items-center gap-1">
+<button class="p-2.5 rounded-lg active-tool transition-all" title="Dessiner Polygone">
+<span class="material-symbols-outlined">polyline</span>
+</button>
+<button class="p-2.5 rounded-lg text-[#93a9c8] hover:bg-border-dark transition-colors" title="Dessiner Cercle">
+<span class="material-symbols-outlined">radio_button_unchecked</span>
+</button>
+<button class="p-2.5 rounded-lg text-[#93a9c8] hover:bg-border-dark transition-colors" title="Modifier Tracé">
+<span class="material-symbols-outlined">edit_square</span>
+</button>
+<button class="p-2.5 rounded-lg text-[#93a9c8] hover:bg-red-500/20 hover:text-red-400 transition-colors" title="Supprimer">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+<div class="flex items-center gap-1 border-l border-border-dark pl-2 ml-1">
+<button class="px-4 py-2 bg-primary rounded-lg text-xs font-bold shadow-md hover:bg-primary/90 transition-all">Terminer le tracé</button>
+</div>
+</div>
+<!-- Floating Map Controls (Zoom/Layer) -->
+<div class="absolute bottom-6 right-6 flex flex-col gap-3 z-20">
+<div class="flex flex-col bg-panel-dark/95 backdrop-blur-md rounded-xl border border-border-dark shadow-2xl overflow-hidden">
+<button class="p-3 text-[#93a9c8] hover:text-white hover:bg-border-dark transition-colors border-b border-border-dark">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="p-3 text-[#93a9c8] hover:text-white hover:bg-border-dark transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+</div>
+<button class="p-3 bg-panel-dark/95 backdrop-blur-md rounded-xl border border-border-dark shadow-2xl text-[#93a9c8] hover:text-white transition-colors">
+<span class="material-symbols-outlined">layers</span>
+</button>
+<button class="p-3 bg-panel-dark/95 backdrop-blur-md rounded-xl border border-border-dark shadow-2xl text-[#93a9c8] hover:text-white transition-colors">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Search Overlay -->
+<div class="absolute top-6 right-6 z-20">
+<div class="flex items-center bg-panel-dark/95 backdrop-blur-md rounded-xl p-1.5 border border-border-dark shadow-2xl">
+<div class="flex items-center px-3 gap-2">
+<span class="material-symbols-outlined text-[#93a9c8] text-sm">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-56 text-white placeholder:text-[#93a9c8]" placeholder="Aller à une adresse..." type="text"/>
+</div>
+</div>
+</div>
+<!-- Conflict Detection Toast (Conditional UI) -->
+<div class="absolute bottom-6 left-1/2 -translate-x-1/2 z-30">
+<div class="flex items-center gap-3 bg-red-500/10 border border-red-500/50 backdrop-blur-lg px-6 py-3 rounded-2xl shadow-2xl">
+<span class="material-symbols-outlined text-red-500">warning</span>
+<p class="text-sm font-semibold text-red-200">Chevauchement détecté avec 'Petit Paris'</p>
+<button class="ml-4 text-xs font-bold uppercase text-red-400 hover:text-white">Ajuster</button>
+</div>
+</div>
+</section>
+</main>
+</div>
+<!-- GeoJSON Import Modal (Hidden State Example) -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center p-6">
+<div class="absolute inset-0 bg-background-dark/80 backdrop-blur-sm"></div>
+<div class="relative bg-panel-dark border border-border-dark rounded-2xl w-full max-w-md p-8 shadow-2xl">
+<div class="flex justify-between items-center mb-6">
+<h2 class="text-xl font-bold">Importer GeoJSON</h2>
+<button class="text-[#93a9c8] hover:text-white transition-colors">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<div class="border-2 border-dashed border-border-dark rounded-2xl p-12 text-center hover:border-primary/50 transition-colors cursor-pointer mb-6">
+<span class="material-symbols-outlined text-4xl text-primary mb-4">upload_file</span>
+<p class="text-sm text-[#93a9c8]">Glissez votre fichier .json ou .geojson ici</p>
+<p class="text-[10px] text-[#93a9c8]/60 mt-2">Taille max : 10MB</p>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-3 bg-background-dark p-3 rounded-lg border border-border-dark">
+<span class="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
+<div class="flex-1">
+<p class="text-xs font-bold">korhogo_zones_v2.json</p>
+<div class="w-full bg-border-dark h-1 rounded-full mt-1.5 overflow-hidden">
+<div class="bg-emerald-500 h-full w-full"></div>
+</div>
+</div>
+<p class="text-[10px] text-[#93a9c8]">100%</p>
+</div>
+</div>
+<div class="flex gap-3 mt-8">
+<button class="flex-1 py-3 px-4 rounded-xl border border-border-dark font-bold text-sm hover:bg-border-dark transition-colors">Annuler</button>
+<button class="flex-1 py-3 px-4 rounded-xl bg-primary text-white font-bold text-sm shadow-lg shadow-primary/20 hover:bg-primary/90 transition-colors">Confirmer</button>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#fafafa",
+                        "background-dark": "#17191c",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .ios-tab-bar {
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121715] dark:text-gray-100 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-sm">
+<span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+</div>
+<h1 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Mes Commandes</h1>
+</div>
+</header>
+<main class="flex-1 max-w-md mx-auto w-full pb-32">
+<!-- Section: Today -->
+<section class="mt-4">
+<div class="px-4 py-2">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Aujourd'hui</h3>
+</div>
+<!-- Order Card 1 -->
+<div class="px-4 py-2">
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Livrée</span>
+<span class="text-gray-400 text-xs">•</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium">12:30</p>
+</div>
+<h4 class="text-[#121715] dark:text-white text-base font-bold leading-tight mb-1">Burger King Plateaux</h4>
+<p class="text-primary font-bold text-sm">5 450 FCFA</p>
+</div>
+<div class="size-16 bg-center bg-no-repeat bg-cover rounded-lg border border-gray-100 dark:border-gray-700" data-alt="Burger King restaurant logo on white background" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCyVohMNxprqPVKj41PWH380GbkoPKGgNVxQcJairHggGPLmjNMswh-2NeC6Cky1RKjPLHn9UFRBQqP6IlYeIAR04DzHKZ_0JD3ic9cept730e7_WN2nbkvf9_tsxl4qpI5ebBmPt6Yu_6c8SCX0MDyDz8fHAjKMUp8qqR9nWb1nCAZQusKwstpaqAtUskcKsGgjyrYrwaGwtyu8mKDYR5xORcPWEiZXLz-pJTCYyMA4wzlc4epc1eeS81n-P2puhUXGn_tQZfZlMzg");'>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-yellow-500 text-sm fill-current">star</span>
+<span class="text-[#121715] dark:text-white text-xs font-semibold">4.0</span>
+</div>
+<button class="text-primary text-sm font-bold flex items-center gap-1">
+                            Recommander
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: This Week -->
+<section class="mt-6">
+<div class="px-4 py-2">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Cette semaine</h3>
+</div>
+<!-- Order Card 2 -->
+<div class="px-4 py-2">
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Livrée</span>
+<span class="text-gray-400 text-xs">•</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium">10 Oct, 19:45</p>
+</div>
+<h4 class="text-[#121715] dark:text-white text-base font-bold leading-tight mb-1">L'Atelier du Chocolat</h4>
+<p class="text-primary font-bold text-sm">3 200 FCFA</p>
+</div>
+<div class="size-16 bg-center bg-no-repeat bg-cover rounded-lg border border-gray-100 dark:border-gray-700" data-alt="Elegant chocolate pastries in a box" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCllJrVevxNkTt2tI4Mb4numHIaEgQUK_kZhpgL-PYE-7XGkYYaHSy_x-bqs-lgdDiUlHIC8dGXoYnAcrjn8Ppw639F4Vff9cMcHXEQ3jwToG874ftWlj7bCRJQ1ys0WxZ1jagTjwoulZQPRplRlfSMqz-4XOlyjib2DllmcB1Z9lyXNZg1i2L2EAJMBwky-elaqnddMPeVDW3a4kNkNr9pMUOiAQaKrNrjSQ6JnCyDuBRTunohADm6jsy84kP3RNCrxlhp2bnFAeBT");'>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-yellow-500 text-sm fill-current">star</span>
+<span class="text-[#121715] dark:text-white text-xs font-semibold">5.0</span>
+</div>
+<button class="text-primary text-sm font-bold flex items-center gap-1">
+                            Recommander
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Order Card 3 -->
+<div class="px-4 py-2">
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm border border-gray-50 dark:border-gray-800">
+<div class="flex items-center justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Livrée</span>
+<span class="text-gray-400 text-xs">•</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium">08 Oct, 13:15</p>
+</div>
+<h4 class="text-[#121715] dark:text-white text-base font-bold leading-tight mb-1">Pasta &amp; Co Abidjan</h4>
+<p class="text-primary font-bold text-sm">7 800 FCFA</p>
+</div>
+<div class="size-16 bg-center bg-no-repeat bg-cover rounded-lg border border-gray-100 dark:border-gray-700" data-alt="Fresh pasta with tomato sauce and basil" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAxy4ZyTt6-3t-HLU0Vj7jUQ9MujSnT3un1tt6pdFKGOm4s6mFbB65fccZoIlrX39Ic7s1VEsQv1oRNKmKX2SBEfbb-eOekczTHZpV_xP2HCVoLtrTL1Tpg2mn-X6eblgIPPYqBtPQsPrPb6wDnWD0EhFpQAArQyr5aJ60sUU4dWrdTxZg5I2zisVIMEyJyyqnNmF-N7z8xnvVheGxGrYOzj0ks3zdXQtBrZp0SMGrW-78bCwAQcPseGn-aA-8e6NxAD_fyKnVsBfK3");'>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-yellow-500 text-sm fill-current">star</span>
+<span class="text-[#121715] dark:text-white text-xs font-semibold">4.5</span>
+</div>
+<button class="text-primary text-sm font-bold flex items-center gap-1">
+                            Recommander
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Last Month -->
+<section class="mt-6">
+<div class="px-4 py-2">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Mois dernier</h3>
+</div>
+<!-- Order Card 4 -->
+<div class="px-4 py-2">
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-gray-900 p-4 shadow-sm border border-gray-50 dark:border-gray-800 opacity-80">
+<div class="flex items-center justify-between gap-4">
+<div class="flex-1">
+<div class="flex items-center gap-2 mb-1">
+<span class="px-2 py-0.5 rounded-full bg-primary/10 text-primary text-[10px] font-bold uppercase tracking-wider">Livrée</span>
+<span class="text-gray-400 text-xs">•</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium">24 Sept, 20:10</p>
+</div>
+<h4 class="text-[#121715] dark:text-white text-base font-bold leading-tight mb-1">Grillade du Plateau</h4>
+<p class="text-primary font-bold text-sm">12 500 FCFA</p>
+</div>
+<div class="size-16 bg-center bg-no-repeat bg-cover rounded-lg border border-gray-100 dark:border-gray-700" data-alt="Grilled chicken with plantains and spicy sauce" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB-hhO5OXzEVCdMuXl0zj18SNwnKD7MYMXejaSeS8jnzYbIHksD6J8s8-hNEGrmrUyiFopGT-TuonTNmPrPgFiX1gYQIT0Xia2dchVqz8CPJSjX-6vhDuOTTcDP9h2OYC_x-pvkjDRO-tA1PaU4TR_4yWtloAJxqzMuxlPuZAeCE4XX_jV603YzkOyA57aM1A4qKwQ-B0z2ObfTUElTFDVaNKklNmD3R_PIJW2wrq0inDRVgko-T08FFhwn_MQxL6DuFexl_oewh4dA");'>
+</div>
+</div>
+<div class="flex items-center justify-between pt-3 border-t border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-1 bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
+<span class="material-symbols-outlined text-yellow-500 text-sm fill-current">star</span>
+<span class="text-[#121715] dark:text-white text-xs font-semibold">4.8</span>
+</div>
+<button class="text-primary text-sm font-bold flex items-center gap-1">
+                            Recommander
+                            <span class="material-symbols-outlined text-sm">refresh</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-gray-950/90 ios-tab-bar border-t border-gray-100 dark:border-gray-800 pb-8 pt-3 px-6 z-50">
+<div class="max-w-md mx-auto flex items-center justify-between">
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-medium">Rechercher</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="text-[10px] font-medium">Panier</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-current">receipt_long</span>
+<span class="text-[10px] font-bold">Commandes</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</a>
+</div>
+<!-- iOS Home Indicator -->
+<div class="w-32 h-1 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mt-6"></div>
+</nav>
+</body></html>

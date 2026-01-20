@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Manage Payment Methods - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#298fa3",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#1a1f23",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121617] dark:text-gray-100 min-h-screen flex flex-col items-center">
+<div class="relative flex min-h-screen w-full max-w-[430px] flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- Header / TopAppBar -->
+<header class="sticky top-0 z-10 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h2 class="text-[#121617] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Moyens de paiement</h2>
+</header>
+<main class="flex-1 px-4 py-6">
+<div class="mb-6">
+<p class="text-sm font-semibold text-[#677f83] dark:text-gray-400 uppercase tracking-wider mb-4 px-1">Comptes liés</p>
+<div class="flex flex-col gap-3">
+<!-- Orange Money Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 px-4 py-4 rounded-xl ios-shadow border border-gray-50 dark:border-gray-700">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl h-14 w-14 shrink-0 overflow-hidden border border-gray-100" data-alt="Orange Money logo with orange and white branding" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmip4kVk5uWiYh0AeqyUUaFudLU_xGPl0CzMJtiNW2aq0ERo0bNEBuVm0JLHozCJGcU9koLGK4aZBWc_h8gCYNVsDUhvDLNkUSJps6nYT4smxnRER2XVtzLb5CINRKvpX4_uMFpguCuZ321bo3FLy1EOioNvXOATbkE95v2E2trB_UkeU7xsFutt4PAyP2HqmTraVSI_AzvZKukzLoMyt4KCtPfDCMhUD4SeW1XzvbDKVCfUmF1y1JmB__yXE2KYl4C5X0G2Sig43r"); background-size: 80%; background-position: center; background-color: #f1f3f4;'>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-[#121617] dark:text-white text-base font-bold leading-tight">Orange Money</p>
+<p class="text-[#677f83] dark:text-gray-400 text-sm font-medium mt-0.5">07 •• •• •• 12</p>
+</div>
+<div class="shrink-0 flex flex-col items-end gap-1">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 transition-colors has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white transition-all shadow-md" style="transform: translateX(0px);"></div>
+<input checked="" class="invisible absolute peer" type="checkbox"/>
+<style>
+                                    input:checked + div { transform: translateX(20px); }
+                                </style>
+</label>
+<span class="text-[10px] font-bold text-primary uppercase">Par défaut</span>
+</div>
+</div>
+<!-- MTN Mobile Money Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 px-4 py-4 rounded-xl ios-shadow border border-gray-50 dark:border-gray-700">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-xl h-14 w-14 shrink-0 overflow-hidden border border-gray-100" data-alt="MTN Mobile Money logo yellow and blue" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuABEuCDET09as8XjvbInZ4hPweMNdAgtQuZFZooSDMxVsHyBRyyczJU9UjGvCY8GkrF1mBllD_dvUovWP3l9ZmtPsF594UayZ0dsm4r4MeHP5YBr8fDA-kbX5uPKOdAVrYCiiCJtFa6M4sYQ1TBz7F4zssj-JdzjiprWKFR46JUOucsNlQgDkvZIO-JhNoGfGH-aJAZAtBoxNiC6WoYDnE2iCg3WmVIr94LluHmqwAhOk2oe3DdxZeEtRfS1QrtwCrXbfAF87YFlMVv"); background-size: 80%; background-position: center; background-color: #f1f3f4;'>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-[#121617] dark:text-white text-base font-bold leading-tight">MTN Mobile Money</p>
+<p class="text-[#677f83] dark:text-gray-400 text-sm font-medium mt-0.5">05 •• •• •• 45</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 transition-colors has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white transition-all shadow-md"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- Cash Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 px-4 py-4 rounded-xl ios-shadow border border-gray-50 dark:border-gray-700">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 h-14 w-14 border border-primary/20">
+<span class="material-symbols-outlined" style="font-size: 32px;">payments</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-[#121617] dark:text-white text-base font-bold leading-tight">Espèces (Cash)</p>
+<p class="text-[#677f83] dark:text-gray-400 text-sm font-medium mt-0.5">Toujours disponible</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 transition-colors has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white transition-all shadow-md"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Add Button -->
+<div class="mt-8">
+<button class="w-full flex cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-14 px-5 bg-primary/10 text-primary border-2 border-dashed border-primary/30 hover:bg-primary/20 transition-all group">
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">add_circle</span>
+<span class="text-base font-bold leading-normal tracking-tight">Ajouter un moyen de paiement</span>
+</button>
+</div>
+<!-- Security Info -->
+<div class="mt-12 flex flex-col items-center text-center px-8">
+<span class="material-symbols-outlined text-gray-400 mb-2">verified_user</span>
+<p class="text-xs text-gray-400 leading-relaxed font-medium">Vos transactions sont sécurisées et cryptées par les protocoles de paiement BAIBEBALO.</p>
+</div>
+</main>
+<!-- iOS Style Bottom Navigation -->
+<nav class="sticky bottom-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 pt-3 pb-8 px-6 flex justify-between items-center">
+<div class="flex flex-col items-center gap-1 opacity-40">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-40">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-bold">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">account_balance_wallet</span>
+<span class="text-[10px] font-bold">Paiement</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-40">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profil</span>
+</div>
+</nav>
+<!-- iOS Home Indicator -->
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+</div>
+</body></html>

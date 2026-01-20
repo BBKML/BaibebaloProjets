@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#22c38e",
+              "background-light": "#ffffff",
+              "background-dark": "#21242c",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: "Plus Jakarta Sans", sans-serif; }
+        .radio-selected { border-color: #22c38e; background-color: rgba(34, 195, 142, 0.05); }
+        .payment-radio:checked + div .radio-circle { border-color: #22c38e; border-width: 5px; }
+        .ios-shadow { box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.04); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex justify-center">
+<!-- Mobile Container -->
+<div class="relative flex min-h-screen w-full max-w-[430px] flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-10 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-gray-900 dark:text-white flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Paiement</h2>
+</div>
+<div class="flex-1 overflow-y-auto pb-32">
+<!-- PageIndicators (Step 3 of 3) -->
+<div class="flex flex-col items-center gap-2 pt-6 px-4">
+<div class="flex w-full flex-row items-center justify-center gap-2">
+<div class="h-1.5 flex-1 rounded-full bg-primary"></div>
+<div class="h-1.5 flex-1 rounded-full bg-primary"></div>
+<div class="h-1.5 flex-1 rounded-full bg-primary"></div>
+</div>
+<span class="text-primary text-[10px] font-bold uppercase tracking-widest">Étape 3 sur 3</span>
+</div>
+<!-- HeadlineText -->
+<div class="px-4 pt-8 pb-4">
+<h3 class="text-gray-900 dark:text-white text-2xl font-extrabold leading-tight">Choisissez votre mode de paiement</h3>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-2 font-medium">Sélectionnez comment vous souhaitez régler votre commande.</p>
+</div>
+<!-- RadioList (Payment Methods) -->
+<div class="flex flex-col gap-4 p-4" style="--radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(34,195,142)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%274%27/%3e%3c/svg%3e');">
+<!-- Cash Option (Selected) -->
+<label class="flex items-center gap-4 rounded-xl border-2 border-primary bg-primary/5 p-4 cursor-pointer transition-all active:scale-[0.98]">
+<div class="flex size-12 items-center justify-center rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+<span class="material-symbols-outlined text-gray-700 dark:text-gray-300">payments</span>
+</div>
+<div class="flex grow flex-col">
+<p class="text-gray-900 dark:text-white text-base font-bold">Espèces</p>
+<p class="text-gray-600 dark:text-gray-400 text-xs font-medium italic">Préparez l'appoint si possible</p>
+</div>
+<input checked="" class="h-6 w-6 border-2 border-gray-300 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="payment-method" type="radio"/>
+</label>
+<!-- Orange Money -->
+<label class="flex items-center gap-4 rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 p-4 cursor-pointer transition-all hover:border-primary/50 active:scale-[0.98]">
+<div class="flex size-12 items-center justify-center rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+<div class="h-8 w-8 bg-orange-500 rounded flex items-center justify-center text-white font-black text-[8px] uppercase">Orange</div>
+</div>
+<div class="flex grow flex-col">
+<p class="text-gray-900 dark:text-white text-base font-bold">Orange Money</p>
+</div>
+<input class="h-6 w-6 border-2 border-gray-300 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="payment-method" type="radio"/>
+</label>
+<!-- MTN MoMo -->
+<label class="flex items-center gap-4 rounded-xl border-2 border-gray-100 dark:border-gray-800 bg-gray-50 dark:bg-gray-900/50 p-4 cursor-pointer transition-all hover:border-primary/50 active:scale-[0.98]">
+<div class="flex size-12 items-center justify-center rounded-lg bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 overflow-hidden">
+<div class="h-8 w-8 bg-yellow-400 rounded-full flex items-center justify-center text-black font-black text-[8px] uppercase">MTN</div>
+</div>
+<div class="flex grow flex-col">
+<p class="text-gray-900 dark:text-white text-base font-bold">MTN Mobile Money</p>
+</div>
+<input class="h-6 w-6 border-2 border-gray-300 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="payment-method" type="radio"/>
+</label>
+</div>
+<!-- Order Summary Preview -->
+<div class="mx-4 mt-6 p-4 rounded-xl bg-gray-50 dark:bg-gray-900/50 border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-center text-sm mb-2">
+<span class="text-gray-500 dark:text-gray-400">Articles (3)</span>
+<span class="text-gray-900 dark:text-white font-medium">4 950 FCFA</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<span class="text-gray-500 dark:text-gray-400">Frais de livraison</span>
+<span class="text-gray-900 dark:text-white font-medium">500 FCFA</span>
+</div>
+</div>
+</div>
+<!-- Floating Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-lg border-t border-gray-100 dark:border-gray-800 px-4 pt-4 pb-10">
+<div class="flex items-center justify-between mb-4">
+<span class="text-gray-500 dark:text-gray-400 text-sm font-medium">Montant Total</span>
+<span class="text-gray-900 dark:text-white text-xl font-extrabold tracking-tight">5 450 FCFA</span>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-gray-900 text-base font-bold leading-normal tracking-tight shadow-[0_8px_20px_rgba(34,195,142,0.3)] hover:brightness-105 active:scale-[0.98] transition-all">
+<span class="truncate">Confirmer la commande</span>
+<span class="material-symbols-outlined ml-2 text-[20px]">task_alt</span>
+</button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3e5574",
+                        "background-light": "#f6f7f7",
+                        "background-dark": "#16191c",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Paiements Restaurants en Attente - BAIBEBALO</title>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-[#121417] dark:text-gray-100 min-h-screen flex">
+<!-- Sidebar Navigation -->
+<aside class="w-72 bg-white dark:bg-[#1f2327] border-r border-[#d7dbe0] dark:border-gray-800 flex flex-col h-screen sticky top-0">
+<div class="p-6 flex flex-col gap-8 h-full">
+<div class="flex items-center gap-3">
+<div class="bg-primary rounded-lg p-2 text-white">
+<span class="material-symbols-outlined size-6">payments</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-[#121417] dark:text-white text-base font-bold leading-none">BAIBEBALO</h1>
+<p class="text-[#657181] text-xs font-medium">Console Admin</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#657181] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#657181] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#657181] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">restaurant</span>
+<span class="text-sm font-medium">Restaurants</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary dark:bg-primary/20 dark:text-primary-light" href="#">
+<span class="material-symbols-outlined text-xl fill-current">account_balance_wallet</span>
+<span class="text-sm font-bold">Paiements</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#657181] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<div class="mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-[#657181] hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</div>
+</nav>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 overflow-y-auto">
+<!-- Header Section -->
+<header class="p-8 pb-4">
+<div class="flex flex-wrap justify-between items-end gap-4">
+<div class="flex flex-col gap-2">
+<h2 class="text-[#121417] dark:text-white text-3xl font-black tracking-tight">Paiements Restaurants en Attente</h2>
+<p class="text-[#657181] dark:text-gray-400 text-base">Gérez les versements hebdomadaires et effectuez les virements groupés.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 h-11 bg-white dark:bg-[#1f2327] border border-[#d7dbe0] dark:border-gray-700 rounded-lg text-[#121417] dark:text-white text-sm font-bold hover:bg-gray-50 transition-colors">
+<span class="material-symbols-outlined text-xl">download</span>
+<span>Exporter CSV</span>
+</button>
+<button class="flex items-center gap-2 px-6 h-11 bg-primary text-white rounded-lg text-sm font-bold shadow-sm hover:brightness-110 transition-all">
+<span class="material-symbols-outlined text-xl">send</span>
+<span>Payer la sélection (3)</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Tabs Section -->
+<div class="px-8 mt-4">
+<div class="flex border-b border-[#d7dbe0] dark:border-gray-800 gap-8">
+<a class="flex items-center gap-2 border-b-[3px] border-primary text-primary pb-3 pt-4" href="#">
+<p class="text-sm font-bold tracking-tight">En attente</p>
+<span class="bg-primary/10 text-primary text-[10px] font-black px-1.5 py-0.5 rounded-full">12</span>
+</a>
+<a class="flex items-center gap-2 border-b-[3px] border-transparent text-[#657181] pb-3 pt-4 hover:text-primary transition-colors" href="#">
+<p class="text-sm font-bold tracking-tight">Payés</p>
+</a>
+<a class="flex items-center gap-2 border-b-[3px] border-transparent text-[#657181] pb-3 pt-4 hover:text-primary transition-colors" href="#">
+<p class="text-sm font-bold tracking-tight">Historique complet</p>
+</a>
+</div>
+</div>
+<!-- Filters Section -->
+<section class="p-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-white dark:bg-[#1f2327] p-5 rounded-xl border border-[#d7dbe0] dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<h3 class="text-[#121417] dark:text-white text-sm font-bold">Recherche</h3>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">search</span>
+<input class="w-full pl-10 pr-4 h-12 bg-gray-50 dark:bg-gray-800/50 border border-[#d7dbe0] dark:border-gray-700 rounded-lg text-sm focus:ring-primary focus:border-primary transition-all" placeholder="Nom du restaurant..." type="text"/>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1f2327] p-5 rounded-xl border border-[#d7dbe0] dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<h3 class="text-[#121417] dark:text-white text-sm font-bold">Période</h3>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">calendar_month</span>
+<select class="w-full pl-10 pr-4 h-12 bg-gray-50 dark:bg-gray-800/50 border border-[#d7dbe0] dark:border-gray-700 rounded-lg text-sm appearance-none focus:ring-primary focus:border-primary">
+<option>7 derniers jours</option>
+<option>Ce mois (Octobre)</option>
+<option>Période personnalisée</option>
+</select>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1f2327] p-5 rounded-xl border border-[#d7dbe0] dark:border-gray-800 shadow-sm flex flex-col gap-3">
+<h3 class="text-[#121417] dark:text-white text-sm font-bold">Montant minimum</h3>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">euro_symbol</span>
+<input class="w-full pl-10 pr-4 h-12 bg-gray-50 dark:bg-gray-800/50 border border-[#d7dbe0] dark:border-gray-700 rounded-lg text-sm focus:ring-primary focus:border-primary transition-all" placeholder="0.00" type="number"/>
+</div>
+</div>
+</section>
+<!-- Table Data Section -->
+<section class="px-8 pb-12">
+<div class="bg-white dark:bg-[#1f2327] border border-[#d7dbe0] dark:border-gray-800 rounded-xl overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-gray-50 dark:bg-gray-800/50 border-b border-[#d7dbe0] dark:border-gray-800">
+<th class="px-6 py-4 w-12">
+<input class="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer" type="checkbox"/>
+</th>
+<th class="px-6 py-4 text-[#657181] text-xs font-bold uppercase tracking-wider">Restaurant</th>
+<th class="px-6 py-4 text-[#657181] text-xs font-bold uppercase tracking-wider">Montant à régler</th>
+<th class="px-6 py-4 text-[#657181] text-xs font-bold uppercase tracking-wider">Période</th>
+<th class="px-6 py-4 text-[#657181] text-xs font-bold uppercase tracking-wider">Statut</th>
+<th class="px-6 py-4 text-[#657181] text-xs font-bold uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+<!-- Row 1 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-5">
+<input checked="" class="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+<div class="bg-center bg-no-repeat bg-cover size-full" data-alt="Logotype of a modern burger restaurant" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDDl8KdHOReU9f2iy2Ox7mZDOkhMgLl6MFC4ewtM3KqkAlVR_oXoj0mN57TVQCcylE1xe6Z2mCW1VoUrEllJDfUSPDLerh5x9iNnaZrdestuv8gUmwpNFNuWUWNvhch2IzNwIcAeRztEdsKvioxZLW6ha8eBLDlUBUBJYgJQ6luQuLdgIFEM8MitNastTGctMVLWyq7jT-NS3vlSOoOt02c_ke_mzcphp4PfeG62fKIL9Gvu9w8RD6qNba_TDpErJKL475rfCS3Epqu");'></div>
+</div>
+<div>
+<p class="text-[#121417] dark:text-white text-sm font-bold">Burger &amp; Co.</p>
+<p class="text-[#657181] text-xs">ID: #RE-4421</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-[#121417] dark:text-white text-sm font-black">1 450,25 €</span>
+</td>
+<td class="px-6 py-5 text-sm text-[#657181]">01/10/23 - 07/10/23</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                                    En attente
+                                </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary/70 font-bold text-sm">Détails</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-5">
+<input checked="" class="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+<div class="bg-center bg-no-repeat bg-cover size-full" data-alt="Traditional pizzeria facade" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAIIKBbuMLg19BzcIng_Md6Lh00KF7wY7oqs6yrTgmGExzyuvAQ74igoMEnMFyi3g0tr61oUi8R_42zU-cpp6jGo5tt7sDZS45tpha55Z4OPtic8dC2S3BGQqcMTFSTHw6bX_U2mmgzVW68l0FbRZHyZrzmm3omHPYB-Xn66Mz7ewtA7XRl9ghXd3JIrM_awvky_hM6_3Ft107O_yFAAOOXLY487c2sSzL24zCKB_VFbihXEiUuSyiog4tVutsdllyabicu8iY3gx2U");'></div>
+</div>
+<div>
+<p class="text-[#121417] dark:text-white text-sm font-bold">Pizza Napoli</p>
+<p class="text-[#657181] text-xs">ID: #RE-9012</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-[#121417] dark:text-white text-sm font-black">892,10 €</span>
+</td>
+<td class="px-6 py-5 text-sm text-[#657181]">01/10/23 - 07/10/23</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                                    En attente
+                                </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary/70 font-bold text-sm">Détails</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-5">
+<input checked="" class="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+<div class="bg-center bg-no-repeat bg-cover size-full" data-alt="Sushi platter presentation" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCsgGwgclJoru3qz1qp9UsWiAov_UafT67Smc16OtNSGI3xMcYbq-80v-OP7mE8jQ1bkR3Rju2AvEVJRj5UPU435GQYXAHkm7Q2TYNbOApYCpXDJRDohzx7pM0GuLSlqD9aNkZGDr-JeQ428YTlIJOz0W9j7-EEsgKdzdKg5KsoqYB2-yhEMDIkD9oQwTP780aBDJ30PlCXR7jB-NAvIEsGLpcZEfyhSEa9JTcI2mcouvwhS706riyuw-xXxOFyxKh98uY66i32WU4M");'></div>
+</div>
+<div>
+<p class="text-[#121417] dark:text-white text-sm font-bold">Sushi Master</p>
+<p class="text-[#657181] text-xs">ID: #RE-2155</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-[#121417] dark:text-white text-sm font-black">2 110,00 €</span>
+</td>
+<td class="px-6 py-5 text-sm text-[#657181]">01/10/23 - 07/10/23</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                                    En attente
+                                </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary/70 font-bold text-sm">Détails</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-5">
+<input class="rounded border-gray-300 dark:border-gray-600 text-primary focus:ring-primary cursor-pointer" type="checkbox"/>
+</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="h-10 w-10 rounded-lg bg-gray-100 dark:bg-gray-700 flex items-center justify-center overflow-hidden">
+<div class="bg-center bg-no-repeat bg-cover size-full" data-alt="Fresh salad bowl close up" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBqylGegYL3dwQRSa1wIH_2S2uNvHr4YeZCg7jedNmDj67QGiSeTqWfAhcyxoD2l7njz_NXPIz30i0ZHWwMp8PHMOQPj7bv26iczxk63sihL9UCy0GQMhpwnRqUwLPX_aUanVII810dpN6uLpj2OB7djwaGQBqy7SZH2q9HCL39v2x64goPUXXCRbXXb0uEjUzsRQzWWINQRXKRS8wYxMWBSyyz1VJNtLJ5Lk1Lm4BgV5tQt30RrdSlK_Ef37o2ppmewskpn1LNfx3J");'></div>
+</div>
+<div>
+<p class="text-[#121417] dark:text-white text-sm font-bold">Green Eat</p>
+<p class="text-[#657181] text-xs">ID: #RE-1192</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-5">
+<span class="text-[#121417] dark:text-white text-sm font-black">540,50 €</span>
+</td>
+<td class="px-6 py-5 text-sm text-[#657181]">01/10/23 - 07/10/23</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-400">
+                                    En attente
+                                </span>
+</td>
+<td class="px-6 py-5 text-right">
+<button class="text-primary hover:text-primary/70 font-bold text-sm">Détails</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination / Footer -->
+<div class="px-6 py-4 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center border-t border-[#d7dbe0] dark:border-gray-800">
+<p class="text-xs text-[#657181] font-medium">3 restaurants sélectionnés — Total: <span class="text-[#121417] dark:text-white font-bold">4 452,35 €</span></p>
+<div class="flex gap-2">
+<button class="size-8 flex items-center justify-center border border-[#d7dbe0] dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-gray-400 cursor-not-allowed">
+<span class="material-symbols-outlined text-base">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center border border-primary/20 rounded bg-primary text-white text-xs font-bold">1</button>
+<button class="size-8 flex items-center justify-center border border-[#d7dbe0] dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-[#657181] hover:bg-gray-50 transition-colors text-xs font-bold">2</button>
+<button class="size-8 flex items-center justify-center border border-[#d7dbe0] dark:border-gray-700 rounded bg-white dark:bg-gray-900 text-[#121417] dark:text-white hover:bg-gray-50 transition-colors">
+<span class="material-symbols-outlined text-base">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Summary Floating Bar (Optional visual) -->
+<div class="fixed bottom-8 right-8 pointer-events-none">
+<div class="bg-primary shadow-2xl rounded-2xl p-6 text-white flex flex-col gap-1 min-w-[240px] pointer-events-auto transform hover:scale-105 transition-transform">
+<p class="text-xs font-medium text-white/70 uppercase tracking-widest">Global Restant</p>
+<div class="flex items-baseline gap-2">
+<span class="text-3xl font-black">12 840,00</span>
+<span class="text-lg font-bold">€</span>
+</div>
+<div class="mt-4 pt-4 border-t border-white/10">
+<div class="flex justify-between items-center text-xs">
+<span class="text-white/70">12 Restaurants</span>
+<span class="bg-white/20 px-2 py-0.5 rounded-full font-bold">Prochaine échéance: Demain</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</body></html>

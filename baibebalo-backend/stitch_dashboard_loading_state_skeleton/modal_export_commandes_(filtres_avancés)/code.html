@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Modal Export Commandes - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1265a1",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#f7f7f8",
+                        "background-dark": "#1a1d21",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .modal-overlay {
+            background-color: rgba(14, 21, 27, 0.7);
+            backdrop-filter: blur(4px);
+        }
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 overflow-hidden">
+<!-- Mocked Background Page (Dashboard View) -->
+<div class="relative flex min-h-screen w-full flex-col">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark px-10 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4">
+<div class="size-6 text-brand-orange">
+<svg fill="currentColor" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z"></path>
+</svg>
+</div>
+<h2 class="text-lg font-bold tracking-tight">BAIBEBALO Admin</h2>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="h-10 w-64 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center px-3 gap-2">
+<span class="material-symbols-outlined text-slate-400">search</span>
+<span class="text-sm text-slate-400">Rechercher...</span>
+</div>
+<div class="size-10 rounded-full bg-slate-200 dark:bg-slate-700" data-alt="User avatar placeholder"></div>
+</div>
+</header>
+<div class="flex flex-1">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark p-4 flex flex-col gap-6">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary text-white cursor-pointer">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="text-sm font-medium">Restaurants</span>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-800 cursor-pointer">
+<span class="material-symbols-outlined">menu_book</span>
+<span class="text-sm font-medium">Menu</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area (Blurred/Hidden by Modal) -->
+<main class="flex-1 p-8 opacity-40">
+<div class="flex justify-between items-end mb-8">
+<div>
+<h1 class="text-3xl font-bold tracking-tight">Liste des Commandes</h1>
+<p class="text-slate-500">Gérez et suivez toutes les commandes entrantes.</p>
+</div>
+</div>
+<div class="w-full h-96 border border-dashed border-slate-300 rounded-xl"></div>
+</main>
+</div>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center modal-overlay p-4">
+<!-- Modal Container -->
+<div class="bg-white dark:bg-slate-900 w-full max-w-4xl rounded-xl shadow-2xl flex flex-col overflow-hidden max-h-[90vh]">
+<!-- Modal Header -->
+<div class="px-8 py-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center bg-white dark:bg-slate-900 sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">file_download</span>
+</div>
+<div>
+<h2 class="text-xl font-bold text-slate-900 dark:text-white">Exporter les Commandes</h2>
+<p class="text-xs text-slate-500 font-medium">Phase 3 - Extraction de données avancée</p>
+</div>
+</div>
+<button class="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-2">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- Modal Body -->
+<div class="flex-1 overflow-y-auto p-8 grid grid-cols-1 lg:grid-cols-12 gap-10">
+<!-- Left: Filters -->
+<div class="lg:col-span-7 flex flex-col gap-8">
+<!-- Date Range Selection -->
+<div class="flex flex-col gap-4">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">1. Période</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Du</label>
+<div class="relative">
+<input class="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary" type="date" value="2023-10-05"/>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-xs font-semibold text-slate-600 dark:text-slate-300">Au</label>
+<div class="relative">
+<input class="w-full bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-sm focus:ring-primary focus:border-primary" type="date" value="2023-10-30"/>
+</div>
+</div>
+</div>
+<!-- Mini Calendar Visual for UX -->
+<div class="mt-2 border border-slate-100 dark:border-slate-800 rounded-xl p-4 bg-slate-50/50 dark:bg-slate-800/30">
+<div class="flex items-center justify-between mb-4">
+<span class="material-symbols-outlined text-xs">chevron_left</span>
+<span class="text-sm font-bold">Octobre 2023</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+</div>
+<div class="grid grid-cols-7 gap-1 text-center">
+<div class="text-[10px] font-bold text-slate-400 py-1">L</div>
+<div class="text-[10px] font-bold text-slate-400 py-1">M</div>
+<div class="text-[10px] font-bold text-slate-400 py-1">M</div>
+<div class="text-[10px] font-bold text-slate-400 py-1">J</div>
+<div class="text-[10px] font-bold text-slate-400 py-1">V</div>
+<div class="text-[10px] font-bold text-slate-400 py-1">S</div>
+<div class="text-[10px] font-bold text-slate-400 py-1">D</div>
+<!-- Partial Mockup of October -->
+<div class="text-[11px] py-1 text-slate-300">1</div>
+<div class="text-[11px] py-1 text-slate-300">2</div>
+<div class="text-[11px] py-1 text-slate-300">3</div>
+<div class="text-[11px] py-1 text-slate-300">4</div>
+<div class="text-[11px] py-1 bg-primary text-white rounded-l-full">5</div>
+<div class="text-[11px] py-1 bg-primary/20">6</div>
+<div class="text-[11px] py-1 bg-primary/20">7</div>
+<div class="text-[11px] py-1 bg-primary/20">8</div>
+<div class="text-[11px] py-1 bg-primary/20">9</div>
+<div class="text-[11px] py-1 bg-primary/20">10</div>
+<div class="text-[11px] py-1 bg-primary/20">11</div>
+<div class="text-[11px] py-1 bg-primary/20">12</div>
+<div class="text-[11px] py-1 bg-primary/20">13</div>
+<div class="text-[11px] py-1 bg-primary/20">14</div>
+<div class="text-[11px] py-1 bg-primary/20">15</div>
+<div class="text-[11px] py-1 bg-primary/20">16</div>
+<div class="text-[11px] py-1 bg-primary/20">17</div>
+<div class="text-[11px] py-1 bg-primary/20">18</div>
+<div class="text-[11px] py-1 bg-primary/20">19</div>
+<div class="text-[11px] py-1 bg-primary/20">20</div>
+<div class="text-[11px] py-1 bg-primary/20">21</div>
+<div class="text-[11px] py-1 bg-primary/20">22</div>
+<div class="text-[11px] py-1 bg-primary/20">23</div>
+<div class="text-[11px] py-1 bg-primary/20">24</div>
+<div class="text-[11px] py-1 bg-primary/20">25</div>
+<div class="text-[11px] py-1 bg-primary/20">26</div>
+<div class="text-[11px] py-1 bg-primary/20">27</div>
+<div class="text-[11px] py-1 bg-primary/20">28</div>
+<div class="text-[11px] py-1 bg-primary/20">29</div>
+<div class="text-[11px] py-1 bg-primary text-white rounded-r-full">30</div>
+<div class="text-[11px] py-1 text-slate-300">31</div>
+</div>
+</div>
+</div>
+<!-- Multi-select Filter Sections -->
+<div class="grid grid-cols-2 gap-6">
+<div class="flex flex-col gap-3">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">2. Statuts</h3>
+<div class="flex flex-col gap-2">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Livré</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">En cours</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Annulé</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Remboursé</span>
+</label>
+</div>
+</div>
+<div class="flex flex-col gap-3">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">3. Restaurants</h3>
+<div class="flex flex-col gap-2">
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Paris - Châtelet</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input checked="" class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Lyon - Bellecour</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Bordeaux - Centre</span>
+</label>
+<label class="flex items-center gap-2 cursor-pointer">
+<input class="rounded text-primary focus:ring-primary w-4 h-4" type="checkbox"/>
+<span class="text-sm font-medium">Nice - Promenade</span>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Export Formats -->
+<div class="lg:col-span-5 border-l border-slate-100 dark:border-slate-800 lg:pl-10 flex flex-col gap-6">
+<h3 class="text-sm font-bold uppercase tracking-wider text-slate-400">4. Format d'export</h3>
+<div class="flex flex-col gap-4">
+<!-- CSV Format Card -->
+<div class="relative flex items-center gap-4 p-4 border-2 border-slate-100 dark:border-slate-800 rounded-xl hover:border-primary/30 transition-all cursor-pointer group">
+<div class="size-12 bg-emerald-50 dark:bg-emerald-950/30 text-emerald-600 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">description</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">CSV Data</p>
+<p class="text-[11px] text-slate-500">Pour analyses BI avancées</p>
+</div>
+<input class="w-5 h-5 text-primary focus:ring-primary border-slate-300" name="format" type="radio"/>
+</div>
+<!-- Excel Format Card (Selected) -->
+<div class="relative flex items-center gap-4 p-4 border-2 border-primary bg-primary/5 rounded-xl transition-all cursor-pointer">
+<div class="size-12 bg-blue-50 dark:bg-blue-950/30 text-blue-600 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">table_view</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Excel (.xlsx)</p>
+<p class="text-[11px] text-slate-500">Reporting mensuel classique</p>
+</div>
+<input checked="" class="w-5 h-5 text-primary focus:ring-primary border-slate-300" name="format" type="radio"/>
+</div>
+<!-- PDF Format Card -->
+<div class="relative flex items-center gap-4 p-4 border-2 border-slate-100 dark:border-slate-800 rounded-xl hover:border-primary/30 transition-all cursor-pointer group">
+<div class="size-12 bg-rose-50 dark:bg-rose-950/30 text-rose-600 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">picture_as_pdf</span>
+</div>
+<div class="flex-1">
+<p class="text-sm font-bold">Document PDF</p>
+<p class="text-[11px] text-slate-500">Facturation &amp; Archivage</p>
+</div>
+<input class="w-5 h-5 text-primary focus:ring-primary border-slate-300" name="format" type="radio"/>
+</div>
+</div>
+<div class="mt-auto bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+<div class="flex items-center gap-2 mb-2">
+<span class="material-symbols-outlined text-sm text-primary">info</span>
+<p class="text-[11px] font-bold text-slate-600 dark:text-slate-300 uppercase">Résumé de l'export</p>
+</div>
+<p class="text-sm text-slate-500">
+                            Environ <span class="text-slate-900 dark:text-white font-bold">1,240 commandes</span> seront exportées pour la période du 05 oct. au 30 oct. 2023.
+                        </p>
+</div>
+</div>
+</div>
+<!-- Modal Footer -->
+<div class="px-8 py-6 border-t border-slate-100 dark:border-slate-800 flex justify-end items-center gap-4 bg-white dark:bg-slate-900 sticky bottom-0 z-10">
+<button class="px-6 py-2.5 text-sm font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors">
+                    Annuler
+                </button>
+<button class="px-8 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-lg shadow-primary/30 hover:bg-primary/90 flex items-center gap-2 transition-transform active:scale-95">
+<span class="material-symbols-outlined text-lg">download</span>
+                    Lancer l'exportation
+                </button>
+</div>
+</div>
+</div>
+</body></html>

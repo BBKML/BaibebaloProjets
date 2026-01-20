@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Recherche &amp; Tendances</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#1a1c1e",
+                        "surface-light": "#ffffff",
+                        "surface-dark": "#22252a",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#121715] dark:text-white">
+<div class="max-w-[430px] mx-auto min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
+<!-- Header: TopAppBar + SearchBar Integrated -->
+<header class="sticky top-0 z-50 bg-white dark:bg-surface-dark px-4 pt-4 pb-2 border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">arrow_back_ios_new</span>
+</button>
+<div class="flex-1">
+<label class="flex items-center h-12 w-full bg-[#f0f4f3] dark:bg-[#2d3238] rounded-xl px-4 focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<span class="material-symbols-outlined text-[#65867b] dark:text-gray-400 mr-2">search</span>
+<input autofocus="" class="bg-transparent border-none focus:ring-0 p-0 text-base font-medium w-full placeholder-[#65867b] dark:placeholder-gray-500" placeholder="Rechercher un plat, resto..." type="text"/>
+</label>
+</div>
+<button class="text-primary text-base font-bold leading-normal px-2">
+                    Annuler
+                </button>
+</div>
+</header>
+<main class="flex-1 pb-24">
+<!-- Section: Recherches récentes -->
+<section class="mt-6">
+<div class="flex items-center justify-between px-4 pb-2">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Recherches récentes</h3>
+<button class="text-xs font-semibold text-[#65867b] uppercase tracking-wider">Effacer</button>
+</div>
+<div class="space-y-1">
+<!-- List Item 1 -->
+<div class="flex items-center gap-4 bg-white dark:bg-surface-dark mx-4 p-3 rounded-xl soft-shadow mb-2 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<p class="text-[#121715] dark:text-gray-200 text-base font-medium flex-1 truncate">Alloco &amp; Poisson</p>
+<button class="text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- List Item 2 -->
+<div class="flex items-center gap-4 bg-white dark:bg-surface-dark mx-4 p-3 rounded-xl soft-shadow mb-2 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<p class="text-[#121715] dark:text-gray-200 text-base font-medium flex-1 truncate">Burger King Plateau</p>
+<button class="text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+<!-- List Item 3 -->
+<div class="flex items-center gap-4 bg-white dark:bg-surface-dark mx-4 p-3 rounded-xl soft-shadow mb-2 border border-transparent hover:border-primary/20 transition-all cursor-pointer">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined text-[20px]">history</span>
+</div>
+<p class="text-[#121715] dark:text-gray-200 text-base font-medium flex-1 truncate">Garba Express</p>
+<button class="text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-[20px]">close</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Section: Tendances -->
+<section class="mt-8">
+<div class="flex items-center gap-2 px-4 pb-4">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Tendances du moment</h3>
+<span class="flex items-center justify-center bg-orange-100 dark:bg-orange-900/30 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-orange-600 text-[14px] mr-1">bolt</span>
+<span class="text-[10px] font-bold text-orange-600 uppercase">Hot</span>
+</span>
+</div>
+<!-- Trending Tags Grid -->
+<div class="grid grid-cols-2 gap-3 px-4">
+<!-- Tag 1: Pizza -->
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl soft-shadow flex items-center gap-3 border border-transparent active:scale-95 transition-transform cursor-pointer">
+<div class="size-10 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Delicious Italian pepperoni pizza slice" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCdai1hnC37QBpireRuOXI7nKuMpx-7C5IOMVxk4M4TpsoYbPFy14INZzBTDqDZ6aKbiZgbKCEDcorT61BdTpycGQH3FbJAZxpqY67-7rpc0Y3RATbZ6lo8-LehUMkjYMucENZj43gdMtXZYzQDHuZpa9BcCsQZfd_OeStPRxVQ8r4X_qoNW7G216smDN6YpQJ17KZshLHjVitiQNjsue3Npcgs1JzjrDEi7cTkRDzH4TudRkqwhNjJk7lWXxjwMNA-0t5B7ZxpLded"/>
+</div>
+<span class="font-semibold text-sm">Pizza</span>
+</div>
+<!-- Tag 2: Grillades -->
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl soft-shadow flex items-center gap-3 border border-transparent active:scale-95 transition-transform cursor-pointer">
+<div class="size-10 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Grilled BBQ meat skewers" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDv2l7X3rZ9VdBBcr_FlMobwT7FjGCLcFlQv3jvikhsvOQXwCTHyM6FUg4ntD0-DMI0Ow_bildfZWcFF3MQ_i59SfU7pIabFM3_5KHCXJk5lkmop9Fm9BY4dRKFZ5LLrGQQGAWMcF2stI6NiYCdXqChef6s7ViRdOPct5B-apxM0eJBGT1dSIj4N0BB4v_36bxDc_lDggUbtmFixaTYXuoOLQ8tfbXzq_UKMAwhJkP9d2woLc95vxYJ9_nU5-M9uHekUUQvgzk0O4tt"/>
+</div>
+<span class="font-semibold text-sm">Grillades</span>
+</div>
+<!-- Tag 3: Ivoirien -->
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl soft-shadow flex items-center gap-3 border border-transparent active:scale-95 transition-transform cursor-pointer">
+<div class="size-10 rounded-lg overflow-hidden shrink-0 bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<span class="font-semibold text-sm">Ivoirien</span>
+</div>
+<!-- Tag 4: Pastels -->
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl soft-shadow flex items-center gap-3 border border-transparent active:scale-95 transition-transform cursor-pointer">
+<div class="size-10 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Golden fried pastel dumplings" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAT7IeeQNo-NnfaX2HuazYdDfkEaMEbiM4LAMBX54IYv0Ic2Uu8bjwMQNjz4Ps5-YobDYizxByHS8mt5_D9JpYVdPVWZK58jYHgJ9__jWKZwsn0qloRTfI83TnvOuOdb-8gmN13vdvr4AljJ3eLPQTzBaZVrd8XrkkBus9Y9ltRtwETRMuzNVB15_LWspKKO5Z4J8LXo4Wd2nLGF8knNGEAFcNfLu3oULUSbia1JRi3gvgBC4whvk-qP6cQrOGUJZhMLZlaoUOcyZwg"/>
+</div>
+<span class="font-semibold text-sm">Pastels</span>
+</div>
+<!-- Tag 5: Sushi -->
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl soft-shadow flex items-center gap-3 border border-transparent active:scale-95 transition-transform cursor-pointer">
+<div class="size-10 rounded-lg overflow-hidden shrink-0">
+<img class="w-full h-full object-cover" data-alt="Fresh sushi rolls tray" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqAMKrFlMgdgbYLa_DWxbMX2gnvO7ExGOOIMRACns8JaOimp2Bt9i5MSg7RoBPe-T9UMHQix21e2n5UaIeStdplqFG8-RvJFuYJU8rVhm-FXOpuj4toE4YRoXbBSfyfYzchJM1SYjUor1ChGC4R24kTQ-72FSnNhfpmIoqAJvJAlOjVVh5VY3AkNngjwDLDwVYTwU8mwExoSHl311Rs2XSkX8SPJabtI8jMBK5pAd06-0l8zliHRc1hqEUkTJWOfrD83yE2goOm7q3"/>
+</div>
+<span class="font-semibold text-sm">Sushi</span>
+</div>
+<!-- Tag 6: Boutique -->
+<div class="bg-white dark:bg-surface-dark p-3 rounded-xl soft-shadow flex items-center gap-3 border border-transparent active:scale-95 transition-transform cursor-pointer">
+<div class="size-10 rounded-lg overflow-hidden shrink-0 bg-blue-50 dark:bg-blue-900/20 flex items-center justify-center text-blue-500">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+<span class="font-semibold text-sm">Boutique</span>
+</div>
+</div>
+</section>
+<!-- Section: Suggestions de catégories -->
+<section class="mt-8">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold px-4 mb-4">Explorer par envie</h3>
+<div class="flex gap-3 px-4 overflow-x-auto hide-scrollbar">
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-14 rounded-full bg-white dark:bg-surface-dark soft-shadow flex items-center justify-center border border-gray-50 dark:border-gray-800">
+<span class="material-symbols-outlined text-primary">local_cafe</span>
+</div>
+<span class="text-xs font-medium">Petit-déj</span>
+</div>
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-14 rounded-full bg-white dark:bg-surface-dark soft-shadow flex items-center justify-center border border-gray-50 dark:border-gray-800">
+<span class="material-symbols-outlined text-primary">lunch_dining</span>
+</div>
+<span class="text-xs font-medium">Burgers</span>
+</div>
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-14 rounded-full bg-white dark:bg-surface-dark soft-shadow flex items-center justify-center border border-gray-50 dark:border-gray-800">
+<span class="material-symbols-outlined text-primary">bakery_dining</span>
+</div>
+<span class="text-xs font-medium">Pâtisserie</span>
+</div>
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-14 rounded-full bg-white dark:bg-surface-dark soft-shadow flex items-center justify-center border border-gray-50 dark:border-gray-800">
+<span class="material-symbols-outlined text-primary">wine_bar</span>
+</div>
+<span class="text-xs font-medium">Boissons</span>
+</div>
+<div class="flex flex-col items-center gap-2 shrink-0">
+<div class="size-14 rounded-full bg-white dark:bg-surface-dark soft-shadow flex items-center justify-center border border-gray-50 dark:border-gray-800">
+<span class="material-symbols-outlined text-primary">icecream</span>
+</div>
+<span class="text-xs font-medium">Desserts</span>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/80 dark:bg-surface-dark/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">search</span>
+<span class="text-[10px] font-medium">Recherche</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</button>
+</nav>
+</div>
+</body></html>

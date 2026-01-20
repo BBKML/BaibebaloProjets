@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Dashboard Performance Livreurs</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#198cb3",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111d21",
+                        "card-dark": "#1a2a2f",
+                        "border-dark": "#253e46",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-container { position: relative; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #253e46; border-radius: 10px; }
+        .badge-gold { color: #FFD700; }
+        .badge-silver { color: #C0C0C0; }
+        .badge-bronze { color: #CD7F32; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 border-r border-border-dark bg-background-dark hidden lg:flex flex-col">
+<div class="p-6 flex flex-col h-full">
+<div class="flex items-center gap-3 mb-10 px-2">
+<div class="bg-primary rounded-lg size-10 flex items-center justify-center text-white">
+<span class="material-symbols-outlined">delivery_dining</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-[#95bac6] text-xs font-medium">Admin Console v5.0</p>
+</div>
+</div>
+<nav class="flex-1 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#95bac6] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+<span class="text-sm font-medium">Vue d'ensemble</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/20 text-white rounded-lg" href="#">
+<span class="material-symbols-outlined text-[20px] text-primary">analytics</span>
+<span class="text-sm font-medium">Performance Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#95bac6] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">local_shipping</span>
+<span class="text-sm font-medium">Livreurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#95bac6] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<div class="pt-4 pb-2 px-3">
+<p class="text-[10px] font-bold text-[#4c6b75] uppercase tracking-widest">Support &amp; Ops</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 text-[#95bac6] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#95bac6] hover:text-white transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">help</span>
+<span class="text-sm font-medium">Aide</span>
+</a>
+</nav>
+<div class="mt-auto p-3 bg-card-dark rounded-xl flex items-center gap-3 border border-border-dark">
+<div class="size-8 rounded-full bg-cover bg-center" data-alt="Avatar of the administrator" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5j0Mc2sF4TzBGhPuCWYV_FJykrkrrJZQ7NgAO96AlRCc0kuvAkQSRYqRxZFt6kwTDZ8v2QFJfIBy2izIy78qmv-F-_eVR3DUjZMCiq5EIiTD3qofXZmpsZLcBQUvu421ubOE2FIieAQ9UORgnQKqqcjOriUeJh5vn6U2MNu1EFI3Y0nN9Ra3lZFrn0RYWjiFh3__oln_uc7_38E6O1HDhfi8fGarw6nOqOwSGHwRMj7GZ5K4DaYowNWV6Nwp_Hus7F2wC-l20g1yp')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold text-white truncate">Admin Principal</p>
+<p class="text-[10px] text-[#95bac6] truncate">Session Active</p>
+</div>
+<span class="material-symbols-outlined text-[#95bac6] text-sm">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- Top Header -->
+<header class="h-16 flex-shrink-0 border-b border-border-dark flex items-center justify-between px-8 bg-background-dark/50 backdrop-blur-md z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-white text-lg font-bold">Performance Analytics</h2>
+<div class="h-4 w-px bg-border-dark"></div>
+<div class="flex gap-4">
+<button class="text-xs font-semibold text-primary border-b-2 border-primary pb-1">Temps Réel</button>
+<button class="text-xs font-semibold text-[#95bac6] hover:text-white pb-1 transition-colors">Hebdomadaire</button>
+<button class="text-xs font-semibold text-[#95bac6] hover:text-white pb-1 transition-colors">Mensuel</button>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative flex items-center">
+<span class="material-symbols-outlined absolute left-3 text-[#95bac6] text-lg">search</span>
+<input class="bg-card-dark border-border-dark text-white rounded-lg pl-10 pr-4 py-1.5 text-sm focus:ring-1 focus:ring-primary w-64" placeholder="Rechercher un livreur..." type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="size-9 rounded-lg bg-card-dark flex items-center justify-center text-[#95bac6] border border-border-dark relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border border-card-dark"></span>
+</button>
+</div>
+</div>
+</header>
+<!-- Scrollable View -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+<!-- Page Heading -->
+<div class="flex justify-between items-end mb-8">
+<div>
+<h3 class="text-white text-3xl font-black tracking-tight">Dashboard Performance Livreurs</h3>
+<p class="text-[#95bac6] mt-1">Suivi et classement analytique des livreurs en temps réel.</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-card-dark hover:bg-border-dark text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 border border-border-dark transition-all">
+<span class="material-symbols-outlined text-lg">filter_alt</span>
+                            Filtres
+                        </button>
+<button class="bg-primary hover:bg-primary/80 text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-lg">download</span>
+                            Exporter PDF
+                        </button>
+</div>
+</div>
+<!-- Bento Grid Layout -->
+<div class="grid grid-cols-12 gap-6">
+<!-- Top Metrics Card 1 -->
+<div class="col-span-12 lg:col-span-3 bg-card-dark border border-border-dark rounded-xl p-6 flex flex-col justify-between">
+<div>
+<p class="text-[#95bac6] text-sm font-medium">Livreurs Actifs</p>
+<div class="flex items-baseline gap-2 mt-2">
+<h4 class="text-white text-4xl font-bold tracking-tight">124</h4>
+<span class="text-emerald-400 text-xs font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12%
+                                </span>
+</div>
+</div>
+<div class="mt-6 h-12 w-full opacity-30">
+<!-- SVG Placeholder for Sparkline -->
+<svg class="w-full h-full text-emerald-400 stroke-current fill-none" viewbox="0 0 100 30">
+<path d="M0 25 Q 10 20, 20 22 T 40 15 T 60 18 T 80 5 T 100 10" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Top Metrics Card 2 -->
+<div class="col-span-12 lg:col-span-3 bg-card-dark border border-border-dark rounded-xl p-6 flex flex-col justify-between">
+<div>
+<p class="text-[#95bac6] text-sm font-medium">Livraisons Réussies/Jour</p>
+<div class="flex items-baseline gap-2 mt-2">
+<h4 class="text-white text-4xl font-bold tracking-tight">42</h4>
+<span class="text-rose-400 text-xs font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_down</span> -3%
+                                </span>
+</div>
+</div>
+<div class="mt-6 h-12 w-full opacity-30">
+<svg class="w-full h-full text-rose-400 stroke-current fill-none" viewbox="0 0 100 30">
+<path d="M0 5 Q 10 10, 20 8 T 40 15 T 60 12 T 80 25 T 100 22" stroke-linecap="round" stroke-width="2"></path>
+</svg>
+</div>
+</div>
+<!-- Line Chart: Delivery Volume Trends -->
+<div class="col-span-12 lg:col-span-6 bg-card-dark border border-border-dark rounded-xl p-6">
+<div class="flex justify-between items-start mb-6">
+<h5 class="text-white font-bold">Évolution du Volume de Livraison</h5>
+<span class="material-symbols-outlined text-[#95bac6] cursor-pointer">more_vert</span>
+</div>
+<div class="h-40 w-full relative">
+<!-- Placeholder visual for line chart -->
+<div class="absolute inset-0 flex items-end justify-between px-2">
+<div class="w-px h-full bg-border-dark"></div>
+<div class="w-px h-full bg-border-dark"></div>
+<div class="w-px h-full bg-border-dark"></div>
+<div class="w-px h-full bg-border-dark"></div>
+<div class="w-px h-full bg-border-dark"></div>
+</div>
+<svg class="absolute inset-0 w-full h-full" preserveaspectratio="none">
+<defs>
+<lineargradient id="grad1" x1="0%" x2="0%" y1="0%" y2="100%">
+<stop offset="0%" style="stop-color:rgba(25, 140, 179, 0.4);stop-opacity:1"></stop>
+<stop offset="100%" style="stop-color:rgba(25, 140, 179, 0);stop-opacity:1"></stop>
+</lineargradient>
+</defs>
+<path class="fill-[url(#grad1)]" d="M0 100 L0 60 Q 50 20, 100 50 Q 150 80, 200 30 Q 250 10, 300 40 Q 350 70, 400 30 L400 100 Z"></path>
+<path d="M0 60 Q 50 20, 100 50 Q 150 80, 200 30 Q 250 10, 300 40 Q 350 70, 400 30" fill="none" stroke="#198cb3" stroke-width="3"></path>
+</svg>
+<div class="absolute bottom-0 left-0 right-0 flex justify-between text-[10px] text-[#4c6b75] pt-2">
+<span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>00:00</span>
+</div>
+</div>
+</div>
+<!-- Ranking Table -->
+<div class="col-span-12 lg:col-span-8 bg-card-dark border border-border-dark rounded-xl overflow-hidden flex flex-col">
+<div class="p-6 border-b border-border-dark flex justify-between items-center">
+<h5 class="text-white font-bold">Classement des Performances</h5>
+<button class="text-xs text-primary font-bold hover:underline">Voir tout</button>
+</div>
+<div class="flex-1 overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-background-dark/50 text-[#95bac6] text-[10px] uppercase font-bold tracking-widest">
+<tr>
+<th class="px-6 py-3">Rang</th>
+<th class="px-6 py-3">Livreur</th>
+<th class="px-6 py-3">Acceptation</th>
+<th class="px-6 py-3">Temps Moy.</th>
+<th class="px-6 py-3">Note</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-dark">
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<span class="material-symbols-outlined badge-gold" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-700 border border-primary/30 bg-cover" data-alt="Driver avatar - Jean Dupont" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCAU-xwj_no4Uvwu1_IPlXFxl-PekpFrqU4avbLzBcm9MdLbt6AxjQB9tHtXLfcNx97sVUOdZFioTNVDoN7waQSTZ8Su5ZtAbG0l0GLIU5TRzsVAWQ3RX-46HgsW_P2GHCDkjg1x5Hyw9FcXU4fD4Mm6FZ8XldgPC-rKtf9RluGtXXD47c12DFCxpdxkjTDuu6bk41-H6dYmXYbRZbNEm5f0bU_LmNaACBQEFWmcFceAKYunq7n1D4hP99q3Grt71GTKC2SR27CVqZW')"></div>
+<span class="text-sm font-bold text-white">Jean Dupont</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-white">98%</td>
+<td class="px-6 py-4 text-sm text-white">18 min</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-primary">
+<span class="text-sm font-bold">4.9</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<span class="material-symbols-outlined badge-silver" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-700 border border-border-dark bg-cover" data-alt="Driver avatar - Sarah K." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDdrmeHYQ_nnA2YTJr0263pvxENCUfbOC5fDM1DzxApQ76RheaCFEX0fP2ZYcCUuxJBN-TM4oNFmjcO3RVkAT8FHgp6qdsJG-H1m7cS_IHHqf6nRWLs8YVlQMeeOT40BZWmob8O6l2QSj4c8uYYVSmC3OI9tgViX6twmIK21_V2SAWceWA0Es5JvpW1BAPY601zATlPMXpYxNoVz2tNIHw_8t-fIjJT6mS4ZLfcTk7ReB2SVqbm_qX2P0hJxNvxcGAntO2NTjqUlLbi')"></div>
+<span class="text-sm font-bold text-white">Sarah K.</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-white">95%</td>
+<td class="px-6 py-4 text-sm text-white">21 min</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-primary">
+<span class="text-sm font-bold">4.7</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<span class="material-symbols-outlined badge-bronze" style="font-variation-settings: 'FILL' 1;">workspace_premium</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-700 border border-border-dark bg-cover" data-alt="Driver avatar - Marc Ouellet" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDH8fCht-Dl-WHHG6eFo_6rwyoeGNTrRvlbo7o1JHoT6MYEbocmWtYGJbmByFrGtdkIX-BW9p4pefFD_h2bappA3cN_pGpGSpVOCdlKhQmDT4c8j3Vuws9I_y-iS64XjsVAscNmkYFu2FP9LqNr59ypRqAirIRs2l3o5iysm4p4AEp0PWsWcnDIXE7dsTG-Du1mR6ltfTJKGIP1z32ADoMhKd7k3TnBKU-8OKXnMfM5S053KERqceZ-m11gDYqxCMTaRGYuoWl4B9wk')"></div>
+<span class="text-sm font-bold text-white">Marc Ouellet</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-white">92%</td>
+<td class="px-6 py-4 text-sm text-white">24 min</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-primary">
+<span class="text-sm font-bold">4.6</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</td>
+</tr>
+<tr class="hover:bg-primary/5 transition-colors group">
+<td class="px-6 py-4">
+<span class="text-xs font-bold text-[#4c6b75] px-2.5">4</span>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-slate-700 border border-border-dark bg-cover" data-alt="Driver avatar - Ahmed Z." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD01buUEQbhtsGODrq8V2c-4Q17guHI12FVgt9ul2yrXReFfpgIAyocnisavVtif00nfDZpLLr_VZ_SwzchifEjTcOIjGmsyOLuzHhZ15z9oI5sqRA_IRj75AEI8EhHasqfoKe03-ytZW5GkZmrD8pZN5t_YKAyqdsDrItv33TIXlnEFTR-OoV9qWZ4Cftc4uelDsuv8kHcsznh6VQ6MG2tqbTRipT09I3E69nKJvePoMDbGFp6tyj5fcSVEBGamwo-8KBc3AFEDt2n')"></div>
+<span class="text-sm font-bold text-white">Ahmed Z.</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-white">89%</td>
+<td class="px-6 py-4 text-sm text-white">26 min</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-1 text-primary">
+<span class="text-sm font-bold">4.5</span>
+<span class="material-symbols-outlined text-xs" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<!-- Cancellation Motives Chart -->
+<div class="col-span-12 lg:col-span-4 bg-card-dark border border-border-dark rounded-xl p-6">
+<h5 class="text-white font-bold mb-6">Motifs d'annulation</h5>
+<div class="flex flex-col items-center">
+<div class="relative size-40 mb-8">
+<!-- Donut Chart SVG Placeholder -->
+<svg class="size-full" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="none" r="15.915" stroke="#253e46" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="15.915" stroke="#198cb3" stroke-dasharray="60 40" stroke-dashoffset="25" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="15.915" stroke="#fa5f38" stroke-dasharray="25 75" stroke-dashoffset="85" stroke-width="3"></circle>
+<circle cx="18" cy="18" fill="none" r="15.915" stroke="#fbbf24" stroke-dasharray="15 85" stroke-dashoffset="110" stroke-width="3"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<p class="text-xs text-[#95bac6]">Total</p>
+<p class="text-xl font-bold text-white">482</p>
+</div>
+</div>
+<div class="w-full space-y-3">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-primary"></span>
+<span class="text-xs text-[#95bac6]">Client absent</span>
+</div>
+<span class="text-xs font-bold text-white">60%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-rose-500"></span>
+<span class="text-xs text-[#95bac6]">Problème véhicule</span>
+</div>
+<span class="text-xs font-bold text-white">25%</span>
+</div>
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="size-2 rounded-full bg-amber-400"></span>
+<span class="text-xs text-[#95bac6]">Autre</span>
+</div>
+<span class="text-xs font-bold text-white">15%</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

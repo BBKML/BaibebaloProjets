@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#fafaf9",
+                        "background-dark": "#17171c",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .pulse-ring {
+            position: relative;
+        }
+        .pulse-ring::after {
+            content: '';
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: #22c38e;
+            border-radius: 50%;
+            z-index: -1;
+            animation: pulse 2s infinite ease-out;
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.8; }
+            100% { transform: scale(2.5); opacity: 0; }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#121715] dark:text-white">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-[480px] mx-auto shadow-2xl">
+<!-- TopAppBar -->
+<header class="flex items-center bg-white dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-[#f0f4f3] dark:border-white/10">
+<div class="text-[#121715] dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined cursor-pointer">arrow_back_ios_new</span>
+</div>
+<h2 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1">Commande #BB-2024-001</h2>
+<div class="size-12"></div>
+</header>
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- Order Hero Section -->
+<div class="p-6 bg-gradient-to-b from-white to-background-light dark:from-background-dark dark:to-background-dark/50">
+<p class="text-sm font-medium text-primary mb-1 uppercase tracking-wider">Suivi en direct</p>
+<h1 class="text-2xl font-bold mb-4">Préparation en cours...</h1>
+<p class="text-[#65867b] dark:text-gray-400">Le restaurant prépare vos délicieux plats avec soin.</p>
+</div>
+<!-- Timeline -->
+<section class="px-6 mb-8">
+<div class="grid grid-cols-[40px_1fr] gap-x-4">
+<!-- Step 1: Confirmed -->
+<div class="flex flex-col items-center gap-1 pt-1">
+<div class="bg-primary text-white rounded-full p-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+<div class="w-[2px] bg-primary h-12"></div>
+</div>
+<div class="flex flex-1 flex-col pb-8">
+<p class="text-[#121715] dark:text-white text-base font-semibold">Commande confirmée</p>
+<p class="text-[#65867b] dark:text-gray-400 text-sm">12:30 • Reçue par le système</p>
+</div>
+<!-- Step 2: Accepted -->
+<div class="flex flex-col items-center gap-1">
+<div class="bg-primary text-white rounded-full p-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px] font-bold">check</span>
+</div>
+<div class="w-[2px] bg-primary h-12"></div>
+</div>
+<div class="flex flex-1 flex-col pb-8">
+<p class="text-[#121715] dark:text-white text-base font-semibold">Restaurant a accepté</p>
+<p class="text-[#65867b] dark:text-gray-400 text-sm">12:35 • Cuisine notifiée</p>
+</div>
+<!-- Step 3: Preparing (ACTIVE) -->
+<div class="flex flex-col items-center gap-1">
+<div class="relative flex items-center justify-center">
+<div class="pulse-ring bg-primary rounded-full w-4 h-4 z-10"></div>
+</div>
+<div class="w-[2px] bg-[#dce5e2] dark:bg-gray-700 h-12"></div>
+</div>
+<div class="flex flex-1 flex-col pb-8">
+<p class="text-primary text-base font-bold">En cours de préparation</p>
+<p class="text-[#65867b] dark:text-gray-400 text-sm">Prêt d'ici 10-15 minutes</p>
+</div>
+<!-- Step 4: Delivery -->
+<div class="flex flex-col items-center gap-1">
+<div class="text-[#dce5e2] dark:text-gray-700 bg-[#f0f4f3] dark:bg-gray-800 rounded-full p-1 flex items-center justify-center">
+<span class="material-symbols-outlined text-[20px]">pedal_bike</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col">
+<p class="text-[#65867b] dark:text-gray-500 text-base font-medium">Le livreur récupère la commande</p>
+<p class="text-[#65867b] dark:text-gray-500 text-sm italic">En attente</p>
+</div>
+</div>
+</section>
+<!-- Card: Restaurant Info -->
+<section class="px-4 mb-4">
+<div class="flex flex-col gap-4 rounded-xl bg-white dark:bg-gray-900 p-5 shadow-sm border border-[#f0f4f3] dark:border-white/5">
+<div class="flex items-center gap-4">
+<div class="size-16 bg-center bg-no-repeat bg-cover rounded-xl" data-alt="Interior of a modern Ivorian restaurant" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCeU6TeQ80-PIWATx6mGkZqR3WLHjeF3Fv97GdXdQeOxpkqGfspQWyODDh2p_TJKsqrDSMYlCOqTkd7Y6YdBNdMonlln67z9VqhLsCRWgZ7ygHZx92JTwLpeIoFz2KN2bEcpt8KaAaSXw3q5pMn2GSovY9QlPDPLplYlHAz_BD-rXt2If13CH_mJFcQllEIiKPKtEpQBz_uznfnMnpmnlsYFSa-zrY8AyPh1D1UPti0XNzROBK89iUJdRIGu-pppGwts0bmEOmysdtC");'>
+</div>
+<div class="flex-1">
+<h3 class="text-[#121715] dark:text-white text-lg font-bold">Le Maquis de Zone 4</h3>
+<div class="flex items-center gap-1 text-[#65867b] dark:text-gray-400 text-sm">
+<span class="material-symbols-outlined text-[16px] text-yellow-500 fill-current">star</span>
+<span>4.8 (200+) • Cuisine Ivoirienne</span>
+</div>
+</div>
+</div>
+<button class="flex w-full cursor-pointer items-center justify-center gap-2 rounded-xl h-12 bg-primary/10 dark:bg-primary/20 text-primary font-bold transition-all hover:bg-primary/20">
+<span class="material-symbols-outlined">call</span>
+<span>Appeler le restaurant</span>
+</button>
+</div>
+</section>
+<!-- Map Hint -->
+<section class="px-4">
+<div class="h-40 w-full rounded-xl bg-slate-200 dark:bg-gray-800 overflow-hidden relative">
+<div class="absolute inset-0 bg-cover bg-center opacity-70 grayscale contrast-125" data-location="Abidjan, Ivory Coast" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCyf6l4_jYJERvUidcDwaLPui7kOmPcY6_VqbSs_MYaJ6lPbBM19JrULi5CEUQmxvsF53JESBTMdOD-zduEQHrCdMOvrXPRb9PQJPx6QKAZhWl1QL92o0VIL3AGx15HHgr4pTxuUDk0H2d2pYaaiI4asxU6BEqrmXFjcwkmVTr-TN0DohSvaIFZdiAg-xb-202_SculByXqJhpN8dAYivPmV2-teN2Av3Ir-F5kos-zNklA4ul9EsoqEMMRnKWZii0OjqNmOp_d1p71");'>
+</div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-white/80 dark:bg-black/60 backdrop-blur-sm px-4 py-2 rounded-full border border-white/20 shadow-lg">
+<p class="text-xs font-bold text-[#121715] dark:text-white flex items-center gap-2 uppercase tracking-tighter">
+<span class="material-symbols-outlined text-[16px] text-primary">location_on</span>
+                                Le livreur arrive bientôt sur zone
+                            </p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-[#f0f4f3] dark:border-white/10 px-4 pb-6 pt-3 flex justify-around items-center z-20">
+<a class="flex flex-col items-center gap-1 text-[#65867b] dark:text-gray-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Accueil</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined font-bold fill-current">receipt_long</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Commandes</span>
+<div class="w-1 h-1 rounded-full bg-primary mt-0.5"></div>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#65867b] dark:text-gray-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase tracking-widest">Profil</span>
+</a>
+</nav>
+</div>
+</body></html>

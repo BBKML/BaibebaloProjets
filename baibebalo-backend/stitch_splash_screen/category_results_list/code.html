@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700;800&amp;family=Manrope:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d95c26",
+                        "background-light": "#fbfaf8",
+                        "background-dark": "#201612",
+                        "secondary-teal": "#3F6E7A",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"],
+                        "sans": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-shadow {
+            box-shadow: 0 10px 25px -5px rgba(217, 92, 38, 0.08), 0 8px 10px -6px rgba(217, 92, 38, 0.08);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#171312] dark:text-white min-h-screen flex justify-center">
+<div class="w-full max-w-[430px] bg-background-light dark:bg-background-dark min-h-screen flex flex-col relative pb-24 shadow-2xl">
+<!-- Sticky TopAppBar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 pt-12 pb-4 flex items-center justify-between border-b border-gray-100 dark:border-white/5">
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-white/10 shadow-sm">
+<span class="material-symbols-outlined text-[#171312] dark:text-white">arrow_back_ios_new</span>
+</button>
+<h1 class="text-xl font-extrabold tracking-tight">Grillades</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full bg-white dark:bg-white/10 shadow-sm">
+<span class="material-symbols-outlined text-[#171312] dark:text-white">search</span>
+</button>
+</header>
+<!-- Category Info & Filters -->
+<div class="px-4 py-6">
+<div class="flex items-center justify-between mb-2">
+<p class="text-sm font-sans font-medium text-primary uppercase tracking-widest">Spécialités Ivoiriennes</p>
+<span class="bg-secondary-teal/10 text-secondary-teal text-[10px] font-bold px-2 py-1 rounded-full">12 RESTAURANTS</span>
+</div>
+<!-- Sort Selector -->
+<div class="flex items-center gap-3 py-2 overflow-x-auto hide-scrollbar">
+<div class="relative min-w-[140px]">
+<select class="appearance-none w-full bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm font-sans font-semibold focus:ring-2 focus:ring-primary focus:border-transparent outline-none pr-10">
+<option>Pertinence</option>
+<option>Distance</option>
+<option>Prix</option>
+<option>Mieux notés</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-primary pointer-events-none">expand_more</span>
+</div>
+<button class="whitespace-nowrap px-4 py-2.5 bg-white dark:bg-white/5 border border-gray-200 dark:border-white/10 rounded-xl text-sm font-sans font-semibold flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">tune</span>
+                    Filtres
+                </button>
+</div>
+</div>
+<!-- Restaurant List -->
+<main class="px-4 space-y-8">
+<!-- Card 1 -->
+<div class="group flex flex-col gap-3">
+<div class="relative w-full aspect-[16/10] overflow-hidden rounded-2xl custom-shadow">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-active:scale-105" data-alt="Delicious grilled meat platter with sides" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAqDADKxTxHA00lZCRnZDtCAx4eYUX5jcr4UUlRNm9gOsdQL8QYuSCUBIkUisyA05YShhsPHdGj1JAhnMy9AxODmE0C4k7zauwuq6-LnFFMVioUrj5xr7R8YQnS_uc9SqtEzXATHisWszLZZDaluAZt8VcmrtioqdarALwTxfFjZt7hWMF9GHfx32F2pjmSKvEtjJW5G9qM5JwzKR8gxZeBJwAMrsniSo_cXs-jxWCfJNsWSpv56TipH_qm3tZYAb2iOS1ACppKEbRl');"></div>
+<div class="absolute top-3 right-3 flex flex-col gap-2">
+<div class="bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="text-xs font-bold font-sans">4.8</span>
+</div>
+<div class="bg-primary px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm text-white">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-xs font-bold font-sans">25-35 min</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold leading-tight">Chez Marcène - Riviera</h3>
+<p class="text-sm font-sans text-gray-500 dark:text-gray-400 mt-0.5">Poulet Braisé, Alloco • €€ • 1.2 km</p>
+</div>
+<button class="w-10 h-10 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="group flex flex-col gap-3">
+<div class="relative w-full aspect-[16/10] overflow-hidden rounded-2xl custom-shadow">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-active:scale-105" data-alt="Sizzling grilled ribs on a wooden board" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtYvZwfdqoEFh2gunhM7Ekps9BIvtRF-hgVPTgPlBK0sVW4BrvIApptcRnHpLA0IS-BV4PVKxYKVZz7P24wcS_YMKLxgjJS2sRUlTGhp9IUBrZAUUoc3mQAe51CM2ZeOH7cKPhx7D4Zsjc0-ayjoZgmEdOKuklSJZcxoAT8kiMn9UZLWr-klKURbaA12syU5TskOdh241KFS9P2hEWHAWAy5ogMAz6Y5o_4EKoEk5g2M77O8K3CBOPk_iWv8zZJjZMrwSlyFin3UJM');"></div>
+<div class="absolute top-3 right-3 flex flex-col gap-2">
+<div class="bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="text-xs font-bold font-sans">4.5</span>
+</div>
+<div class="bg-primary px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm text-white">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-xs font-bold font-sans">30-40 min</span>
+</div>
+</div>
+<div class="absolute bottom-3 left-3">
+<span class="bg-secondary-teal text-white text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-lg">Livraison Gratuite</span>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold leading-tight">Grill du Plateau</h3>
+<p class="text-sm font-sans text-gray-500 dark:text-gray-400 mt-0.5">Côtelettes, Kedjenou • € • 2.5 km</p>
+</div>
+<button class="w-10 h-10 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+</div>
+<!-- Card 3 -->
+<div class="group flex flex-col gap-3">
+<div class="relative w-full aspect-[16/10] overflow-hidden rounded-2xl custom-shadow">
+<div class="absolute inset-0 bg-cover bg-center transition-transform duration-500 group-active:scale-105" data-alt="Smoked fish with traditional Ivorian spices" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDVpiJ440kjifh5NDdySBh3wgUn74wrRddGCXiKNGERlOrpLZMl0e8rYfnhWtwjOYz2yu4PB86gwGOt24AfCGrWl-I8YGT2cJCIs6g-ZvEan38dOonMVi3XVq_ekDrfSBHy-wqe73U3eLdzlvrgqC6iOfb_daicZH0ImtdP3GDfXdM5lbhqFTBH18hfYpGFVLzY95AqD1RxWfYZ_jWjdY9ZYBjRUSARgT5B61neVQm4pn3_VS018jYYZ8WKZygXMXsh6l1be9e7qyWs');"></div>
+<div class="absolute top-3 right-3 flex flex-col gap-2">
+<div class="bg-white/90 backdrop-blur px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm">
+<span class="material-symbols-outlined text-[14px] text-yellow-500 fill-current" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="text-xs font-bold font-sans">4.9</span>
+</div>
+<div class="bg-primary px-2 py-1 rounded-lg flex items-center gap-1 shadow-sm text-white">
+<span class="material-symbols-outlined text-[14px]">schedule</span>
+<span class="text-xs font-bold font-sans">15-25 min</span>
+</div>
+</div>
+</div>
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold leading-tight">L'Escale Ivoirienne</h3>
+<p class="text-sm font-sans text-gray-500 dark:text-gray-400 mt-0.5">Poisson Braisé, Attiéké • €€€ • 0.8 km</p>
+</div>
+<button class="w-10 h-10 rounded-full border border-gray-200 dark:border-white/10 flex items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/95 dark:bg-[#1a120e]/95 backdrop-blur-lg border-t border-gray-100 dark:border-white/5 px-6 py-4 flex justify-between items-center z-[100]">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">home</span>
+<span class="text-[10px] font-bold font-sans uppercase">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">search</span>
+<span class="text-[10px] font-bold font-sans uppercase">Explorer</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">receipt_long</span>
+<span class="text-[10px] font-bold font-sans uppercase">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 relative">
+<span class="material-symbols-outlined text-2xl">shopping_cart</span>
+<span class="absolute -top-1 -right-1 w-4 h-4 bg-primary text-white text-[9px] flex items-center justify-center rounded-full border-2 border-white dark:border-[#1a120e]">2</span>
+<span class="text-[10px] font-bold font-sans uppercase">Panier</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-bold font-sans uppercase">Profil</span>
+</button>
+</nav>
+</div>
+</body></html>

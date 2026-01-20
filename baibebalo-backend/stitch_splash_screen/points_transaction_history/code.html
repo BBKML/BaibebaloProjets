@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historique des points - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0097a8",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#000000",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#101818] dark:text-white antialiased">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-[480px] mx-auto bg-background-light dark:bg-background-dark shadow-xl">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-[#101818] dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined text-[24px]">arrow_back_ios_new</span>
+</div>
+<h2 class="text-[#101818] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center mr-10">Historique des points</h2>
+</div>
+</header>
+<!-- Balance Card -->
+<div class="p-4 @container">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-[#1a1a1a] overflow-hidden border border-gray-100 dark:border-gray-800">
+<div class="relative w-full h-32 bg-primary overflow-hidden">
+<div class="absolute inset-0 opacity-20" data-alt="Abstract geometric pattern with small cubes" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCvoKAryPLP4-9_FNFSrGzcVlmaBCnKLDjnomy9MNPzPW-T9JiClnt-08Tu2m_ic9gmamh2IaRj3kMGFTzXvlQnxMaasHqpktjPt7L9uoTjAgPavhHo5sAto190ku0m63yivC51gaIDjEkck06zYsNpsJjy_gd0hSy_ZngvY415H6ouABNfSHCL-pwa-xCfJ9NjT3vtur-SMD4EKiuCAp2RWT4q1cESkZQUtylNfsUAbTE-40QlY28NyDiWS_kUj6AsmodxqtSiyew1");'></div>
+<div class="absolute inset-0 bg-gradient-to-br from-primary via-transparent to-black/20"></div>
+<div class="relative h-full flex flex-col justify-center px-6">
+<p class="text-white/80 text-sm font-medium uppercase tracking-wider">Mon Solde Baibebalo</p>
+<p class="text-white text-4xl font-extrabold leading-tight">1,250 <span class="text-xl font-medium">pts</span></p>
+</div>
+</div>
+<div class="flex w-full flex-col items-stretch justify-center gap-1 py-4 px-6">
+<div class="flex items-center justify-between">
+<div>
+<p class="text-[#5e888d] dark:text-gray-400 text-sm font-normal leading-normal">Valeur estimée</p>
+<p class="text-[#101818] dark:text-white text-base font-bold">~ 6,250 FCFA</p>
+</div>
+<button class="flex min-w-[100px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-10 px-5 bg-primary hover:bg-primary/90 text-white text-sm font-semibold transition-all shadow-md active:scale-95">
+<span>Échanger</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Filters -->
+<div class="sticky top-[68px] z-40 bg-background-light dark:bg-background-dark/95 py-2">
+<div class="flex px-4">
+<div class="flex h-12 flex-1 items-center justify-center rounded-xl bg-gray-200 dark:bg-gray-800 p-1.5">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-[#5e888d] dark:text-gray-400 text-sm font-bold transition-all">
+<span class="truncate">Tous</span>
+<input checked="" class="invisible w-0" name="filter-points" type="radio" value="Tous"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-[#5e888d] dark:text-gray-400 text-sm font-bold transition-all">
+<span class="truncate">Gains</span>
+<input class="invisible w-0" name="filter-points" type="radio" value="Gains"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-[#5e888d] dark:text-gray-400 text-sm font-bold transition-all">
+<span class="truncate">Utilisés</span>
+<input class="invisible w-0" name="filter-points" type="radio" value="Utilisés"/>
+</label>
+</div>
+</div>
+</div>
+<!-- List Section Header -->
+<div class="flex items-center justify-between px-4 pt-6 pb-2">
+<h3 class="text-[#101818] dark:text-white text-lg font-extrabold tracking-tight">Transactions récentes</h3>
+<span class="text-xs font-medium text-primary px-2 py-1 bg-primary/10 rounded-full">30 derniers jours</span>
+</div>
+<!-- Transactions List -->
+<div class="flex flex-col px-2">
+<!-- Item 1: Gain -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a1a1a] mx-2 my-1.5 px-4 min-h-[80px] py-3 justify-between rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined text-[24px]">add_task</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101818] dark:text-white text-[15px] font-bold leading-tight">+50 points pour Commande #12345</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-xs font-medium leading-normal mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">restaurant</span> Commande livrée
+                        </p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-primary text-sm font-extrabold">+50</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-[10px] font-normal uppercase tracking-tighter">Aujourd'hui</p>
+</div>
+</div>
+<!-- Item 2: Gain -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a1a1a] mx-2 my-1.5 px-4 min-h-[80px] py-3 justify-between rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined text-[24px]">rate_review</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101818] dark:text-white text-[15px] font-bold leading-tight">+10 points pour Avis laissé</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-xs font-medium leading-normal mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">star</span> Feedback client
+                        </p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-primary text-sm font-extrabold">+10</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-[10px] font-normal uppercase tracking-tighter">Hier</p>
+</div>
+</div>
+<!-- Item 3: Usage -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a1a1a] mx-2 my-1.5 px-4 min-h-[80px] py-3 justify-between rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-gray-500 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined text-[24px]">shopping_bag</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101818] dark:text-white text-[15px] font-bold leading-tight">-100 points pour Réduction</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-xs font-medium leading-normal mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">confirmation_number</span> Coupon utilisé
+                        </p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[#101818] dark:text-white text-sm font-extrabold">-100</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-[10px] font-normal uppercase tracking-tighter">12 Oct.</p>
+</div>
+</div>
+<!-- Item 4: Gain -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a1a1a] mx-2 my-1.5 px-4 min-h-[80px] py-3 justify-between rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-full bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined text-[24px]">redeem</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101818] dark:text-white text-[15px] font-bold leading-tight">+25 points Bonus Inscription</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-xs font-medium leading-normal mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">celebration</span> Cadeau de bienvenue
+                        </p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-primary text-sm font-extrabold">+25</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-[10px] font-normal uppercase tracking-tighter">05 Oct.</p>
+</div>
+</div>
+<!-- Item 5: Usage -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a1a1a] mx-2 my-1.5 px-4 min-h-[80px] py-3 justify-between rounded-xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-gray-500 flex items-center justify-center rounded-full bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined text-[24px]">local_taxi</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#101818] dark:text-white text-[15px] font-bold leading-tight">-150 points Course offerte</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-xs font-medium leading-normal mt-1 flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">commute</span> Transport Baibebalo
+                        </p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[#101818] dark:text-white text-sm font-extrabold">-150</p>
+<p class="text-[#5e888d] dark:text-gray-400 text-[10px] font-normal uppercase tracking-tighter">01 Oct.</p>
+</div>
+</div>
+</div>
+<!-- Footer Spacer -->
+<div class="h-20 bg-transparent"></div>
+<!-- Bottom Navigation (Simplified for context) -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/90 dark:bg-black/90 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 flex justify-around items-center h-16 px-6 z-50">
+<button class="flex flex-col items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center justify-center text-primary">
+<span class="material-symbols-outlined">wallet</span>
+<span class="text-[10px] font-medium">Points</span>
+</button>
+<button class="flex flex-col items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</button>
+</nav>
+</div>
+</body></html>

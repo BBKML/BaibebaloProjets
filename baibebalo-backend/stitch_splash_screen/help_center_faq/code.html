@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Centre d'aide</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#fafafa",
+                        "background-dark": "#17191c",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .ios-tab-bar {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121715] dark:text-gray-100 min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 justify-between">
+<div class="size-10 flex items-center justify-center rounded-full bg-white dark:bg-zinc-800 shadow-sm">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">arrow_back_ios_new</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Centre d'aide</h2>
+</div>
+</header>
+<main class="max-w-md mx-auto">
+<!-- Hero Search Section -->
+<div class="px-4 py-6">
+<h1 class="text-2xl font-bold mb-4 tracking-tight">Bonjour, comment pouvons-nous vous aider ?</h1>
+<label class="flex flex-col w-full">
+<div class="flex w-full h-14 items-stretch rounded-xl bg-white dark:bg-zinc-800 shadow-sm border border-gray-100 dark:border-zinc-700 overflow-hidden focus-within:ring-2 ring-primary/50 transition-all">
+<div class="flex items-center justify-center pl-4">
+<span class="material-symbols-outlined text-gray-400">search</span>
+</div>
+<input class="w-full bg-transparent border-none focus:ring-0 text-base font-normal px-4 placeholder:text-gray-400" placeholder="Rechercher une solution..."/>
+</div>
+</label>
+</div>
+<!-- Categories Grid -->
+<div class="px-4 mb-8">
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-3 rounded-xl border border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<div class="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">moped</span>
+</div>
+<div class="flex flex-col">
+<h2 class="text-sm font-bold leading-tight">Commandes</h2>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Suivi &amp; Livraison</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<div class="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">account_balance_wallet</span>
+</div>
+<div class="flex flex-col">
+<h2 class="text-sm font-bold leading-tight">Paiements</h2>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Méthodes &amp; Remboursement</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<div class="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">person</span>
+</div>
+<div class="flex flex-col">
+<h2 class="text-sm font-bold leading-tight">Compte</h2>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Sécurité &amp; Profil</p>
+</div>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-gray-100 dark:border-zinc-700 bg-white dark:bg-zinc-800 p-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<div class="bg-primary/10 w-10 h-10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">sell</span>
+</div>
+<div class="flex flex-col">
+<h2 class="text-sm font-bold leading-tight">Promotions</h2>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Codes &amp; Parrainage</p>
+</div>
+</div>
+</div>
+</div>
+<!-- FAQ Section -->
+<div class="px-4">
+<h3 class="text-lg font-bold leading-tight tracking-tight mb-4">Questions fréquentes</h3>
+<div class="flex flex-col space-y-3">
+<details class="group bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm" open="">
+<summary class="flex cursor-pointer items-center justify-between p-4 list-none">
+<p class="text-sm font-semibold">Où est ma commande ?</p>
+<span class="material-symbols-outlined text-gray-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-4">
+<p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                            Vous pouvez suivre votre livreur en temps réel sur la carte depuis l'onglet 'Mes Commandes'. Le délai moyen à Abidjan est de 30-45 minutes.
+                        </p>
+</div>
+</details>
+<details class="group bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm">
+<summary class="flex cursor-pointer items-center justify-between p-4 list-none">
+<p class="text-sm font-semibold">Comment modifier mon mode de paiement ?</p>
+<span class="material-symbols-outlined text-gray-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-4">
+<p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                            Allez dans 'Compte' &gt; 'Modes de paiement' pour ajouter une carte ou configurer votre portefeuille Mobile Money.
+                        </p>
+</div>
+</details>
+<details class="group bg-white dark:bg-zinc-800 rounded-xl border border-gray-100 dark:border-zinc-700 shadow-sm">
+<summary class="flex cursor-pointer items-center justify-between p-4 list-none">
+<p class="text-sm font-semibold">Quels sont les délais de livraison à Abidjan ?</p>
+<span class="material-symbols-outlined text-gray-400 group-open:rotate-180 transition-transform">expand_more</span>
+</summary>
+<div class="px-4 pb-4">
+<p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed">
+                            Nous livrons dans toutes les communes d'Abidjan. Les délais varient entre 20 min (Cocody, Plateau) et 60 min selon le trafic.
+                        </p>
+</div>
+</details>
+</div>
+</div>
+<!-- Contact Support CTA -->
+<div class="p-6 mt-8 mb-4 flex flex-col items-center text-center space-y-4">
+<div class="space-y-1">
+<p class="text-sm font-medium text-gray-500">Vous ne trouvez pas votre réponse ?</p>
+<p class="text-sm text-gray-400">Notre équipe est disponible 24h/7j</p>
+</div>
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-xl">support_agent</span>
+                Contactez le support
+            </button>
+</div>
+</main>
+<!-- Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 ios-tab-bar bg-white/80 dark:bg-zinc-900/80 border-t border-gray-100 dark:border-zinc-800 px-6 py-3 pb-8 z-50">
+<div class="max-w-md mx-auto flex justify-between items-center">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">help</span>
+<span class="text-[10px] font-bold">Aide</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+</nav>
+</body></html>

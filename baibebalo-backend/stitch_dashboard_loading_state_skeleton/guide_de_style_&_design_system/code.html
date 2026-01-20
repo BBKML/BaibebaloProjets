@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Design System</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#07a5ed",
+                        "background-light": "#f9fafb",
+                        "background-dark": "#181e25",
+                        "surface-dark": "#2C333D",
+                        "border-dark": "#404B57",
+                        "success": "#10b981",
+                        "danger": "#ef4444",
+                        "warning": "#f59e0b",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #404B57; border-radius: 10px; }
+        .inner-shadow { box-shadow: inset 0 1px 2px rgba(0,0,0,0.15); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex min-h-screen">
+<!-- Sidebar Navigation -->
+<aside class="w-72 border-r border-slate-200 dark:border-border-dark flex flex-col h-screen sticky top-0 bg-background-light dark:bg-background-dark">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">diamond</span>
+</div>
+<div>
+<h1 class="text-base font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-xs text-slate-500 dark:text-[#8eb9cc]">Admin Dashboard</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-2 space-y-1 custom-scrollbar overflow-y-auto">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">dashboard</span>
+                Dashboard
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">analytics</span>
+                Analytics
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">group</span>
+                Users
+            </a>
+<div class="pt-4 pb-2 px-3">
+<p class="text-[10px] uppercase tracking-wider font-bold text-slate-400">Resources</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined text-[20px] fill-1">palette</span>
+                Design System
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">inventory_2</span>
+                Components
+            </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-surface-dark transition-colors" href="#">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+                Settings
+            </a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-border-dark">
+<div class="flex items-center gap-3 p-2">
+<div class="size-8 rounded-full bg-slate-300" data-alt="Avatar of the administrator" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB1jGh-PHdIqeTAg_mDuukfYLkofH3MHz7cyNoxOgh6aed2R6ZN54QNT5ws6qbDBFQWvMqmeSVyYfclIc-mNNJTFmbKT1sc2A_oANSGxFwn2aVpwKmIlGawMbE5h7JVAFgYKkz95c-LGzCflTZxOXSIFGGa96TWBnItnmdP066r-CJe9jbFEw7kPX5nIMSz3gIEFWARhRTnxp7EfMMs9Ojgz1zOn4wvg_2ewRc3n1ileWMsKYclKqi1EKIuijqANZZPHDms-lb1cVyS');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Alex Morgan</p>
+<p class="text-[10px] text-slate-500">Lead Designer</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">unfold_more</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto">
+<div class="max-w-5xl mx-auto px-8 py-12">
+<!-- Page Heading -->
+<header class="mb-12">
+<div class="flex items-center gap-2 text-primary font-semibold text-sm mb-4">
+<span class="material-symbols-outlined text-sm">auto_awesome</span>
+                    Master Documentation
+                </div>
+<h1 class="text-5xl font-black tracking-tight mb-4 dark:text-white">Guide de Style &amp; Design System</h1>
+<p class="text-lg text-slate-600 dark:text-[#8eb9cc] max-w-3xl leading-relaxed">
+                    Centralized reference for the BAIBEBALO visual identity. This guide provides developers and designers with a standardized set of UI components, color tokens, and typography scales to ensure consistency across the dashboard.
+                </p>
+</header>
+<!-- 1. Color Palette -->
+<section class="mb-16">
+<div class="flex items-center gap-3 mb-8">
+<span class="flex items-center justify-center size-8 rounded bg-surface-dark text-white font-bold text-xs">01</span>
+<h2 class="text-2xl font-bold dark:text-white">Color Palette</h2>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+<!-- Primary Blue -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-4 rounded-xl inner-shadow">
+<div class="h-32 w-full bg-[#0ea5e9] rounded-lg mb-4 flex items-end justify-end p-2">
+<span class="material-symbols-outlined text-white/50 cursor-pointer hover:text-white transition-colors">content_copy</span>
+</div>
+<h3 class="font-bold text-sm">Primary Blue</h3>
+<p class="text-xs text-slate-500 dark:text-[#aab3bd] font-mono">#0EA5E9</p>
+<p class="mt-2 text-[10px] text-slate-400">Brand identity, primary actions, active states.</p>
+</div>
+<!-- Success Green -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-4 rounded-xl inner-shadow">
+<div class="h-32 w-full bg-[#10b981] rounded-lg mb-4 flex items-end justify-end p-2">
+<span class="material-symbols-outlined text-white/50 cursor-pointer hover:text-white transition-colors">content_copy</span>
+</div>
+<h3 class="font-bold text-sm">Success Green</h3>
+<p class="text-xs text-slate-500 dark:text-[#aab3bd] font-mono">#10B981</p>
+<p class="mt-2 text-[10px] text-slate-400">Confirmations, positive trends, status: active.</p>
+</div>
+<!-- Danger Red -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-4 rounded-xl inner-shadow">
+<div class="h-32 w-full bg-[#ef4444] rounded-lg mb-4 flex items-end justify-end p-2">
+<span class="material-symbols-outlined text-white/50 cursor-pointer hover:text-white transition-colors">content_copy</span>
+</div>
+<h3 class="font-bold text-sm">Danger Red</h3>
+<p class="text-xs text-slate-500 dark:text-[#aab3bd] font-mono">#EF4444</p>
+<p class="mt-2 text-[10px] text-slate-400">Errors, deletions, destructive actions.</p>
+</div>
+<!-- Warning Orange -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-4 rounded-xl inner-shadow">
+<div class="h-32 w-full bg-[#f59e0b] rounded-lg mb-4 flex items-end justify-end p-2">
+<span class="material-symbols-outlined text-white/50 cursor-pointer hover:text-white transition-colors">content_copy</span>
+</div>
+<h3 class="font-bold text-sm">Warning Orange</h3>
+<p class="text-xs text-slate-500 dark:text-[#aab3bd] font-mono">#F59E0B</p>
+<p class="mt-2 text-[10px] text-slate-400">Warnings, pending states, alerts.</p>
+</div>
+</div>
+<!-- Neutral Scale -->
+<div class="mt-8 bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-6 rounded-xl">
+<h3 class="text-sm font-bold mb-4">Neutral Scale (Gray)</h3>
+<div class="flex h-12 rounded-lg overflow-hidden border border-slate-200 dark:border-border-dark">
+<div class="flex-1 bg-slate-50 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-slate-900 font-bold">50</span>
+</div>
+<div class="flex-1 bg-slate-100 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-slate-900 font-bold">100</span>
+</div>
+<div class="flex-1 bg-slate-200 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-slate-900 font-bold">200</span>
+</div>
+<div class="flex-1 bg-slate-300 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-slate-900 font-bold">300</span>
+</div>
+<div class="flex-1 bg-slate-400 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-white font-bold">400</span>
+</div>
+<div class="flex-1 bg-slate-500 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-white font-bold">500</span>
+</div>
+<div class="flex-1 bg-slate-600 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-white font-bold">600</span>
+</div>
+<div class="flex-1 bg-slate-700 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-white font-bold">700</span>
+</div>
+<div class="flex-1 bg-slate-800 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-white font-bold">800</span>
+</div>
+<div class="flex-1 bg-slate-900 group relative cursor-help">
+<span class="absolute inset-0 flex items-center justify-center text-[10px] opacity-0 group-hover:opacity-100 text-white font-bold">900</span>
+</div>
+</div>
+</div>
+</section>
+<!-- 2. Typography -->
+<section class="mb-16">
+<div class="flex items-center gap-3 mb-8">
+<span class="flex items-center justify-center size-8 rounded bg-surface-dark text-white font-bold text-xs">02</span>
+<h2 class="text-2xl font-bold dark:text-white">Typography</h2>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark rounded-xl overflow-hidden">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-border-dark">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Style</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase">Preview</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase text-right">Size / Weight</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-border-dark">
+<tr>
+<td class="px-6 py-8 align-top text-xs text-slate-400">Heading 1</td>
+<td class="px-6 py-8">
+<h1 class="text-4xl font-black leading-tight tracking-[-0.033em]">The quick brown fox</h1>
+</td>
+<td class="px-6 py-8 text-right font-mono text-xs text-slate-400">32px / 900</td>
+</tr>
+<tr>
+<td class="px-6 py-6 align-top text-xs text-slate-400">Heading 2</td>
+<td class="px-6 py-6">
+<h2 class="text-2xl font-bold leading-tight">The quick brown fox</h2>
+</td>
+<td class="px-6 py-6 text-right font-mono text-xs text-slate-400">24px / 700</td>
+</tr>
+<tr>
+<td class="px-6 py-6 align-top text-xs text-slate-400">Body Text</td>
+<td class="px-6 py-6">
+<p class="text-base font-normal leading-relaxed text-slate-600 dark:text-[#8eb9cc]">Designing is a plan for arranging elements in such a way as best to accomplish a particular purpose.</p>
+</td>
+<td class="px-6 py-6 text-right font-mono text-xs text-slate-400">16px / 400</td>
+</tr>
+<tr>
+<td class="px-6 py-6 align-top text-xs text-slate-400">Small Labels</td>
+<td class="px-6 py-6">
+<span class="text-sm font-semibold uppercase tracking-wider">The quick brown fox</span>
+</td>
+<td class="px-6 py-6 text-right font-mono text-xs text-slate-400">14px / 600</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<!-- 3. Components -->
+<section class="mb-16">
+<div class="flex items-center gap-3 mb-8">
+<span class="flex items-center justify-center size-8 rounded bg-surface-dark text-white font-bold text-xs">03</span>
+<h2 class="text-2xl font-bold dark:text-white">Core Components</h2>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Buttons Matrix -->
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-8 rounded-xl">
+<h3 class="text-sm font-bold mb-6 border-b border-border-dark pb-4">Button Variants</h3>
+<div class="space-y-8">
+<div class="grid grid-cols-3 gap-4 items-center">
+<span class="text-[10px] text-slate-400 uppercase font-bold">Primary</span>
+<button class="bg-primary hover:bg-primary/80 text-white text-sm font-semibold py-2 px-4 rounded transition-all">Action</button>
+<button class="bg-primary/40 text-white/50 text-sm font-semibold py-2 px-4 rounded cursor-not-allowed">Disabled</button>
+</div>
+<div class="grid grid-cols-3 gap-4 items-center">
+<span class="text-[10px] text-slate-400 uppercase font-bold">Secondary</span>
+<button class="bg-surface-dark border border-border-dark hover:bg-slate-700 text-white text-sm font-semibold py-2 px-4 rounded transition-all">Cancel</button>
+<button class="bg-slate-800 border border-slate-700 text-slate-600 text-sm font-semibold py-2 px-4 rounded cursor-not-allowed">Disabled</button>
+</div>
+<div class="grid grid-cols-3 gap-4 items-center">
+<span class="text-[10px] text-slate-400 uppercase font-bold">Success</span>
+<button class="bg-success hover:bg-success/80 text-white text-sm font-semibold py-2 px-4 rounded transition-all">Submit</button>
+<button class="bg-success/40 text-white/50 text-sm font-semibold py-2 px-4 rounded cursor-not-allowed">Disabled</button>
+</div>
+<div class="grid grid-cols-3 gap-4 items-center">
+<span class="text-[10px] text-slate-400 uppercase font-bold">Danger</span>
+<button class="bg-danger hover:bg-danger/80 text-white text-sm font-semibold py-2 px-4 rounded transition-all">Delete</button>
+<button class="bg-danger/40 text-white/50 text-sm font-semibold py-2 px-4 rounded cursor-not-allowed">Disabled</button>
+</div>
+</div>
+</div>
+<!-- Badges & Inputs -->
+<div class="space-y-8">
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-8 rounded-xl">
+<h3 class="text-sm font-bold mb-6 border-b border-border-dark pb-4">Status Badges</h3>
+<div class="flex flex-wrap gap-3">
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-success/20 text-success border border-success/30">Active</span>
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-warning/20 text-warning border border-warning/30">Pending</span>
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-danger/20 text-danger border border-danger/30">Error</span>
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-primary/20 text-primary border border-primary/30">New</span>
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-slate-700 text-slate-300">Archived</span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark border border-slate-200 dark:border-border-dark p-8 rounded-xl">
+<h3 class="text-sm font-bold mb-6 border-b border-border-dark pb-4">Input Samples</h3>
+<div class="space-y-4">
+<div>
+<label class="block text-xs text-slate-500 mb-1.5 font-medium">Full Name</label>
+<input class="w-full bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-primary focus:border-transparent transition-all outline-none text-slate-200" placeholder="John Doe" type="text"/>
+</div>
+<div class="flex items-center gap-3">
+<button class="size-10 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">search</span>
+</button>
+<button class="size-10 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">notifications</span>
+</button>
+<button class="size-10 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-border-dark flex items-center justify-center text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm">download</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Footer Meta -->
+<footer class="mt-20 pt-8 border-t border-slate-200 dark:border-border-dark flex justify-between items-center text-slate-500">
+<p class="text-xs">Version 1.0.4 • Last updated Oct 2023</p>
+<div class="flex gap-4">
+<a class="text-xs hover:text-primary transition-colors" href="#">Download Assets</a>
+<a class="text-xs hover:text-primary transition-colors" href="#">GitHub Repository</a>
+</div>
+</footer>
+</div>
+</main>
+</div>
+</body></html>

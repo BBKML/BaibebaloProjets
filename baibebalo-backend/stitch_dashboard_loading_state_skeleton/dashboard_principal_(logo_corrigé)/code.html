@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Principal - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0ca3e9",
+                        "brand-orange": "#FF6B35",
+                        "semantic-amber": "#f59e0b",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#101c22",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav {
+            background-color: rgba(12, 163, 233, 0.1);
+            color: #0ca3e9;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="flex min-h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 flex flex-col shrink-0">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg flex items-center justify-center bg-white shadow-sm border border-slate-100">
+<!-- Brand Orange Logo Corrigé -->
+<svg fill="none" height="24" viewbox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg">
+<path d="M12 2L4 7V17L12 22L20 17V7L12 2Z" stroke="#FF6B35" stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5"></path>
+<circle cx="12" cy="12" fill="#FF6B35" r="3"></circle>
+</svg>
+</div>
+<div>
+<h1 class="text-lg font-bold tracking-tight text-slate-900 dark:text-white uppercase">BAIBEBALO</h1>
+<p class="text-[10px] font-semibold text-slate-400 uppercase tracking-widest">Admin Control</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg active-nav text-primary transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined">inventory_2</span>
+<span class="text-sm font-medium">Inventaire</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Clients</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Analyses</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-100 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-500 hover:text-slate-900 dark:hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col h-screen overflow-y-auto">
+<!-- Header -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between px-8 sticky top-0 z-10">
+<div class="flex items-center gap-4">
+<div class="flex items-center gap-2 text-slate-400 text-sm">
+<span class="material-symbols-outlined text-sm">home</span>
+<span class="font-medium">Accueil</span>
+<span>/</span>
+<span class="text-slate-900 dark:text-white font-semibold">Tableau de bord</span>
+</div>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 w-64 transition-all" placeholder="Rechercher une commande..." type="text"/>
+</div>
+<button class="relative text-slate-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-brand-orange rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<div class="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-slate-800">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold text-slate-900 dark:text-white">Admin User</p>
+<p class="text-[10px] text-slate-500 uppercase font-bold tracking-tighter">Superviseur</p>
+</div>
+<div class="w-9 h-9 rounded-full bg-slate-200 bg-cover bg-center ring-2 ring-slate-100 dark:ring-slate-800" data-alt="Photo de profil de l'utilisateur admin" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuATdN0ALnfOx4zZxK9HW03Fg-8FkWDggITxYK9bZ0baotfCB-Xlyr3CT-JJhoSS3Gj03iPbu4X2VMH34caZLiaySRTQ9FEYbztEdA-4MuwdtYPMQBUXepg5d7jtnDDyyAl-ryoQ76ON660ylJUFrQOoGCsIPZL42iMQLApl3Sk95jP3oVOQ4LjHV_hA0Pdn6Q5SzlDWPnjwRmqzTwEXKAcxTxsoaxL4Uli-Y5FPlKxrmkyqo2MzRdfSeZo_NzNDi2sbzI4yZafA0XMV');"></div>
+</div>
+</div>
+</header>
+<!-- Dashboard Body -->
+<div class="p-8 space-y-8 max-w-[1400px] mx-auto w-full">
+<!-- KPI Section -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">+12.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenu Total</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">45.230,00 €</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">shopping_bag</span>
+</div>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">+5.2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Commandes Totales</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">1.240</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">avg_pace</span>
+</div>
+<span class="text-rose-500 text-xs font-bold bg-rose-50 dark:bg-rose-500/10 px-2 py-1 rounded">-2.1%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Valeur Moyenne</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">36,50 €</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-md transition-shadow">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary">verified_user</span>
+</div>
+<span class="text-emerald-500 text-xs font-bold bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded">+0.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Taux de Succès</p>
+<h3 class="text-2xl font-bold text-slate-900 dark:text-white mt-1">98.4%</h3>
+</div>
+</div>
+<!-- Chart & Table Row -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Chart Section -->
+<div class="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<div>
+<h3 class="font-bold text-slate-900 dark:text-white">Aperçu des Revenus</h3>
+<p class="text-xs text-slate-500 mt-1">Performance mensuelle - 6 derniers mois</p>
+</div>
+<select class="text-xs font-semibold bg-slate-50 dark:bg-slate-800 border-slate-200 dark:border-slate-700 rounded-lg py-1.5 focus:ring-primary">
+<option>Mensuel</option>
+<option>Hebdomadaire</option>
+</select>
+</div>
+<div class="p-6 flex-1 flex flex-col justify-center">
+<div class="w-full h-64 relative">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 800 200">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0ca3e9" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#0ca3e9" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path d="M0,150 C50,140 100,160 150,130 C200,100 250,110 300,80 C350,50 400,90 450,70 C500,50 550,60 600,40 C650,20 700,30 800,10 V200 H0 Z" fill="url(#chartGradient)"></path>
+<path d="M0,150 C50,140 100,160 150,130 C200,100 250,110 300,80 C350,50 400,90 450,70 C500,50 550,60 600,40 C650,20 700,30 800,10" fill="none" stroke="#0ca3e9" stroke-linecap="round" stroke-width="3"></path>
+<!-- Points -->
+<circle cx="150" cy="130" fill="#0ca3e9" r="4" stroke="white" stroke-width="2"></circle>
+<circle cx="300" cy="80" fill="#0ca3e9" r="4" stroke="white" stroke-width="2"></circle>
+<circle cx="450" cy="70" fill="#0ca3e9" r="4" stroke="white" stroke-width="2"></circle>
+<circle cx="600" cy="40" fill="#0ca3e9" r="4" stroke="white" stroke-width="2"></circle>
+<circle cx="800" cy="10" fill="#0ca3e9" r="4" stroke="white" stroke-width="2"></circle>
+</svg>
+</div>
+<div class="flex justify-between mt-4 px-2">
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Janvier</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Février</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mars</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Avril</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Mai</span>
+<span class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Juin</span>
+</div>
+</div>
+</div>
+<!-- Right Quick Stats/Activity -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+<h3 class="font-bold text-slate-900 dark:text-white mb-6">Objectif de Ventes</h3>
+<div class="flex flex-col items-center justify-center space-y-4">
+<div class="relative w-40 h-40">
+<svg class="w-full h-full transform -rotate-90">
+<circle class="text-slate-100 dark:text-slate-800" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="110" stroke-width="12"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center text-center">
+<span class="text-3xl font-black text-slate-900 dark:text-white">75%</span>
+<span class="text-[10px] font-bold text-slate-500 uppercase">Complété</span>
+</div>
+</div>
+<div class="text-center">
+<p class="text-sm font-medium text-slate-600 dark:text-slate-400">Objectif du mois</p>
+<p class="text-lg font-bold text-slate-900 dark:text-white">60.000,00 €</p>
+</div>
+<div class="w-full pt-4 space-y-3">
+<div class="flex justify-between items-center text-xs">
+<span class="text-slate-500 font-medium">Ventes directes</span>
+<span class="font-bold text-slate-900 dark:text-white">28.400 €</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary w-[65%] h-full rounded-full"></div>
+</div>
+<div class="flex justify-between items-center text-xs">
+<span class="text-slate-500 font-medium">Partenaires</span>
+<span class="font-bold text-slate-900 dark:text-white">16.830 €</span>
+</div>
+<div class="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
+<div class="bg-brand-orange w-[45%] h-full rounded-full"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Orders Table -->
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+<h3 class="font-bold text-slate-900 dark:text-white">Dernières Commandes</h3>
+<button class="text-xs font-bold text-primary hover:underline uppercase tracking-tight">Voir tout</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[11px] font-black uppercase tracking-widest">
+<th class="px-6 py-4">ID Commande</th>
+<th class="px-6 py-4">Client</th>
+<th class="px-6 py-4">Date</th>
+<th class="px-6 py-4 text-center">Statut</th>
+<th class="px-6 py-4 text-right">Montant</th>
+<th class="px-6 py-4"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Order Row 1 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">#CMD-9402</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">JD</div>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Jean Dupont</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">12 Mai, 2024</td>
+<td class="px-6 py-4 text-center">
+<!-- Amber badge for 'En attente' -->
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-semantic-amber/10 text-semantic-amber uppercase">
+                                            En attente
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">142,50 €</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<!-- Order Row 2 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">#CMD-9401</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-[10px] font-bold text-emerald-600">ML</div>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Marie Laurent</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">12 Mai, 2024</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-100 text-emerald-600 uppercase dark:bg-emerald-500/10 dark:text-emerald-500">
+                                            Confirmé
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">89,00 €</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<!-- Order Row 3 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">#CMD-9399</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-[10px] font-bold text-slate-600">PB</div>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Pierre Bernard</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">11 Mai, 2024</td>
+<td class="px-6 py-4 text-center">
+<!-- Amber badge for 'Préparation' -->
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-semantic-amber/10 text-semantic-amber uppercase">
+                                            Préparation
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">210,00 €</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+<!-- Order Row 4 -->
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+<td class="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">#CMD-9398</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">SL</div>
+<span class="text-sm font-medium text-slate-600 dark:text-slate-300">Sophie Leroy</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">11 Mai, 2024</td>
+<td class="px-6 py-4 text-center">
+<span class="inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold bg-primary/10 text-primary uppercase">
+                                            Expédié
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">55,20 €</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

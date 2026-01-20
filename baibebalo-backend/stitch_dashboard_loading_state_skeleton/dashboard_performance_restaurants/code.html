@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO | Performance Analytics</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1973b3",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#121416",
+                        "card-dark": "#1e2124",
+                        "accent-success": "#4CD783",
+                        "accent-warning": "#EB6140",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sparkline-svg {
+            stroke-width: 2;
+            fill: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex">
+<!-- Side Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col fixed h-full bg-white dark:bg-background-dark z-50">
+<div class="p-6 flex items-center gap-3">
+<div class="size-10 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h1 class="text-sm font-bold tracking-tight uppercase">BAIBEBALO</h1>
+<p class="text-[10px] text-slate-500 dark:text-slate-400 font-medium">PHASE 5 ANALYTICS</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">trending_up</span>
+<span class="text-sm font-semibold">Performance</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">restaurant</span>
+<span class="text-sm font-medium">Restaurants</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_cart</span>
+<span class="text-sm font-medium">Orders</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Customers</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2">
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-700 overflow-hidden">
+<img alt="User Profile" class="w-full h-full object-cover" data-alt="Portrait of a professional male administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAPlEN4Vm5C4vo_AsizA6qt_xsKIzHgMbLcQlAV58bmRfUwNiDycHZgOGpJib7J_9rx0ySMALUFiRbxgi-4xYRkV8yPupFWTaZnvGjzFlSOGU43LvNdii8AoivPc-DYR4uG-GsuOvl6Y3Hfl8QpJgubu1PBBWAy46aRFk-kgshPRaflnhNl-WUfS_jqVJoreUbINelnXGv63BIqHYTxkhiEZ-zop98-QGDVcQ-QkkpGmnGhyG1N12D_j4SJpDy-KtE4MNTChPNUgvZR"/>
+</div>
+<div class="flex-1 overflow-hidden">
+<p class="text-xs font-bold truncate">Alex Chen</p>
+<p class="text-[10px] text-slate-500 truncate">System Admin</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-lg">settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 p-8">
+<!-- Top Nav Bar -->
+<header class="flex items-center justify-between mb-8">
+<div class="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-sm font-medium">
+<span>Admin</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-slate-900 dark:text-white">Performance Analytics</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
+<input class="pl-10 pr-4 py-2 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none w-64 transition-all" placeholder="Search metrics..." type="text"/>
+</div>
+<button class="p-2 bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-700 rounded-lg text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-accent-warning rounded-full border-2 border-white dark:border-card-dark"></span>
+</button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span>Oct 2023 - Nov 2023</span>
+</button>
+</div>
+</header>
+<!-- Page Heading -->
+<div class="mb-10">
+<h2 class="text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-2">Restaurant Performance Dashboard</h2>
+<p class="text-slate-500 dark:text-slate-400 max-w-2xl">Comparative analysis of revenue, speed, and satisfaction metrics across the network. Identifying high-efficiency corridors and customer satisfaction outliers.</p>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+<div class="p-6 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-blue-50 dark:bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">star</span>
+</div>
+<span class="text-accent-success text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +2.1%
+                    </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Avg Restaurant Rating</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white">4.2<span class="text-lg text-slate-400 font-normal">/5.0</span></p>
+</div>
+<div class="p-6 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-orange-50 dark:bg-accent-warning/10 rounded-lg text-accent-warning">
+<span class="material-symbols-outlined">timer</span>
+</div>
+<span class="text-accent-warning text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_down</span> -0.5%
+                    </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Global Prep Time</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white">18.5<span class="text-lg text-slate-400 font-normal"> min</span></p>
+</div>
+<div class="p-6 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-green-50 dark:bg-accent-success/10 rounded-lg text-accent-success">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-accent-success text-xs font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">trending_up</span> +12.4%
+                    </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Total Revenue</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white">$1.2M</p>
+</div>
+<div class="p-6 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm hover:border-primary/50 transition-all group">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-slate-500 dark:text-slate-400">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<span class="text-accent-success text-xs font-bold flex items-center gap-1">
+                         +3
+                    </span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium mb-1">Active Restaurants</p>
+<p class="text-3xl font-black text-slate-900 dark:text-white">124</p>
+</div>
+</div>
+<!-- Charts Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+<!-- Top 10 Revenue Bar Chart -->
+<div class="bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800">
+<div class="flex items-center justify-between mb-6">
+<h3 class="font-bold text-lg">Top 10 Restaurants by Revenue</h3>
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</div>
+<div class="space-y-4">
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+<span>Sizzling Bistro (NYC)</span>
+<span>$245k</span>
+</div>
+<div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 95%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+<span>The Grill House (LA)</span>
+<span>$210k</span>
+</div>
+<div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 82%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+<span>Green Curry (CHI)</span>
+<span>$185k</span>
+</div>
+<div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 70%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+<span>Pasta Palace (MIA)</span>
+<span>$162k</span>
+</div>
+<div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 62%"></div>
+</div>
+</div>
+<div class="space-y-1">
+<div class="flex justify-between text-xs font-semibold uppercase tracking-wider text-slate-400">
+<span>Ocean Delights (SEA)</span>
+<span>$140k</span>
+</div>
+<div class="h-4 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 55%"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Scatter Plot Analysis -->
+<div class="bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 flex flex-col">
+<div class="flex items-center justify-between mb-2">
+<h3 class="font-bold text-lg">"The Sweet Spot" Analysis</h3>
+<div class="flex gap-2">
+<span class="px-2 py-1 rounded bg-accent-success/20 text-accent-success text-[10px] font-bold">OPTIMIZED</span>
+<span class="px-2 py-1 rounded bg-accent-warning/20 text-accent-warning text-[10px] font-bold">AT RISK</span>
+</div>
+</div>
+<p class="text-xs text-slate-500 mb-6 uppercase tracking-widest font-bold">Prep Time vs. Customer Rating</p>
+<div class="flex-1 relative border-l-2 border-b-2 border-slate-200 dark:border-slate-700 m-4 h-64">
+<!-- Scatter Dots Simulated -->
+<div class="absolute bottom-[80%] left-[20%] size-3 bg-accent-success rounded-full ring-4 ring-accent-success/20 group cursor-help">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">Sushi Zen: 4.8★ / 12min</div>
+</div>
+<div class="absolute bottom-[40%] left-[50%] size-3 bg-primary rounded-full ring-4 ring-primary/20 group cursor-help">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">Pasta Hub: 4.1★ / 18min</div>
+</div>
+<div class="absolute bottom-[20%] left-[80%] size-4 bg-accent-warning rounded-full ring-4 ring-accent-warning/20 group cursor-help animate-pulse">
+<div class="absolute -top-10 left-1/2 -translate-x-1/2 bg-slate-900 text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">Burger King: 3.2★ / 28min</div>
+</div>
+<div class="absolute bottom-[60%] left-[40%] size-3 bg-primary rounded-full ring-4 ring-primary/20 group cursor-help"></div>
+<div class="absolute bottom-[75%] left-[30%] size-2 bg-accent-success rounded-full opacity-60"></div>
+<div class="absolute bottom-[30%] left-[70%] size-3 bg-primary rounded-full opacity-60"></div>
+<!-- Axis Labels -->
+<div class="absolute -left-10 top-1/2 -rotate-90 text-[10px] font-black uppercase text-slate-400">Satisfaction Score</div>
+<div class="absolute -bottom-6 left-1/2 -translate-x-1/2 text-[10px] font-black uppercase text-slate-400">Preparation Time (min)</div>
+</div>
+</div>
+</div>
+<!-- Ranking Table -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h3 class="font-bold text-lg">Comparative Performance Ranking</h3>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg text-slate-500 transition-colors">
+<span class="material-symbols-outlined">download</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50 text-slate-500 text-[10px] uppercase font-black tracking-widest border-b border-slate-200 dark:border-slate-800">
+<th class="px-6 py-4">Restaurant Name</th>
+<th class="px-6 py-4">Total Revenue</th>
+<th class="px-6 py-4">Avg Rating</th>
+<th class="px-6 py-4">Delivery Speed</th>
+<th class="px-6 py-4">7D Sales Trend</th>
+<th class="px-6 py-4">Status</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-primary">S</div>
+<span class="font-semibold text-sm">Sizzling Bistro (NYC)</span>
+</div>
+</td>
+<td class="px-6 py-5 font-bold text-sm">$245,392</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-semibold text-sm">4.8</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-slate-500">14.2 min</td>
+<td class="px-6 py-5">
+<!-- Simulated Sparkline SVG -->
+<svg class="w-24 h-8 sparkline-svg stroke-accent-success" viewbox="0 0 100 30">
+<path d="M0 25 Q 15 5, 30 20 T 60 10 T 100 5"></path>
+</svg>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent-success/10 text-accent-success">Top Perf</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-primary">T</div>
+<span class="font-semibold text-sm">The Grill House (LA)</span>
+</div>
+</td>
+<td class="px-6 py-5 font-bold text-sm">$210,120</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-semibold text-sm">4.5</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-slate-500">18.5 min</td>
+<td class="px-6 py-5">
+<svg class="w-24 h-8 sparkline-svg stroke-accent-success" viewbox="0 0 100 30">
+<path d="M0 20 Q 25 15, 50 25 T 100 15"></path>
+</svg>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">Stable</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-primary">G</div>
+<span class="font-semibold text-sm">Green Curry (CHI)</span>
+</div>
+</td>
+<td class="px-6 py-5 font-bold text-sm">$185,400</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-semibold text-sm">3.9</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-slate-500">24.8 min</td>
+<td class="px-6 py-5">
+<svg class="w-24 h-8 sparkline-svg stroke-accent-warning" viewbox="0 0 100 30">
+<path d="M0 5 Q 30 15, 50 10 T 100 28"></path>
+</svg>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-accent-warning/10 text-accent-warning">Slow Down</span>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
+<td class="px-6 py-5">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-slate-100 dark:bg-slate-700 flex items-center justify-center font-bold text-primary">P</div>
+<span class="font-semibold text-sm">Pasta Palace (MIA)</span>
+</div>
+</td>
+<td class="px-6 py-5 font-bold text-sm">$162,900</td>
+<td class="px-6 py-5">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-sm text-yellow-400" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-semibold text-sm">4.3</span>
+</div>
+</td>
+<td class="px-6 py-5 text-sm text-slate-500">16.1 min</td>
+<td class="px-6 py-5">
+<svg class="w-24 h-8 sparkline-svg stroke-accent-success" viewbox="0 0 100 30">
+<path d="M0 25 Q 50 5, 100 15"></path>
+</svg>
+</td>
+<td class="px-6 py-5">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary">Growth</span>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center text-xs text-slate-500 font-medium">
+<span>Showing 1-4 of 124 restaurants</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 transition-colors">Prev</button>
+<button class="px-3 py-1 bg-slate-100 dark:bg-slate-800 rounded hover:bg-slate-200 transition-colors">Next</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

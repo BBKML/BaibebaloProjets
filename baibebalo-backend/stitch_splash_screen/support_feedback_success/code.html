@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "secondary-accent": "#F7E07C",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#12201b",
+                        "text-main": "#121715",
+                        "text-muted": "#65867b",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .illustration-blob {
+            background: radial-gradient(circle at center, #22c38e33 0%, transparent 70%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display transition-colors duration-300">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<button class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 text-text-main dark:text-white">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h2 class="text-text-main dark:text-white text-lg font-bold leading-tight tracking-tight">Confirmation</h2>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center px-6 py-8 max-w-md mx-auto w-full">
+<!-- Hero Illustration Area -->
+<div class="relative w-full aspect-square max-w-[280px] mb-8 flex items-center justify-center">
+<!-- Background Decorative Blobs -->
+<div class="absolute inset-0 illustration-blob rounded-full scale-125 opacity-50"></div>
+<!-- Character/Icon Representation -->
+<div class="relative z-10 w-full h-full flex items-center justify-center bg-white dark:bg-zinc-800 rounded-full shadow-2xl shadow-primary/20 border-4 border-primary/10">
+<div class="flex flex-col items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined text-[100px] text-primary" style="font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 48;">
+                            sentiment_very_satisfied
+                        </span>
+<!-- Floating Accent -->
+<div class="absolute -top-2 -right-2 bg-secondary-accent w-8 h-8 rounded-full flex items-center justify-center shadow-lg">
+<span class="material-symbols-outlined text-white text-sm">auto_awesome</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Elements -->
+<div class="absolute top-10 right-0 animate-bounce">
+<span class="material-symbols-outlined text-primary/40 text-3xl">thumb_up</span>
+</div>
+<div class="absolute bottom-10 left-0">
+<span class="material-symbols-outlined text-secondary-accent text-3xl">volunteer_activism</span>
+</div>
+</div>
+<!-- Success Message Content -->
+<div class="text-center space-y-4">
+<h1 class="text-text-main dark:text-white text-3xl font-extrabold tracking-tight px-4 leading-tight">
+                Merci pour votre retour !
+            </h1>
+<div class="inline-flex items-center px-4 py-2 bg-primary/10 dark:bg-primary/20 rounded-full">
+<p class="text-primary font-bold text-sm">
+                    Votre ticket est le <span class="underline">#12345</span>
+</p>
+</div>
+<p class="text-text-muted dark:text-text-muted/80 text-base font-normal leading-relaxed px-6">
+                Notre équipe traite votre demande. Nous vous contacterons bientôt si nécessaire.
+            </p>
+</div>
+<!-- Progress/Status Indicators (Subtle Decoration) -->
+<div class="mt-12 flex gap-2">
+<div class="h-1.5 w-8 rounded-full bg-primary"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-primary/30"></div>
+<div class="h-1.5 w-1.5 rounded-full bg-primary/30"></div>
+</div>
+</main>
+<!-- Bottom Action Button Area -->
+<footer class="p-6 max-w-md mx-auto w-full pb-10">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg shadow-primary/30 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">home</span>
+            Retour à l'accueil
+        </button>
+<!-- Subtle iOS Home Indicator space -->
+<div class="h-2 mt-4"></div>
+</footer>
+<!-- Decorative Image Placeholder (Hidden but defined for context) -->
+<div class="hidden">
+<img data-alt="High-five illustration between customer and support agent" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOpD4d0p_OJrzUcJDAuXAZTF5M2C0dEXDfI-mmEwG0toDPkGHxp3T8BDo0MmZDoDVxd4FgDESV9WglgVWZrkMGzserV1Bch9pBNtZyQWVmd55wTur65f952CgbwrNWqrgY-lZuIzZO53NYoV0-Di_00MIw0mfQkQzDvdF4Y5dMvrwFRppiK5jWCnd6G7BlOeCiLYWWFux6UKqdp7pfAQvqbfwaFYUxBZrMjLHs26Y6JrrLYWsk4U46c7ls-7bu3bx-9shHsmXkfije"/>
+</div>
+</body></html>

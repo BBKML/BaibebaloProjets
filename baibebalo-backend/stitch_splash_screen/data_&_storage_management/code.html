@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Data &amp; Storage Management - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2e73b8",
+                        "background-light": "#fafafa",
+                        "background-dark": "#1c1e22",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-divider {
+            height: 1px;
+            margin-left: 64px;
+        }
+        .toggle-checkbox:checked {
+            right: 0;
+            background-color: #2e73b8;
+        }
+        .toggle-checkbox:checked + .toggle-label {
+            background-color: #2e73b8;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display transition-colors duration-200">
+<div class="max-w-[430px] mx-auto min-h-screen flex flex-col bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between h-14">
+<div class="text-primary flex size-10 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined text-[28px]">chevron_left</span>
+</div>
+<h2 class="text-[#121417] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Données et stockage</h2>
+</div>
+</header>
+<main class="flex-1 pb-10">
+<!-- HeadlineText -->
+<div class="px-4 pt-6 pb-2">
+<h3 class="text-[#121417] dark:text-white tracking-tight text-2xl font-extrabold leading-tight">Stockage de l'application</h3>
+<p class="text-[#677583] dark:text-gray-400 text-sm mt-1">Gérez l'espace utilisé par BAIBEBALO sur votre téléphone.</p>
+</div>
+<!-- Storage Summary Card (ProgressBar variant) -->
+<div class="mx-4 my-4 p-5 bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex flex-col gap-4">
+<div class="flex gap-6 justify-between items-end">
+<div class="flex flex-col">
+<span class="text-[#677583] dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Utilisation totale</span>
+<p class="text-[#121417] dark:text-white text-2xl font-extrabold leading-none">124 Mo <span class="text-sm font-medium text-[#677583]">utilisés</span></p>
+</div>
+<div class="text-right">
+<p class="text-primary text-sm font-bold bg-primary/10 px-2 py-1 rounded">48% plein</p>
+</div>
+</div>
+<div class="relative h-3 w-full bg-[#dde0e4] dark:bg-gray-700 rounded-full overflow-hidden">
+<div class="absolute left-0 top-0 h-full bg-primary rounded-full" style="width: 48%;"></div>
+</div>
+<div class="flex justify-between items-center pt-1">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<span class="text-[#677583] dark:text-gray-400 text-xs">App : 84 Mo</span>
+</div>
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-gray-300 dark:bg-gray-500"></div>
+<span class="text-[#677583] dark:text-gray-400 text-xs">Cache : 40 Mo</span>
+</div>
+<p class="text-[#677583] dark:text-gray-400 text-xs font-bold">Total : 256 Mo</p>
+</div>
+</div>
+</div>
+<!-- SectionHeader: STOCKAGE -->
+<div class="pt-6">
+<h3 class="text-[#677583] dark:text-gray-500 text-[11px] font-bold leading-tight tracking-[0.1em] px-5 pb-2 uppercase">GESTION DU STOCKAGE</h3>
+<div class="bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
+<!-- ListItem: Clear Cache -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between cursor-pointer active:bg-gray-50 dark:active:bg-gray-800 transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">delete_sweep</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-tight line-clamp-1">Vider le cache</p>
+<p class="text-[#677583] dark:text-gray-400 text-[13px] leading-snug line-clamp-2 mt-0.5">Supprimer les fichiers temporaires pour libérer 40 Mo</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="flex min-w-[70px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-8 px-4 bg-gray-100 dark:bg-gray-800 text-[#121417] dark:text-white text-xs font-bold leading-normal transition-all hover:bg-red-50 hover:text-red-600">
+                                Vider
+                            </button>
+</div>
+</div>
+<div class="ios-divider bg-gray-100 dark:bg-gray-800"></div>
+<!-- ListItem: Downloads -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between cursor-pointer active:bg-gray-50 dark:active:bg-gray-800 transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-[#121417] dark:text-white flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-tight line-clamp-1">Gérer les téléchargements</p>
+<p class="text-[#677583] dark:text-gray-400 text-[13px] leading-snug line-clamp-2 mt-0.5">Factures et reçus enregistrés (12 fichiers)</p>
+</div>
+</div>
+<div class="shrink-0 text-gray-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SectionHeader: RÉSEAU -->
+<div class="pt-8">
+<h3 class="text-[#677583] dark:text-gray-500 text-[11px] font-bold leading-tight tracking-[0.1em] px-5 pb-2 uppercase">ÉCONOMIE DE DONNÉES</h3>
+<div class="bg-white dark:bg-gray-900 border-y border-gray-100 dark:border-gray-800">
+<!-- Custom Toggle Item: Low Data Mode -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-orange-500 flex items-center justify-center rounded-xl bg-orange-50 dark:bg-orange-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">speed</span>
+</div>
+<div class="flex flex-col justify-center max-w-[200px]">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-tight">Mode données réduites</p>
+<p class="text-[#677583] dark:text-gray-400 text-[13px] leading-snug mt-0.5">Diminue la qualité des images pour économiser votre forfait</p>
+</div>
+</div>
+<div class="relative inline-block w-12 mr-2 align-middle select-none transition duration-200 ease-in">
+<input checked="" class="toggle-checkbox absolute block w-6 h-6 rounded-full bg-white border-2 border-gray-300 appearance-none cursor-pointer checked:border-primary checked:right-0 right-6 transition-all duration-300" id="toggle" name="toggle" type="checkbox"/>
+<label class="toggle-label block overflow-hidden h-6 rounded-full bg-gray-300 cursor-pointer transition-colors duration-300" for="toggle"></label>
+</div>
+</div>
+<div class="ios-divider bg-gray-100 dark:bg-gray-800"></div>
+<!-- ListItem: Quality Selector -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between cursor-pointer active:bg-gray-50 dark:active:bg-gray-800 transition-colors">
+<div class="flex items-center gap-4">
+<div class="text-[#121417] dark:text-white flex items-center justify-center rounded-xl bg-gray-100 dark:bg-gray-800 shrink-0 size-12">
+<span class="material-symbols-outlined">image_aspect_ratio</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#121417] dark:text-white text-base font-semibold leading-tight">Qualité des images</p>
+<p class="text-primary text-[13px] font-bold leading-snug mt-0.5">Automatique</p>
+</div>
+</div>
+<div class="shrink-0 text-gray-400">
+<span class="material-symbols-outlined">expand_more</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Tip Card -->
+<div class="m-4 p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/10">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary text-[20px]">info</span>
+<p class="text-primary/80 text-[13px] leading-relaxed">
+<strong>Conseil :</strong> Utilisez le Wi-Fi pour télécharger vos reçus et factures afin de ne pas consommer votre crédit mobile.
+                    </p>
+</div>
+</div>
+<div class="px-4 py-6 text-center">
+<p class="text-[#677583] dark:text-gray-500 text-[11px] font-medium uppercase tracking-widest">Version de l'application : 4.12.0 (Build 892)</p>
+</div>
+</main>
+<!-- Bottom Navigation Spacer (iOS Home Indicator space) -->
+<div class="h-8 bg-background-light dark:bg-background-dark"></div>
+</div>
+</body></html>

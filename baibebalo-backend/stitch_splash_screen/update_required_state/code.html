@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e5e6",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#1a1d23",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-effect {
+            background: rgba(26, 29, 35, 0.8);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#111818] dark:text-white min-h-screen flex flex-col items-center justify-center p-6">
+<div class="w-full max-w-[400px] flex flex-col items-center text-center">
+<!-- Header / Top Bar -->
+<div class="w-full mb-8 flex justify-center">
+<span class="text-xs font-extrabold uppercase tracking-[0.2em] text-[#111818]/40 dark:text-white/40">Baibebalo Update</span>
+</div>
+<!-- Hero Illustration Area -->
+<div class="relative w-full aspect-square mb-10 flex items-center justify-center">
+<!-- Background Decorative Shapes -->
+<div class="absolute inset-0 bg-primary/10 dark:bg-primary/5 rounded-full scale-90 blur-3xl"></div>
+<!-- Rocket/Gift Illustration Container -->
+<div class="relative z-10 w-64 h-64 bg-white dark:bg-[#23272f] rounded-xl shadow-2xl flex items-center justify-center border border-primary/20 overflow-hidden">
+<div class="absolute -top-4 -right-4 w-24 h-24 bg-yellow-400 rounded-full blur-2xl opacity-40"></div>
+<div class="flex flex-col items-center">
+<!-- Icon Representation -->
+<div class="w-32 h-32 bg-primary/20 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary !text-6xl">rocket_launch</span>
+</div>
+<!-- Small decorative "stars" or particles -->
+<div class="flex gap-2">
+<div class="w-2 h-2 rounded-full bg-yellow-400"></div>
+<div class="w-2 h-2 rounded-full bg-primary"></div>
+<div class="w-2 h-2 rounded-full bg-primary/40"></div>
+</div>
+</div>
+</div>
+<!-- Floating Elements -->
+<div class="absolute top-10 left-4 w-12 h-12 bg-white dark:bg-[#2a2f3a] rounded-lg shadow-lg flex items-center justify-center rotate-[-12deg] border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-yellow-500">star</span>
+</div>
+<div class="absolute bottom-12 right-4 w-14 h-14 bg-white dark:bg-[#2a2f3a] rounded-lg shadow-lg flex items-center justify-center rotate-[15deg] border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-primary">redeem</span>
+</div>
+</div>
+<!-- Text Content -->
+<div class="space-y-4 mb-12">
+<h1 class="text-[#111818] dark:text-white text-3xl font-extrabold leading-tight tracking-tight px-2">
+                Une nouvelle version est disponible !
+            </h1>
+<p class="text-[#111818]/60 dark:text-white/60 text-base font-normal leading-relaxed px-4">
+                Veuillez mettre à jour l'application pour profiter des dernières fonctionnalités et de meilleures performances sur BAIBEBALO.
+            </p>
+</div>
+<!-- Action Buttons -->
+<div class="w-full space-y-4 px-4">
+<button class="w-full flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-[#111818] text-lg font-bold leading-normal tracking-wide shadow-[0_8px_20px_-4px_rgba(25,229,230,0.4)] hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="truncate">Mettre à jour</span>
+</button>
+<button class="w-full flex min-w-[84px] cursor-pointer items-center justify-center h-12 text-[#111818]/50 dark:text-white/50 text-base font-semibold hover:text-primary transition-colors">
+                Plus tard
+            </button>
+</div>
+<!-- Footer Visual -->
+<div class="mt-auto pt-10 pb-4">
+<div class="flex items-center gap-2 opacity-30">
+<div class="h-1 w-8 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+<div class="h-1 w-1 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+<div class="h-1 w-1 bg-gray-400 dark:bg-gray-600 rounded-full"></div>
+</div>
+</div>
+</div>
+<!-- Background Images / Decorative Elements -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 pointer-events-none opacity-50">
+<div class="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-primary/10 rounded-full blur-[120px]"></div>
+<div class="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-yellow-400/5 rounded-full blur-[120px]"></div>
+</div>
+</body></html>

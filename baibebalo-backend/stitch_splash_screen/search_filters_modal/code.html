@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d95c26",
+                        "background-light": "#fbfaf9",
+                        "background-dark": "#242428",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5dfdc;
+            border-radius: 10px;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #d95c26;
+            cursor: pointer;
+            border-radius: 50%;
+            border: 4px solid white;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-zinc-200 dark:bg-zinc-900 font-display flex items-end justify-center min-h-screen">
+<!-- Screen Container (iOS Phone Frame Simulation) -->
+<div class="relative w-full max-w-[430px] h-[932px] bg-background-light dark:bg-background-dark overflow-hidden shadow-2xl flex flex-col justify-end">
+<!-- Mock Map Background for Context -->
+<div class="absolute inset-0 z-0">
+<img class="w-full h-full object-cover opacity-40 grayscale" data-alt="Stylized map of Abidjan Ivory Coast with delivery pins" data-location="Abidjan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCR4MUvXbflOnvpuhpdvoClxeD-pHskmx9hDiZZEmYLoxDk9HTiEGCaQSNCh6DfmKwjhl5pwekQoi6P6yo1jRC8CIX9hu4Fu8Ap7okJt0Tz88L3p20xpSpCJ1NThl4mWtDxjJGQU2hMnR9vA0FV0lPFJFaFI8eL-MIz38vrBycPv8ujYMEPc8PTBPsxfvbAU2TQAI8quBM-EEaaVsTSqfl7L4-_ylUvzEz1I_NeMH2TozHTK330hb9qDSMq8cHeJLI6Da-ieF6US1Cq"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
+</div>
+<!-- Bottom Sheet Modal -->
+<div class="relative z-10 w-full bg-white dark:bg-zinc-800 rounded-t-xl shadow-[0_-8px_30px_rgb(0,0,0,0.12)] flex flex-col max-h-[90%]">
+<!-- BottomSheetHandle -->
+<div class="flex flex-col items-stretch bg-white dark:bg-zinc-800 rounded-t-xl">
+<button class="flex h-6 w-full items-center justify-center">
+<div class="h-1.5 w-12 rounded-full bg-[#e5dfdc] dark:bg-zinc-600"></div>
+</button>
+</div>
+<!-- Header Section -->
+<div class="flex items-center justify-between px-6 py-4 border-b border-zinc-100 dark:border-zinc-700">
+<h2 class="text-[#171312] dark:text-white text-2xl font-bold leading-tight tracking-[-0.015em]">Filtres</h2>
+<button class="p-2 hover:bg-zinc-100 dark:hover:bg-zinc-700 rounded-full transition-colors">
+<span class="material-symbols-outlined text-[#171312] dark:text-white">close</span>
+</button>
+</div>
+<!-- Scrollable Content -->
+<div class="overflow-y-auto custom-scrollbar flex-1 pb-32">
+<!-- Catégories Section -->
+<div class="px-6 py-4">
+<h3 class="text-[#171312] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Catégories</h3>
+<div class="space-y-1">
+<!-- Checklists Items -->
+<div class="grid grid-cols-1 gap-1">
+<label class="flex gap-x-3 py-3 px-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/30 flex-row-reverse justify-between items-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
+<input checked="" class="h-6 w-6 rounded-lg border-[#e5dfdc] dark:border-zinc-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" type="checkbox"/>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">restaurant</span>
+<p class="text-[#171312] dark:text-white text-base font-medium">Restaurants</p>
+</div>
+</label>
+<label class="flex gap-x-3 py-3 px-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/30 flex-row-reverse justify-between items-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
+<input class="h-6 w-6 rounded-lg border-[#e5dfdc] dark:border-zinc-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" type="checkbox"/>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-zinc-500">shopping_cart</span>
+<p class="text-[#171312] dark:text-white text-base font-medium">Supermarché</p>
+</div>
+</label>
+<label class="flex gap-x-3 py-3 px-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/30 flex-row-reverse justify-between items-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
+<input class="h-6 w-6 rounded-lg border-[#e5dfdc] dark:border-zinc-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" type="checkbox"/>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-zinc-500">local_pharmacy</span>
+<p class="text-[#171312] dark:text-white text-base font-medium">Pharmacie</p>
+</div>
+</label>
+<label class="flex gap-x-3 py-3 px-4 rounded-lg bg-zinc-50 dark:bg-zinc-700/30 flex-row-reverse justify-between items-center cursor-pointer hover:bg-zinc-100 dark:hover:bg-zinc-700 transition-colors">
+<input class="h-6 w-6 rounded-lg border-[#e5dfdc] dark:border-zinc-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" type="checkbox"/>
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-zinc-500">package_2</span>
+<p class="text-[#171312] dark:text-white text-base font-medium">Colis</p>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Prix Section -->
+<div class="px-6 py-4">
+<h3 class="text-[#171312] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Prix</h3>
+<div class="flex bg-zinc-50 dark:bg-zinc-700/30 p-1.5 rounded-xl border border-zinc-100 dark:border-zinc-700">
+<label class="flex-1 text-center py-2.5 px-2 rounded-lg cursor-pointer transition-all bg-primary text-white font-bold shadow-sm">
+<input checked="" class="hidden" name="price" type="radio"/>
+<span>$</span>
+</label>
+<label class="flex-1 text-center py-2.5 px-2 rounded-lg cursor-pointer transition-all hover:bg-zinc-200 dark:hover:bg-zinc-600 text-[#171312] dark:text-white font-medium">
+<input class="hidden" name="price" type="radio"/>
+<span>$$</span>
+</label>
+<label class="flex-1 text-center py-2.5 px-2 rounded-lg cursor-pointer transition-all hover:bg-zinc-200 dark:hover:bg-zinc-600 text-[#171312] dark:text-white font-medium">
+<input class="hidden" name="price" type="radio"/>
+<span>$$$</span>
+</label>
+</div>
+</div>
+<!-- Distance Section -->
+<div class="px-6 py-4">
+<div class="flex justify-between items-center mb-6">
+<h3 class="text-[#171312] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Distance</h3>
+<span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-sm font-bold">5.5 km</span>
+</div>
+<div class="px-2">
+<input class="w-full h-2 bg-zinc-200 dark:bg-zinc-700 rounded-lg appearance-none cursor-pointer accent-primary" max="10" min="0" step="0.5" type="range" value="5.5"/>
+<div class="flex justify-between mt-3 text-xs text-zinc-500 font-medium">
+<span>0 km</span>
+<span>5 km</span>
+<span>10 km</span>
+</div>
+</div>
+</div>
+<!-- Note Section -->
+<div class="px-6 py-4">
+<h3 class="text-[#171312] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] mb-4">Note</h3>
+<div class="space-y-2">
+<label class="flex items-center justify-between p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 hover:border-primary/30 transition-colors cursor-pointer group">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-zinc-300">star</span>
+<span class="ml-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">&amp; plus</span>
+</div>
+<input class="h-5 w-5 rounded-full border-zinc-300 text-primary focus:ring-0" type="checkbox"/>
+</label>
+<label class="flex items-center justify-between p-3 rounded-lg border border-zinc-100 dark:border-zinc-700 hover:border-primary/30 transition-colors cursor-pointer group">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-primary fill-1" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-zinc-300">star</span>
+<span class="material-symbols-outlined text-zinc-300">star</span>
+<span class="ml-2 text-sm font-medium text-zinc-600 dark:text-zinc-300">&amp; plus</span>
+</div>
+<input class="h-5 w-5 rounded-full border-zinc-300 text-primary focus:ring-0" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Action Bar -->
+<div class="absolute bottom-0 left-0 right-0 p-6 bg-white dark:bg-zinc-800 border-t border-zinc-100 dark:border-zinc-700 flex items-center gap-4 pb-10">
+<button class="flex-1 py-4 text-zinc-500 dark:text-zinc-400 font-bold hover:text-zinc-800 dark:hover:text-white transition-colors">
+                    Réinitialiser
+                </button>
+<button class="flex-[2] py-4 px-6 bg-primary text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/20 hover:scale-[0.98] active:scale-95 transition-all">
+                    Appliquer
+                </button>
+</div>
+<!-- iOS Home Indicator -->
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1.5 bg-black/20 dark:bg-white/20 rounded-full"></div>
+</div>
+</div>
+</body></html>

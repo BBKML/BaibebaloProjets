@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Liste Utilisateurs Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0ea6ec",
+                        "background-light": "#f9fafb",
+                        "background-dark": "#0d1117",
+                        "card-dark": "#161b22",
+                        "border-dark": "#30363d",
+                        "text-muted": "#848d97",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased">
+<!-- Mobile Container (Simulating 375px viewport center aligned for desktop preview) -->
+<div class="mx-auto max-w-[375px] min-h-screen flex flex-col relative border-x border-transparent dark:border-border-dark shadow-2xl">
+<!-- Sticky Header Section -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-border-dark px-4 py-3">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-2">
+<div class="p-1.5 bg-primary/10 rounded-lg">
+<span class="material-symbols-outlined text-primary text-xl">database</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">Utilisateurs</h1>
+</div>
+<div class="flex items-center gap-3">
+<button class="relative p-2 text-slate-500 dark:text-text-muted hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background-light dark:border-background-dark"></span>
+</button>
+<div class="size-8 rounded-full bg-slate-200 dark:bg-slate-800 border border-slate-300 dark:border-border-dark overflow-hidden">
+<img alt="Profile avatar admin" class="w-full h-full object-cover" data-alt="Portrait of a male administrator avatar" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC6P_3oYFy2b2wL-TmU289Rq3GXMvmNQcPROc8iBMXReSSdPWVfDD2k-aNn-BKBjPYg_szjxX8URyI6EYVbzkIQl-ZZc60I2DbyDluiyXBFX0ZXXpneeJx81IqXkEIGq7-FlUkaPUz94iWM-twHzEwyoiP0z9Myk9Vi3bdwl39gN0iAyINVzEpwIo8bbAqBoLhWnnERE8IatMkBPGtWqUn9Se6lnVGLPU9Z_uS1LWa5JOPBY0ftZmuxIxqs_GWeCBk1Aj4REkdTxyE-"/>
+</div>
+</div>
+</div>
+<!-- Search & Filter Row -->
+<div class="flex gap-2">
+<div class="relative flex-1 group">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-text-muted text-lg group-focus-within:text-primary">search</span>
+<input class="w-full h-10 pl-10 pr-4 bg-slate-100 dark:bg-card-dark border-none focus:ring-1 focus:ring-primary rounded-lg text-sm placeholder:text-slate-400 dark:placeholder:text-text-muted transition-all" placeholder="Rechercher..." type="text"/>
+</div>
+<button class="size-10 flex items-center justify-center bg-slate-100 dark:bg-card-dark rounded-lg text-slate-600 dark:text-text-muted border-none hover:bg-primary/10 hover:text-primary transition-all">
+<span class="material-symbols-outlined text-xl">tune</span>
+</button>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 px-4 py-4 space-y-4">
+<!-- Quick Chips -->
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="px-4 py-1.5 rounded-full bg-primary text-white text-xs font-semibold whitespace-nowrap">Tous (142)</button>
+<button class="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-card-dark text-slate-600 dark:text-text-muted text-xs font-medium whitespace-nowrap border border-transparent dark:border-border-dark">Actifs</button>
+<button class="px-4 py-1.5 rounded-full bg-slate-100 dark:bg-card-dark text-slate-600 dark:text-text-muted text-xs font-medium whitespace-nowrap border border-transparent dark:border-border-dark">Suspendus</button>
+</div>
+<!-- User Cards List -->
+<div class="space-y-3">
+<!-- Card 1: Active User -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-border-dark p-4 shadow-sm">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="size-11 rounded-full border-2 border-primary/20 p-0.5">
+<img alt="Alice Dubois avatar" class="w-full h-full object-cover rounded-full" data-alt="Portrait of a female user with blonde hair" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCA-Le_FYPxHUVtsZh8W79uyuJczi9PTK-_y8N8Yzy4mGUV4cri3TYSu081hfoFGODMrNiU6zgqp44ntR7tMuXR-0AScQNwLR-4xmuNKWvuq01z-gEsSSjguT0vZzTbG145T9nT1E7S8DCDYTxqUyhouaqh3c06niBAg7UTtHM6fKJWv2PTDMcYzAx0B21z6j--n2j5dFiiI7je1St6JYl8W3eRAckSbwIDnqJqUohQfyOYHPKALxiy1pkXswYrfFphlWVgvyOfYUf-"/>
+</div>
+<div>
+<h3 class="font-semibold text-sm leading-tight">Alice Dubois</h3>
+<p class="text-xs text-text-muted">ID: #BA-9921</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider rounded border border-green-500/20">Actif</span>
+</div>
+<div class="space-y-1.5 mb-4">
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined text-base">call</span>
+<span class="text-xs font-medium">+225 07 45 88 12</span>
+</div>
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined text-base">mail</span>
+<span class="text-xs font-medium">alice.d@email.com</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-background-dark/50 rounded-lg mb-4">
+<div class="text-center flex-1 border-r border-slate-200 dark:border-border-dark">
+<p class="text-[10px] uppercase text-text-muted font-bold tracking-tighter">Cmdes</p>
+<p class="text-sm font-bold text-primary">24</p>
+</div>
+<div class="text-center flex-1">
+<p class="text-[10px] uppercase text-text-muted font-bold tracking-tighter">Total</p>
+<p class="text-sm font-bold">125,500 FCFA</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 h-10 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-colors">Voir</button>
+<button class="flex-1 h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-border-dark rounded-lg text-xs font-bold hover:bg-red-500/10 hover:text-red-500 hover:border-red-500/20 transition-all">Suspendre</button>
+</div>
+</div>
+<!-- Card 2: Suspended User -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-border-dark p-4 shadow-sm opacity-90">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="size-11 rounded-full border-2 border-slate-500/20 p-0.5 grayscale">
+<img alt="Marc Koffi avatar" class="w-full h-full object-cover rounded-full" data-alt="Portrait of a male user with glasses" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDVjAN6U0T4HUxdbxiDZVEo_8GnJSAVL_i5lfaeGmpSdX5gtUAX_3DWBp6-JlgMNDYhGQf6V8b_Zpc8DYkxpB2EHt8jMkyUi-NHmC9_VmzMMye4An_DRq6vEwPJOcQsnAuFUv7lyxcWkC6gwFnbslhI6VUnqZxzcOUc9nrbs2OGev-KczvC13JtPVm3rorOWxR2WgSEdjKUaytNqbT38rEm4Vsd5Zx49K20ZyTNjrbPWdYXKy900y6QzO1B-B_l3y9aAbnVpbaWIUXB"/>
+</div>
+<div>
+<h3 class="font-semibold text-sm leading-tight">Marc Koffi</h3>
+<p class="text-xs text-text-muted">ID: #BA-8843</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-red-500/10 text-red-500 text-[10px] font-bold uppercase tracking-wider rounded border border-red-500/20">Suspendu</span>
+</div>
+<div class="space-y-1.5 mb-4">
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined text-base">call</span>
+<span class="text-xs font-medium">+225 01 02 03 04</span>
+</div>
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined text-base">mail</span>
+<span class="text-xs font-medium">m.koffi@baibe.ci</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-background-dark/50 rounded-lg mb-4">
+<div class="text-center flex-1 border-r border-slate-200 dark:border-border-dark">
+<p class="text-[10px] uppercase text-text-muted font-bold tracking-tighter">Cmdes</p>
+<p class="text-sm font-bold text-slate-400">08</p>
+</div>
+<div class="text-center flex-1">
+<p class="text-[10px] uppercase text-text-muted font-bold tracking-tighter">Total</p>
+<p class="text-sm font-bold">42,000 FCFA</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 h-10 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-colors">Voir</button>
+<button class="flex-1 h-10 bg-green-500 text-white rounded-lg text-xs font-bold transition-all">Réactiver</button>
+</div>
+</div>
+<!-- Card 3: Active User -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-border-dark p-4 shadow-sm">
+<div class="flex items-start justify-between mb-3">
+<div class="flex items-center gap-3">
+<div class="size-11 rounded-full border-2 border-primary/20 p-0.5">
+<img alt="John Doe avatar" class="w-full h-full object-cover rounded-full" data-alt="Portrait of a smiling male user" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_Bpg7k9KVhwzIz-tHqtLgyZhwxm4L1DxfmAr4TZhLY5WruPHkHCGDgShBwOsTTj-H_qkGpImGw9mDUC7o1AXgSXAjz-0HxinTHY_P9297oPhzJAi67OY-JM4xjPv_WeWniMN1ROjp3ahb3KJSqMoZ9Dri94WgQeQq7WtCx-OR5-k2b0zRXCn4BPOpLlglNB7v8AigiSJQ8_HOWWzuSwfedNLxQyptSEzxsoE2C0BBS4mIKHF9z1PbHj09NSj-kn6VMtMg3gfp5c0L"/>
+</div>
+<div>
+<h3 class="font-semibold text-sm leading-tight">Jean-Luc Kouassi</h3>
+<p class="text-xs text-text-muted">ID: #BA-9710</p>
+</div>
+</div>
+<span class="px-2 py-1 bg-green-500/10 text-green-500 text-[10px] font-bold uppercase tracking-wider rounded border border-green-500/20">Actif</span>
+</div>
+<div class="space-y-1.5 mb-4">
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined text-base">call</span>
+<span class="text-xs font-medium">+225 05 99 11 00</span>
+</div>
+<div class="flex items-center gap-2 text-text-muted">
+<span class="material-symbols-outlined text-base">mail</span>
+<span class="text-xs font-medium">jl.kouassi@web.com</span>
+</div>
+</div>
+<div class="flex items-center justify-between p-2.5 bg-slate-50 dark:bg-background-dark/50 rounded-lg mb-4">
+<div class="text-center flex-1 border-r border-slate-200 dark:border-border-dark">
+<p class="text-[10px] uppercase text-text-muted font-bold tracking-tighter">Cmdes</p>
+<p class="text-sm font-bold text-primary">56</p>
+</div>
+<div class="text-center flex-1">
+<p class="text-[10px] uppercase text-text-muted font-bold tracking-tighter">Total</p>
+<p class="text-sm font-bold">482,900 FCFA</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="flex-1 h-10 bg-primary hover:bg-primary/90 text-white rounded-lg text-xs font-bold transition-colors">Voir</button>
+<button class="flex-1 h-10 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-border-dark rounded-lg text-xs font-bold transition-all">Suspendre</button>
+</div>
+</div>
+</div>
+<!-- Loading Spinner (Simulated) -->
+<div class="flex flex-col items-center justify-center py-6 text-text-muted gap-2">
+<div class="size-6 border-2 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+<p class="text-xs font-medium">Chargement des utilisateurs...</p>
+</div>
+</main>
+<!-- Bottom Navigation (Mobile Specific) -->
+<nav class="sticky bottom-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-slate-200 dark:border-border-dark flex justify-around items-center py-3 px-2">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-2xl">group</span>
+<span class="text-[10px] font-bold">Users</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-muted">
+<span class="material-symbols-outlined text-2xl">shopping_cart</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-muted">
+<span class="material-symbols-outlined text-2xl">analytics</span>
+<span class="text-[10px] font-medium">Stats</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-text-muted">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-medium">Paramètres</span>
+</button>
+</nav>
+</div>
+</body></html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Analyse Paiements - Vue Détaillée | BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0b95da",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#f9fafb",
+                        "background-dark": "#0f1729",
+                        "surface-dark": "#1E293B",
+                        "border-dark": "#315668",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .chart-gradient-orange { fill: url(#orangeGradient); }
+        .chart-gradient-blue { fill: url(#blueGradient); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 antialiased font-display">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark flex flex-col justify-between p-4 sticky top-0 h-screen">
+<div class="flex flex-col gap-8">
+<div class="flex items-center gap-3 px-2">
+<div class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-orange text-white shadow-lg shadow-brand-orange/20">
+<span class="material-symbols-outlined text-2xl font-bold">account_balance_wallet</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-lg font-black leading-none tracking-tight">BAIBEBALO</h1>
+<p class="text-slate-500 text-xs font-medium uppercase tracking-wider">Admin Panel</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary/10 text-primary border border-primary/20" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Analyses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Configuration</span>
+</a>
+</nav>
+</div>
+<button class="w-full flex items-center justify-center gap-2 rounded-lg py-2.5 bg-primary hover:bg-primary/90 text-white text-sm font-bold transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-sm">download</span>
+<span>Exporter Rapport</span>
+</button>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto">
+<!-- Breadcrumbs -->
+<div class="px-8 py-4">
+<div class="flex items-center gap-2 text-sm">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Accueil</a>
+<span class="text-slate-600">/</span>
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Analyses Paiements</a>
+<span class="text-slate-600">/</span>
+<span class="text-white font-medium">Orange Money</span>
+</div>
+</div>
+<!-- PageHeading -->
+<header class="px-8 py-6 border-b border-slate-200 dark:border-slate-800 flex flex-wrap justify-between items-end gap-4">
+<div class="flex flex-col gap-2">
+<div class="flex items-center gap-3">
+<h2 class="text-white text-4xl font-black tracking-tight">Orange Money</h2>
+<span class="px-2 py-0.5 rounded bg-green-500/10 text-green-500 text-xs font-bold uppercase tracking-widest border border-green-500/20">Actif</span>
+</div>
+<p class="text-slate-400 text-lg">Analyse approfondie des performances du canal Orange Money (OM Pay).</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 rounded-lg px-4 py-2 bg-slate-800 border border-slate-700 text-white text-sm font-bold hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span>Derniers 30 jours</span>
+</button>
+<button class="flex items-center justify-center h-10 w-10 rounded-lg bg-slate-800 border border-slate-700 text-white hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined">tune</span>
+</button>
+</div>
+</header>
+<!-- Stats KPI -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 px-8 py-8">
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">check_circle</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Taux de Réussite</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-black text-white">94.2%</p>
+<span class="text-green-500 text-xs font-bold flex items-center">+2.1% <span class="material-symbols-outlined text-xs">arrow_upward</span></span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">monitoring</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Volume Total</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-black text-white">45.2M CFA</p>
+<span class="text-red-500 text-xs font-bold flex items-center">-5.4% <span class="material-symbols-outlined text-xs">arrow_downward</span></span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">timer</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Temps de Réponse</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-black text-white">1.2s</p>
+<span class="text-green-500 text-xs font-bold flex items-center">-0.3s <span class="material-symbols-outlined text-xs">arrow_downward</span></span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm relative overflow-hidden group">
+<div class="absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+<span class="material-symbols-outlined text-4xl">payments</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-semibold uppercase tracking-wider mb-2">Chiffre d'Affaires</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-black text-white">12.8M CFA</p>
+<span class="text-green-500 text-xs font-bold flex items-center">+12% <span class="material-symbols-outlined text-xs">arrow_upward</span></span>
+</div>
+</div>
+</section>
+<!-- Charts Section -->
+<section class="grid grid-cols-1 lg:grid-cols-3 gap-6 px-8 py-4">
+<!-- Volume Trend Chart -->
+<div class="lg:col-span-2 bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-center mb-6">
+<div>
+<h3 class="text-white text-lg font-bold">Tendances des Transactions</h3>
+<p class="text-slate-500 text-sm">Volume hebdomadaire Orange Money</p>
+</div>
+<div class="text-right">
+<p class="text-2xl font-black text-white">2,450 tx</p>
+<p class="text-primary text-xs font-bold uppercase tracking-widest">7 Derniers Jours</p>
+</div>
+</div>
+<div class="h-[240px] w-full mt-4">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 500 150">
+<defs>
+<lineargradient id="blueGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#0b95da" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#0b95da" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<path class="chart-gradient-blue" d="M0 120 C 50 110, 80 40, 120 50 S 180 130, 240 100 S 300 20, 360 40 S 440 140, 500 110 L 500 150 L 0 150 Z"></path>
+<path d="M0 120 C 50 110, 80 40, 120 50 S 180 130, 240 100 S 300 20, 360 40 S 440 140, 500 110" fill="none" stroke="#0b95da" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+</div>
+<div class="flex justify-between mt-4 px-2">
+<span class="text-slate-500 text-xs font-bold">LUN</span>
+<span class="text-slate-500 text-xs font-bold">MAR</span>
+<span class="text-slate-500 text-xs font-bold">MER</span>
+<span class="text-slate-500 text-xs font-bold">JEU</span>
+<span class="text-slate-500 text-xs font-bold">VEN</span>
+<span class="text-slate-500 text-xs font-bold">SAM</span>
+<span class="text-slate-500 text-xs font-bold">DIM</span>
+</div>
+</div>
+<!-- Distribution Chart -->
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col">
+<div class="mb-6">
+<h3 class="text-white text-lg font-bold">Statut des Opérations</h3>
+<p class="text-slate-500 text-sm">Répartition en temps réel</p>
+</div>
+<div class="flex-1 flex flex-col justify-center items-center gap-6">
+<div class="relative flex items-center justify-center">
+<!-- Circular Progress Visualizer -->
+<svg class="w-40 h-40 transform -rotate-90">
+<circle class="text-slate-800" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-width="12"></circle>
+<circle class="text-primary" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="44" stroke-width="12"></circle>
+<circle class="text-red-500" cx="80" cy="80" fill="transparent" r="70" stroke="currentColor" stroke-dasharray="440" stroke-dashoffset="380" stroke-width="12"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<span class="text-white text-3xl font-black">94%</span>
+<span class="text-slate-500 text-[10px] font-bold uppercase tracking-widest">Succès</span>
+</div>
+</div>
+<div class="w-full space-y-3">
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span class="text-slate-300">Succès</span>
+</div>
+<span class="text-white font-bold">2,308 tx</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-red-500"></span>
+<span class="text-slate-300">Échecs</span>
+</div>
+<span class="text-white font-bold">112 tx</span>
+</div>
+<div class="flex justify-between items-center text-sm">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-slate-600"></span>
+<span class="text-slate-300">En attente</span>
+</div>
+<span class="text-white font-bold">30 tx</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Recent Transactions Table -->
+<section class="px-8 py-8">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-wrap justify-between items-center gap-4">
+<h3 class="text-white text-lg font-bold">Dernières Transactions Orange Money</h3>
+<div class="flex items-center gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">search</span>
+<input class="bg-slate-900 border-slate-800 rounded-lg pl-9 pr-4 py-2 text-sm text-white placeholder-slate-600 focus:ring-primary focus:border-primary w-64" placeholder="Rechercher ID, Tel..." type="text"/>
+</div>
+<button class="flex items-center gap-2 rounded-lg px-3 py-2 bg-slate-800 text-white text-xs font-bold hover:bg-slate-700">
+<span class="material-symbols-outlined text-xs">filter_list</span>
+<span>Filtrer</span>
+</button>
+</div>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead class="bg-slate-50 dark:bg-slate-900/50">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Transaction ID</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Client</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Montant</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Statut</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Date &amp; Heure</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Action</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<tr class="hover:bg-slate-800/30 transition-colors group">
+<td class="px-6 py-4 text-sm font-mono text-primary font-medium">#OM-82941-X</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">MK</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">Moussa Koné</span>
+<span class="text-xs text-slate-500">+223 76 54 32 10</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-black text-white">25,000 CFA</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase border border-green-500/20">Réussi</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-400">Aujourd'hui, 14:23</td>
+<td class="px-6 py-4">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-primary font-medium">#OM-82939-A</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">AD</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">Aminata Diallo</span>
+<span class="text-xs text-slate-500">+223 66 11 22 33</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-black text-white">10,500 CFA</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-red-500/10 text-red-500 text-[10px] font-black uppercase border border-red-500/20">Échoué</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-400">Aujourd'hui, 13:58</td>
+<td class="px-6 py-4">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-primary font-medium">#OM-82935-Z</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">ST</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">Sekou Traoré</span>
+<span class="text-xs text-slate-500">+223 70 88 99 00</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-black text-white">50,000 CFA</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-primary/10 text-primary text-[10px] font-black uppercase border border-primary/20">En cours</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-400">Aujourd'hui, 13:45</td>
+<td class="px-6 py-4">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-800/30 transition-colors">
+<td class="px-6 py-4 text-sm font-mono text-primary font-medium">#OM-82930-B</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="h-8 w-8 rounded-full bg-slate-700 flex items-center justify-center text-xs font-bold text-white">FC</div>
+<div class="flex flex-col">
+<span class="text-sm font-semibold text-white">Fatoumata Cissé</span>
+<span class="text-xs text-slate-500">+223 69 44 55 66</span>
+</div>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-black text-white">5,000 CFA</td>
+<td class="px-6 py-4">
+<span class="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase border border-green-500/20">Réussi</span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-400">Aujourd'hui, 13:12</td>
+<td class="px-6 py-4">
+<button class="text-slate-500 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">visibility</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center bg-slate-50 dark:bg-slate-900/30">
+<span class="text-slate-500 text-xs font-medium">Affichage de 1-10 sur 2,450 transactions</span>
+<div class="flex gap-2">
+<button class="px-3 py-1 rounded border border-slate-700 text-slate-400 text-xs font-bold hover:text-white hover:bg-slate-700">Précédent</button>
+<button class="px-3 py-1 rounded bg-primary text-white text-xs font-bold shadow-sm">Suivant</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

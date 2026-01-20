@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestion des Bannières Promotionnelles - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1152d4",
+                        "background-light": "#ffffff",
+                        "background-dark": "#1a1d23",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+        .drag-handle {
+            cursor: grab;
+        }
+        .drag-handle:active {
+            cursor: grabbing;
+        }
+    </style>
+</head>
+<body class="bg-[#f8f9fc] dark:bg-background-dark min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 bg-background-light dark:bg-background-dark border-r border-[#e7ebf3] dark:border-gray-800 flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="bg-primary size-10 rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined">campaign</span>
+</div>
+<div>
+<h1 class="text-[#0d121b] dark:text-white text-base font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-[#4c669a] text-xs font-medium">Marketing Config</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-[#4c669a] hover:bg-[#f0f4ff] dark:hover:bg-gray-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#4c669a] hover:bg-[#f0f4ff] dark:hover:bg-gray-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">ads_click</span>
+<span class="text-sm font-semibold">Marketing</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#4c669a] hover:bg-[#f0f4ff] dark:hover:bg-gray-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-[#4c669a] hover:bg-[#f0f4ff] dark:hover:bg-gray-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-xl">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</nav>
+<div class="p-4 border-t border-[#e7ebf3] dark:border-gray-800">
+<div class="flex items-center gap-3 px-2">
+<div class="size-8 rounded-full bg-gray-200 dark:bg-gray-700" data-alt="Avatar de l'administrateur" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCxkmUzmjRwp-ns0yA8IGh7Xyb_nRCVOJIk2Ng2TwoVniizUZKJ88lwOaQaQDm34PMK37oeMwTU5pFjZHuTHP2VNFUcYMzppi7ujYVLf6Ow6mBEwDWekfU7OKDgnTzA9U4Fe4lES1l6S1x7Of5GfmtmHdS2nMsiqgiYDlWryR9xtg7CkPwC7kFzqjCMbBl0YE7o6bu1Rcx8EqG2PUqsU3JeVJBzwi2f-DI37-yn8Tp-ep_KBJQ61JwnMmRIxj3_M-YlrRfDxoRIi1fd')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-semibold text-[#0d121b] dark:text-white truncate">Admin User</p>
+<p class="text-xs text-[#4c669a] truncate">admin@baibebalo.com</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 overflow-y-auto bg-[#f8f9fc] dark:bg-background-dark/50">
+<!-- Header -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#e7ebf3] dark:border-gray-800 px-8 py-4">
+<div class="flex items-center justify-between">
+<div class="flex flex-col gap-1">
+<nav class="flex items-center gap-2 text-xs font-medium text-[#4c669a]">
+<a class="hover:text-primary" href="#">Admin</a>
+<span>/</span>
+<a class="hover:text-primary" href="#">Marketing</a>
+<span>/</span>
+<span class="text-[#0d121b] dark:text-white">Gestion des Bannières</span>
+</nav>
+<h2 class="text-2xl font-black text-[#0d121b] dark:text-white tracking-tight">Gestion des Bannières</h2>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#4c669a] text-lg">search</span>
+<input class="pl-10 pr-4 py-2 bg-[#f0f2f5] dark:bg-gray-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary/20" placeholder="Rechercher une bannière..." type="text"/>
+</div>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-lg">add</span>
+                            Ajouter une Bannière
+                        </button>
+</div>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left: Banner List & Filters -->
+<div class="lg:col-span-8 space-y-6">
+<!-- Filters/Tabs -->
+<div class="bg-background-light dark:bg-background-dark p-1 rounded-xl border border-[#e7ebf3] dark:border-gray-800 flex w-fit">
+<button class="px-6 py-2 text-sm font-bold bg-primary text-white rounded-lg">Tous</button>
+<button class="px-6 py-2 text-sm font-medium text-[#4c669a] hover:text-[#0d121b] dark:hover:text-white">Clients</button>
+<button class="px-6 py-2 text-sm font-medium text-[#4c669a] hover:text-[#0d121b] dark:hover:text-white">Restaurants</button>
+<button class="px-6 py-2 text-sm font-medium text-[#4c669a] hover:text-[#0d121b] dark:hover:text-white">Livreurs</button>
+</div>
+<!-- Drag & Drop List -->
+<div class="space-y-3">
+<p class="text-xs font-bold text-[#4c669a] uppercase tracking-wider px-2">Bannières Actives (Glisser pour ordonner)</p>
+<!-- Banner Card 1 -->
+<div class="group bg-background-light dark:bg-background-dark border border-[#e7ebf3] dark:border-gray-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-lg hover:shadow-primary/5 transition-all border-l-4 border-l-primary">
+<div class="drag-handle text-[#cfd7e7] group-hover:text-[#4c669a]">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="size-16 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Aperçu de la bannière Burger Week" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBBzdVKBZJdrVR6E3u_QWN1srP8W5XgFyIt31omxwLPOyvt0x98HpyvJSk0RZyGZv8y-Qeyk6xAxADYOaXXK9ZM7lO1BIlkCXRLfys5_ubNO99FoStrT9AtMIsuSnTeD-JJZoIAQ5F56n0H5qNPXm26Sayf1Z3bIsPcJlxeHUbNe3N_maHJlHWrY8C2thTBvMiamF2N9qXREvIeh8-ej3E0iLA949GWU9V2AHVmZpXVA_Fmyy00r5rTUHPafX91yOjPtcSmKds7vr2O')"></div>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-[#0d121b] dark:text-white truncate">Promo Burger Week 2024</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="px-2 py-0.5 bg-blue-50 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 rounded text-[10px] font-bold uppercase tracking-wide">Client</span>
+<span class="flex items-center gap-1 text-[#4c669a] text-xs">
+<span class="material-symbols-outlined text-xs">calendar_today</span>
+                                        01/10 - 07/10
+                                    </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex flex-col items-end mr-4">
+<span class="text-[10px] font-bold text-green-500 uppercase">Actif</span>
+<span class="text-[10px] text-[#4c669a]">Rang #1</span>
+</div>
+<button class="p-2 text-[#4c669a] hover:bg-[#f0f2f5] dark:hover:bg-gray-800 rounded-lg">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+<!-- Banner Card 2 -->
+<div class="group bg-background-light dark:bg-background-dark border border-[#e7ebf3] dark:border-gray-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-lg hover:shadow-primary/5 transition-all">
+<div class="drag-handle text-[#cfd7e7] group-hover:text-[#4c669a]">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="size-16 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Aperçu de la bannière Bonus Livreur" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA1BwyNOe83VgS7fpdZKB6oAhc4VxZ6AtudWd5GK8UHWebrlx6RE6Z1BWoSui3680BmulZaGk-lUkVQnwzj7BU7ilB2mrvQGHYBbvxCphmrpEL6IPHngc1J-VL7C_7kplOeYDARRH4KZ1FrUsTuDWxtxcaLPa8hZx-oX2UsOo3V2c5MhPszTYz6OSM64GAPdcOetFJMTR9dovyr9kuWAWc3ooVEmISekI2DR64n1uJDXUPdJzsBnMFjk9GfuxcHLEdnd6ftBP-Fr9G1')"></div>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-[#0d121b] dark:text-white truncate">Livreur Bonus Weekend</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="px-2 py-0.5 bg-purple-50 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 rounded text-[10px] font-bold uppercase tracking-wide">Livreur</span>
+<span class="flex items-center gap-1 text-[#4c669a] text-xs">
+<span class="material-symbols-outlined text-xs">all_inclusive</span>
+                                        Permanent
+                                    </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex flex-col items-end mr-4">
+<span class="text-[10px] font-bold text-green-500 uppercase">Actif</span>
+<span class="text-[10px] text-[#4c669a]">Rang #2</span>
+</div>
+<button class="p-2 text-[#4c669a] hover:bg-[#f0f2f5] dark:hover:bg-gray-800 rounded-lg">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+<!-- Banner Card 3 (Scheduled) -->
+<div class="group bg-background-light dark:bg-background-dark border border-[#e7ebf3] dark:border-gray-800 rounded-xl p-4 flex items-center gap-4 hover:shadow-lg hover:shadow-primary/5 transition-all opacity-75 grayscale-[0.5]">
+<div class="drag-handle text-[#cfd7e7] group-hover:text-[#4c669a]">
+<span class="material-symbols-outlined">drag_indicator</span>
+</div>
+<div class="size-16 rounded-lg bg-gray-100 dark:bg-gray-800 overflow-hidden flex-shrink-0">
+<div class="w-full h-full bg-cover bg-center" data-alt="Aperçu de la bannière Parrainage" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBk2H2gFNdSsat-Pr3J78CPTp0yA53H1WZ2jgIhxSyxJuSalf42FX_ndhX1BruEzHbAi1GkMF1Wzx09CsSL5v47Tzmn_im_5qJWb6kQh2S2cKEqoG881_zexJEudprnm4YU0ISwFHuT4zjaPj-4TayF3FsnZgp-UxrVuFDTh9uvtP6MApFFICI2jqAVvYG-bLrgLXiI85uxKbPvuqqWcdSPSXAkALv2pPdKxZs6VAiGiF3N8aMvQQycoZYXFlLKnEy0Ggu1T8dgbjSp')"></div>
+</div>
+<div class="flex-1 min-w-0">
+<h4 class="text-sm font-bold text-[#0d121b] dark:text-white truncate">Campagne Parrainage</h4>
+<div class="flex items-center gap-3 mt-1">
+<span class="px-2 py-0.5 bg-gray-50 text-gray-600 dark:bg-gray-700 dark:text-gray-300 rounded text-[10px] font-bold uppercase tracking-wide">Tous</span>
+<span class="flex items-center gap-1 text-[#4c669a] text-xs">
+<span class="material-symbols-outlined text-xs">schedule</span>
+                                        Démarre le 15/10
+                                    </span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<div class="flex flex-col items-end mr-4">
+<span class="text-[10px] font-bold text-amber-500 uppercase">Planifié</span>
+<span class="text-[10px] text-[#4c669a]">Rang #3</span>
+</div>
+<button class="p-2 text-[#4c669a] hover:bg-[#f0f2f5] dark:hover:bg-gray-800 rounded-lg">
+<span class="material-symbols-outlined text-xl">edit</span>
+</button>
+<button class="p-2 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Right: Creation Form -->
+<div class="lg:col-span-4">
+<div class="bg-background-light dark:bg-background-dark border border-[#e7ebf3] dark:border-gray-800 rounded-2xl shadow-sm sticky top-32 overflow-hidden">
+<div class="p-6 border-b border-[#e7ebf3] dark:border-gray-800 bg-[#fbfcfd] dark:bg-gray-800/50">
+<h3 class="text-lg font-bold text-[#0d121b] dark:text-white">Détails de la Bannière</h3>
+<p class="text-sm text-[#4c669a]">Configurez votre nouveau visuel marketing</p>
+</div>
+<div class="p-6 space-y-5">
+<div>
+<label class="block text-sm font-bold text-[#0d121b] dark:text-white mb-2">Image de la bannière</label>
+<div class="border-2 border-dashed border-[#cfd7e7] dark:border-gray-700 rounded-xl p-8 flex flex-col items-center justify-center gap-2 bg-[#f8f9fc] dark:bg-gray-900/50 hover:border-primary transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-4xl text-[#4c669a] group-hover:text-primary transition-colors">cloud_upload</span>
+<p class="text-xs font-medium text-[#4c669a]">Cliquez pour uploader (1200x400px)</p>
+<p class="text-[10px] text-[#9aaccb]">JPG, PNG jusqu'à 2MB</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-bold text-[#0d121b] dark:text-white">Titre de la bannière</label>
+<input class="w-full px-4 py-2.5 rounded-lg border-[#cfd7e7] dark:border-gray-700 dark:bg-gray-800 text-sm focus:border-primary focus:ring-primary/20" placeholder="ex: Solde d'hiver" type="text"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-bold text-[#0d121b] dark:text-white">Cible</label>
+<select class="w-full px-4 py-2.5 rounded-lg border-[#cfd7e7] dark:border-gray-700 dark:bg-gray-800 text-sm focus:border-primary focus:ring-primary/20">
+<option>Tous les utilisateurs</option>
+<option>Clients uniquement</option>
+<option>Restaurants</option>
+<option>Livreurs</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-bold text-[#0d121b] dark:text-white">Lien de redirection</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#4c669a] text-lg">link</span>
+<input class="w-full pl-10 pr-4 py-2.5 rounded-lg border-[#cfd7e7] dark:border-gray-700 dark:bg-gray-800 text-sm focus:border-primary focus:ring-primary/20" placeholder="https://baibebalo.com/promo" type="text"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-bold text-[#0d121b] dark:text-white">Date début</label>
+<input class="w-full px-3 py-2 rounded-lg border-[#cfd7e7] dark:border-gray-700 dark:bg-gray-800 text-sm focus:border-primary focus:ring-primary/20" type="date"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-bold text-[#0d121b] dark:text-white">Date fin</label>
+<input class="w-full px-3 py-2 rounded-lg border-[#cfd7e7] dark:border-gray-700 dark:bg-gray-800 text-sm focus:border-primary focus:ring-primary/20" type="date"/>
+</div>
+</div>
+</div>
+</div>
+<div class="p-6 bg-[#fbfcfd] dark:bg-gray-800/50 border-t border-[#e7ebf3] dark:border-gray-800 flex gap-3">
+<button class="flex-1 px-4 py-2.5 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors">
+                                Publier la Bannière
+                            </button>
+<button class="px-4 py-2.5 border border-[#cfd7e7] dark:border-gray-700 text-[#4c669a] text-sm font-bold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+                                Annuler
+                            </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

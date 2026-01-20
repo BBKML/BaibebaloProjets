@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historique des Validations - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2282e2",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                        "surface-dark": "#191e2a",
+                        "card-dark": "#242933",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #111921;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #253646;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen flex">
+<!-- Sidebar Navigation -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0 bg-background-light dark:bg-surface-dark transition-all duration-300">
+<div class="p-6 flex items-center gap-3">
+<div class="size-8 bg-brand-orange rounded-lg flex items-center justify-center text-white shadow-lg shadow-brand-orange/20">
+<span class="material-symbols-outlined font-bold">layers</span>
+</div>
+<h2 class="text-xl font-extrabold tracking-tight text-brand-orange">BAIBEBALO</h2>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">pending_actions</span>
+<span class="text-sm font-semibold">En attente</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white shadow-md shadow-primary/20" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="text-sm font-semibold">Historique</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-semibold">Utilisateurs</span>
+</a>
+<div class="pt-4 mt-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-semibold">Paramètres</span>
+</a>
+</div>
+</nav>
+<div class="p-4 bg-slate-100 dark:bg-slate-800/50 m-4 rounded-xl">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center ring-2 ring-primary/20" data-alt="Admin user profile picture" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAI_sX0uqvnqticlroUvDzTQK_9oFWS8rxCABt8PWby8EeSYFQlRtoOuV9LFgPIqMSw7N1gOeL6h-7op9p0n3exe9EykRYuhN7BM3iK3AZzbgg8AVlX7ARA2Vz-pxc4QJFuw46m0zq6oZmx8Z5qQiJIu4tXshZRo2l9SBqxOEgArRdLjf_LvWk47vMvnhZkvvlb_phBixI52W9uGW3j7tkfisTb1_hZAU6dngDI5WOxzMVXHjXkwvdFNYGLFW5-2GJ2wP8c4Qp9Q0m1');"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Marc Dupont</p>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest font-bold">Admin Phase 2</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark">
+<!-- Top Navigation -->
+<header class="h-16 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between px-8 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md sticky top-0 z-10">
+<div class="flex items-center gap-4 text-slate-500">
+<span class="text-sm font-medium">Validation Platform</span>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">Phase 2 Historique</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative">
+<span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-slate-400 text-lg">search</span>
+<input class="pl-10 pr-4 py-1.5 rounded-lg border-slate-200 dark:border-slate-800 bg-white dark:bg-card-dark text-sm focus:ring-primary focus:border-primary transition-all w-64" placeholder="Rechercher une entité..." type="text"/>
+</div>
+<button class="size-9 rounded-lg border border-slate-200 dark:border-slate-800 flex items-center justify-center text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800">
+<span class="material-symbols-outlined text-xl">notifications</span>
+</button>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto w-full space-y-8">
+<!-- Page Heading -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<h1 class="text-3xl font-extrabold text-slate-900 dark:text-slate-50 tracking-tight">Historique des Validations</h1>
+<p class="text-slate-500 dark:text-slate-400 max-w-xl">Suivi centralisé des décisions pour les restaurants et les livreurs partenaires.</p>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2.5 rounded-lg font-bold text-sm flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg">download</span>
+                    Exporter le log
+                </button>
+</div>
+<!-- Tabs and Filters -->
+<div class="space-y-4">
+<div class="flex items-center border-b border-slate-200 dark:border-slate-800 gap-8">
+<button class="px-1 py-3 border-b-2 border-primary text-primary text-sm font-bold flex items-center gap-2">
+                        Tous les types <span class="bg-primary/10 px-1.5 py-0.5 rounded text-[10px]">1,284</span>
+</button>
+<button class="px-1 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-bold flex items-center gap-2 transition-all">
+                        Restaurants <span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">842</span>
+</button>
+<button class="px-1 py-3 border-b-2 border-transparent text-slate-500 hover:text-slate-800 dark:hover:text-slate-200 text-sm font-bold flex items-center gap-2 transition-all">
+                        Livreurs <span class="bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5 rounded text-[10px]">442</span>
+</button>
+</div>
+<div class="flex flex-wrap items-center gap-3">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 pl-4 pr-3 hover:border-primary transition-all">
+<p class="text-slate-700 dark:text-slate-300 text-xs font-semibold">Statut: Approuvé</p>
+<span class="material-symbols-outlined text-lg text-slate-400">close</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 pl-4 pr-3 hover:border-primary transition-all">
+<p class="text-slate-700 dark:text-slate-300 text-xs font-semibold">Statut: Rejeté</p>
+<span class="material-symbols-outlined text-lg text-slate-400">close</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-lg bg-white dark:bg-card-dark border border-slate-200 dark:border-slate-800 px-4 hover:border-primary transition-all">
+<span class="material-symbols-outlined text-lg text-slate-400">calendar_month</span>
+<p class="text-slate-700 dark:text-slate-300 text-xs font-semibold">30 derniers jours</p>
+<span class="material-symbols-outlined text-lg text-slate-400">expand_more</span>
+</button>
+<div class="flex-1"></div>
+<p class="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">Filtres actifs: 2</p>
+</div>
+</div>
+<!-- Validation History Table -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50">
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Type</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Entité</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Soumission</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Validateur</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Date Décision</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Statut Final</th>
+<th class="px-6 py-4 text-[10px] font-bold text-slate-500 uppercase tracking-widest border-b border-slate-200 dark:border-slate-800">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<!-- Row 1 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+<td class="px-6 py-4">
+<div class="size-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">store</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">Le Petit Bistro</span>
+<span class="text-xs text-slate-500">ID: REST-9023</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">12 Oct 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover" data-alt="Validator avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDhTOfB3vfWhNlmU3EnLoP965pRCys5vlCtxuH6Gwzcwu6uYfdSZtM9RSHv7uyBUPNE_0tGMu8wUePs69UeH_hC8oZFufOKqHmH1KZMZjZGRzFaF94VMPPrU-IvcZIzfx-odt_Ka-zxC5bqifhBYM4qL53O4_5em63FrW7IHuugl7wimwL9I-o8OzcQn2Q6U_HFoLfFqfFds3NCg_MlZM3_MTjIg4ekhlzd9jUBCOdjUjdIU_HOpsC16BAt3u6nicgV9liRHYmqQGHH');"></div>
+<span class="text-xs font-semibold">Jean Valjean</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">14 Oct 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400"></span>
+                                        Approuvé
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+<td class="px-6 py-4">
+<div class="size-8 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">pedal_bike</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">Thomas Müller</span>
+<span class="text-xs text-slate-500">ID: DRIV-4412</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">11 Oct 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover" data-alt="Validator avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBofo-Pp6CMbiYt9DmkPQbWAayTe0Js4krgx3d6zeqL-0UA7gNVssusmAtdS2l_5yq8rv3Z-h1x1-gMGKjmwKZbjEN_BhvjbNMlSdM8SijdwMNObQtYE3LS75cle0GAZttPQo8noksWjFwj5WjYr-iGu6_kTu0WUpUeSF3Sx51SAW0ouevo2Jm3bgJqWyUZxeNmxZljv14SST-X18o8izDAldCoIKamDhO_zkpWk_dmdvHbHpV9YM1TgK_TuPgYAT7ZMI4YwzA_NcWA');"></div>
+<span class="text-xs font-semibold">Sophie Martin</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">11 Oct 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-rose-100 dark:bg-rose-900/30 text-rose-600 dark:text-rose-400">
+<span class="size-1.5 rounded-full bg-rose-600 dark:bg-rose-400"></span>
+                                        Rejeté
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+<td class="px-6 py-4">
+<div class="size-8 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">store</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">Pasta Palace</span>
+<span class="text-xs text-slate-500">ID: REST-5512</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">10 Oct 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover" data-alt="Validator avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDk70wmgT0r8_xwCuEUjXOMSzSfXjuPc0i64Hc78KvdLh7uFnXWhv77zD98n-J-jUPHOceEdkKnMVqIbH39ZUkoiy1UjXwEuLtVwbWFkNJVCg6LMsjxyIJm8zi23kgbZbeWSPj3Tur0Da2c0w_PqU912dxCYibSj5LnarZZw-MRAsCaeAcuDV38HggbtvhHKKAYGQd5nanuarf2P0k35VLizkG8Si6PH5IAUu3oDcYl0kTzblPNfimWx-EZ8dJwSuLaN-qXqWvfd_Ha');"></div>
+<span class="text-xs font-semibold">Eric Schmidt</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">13 Oct 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400"></span>
+                                        Approuvé
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="group hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-all">
+<td class="px-6 py-4">
+<div class="size-8 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-xl">pedal_bike</span>
+</div>
+</td>
+<td class="px-6 py-4">
+<div class="flex flex-col">
+<span class="text-sm font-bold text-slate-900 dark:text-slate-100">Amélie Durand</span>
+<span class="text-xs text-slate-500">ID: DRIV-2101</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">09 Oct 2023</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-6 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover" data-alt="Validator avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA7Lsjnh_xFShmu0DGQ4MlhaA4Wb5enhQmZWtv7RIfat5bEtRnC9YUfjKtbFblfHsqYgklrh5jJDfCzx9U44IkX42xdRHCdRwTGlEGmyKgcqS7exT31XAIvSQD9-hgZcLXxAP_4qfmmyU1GK4lwMuGSyGYoanZ1luZUTZF5u1jH0bmZgTqQSxHvcJxX_2-ABDuRf1Aww8gX413NhgkYjnxb7JtmwmGV_O_sTFCE8kDZIfz9iQbU8sULs0Na6dRyUweVSz-AgIGvjGXo');"></div>
+<span class="text-xs font-semibold">Jean Valjean</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm text-slate-500">09 Oct 2023</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400">
+<span class="size-1.5 rounded-full bg-emerald-600 dark:bg-emerald-400"></span>
+                                        Approuvé
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Pagination -->
+<div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/20 flex items-center justify-between">
+<p class="text-xs text-slate-500 font-medium">Affichage de 1-4 sur 1,284 entrées</p>
+<div class="flex items-center gap-2">
+<button class="size-8 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-white dark:hover:bg-card-dark disabled:opacity-30" disabled="">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="size-8 rounded bg-primary text-white text-xs font-bold flex items-center justify-center">1</button>
+<button class="size-8 rounded border border-slate-200 dark:border-slate-800 text-xs font-bold flex items-center justify-center hover:bg-white dark:hover:bg-card-dark">2</button>
+<button class="size-8 rounded border border-slate-200 dark:border-slate-800 text-xs font-bold flex items-center justify-center hover:bg-white dark:hover:bg-card-dark">3</button>
+<span class="text-xs text-slate-500 px-1">...</span>
+<button class="size-8 rounded border border-slate-200 dark:border-slate-800 text-xs font-bold flex items-center justify-center hover:bg-white dark:hover:bg-card-dark">321</button>
+<button class="size-8 rounded border border-slate-200 dark:border-slate-800 flex items-center justify-center hover:bg-white dark:hover:bg-card-dark">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Empty State Illustration (Hidden) -->
+<div class="hidden flex-col items-center justify-center py-24 text-center space-y-4">
+<div class="size-32 rounded-full bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-6xl text-slate-300">history_toggle_off</span>
+</div>
+<h3 class="text-xl font-bold">Aucun résultat trouvé</h3>
+<p class="text-slate-500 max-w-sm">Ajustez vos filtres ou effectuez une nouvelle recherche pour trouver les validations souhaitées.</p>
+<button class="text-primary font-bold text-sm">Réinitialiser les filtres</button>
+</div>
+</div>
+</main>
+</body></html>

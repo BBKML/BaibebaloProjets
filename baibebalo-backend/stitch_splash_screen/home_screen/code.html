@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#1a1c20",
+                        "accent-coral": "#ff6b6b",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .glass-nav {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .dark .glass-nav {
+            background: rgba(26, 28, 32, 0.8);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#121715] dark:text-white pb-24">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="bg-primary/10 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined fill-1">location_on</span>
+</div>
+<div>
+<p class="text-[10px] uppercase tracking-wider font-bold text-gray-500 dark:text-gray-400">Livraison à</p>
+<div class="flex items-center gap-1">
+<h2 class="text-base font-bold leading-tight">Cocody Angré</h2>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</div>
+</div>
+</div>
+<button class="size-10 rounded-full bg-white dark:bg-gray-800 flex items-center justify-center shadow-sm border border-gray-100 dark:border-gray-700">
+<span class="material-symbols-outlined text-[22px]">notifications</span>
+</button>
+</div>
+</header>
+<!-- Search Bar -->
+<div class="px-4 py-2">
+<label class="relative flex items-center group">
+<div class="absolute left-4 text-gray-400 group-focus-within:text-primary transition-colors">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="w-full h-14 bg-white dark:bg-gray-800 border-none rounded-2xl pl-12 pr-4 text-base shadow-sm focus:ring-2 focus:ring-primary/20 placeholder:text-gray-400 dark:placeholder:text-gray-500 transition-all" placeholder="Rechercher un restaurant, un plat..." type="text"/>
+</label>
+</div>
+<!-- Promotional Carousel -->
+<div class="mt-4 px-4">
+<div class="overflow-x-auto flex gap-4 hide-scrollbar snap-x">
+<div class="min-w-[85%] snap-center relative h-44 rounded-3xl overflow-hidden bg-gradient-to-br from-primary to-[#18a075]">
+<div class="absolute inset-0 opacity-20 pointer-events-none" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCqNWGmjb8k3_G3gNdD-gMm78RDEYG7DfxmqjCCH_Yts9QFnk2hxHHg8uCL3dD63h0I8aTDWP0JAyptJO8AHv2WX-SEx-zT9Hm0sb6iXIkzXrWlSYIZStu5LEB6-o8aDltCDANOOLGYDeXzN9RoYEgdjNXdMa44Rvt3baK5-1ZNY-t24RH3f7XhIJ_EYYzxFriA4IMq-03Pzx7b0YrPyZ8tOTBtnJO02qn_CMk-u4MfzggZlJZn7vrLrKuNZIjrLwMpgZgvxXiKM1Jv');"></div>
+<div class="relative z-10 p-6 flex flex-col justify-center h-full text-white">
+<span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase w-fit mb-2">Offre de bienvenue</span>
+<h3 class="text-2xl font-bold leading-tight">-30% de réduction</h3>
+<p class="text-white/80 text-sm mt-1 max-w-[180px]">Sur votre première commande avec BAIBEBALO</p>
+<button class="mt-4 bg-white text-primary px-4 py-2 rounded-xl text-xs font-bold w-fit shadow-lg">Commander maintenant</button>
+</div>
+<div class="absolute right-[-20px] bottom-[-20px] w-48 h-48 bg-cover bg-center rounded-full border-8 border-white/10" data-alt="Delicious gourmet food plate with sauce" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAL3K78ONl6T8Vv5-tTLcyDTgyp3Io_qq5w6qc-R24QwqxGGD03ihQd9GgTpFlv4juZmYZg2hITrdaERP9dAIDWo4lPTd9OQZbs1Yu_r6DPB6VyEKuHE8vJWnorMMlKKP-dzXK4EXJ9B0vKvinBoRI_X0qLYVZYM-hy9cjRxzklXp3RzmVuj5NDMCBmrXkMN4UWrMtw7REMfXO4Z8l-XjnK1yyXfYWFHXD-d29ocsNz-rk-d2hAwgwfYJ6Pah6Ea23Eb9hDziRs2ALR');"></div>
+</div>
+<div class="min-w-[85%] snap-center relative h-44 rounded-3xl overflow-hidden bg-gradient-to-br from-accent-coral to-[#e65555]">
+<div class="relative z-10 p-6 flex flex-col justify-center h-full text-white">
+<span class="bg-white/20 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-bold uppercase w-fit mb-2">Livraison Gratuite</span>
+<h3 class="text-2xl font-bold leading-tight">Weekend Spécial</h3>
+<p class="text-white/80 text-sm mt-1">Frais de livraison offerts sur les restaurants locaux</p>
+</div>
+<div class="absolute right-[-10px] bottom-[-10px] w-40 h-40 bg-cover bg-center rounded-full opacity-40" data-alt="Crispy hot pizza with melting cheese" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBXmENrI_WBzUTqjTxOfbh3Q_If9Zojv-sEvurG7T27ldJsDOSnSgtbxYwNBSKVrohfcQa1NSwSf1XNRZ6opfipt0ggmk9oe9zFDPlWlObLAir5WYKckwrGo4o_piR6kIxQ7wZI_ZhROF0EASySb9JGfliyNlyBorKX2Zn69Lt1U-TejMv7gVGtQqsZuy9R2XdSvXA_KZ5Tt4qG1dpNYEn7lDrcSly95n_xgWkaaagFEZfQb8WjpSK8m7GQV9LfurNbpk0VhZ5SJH9f');"></div>
+</div>
+</div>
+</div>
+<!-- Story/Category Carousel -->
+<div class="mt-8">
+<div class="px-4 flex justify-between items-center mb-4">
+<h3 class="text-lg font-bold">Catégories</h3>
+<button class="text-primary text-sm font-bold">Voir tout</button>
+</div>
+<div class="flex overflow-x-auto gap-6 px-4 hide-scrollbar">
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="size-16 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center p-1 group-hover:scale-110 transition-transform">
+<div class="w-full h-full rounded-full bg-cover bg-center" data-alt="Classic italian pizza" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDrH1vB2hq-RmIyMt3RnKMiRLNWJ_cOilYcvkAkAM-6P735bNxWege-VA-a93hjgYp6cQD_hLZy-_iLJ8rYQmbARGDX3fOl-Wowo0v1N1vUk1wO5vRQsWLiD_rxfZRuV1-AQlTyx_zhxLlVnF44GL9cmy8np55i9kHVHcJq02LXgngkZA6EvniSCBGYWCrhEfugslB0ZMmUjFchLVcHAWZkt9UlNaRAWREQ_m_Wiw9NTrWc_AMWP8BC3Zc0ED08U71KRL76pHGDSPa1');"></div>
+</div>
+<span class="text-xs font-semibold">Pizza</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="size-16 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center p-1 group-hover:scale-110 transition-transform">
+<div class="w-full h-full rounded-full bg-cover bg-center" data-alt="Juicy gourmet burger" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBmpCjoXQr8jYSj3-IAvjqnsDBQ1bC3x9OtEZpgvWL3hSu59hlw91h8su_7RClMUDTPdLq-zOKGVw92osyGdwN6dnpbPUqJkARJJhH-cKwq0h8nbWucVMEav0tSE91j_qWBqpxIX89PSuYlPXD-NQxpV1bfCsdQZr6TUWU7_oNGZEWTZSi---Mw0iKvZFp50gglU7E-GR-tdni23hc8yZC51hdifGuM_caB5o0lf6i-zPt3lcSrLTPRjp_ZawgpDtwgzaiAE9DK88Y9');"></div>
+</div>
+<span class="text-xs font-semibold">Fast-Food</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="size-16 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center p-1 group-hover:scale-110 transition-transform">
+<div class="w-full h-full rounded-full bg-cover bg-center" data-alt="Traditional Ivorian Garba dish" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDSO5WDvOfefr2EqxXD3ZRW2G1XZ5WjT4e-rjPHBpmfdEYxZ-eL8RvYef83_VTHBBZJQBVwXJqn_CWTBGGHdT6K7_JVF64Qq3KKQE1LDq6UbM7tq1GteoorXgttqLj190WgHRNJ1a5vTTjxqjQ3tb3N_Rk4LOdm-HfFSxoR8YLb_bb2DApRYrRdeKlFasPd96MdN3IscCQUfRKPBhQSwSsnEo2m2_jBacEVG7CJMHtzlsouLhdDKIhX4C2_t7VJIpqDSx0zDmrqt7li');"></div>
+</div>
+<span class="text-xs font-semibold">Local</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="size-16 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center p-1 group-hover:scale-110 transition-transform">
+<div class="w-full h-full rounded-full bg-cover bg-center" data-alt="Sweet glazed donut pastry" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC1ieMnvEqLgjOVjHOn5sGjNQZaNwojjmvgpNwqXdRLLK4PQuRoIuNQLb_4dVeUPH1QoqgRfG4GWDWs895uWvlceBj8gbQTbq71WmHgP-Yt3Kptj6hwo6mCRhLAOpHdhqfYRDEBKjumygP4ZQHa_eudwVXh9DjoIuSyz1369HuOwyzsgqmLDBn4hn7gpliGbkuQWeLaI41faKnX6LXcg8AXkOHcAN-9B88MPwbfLvBY3u0IaWRoC8tJVbfUoz4lQOk2v9lXaJy8gxa_');"></div>
+</div>
+<span class="text-xs font-semibold">Pâtisserie</span>
+</div>
+<div class="flex flex-col items-center gap-2 group cursor-pointer">
+<div class="size-16 rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700 flex items-center justify-center p-1 group-hover:scale-110 transition-transform">
+<div class="w-full h-full rounded-full bg-cover bg-center" data-alt="Fresh organic salad bowl" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDNVEHarw6qGxybLRKSMLB7ePRpkz1RtY6uZh0Fwi0djsUCn--sxvyDTvDazHm-6n60EK7RlYHQpLrBnH3q7w2Fpd-ffO0otesHhHLS5Vxvky_Y4YO6YG36ZAcFMearliqJIkois8-VyDsiBFuD7JtClFXYLjYec5EEKFBL0Mqmx3eLeZTZDgmEjA-pgALzEvhTrPOS0SvRXhDJeY0reDvWYcvb4oiq6h-Xed1ECWMx2t8NJya5LIzFsQYJaGkUpJRS_Y1rPtqvlaOc');"></div>
+</div>
+<span class="text-xs font-semibold">Santé</span>
+</div>
+</div>
+</div>
+<!-- Popular Section Header -->
+<div class="mt-8 px-4 flex items-center justify-between">
+<h2 class="text-xl font-bold tracking-tight">Populaires près de chez vous</h2>
+</div>
+<!-- Restaurant Cards List -->
+<div class="mt-4 px-4 space-y-6">
+<!-- Card 1 -->
+<div class="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="relative h-48">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Cozy upscale restaurant interior" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCB8nqxCBZ0qJMD_1s5gTTr55T48ToFe9uNBtQVh5djJpnSTyseqKfTWSCVVeKUJK5-z4ZSGbXA3mcpg1mUbJb81Hyjyg9xPeseia4Hh-_Fx2vy2_lWad31EPYypwvp9rcisGzlrCFf-MPJrGP61_dVkzCJMhwCGdZVIf9dEq4uD5Dh-kyzzDRQUxuwhppPZix95s1exKPzpDeLAd6PokADptqMARu-D-34C9viEgg0G_nj9ZQ4XxURHAlI6Oq-wcBh0OQwDvknohft');"></div>
+<div class="absolute top-4 right-4 bg-white dark:bg-gray-900 px-2 py-1 rounded-xl flex items-center gap-1 shadow-md">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-xs font-bold">4.8</span>
+<span class="text-xs text-gray-500">(120+)</span>
+</div>
+<div class="absolute bottom-4 left-4">
+<span class="bg-primary text-white px-3 py-1 rounded-lg text-[10px] font-bold uppercase shadow-lg">Le plus aimé</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold">Chez Marcene</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Cuisine Ivoirienne • Africain Moderne</p>
+</div>
+<div class="bg-primary/5 dark:bg-primary/20 p-2 rounded-xl">
+<span class="material-symbols-outlined text-primary text-xl">favorite</span>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span>30-45 min</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm">delivery_dining</span>
+<span>500 FCFA</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Card 2 -->
+<div class="bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-sm border border-gray-100 dark:border-gray-700">
+<div class="relative h-48">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Oven baked artisan pizza" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBMpc11pqA-XXvY06EWWIa28SeYnQieSfjewBRJQ_CfPLGrECFrW1A1VPMJ3CodXGiF4B26phklOxOVFRNtAlk3iq0m591qUK3wUrCpmvoq6yTCxqnBtjAb7_LHVUQVfKVoxTl-ZLu-3hn7yRkXsdBovbCUjS_C_mjMmPd853GevUtapGOof44uzCJNNFKBTfLKQzfbFVawz1I0PeT0OsPYGkY6YEE4-LPenj6IsAoyAQj6wxX481rYZeofITU7Zjxt1jH6F21uw-sE');"></div>
+<div class="absolute top-4 right-4 bg-white dark:bg-gray-900 px-2 py-1 rounded-xl flex items-center gap-1 shadow-md">
+<span class="material-symbols-outlined text-yellow-400 text-sm fill-1">star</span>
+<span class="text-xs font-bold">4.5</span>
+<span class="text-xs text-gray-500">(85)</span>
+</div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="text-lg font-bold">Pizza Palace Angré</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400">Italien • Pizza au feu de bois</p>
+</div>
+<div class="bg-primary/5 dark:bg-primary/20 p-2 rounded-xl">
+<span class="material-symbols-outlined text-primary text-xl">favorite</span>
+</div>
+</div>
+<div class="mt-3 pt-3 border-t border-gray-50 dark:border-gray-700 flex items-center gap-4 text-xs font-semibold text-gray-600 dark:text-gray-300">
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm">schedule</span>
+<span>20-35 min</span>
+</div>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm">delivery_dining</span>
+<span>Gratuit</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 glass-nav border-t border-gray-100 dark:border-gray-800 px-4 py-3 pb-6 flex justify-between items-center z-50">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-medium">Rechercher</span>
+</div>
+<div class="relative -mt-10">
+<div class="size-14 bg-primary text-white rounded-full flex items-center justify-center shadow-lg shadow-primary/40 border-4 border-background-light dark:border-background-dark">
+<span class="material-symbols-outlined text-2xl">shopping_basket</span>
+</div>
+<div class="absolute -top-1 -right-1 size-5 bg-accent-coral text-white rounded-full flex items-center justify-center text-[10px] font-bold border-2 border-white dark:border-gray-900">3</div>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</nav>
+<!-- Map View floating button (Ivorian Context) -->
+<button class="fixed bottom-28 right-4 bg-white dark:bg-gray-800 text-gray-800 dark:text-white px-4 py-2 rounded-full shadow-xl flex items-center gap-2 border border-gray-100 dark:border-gray-700 z-40">
+<span class="material-symbols-outlined text-primary">map</span>
+<span class="text-xs font-bold">Voir Carte</span>
+</button>
+</body></html>

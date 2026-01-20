@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestion des Remboursements - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f96ad",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#17191c",
+                        "approve": "#47B25D",
+                        "reject": "#E53935",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav {
+            background-color: #1f96ad20;
+            color: #1f96ad;
+            border-right: 4px solid #1f96ad;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0f181a] dark:text-gray-100 font-display min-h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-[#e8f0f2] dark:border-gray-800 bg-white dark:bg-gray-900 hidden md:flex flex-col sticky top-0 h-screen">
+<div class="p-6 flex items-center gap-3">
+<div class="bg-primary rounded-lg p-2 text-white">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<div>
+<h1 class="text-sm font-bold leading-tight">BAIBEBALO Admin</h1>
+<p class="text-[10px] text-[#538893] uppercase tracking-wider font-semibold">Phase 4 Support</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-2 mt-4">
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg active-nav" href="#">
+<span class="material-symbols-outlined text-primary" style="font-variation-settings: 'FILL' 1">receipt_long</span>
+<span class="text-sm font-bold">Remboursements</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Clients</span>
+</a>
+<div class="pt-4 pb-2">
+<p class="px-3 text-[10px] font-bold text-gray-400 uppercase tracking-widest">Système</p>
+</div>
+<a class="flex items-center gap-3 px-3 py-3 rounded-lg text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</nav>
+<div class="p-4 border-t border-[#e8f0f2] dark:border-gray-800">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+</div>
+<div class="overflow-hidden">
+<p class="text-xs font-bold truncate">Admin Principal</p>
+<p class="text-[10px] text-gray-500 truncate">admin@baibebalo.com</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col">
+<!-- Top Nav -->
+<header class="h-16 border-b border-[#e8f0f2] dark:border-gray-800 bg-white dark:bg-gray-900 flex items-center justify-between px-8 sticky top-0 z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-lg font-bold tracking-tight">Gestion des Remboursements</h2>
+<div class="hidden sm:flex items-center gap-2 text-xs text-gray-400">
+<span>Support</span>
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+<span class="text-primary font-semibold">Files de remboursement</span>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm">search</span>
+<input class="pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary" placeholder="Rechercher une commande..." type="text"/>
+</div>
+<button class="p-2 text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-900"></span>
+</button>
+</div>
+</header>
+<div class="p-8 max-w-7xl mx-auto w-full space-y-8">
+<!-- Stats Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-[#d1e2e5] dark:border-gray-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-approve text-xs font-bold bg-approve/10 px-2 py-1 rounded-full">+5.2%</span>
+</div>
+<p class="text-gray-500 text-sm font-medium mb-1">Total Remboursé (mois)</p>
+<p class="text-2xl font-extrabold tracking-tight">€12,450.00</p>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-[#d1e2e5] dark:border-gray-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-orange-100 rounded-lg text-orange-600">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+<span class="text-orange-600 text-xs font-bold bg-orange-100 px-2 py-1 rounded-full">+12%</span>
+</div>
+<p class="text-gray-500 text-sm font-medium mb-1">Demandes en attente</p>
+<p class="text-2xl font-extrabold tracking-tight">24</p>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-[#d1e2e5] dark:border-gray-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-approve/10 rounded-lg text-approve">
+<span class="material-symbols-outlined">verified</span>
+</div>
+</div>
+<p class="text-gray-500 text-sm font-medium mb-1">Taux d'approbation</p>
+<p class="text-2xl font-extrabold tracking-tight">88.4%</p>
+</div>
+<div class="bg-white dark:bg-gray-900 p-6 rounded-xl border border-[#d1e2e5] dark:border-gray-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-purple-100 rounded-lg text-purple-600">
+<span class="material-symbols-outlined">timer</span>
+</div>
+</div>
+<p class="text-gray-500 text-sm font-medium mb-1">Temps de traitement moyen</p>
+<p class="text-2xl font-extrabold tracking-tight">4.2h</p>
+</div>
+</div>
+<!-- Filters & Search -->
+<div class="flex flex-col sm:flex-row gap-4 justify-between items-center bg-white dark:bg-gray-900 p-4 rounded-xl border border-[#d1e2e5] dark:border-gray-800">
+<div class="flex gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+<button class="px-4 py-1.5 bg-primary text-white rounded-lg text-sm font-bold whitespace-nowrap">Toutes les demandes</button>
+<button class="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium whitespace-nowrap flex items-center gap-2">
+                        En attente
+                        <span class="size-5 bg-orange-500 text-white rounded-full flex items-center justify-center text-[10px]">24</span>
+</button>
+<button class="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium whitespace-nowrap">Approuvées</button>
+<button class="px-4 py-1.5 bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300 rounded-lg text-sm font-medium whitespace-nowrap">Rejetées</button>
+</div>
+<div class="flex gap-2 w-full sm:w-auto">
+<button class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium bg-white dark:bg-gray-800">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filtres
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium bg-white dark:bg-gray-800">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Export
+                    </button>
+</div>
+</div>
+<!-- Refund Request List -->
+<div class="space-y-4">
+<h3 class="text-sm font-bold uppercase tracking-widest text-gray-400">Demandes prioritaires</h3>
+<!-- Request Card 1 -->
+<div class="bg-white dark:bg-gray-900 rounded-xl border border-[#d1e2e5] dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow group">
+<div class="p-6 flex flex-col lg:flex-row gap-6">
+<div class="flex-1 space-y-4">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">#BB-1024</span>
+<h4 class="font-bold text-lg">Jean Dupont</h4>
+<span class="size-1.5 rounded-full bg-orange-500"></span>
+<span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Il y a 12 min</span>
+</div>
+<p class="text-xl font-black text-gray-900 dark:text-white">€45.00</p>
+</div>
+<div>
+<p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Motif du remboursement</p>
+<p class="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border-l-4 border-primary">
+                                    "Article reçu endommagé - couture défaite sur le côté droit de la chaussure. Inutilisable en l'état."
+                                </p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center gap-4 lg:w-1/3">
+<div class="flex-1 w-full space-y-2">
+<p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Preuve visuelle</p>
+<div class="relative group/img overflow-hidden rounded-lg aspect-square sm:aspect-video lg:aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+<div class="w-full h-full bg-cover bg-center transition-transform duration-500 group-hover/img:scale-110" data-alt="Détail d'une chaussure avec couture défaite" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBnrPZ2JpArBUHMYddgoFeSKaWa7SF6I5C0zbY_1O-GVfd_61sOvggJ-0C-ct1y0Lo0PGSnv-4mOtb6sXJxvJ7FZouWkjmbwmHOvwZgCsqWtFoPFM4QyMJWkc_YixeghOTnF6cvqQis-qsSq9Kps7o_Jo5x5OrrQv1HkY6erF9h981A9S6En1-9hIXnGs1YZ1BLVhyd48VOYif6FwI1Dvt4KU7Z2bcnj_3Z-Cn0JmVSpuGBKK0S9ayZEkfJduyV9oyq4sIDP99RoOAx");'>
+</div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity cursor-zoom-in">
+<span class="material-symbols-outlined text-white">zoom_in</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-full sm:w-48 lg:w-full xl:w-48">
+<button class="w-full py-2.5 bg-approve hover:bg-approve/90 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-base">check_circle</span>
+                                    Approuver
+                                </button>
+<button class="w-full py-2.5 border border-reject text-reject hover:bg-reject/5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-base">cancel</span>
+                                    Rejeter
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Request Card 2 -->
+<div class="bg-white dark:bg-gray-900 rounded-xl border border-[#d1e2e5] dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="p-6 flex flex-col lg:flex-row gap-6">
+<div class="flex-1 space-y-4">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">#BB-1031</span>
+<h4 class="font-bold text-lg">Sophie Morel</h4>
+<span class="size-1.5 rounded-full bg-orange-500"></span>
+<span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Il y a 45 min</span>
+</div>
+<p class="text-xl font-black text-gray-900 dark:text-white">€129.99</p>
+</div>
+<div>
+<p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Motif du remboursement</p>
+<p class="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border-l-4 border-primary">
+                                    "Erreur de taille dans l'envoi. J'ai commandé du L, j'ai reçu du S. Le ticket d'emballage confirme le L pourtant."
+                                </p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center gap-4 lg:w-1/3">
+<div class="flex-1 w-full space-y-2">
+<p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Preuve visuelle</p>
+<div class="relative group/img overflow-hidden rounded-lg aspect-square sm:aspect-video lg:aspect-square bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+<div class="w-full h-full bg-cover bg-center" data-alt="Photo d'une étiquette de vêtement taille S" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBlCuvcbZUEw9yKM09JQwcliO4XC2_s31hL4hQHj2YpQB4OxOFp5SCc4fyIKjFPXwiMKSIZJdM4WKNWtlDmAeM6KjK9l8M0PciO5eFlCvr9cYI_Kdo79Au7ql2BSp5cuRNiaLYLJPndMOZAWfwYB74K9YHkRkYJPSTybuEmp3z1wnB6yPFzTwQxGM75lBNTe3GM2YHz8eAV2grxfrnwfAD0pZaqNVXTWyh6NoIHy97rwoTsnq8HPhJs7kfEwfWSHWcTQZ73DeGr-OOm");'>
+</div>
+<div class="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 flex items-center justify-center transition-opacity cursor-zoom-in">
+<span class="material-symbols-outlined text-white">zoom_in</span>
+</div>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-full sm:w-48 lg:w-full xl:w-48">
+<button class="w-full py-2.5 bg-approve hover:bg-approve/90 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-base">check_circle</span>
+                                    Approuver
+                                </button>
+<button class="w-full py-2.5 border border-reject text-reject hover:bg-reject/5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-base">cancel</span>
+                                    Rejeter
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Request Card 3 -->
+<div class="bg-white dark:bg-gray-900 rounded-xl border border-[#d1e2e5] dark:border-gray-800 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+<div class="p-6 flex flex-col lg:flex-row gap-6 opacity-80">
+<div class="flex-1 space-y-4">
+<div class="flex items-start justify-between">
+<div class="flex items-center gap-3">
+<span class="text-xs font-bold text-primary bg-primary/10 px-2 py-1 rounded">#BB-0998</span>
+<h4 class="font-bold text-lg">Marc Leroy</h4>
+<span class="size-1.5 rounded-full bg-gray-400"></span>
+<span class="text-[10px] text-gray-400 font-bold uppercase tracking-tighter">Il y a 2h</span>
+</div>
+<p class="text-xl font-black text-gray-900 dark:text-white">€12.50</p>
+</div>
+<div>
+<p class="text-xs text-gray-400 uppercase font-bold tracking-widest mb-1">Motif du remboursement</p>
+<p class="text-sm text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg border-l-4 border-primary">
+                                    "Accessoire manquant dans le pack promotionnel."
+                                </p>
+</div>
+</div>
+<div class="flex flex-col sm:flex-row lg:flex-col xl:flex-row items-center gap-4 lg:w-1/3">
+<div class="flex-1 w-full space-y-2">
+<p class="text-[10px] text-gray-400 uppercase font-bold tracking-widest">Preuve visuelle</p>
+<div class="relative overflow-hidden rounded-lg aspect-square sm:aspect-video lg:aspect-square bg-gray-200 dark:bg-gray-800 flex items-center justify-center border border-gray-200 dark:border-gray-700">
+<span class="material-symbols-outlined text-gray-400 text-3xl">no_photography</span>
+</div>
+</div>
+<div class="flex flex-col gap-2 w-full sm:w-48 lg:w-full xl:w-48">
+<button class="w-full py-2.5 bg-approve hover:bg-approve/90 text-white rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-base">check_circle</span>
+                                    Approuver
+                                </button>
+<button class="w-full py-2.5 border border-reject text-reject hover:bg-reject/5 rounded-lg text-sm font-bold flex items-center justify-center gap-2 transition-colors">
+<span class="material-symbols-outlined text-base">cancel</span>
+                                    Rejeter
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Load More -->
+<div class="flex justify-center pt-4">
+<button class="px-6 py-2 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-bold hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                    Voir plus de demandes
+                </button>
+</div>
+</div>
+</main>
+</body></html>

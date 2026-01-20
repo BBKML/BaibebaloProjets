@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Admin - Heatmap Géographique</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00c8ff",
+                        "background-light": "#f5f8f8",
+                        "background-dark": "#0f1f23",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .heatmap-gradient {
+            background: linear-gradient(to right, #5AF063, #FBFF00, #FF9100, #CC0000);
+        }
+        .map-container {
+            background-image: radial-gradient(circle at 50% 50%, rgba(0, 200, 255, 0.1) 0%, transparent 70%);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white font-display overflow-hidden h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center justify-between border-b border-solid border-slate-200 dark:border-[#20424b] px-6 py-3 bg-background-light dark:bg-background-dark z-50">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">map</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight">BAIBEBALO Admin</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-600 dark:text-[#8dc0ce] hover:text-primary text-sm font-medium transition-colors" href="#">Dashboard</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary pb-1" href="#">Analytics</a>
+<a class="text-slate-600 dark:text-[#8dc0ce] hover:text-primary text-sm font-medium transition-colors" href="#">Orders</a>
+<a class="text-slate-600 dark:text-[#8dc0ce] hover:text-primary text-sm font-medium transition-colors" href="#">Drivers</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#8dc0ce] text-xl">search</span>
+<input class="w-64 pl-10 pr-4 py-2 rounded-lg bg-slate-100 dark:bg-[#20424b] border-none text-sm focus:ring-2 focus:ring-primary placeholder:text-[#8dc0ce]" placeholder="Search metrics..." type="text"/>
+</div>
+<button class="p-2 rounded-lg bg-slate-100 dark:bg-[#20424b] text-slate-600 dark:text-white hover:bg-primary hover:text-white transition-all">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="size-9 rounded-full bg-cover bg-center border-2 border-primary/30" data-alt="Admin user avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDehu7KEjfsv7Oy7ycvlfhPfECsXQwvg7BwWmse6wMKMfiZRGOBx6N_a2wjC7os9_qWYcb8012NM-wVg0GP5qHKMgxf-tegZb6cCCz16KGcKmwt7vkYlazINl1PUaPQ8cux_s8xGl0ocOK2CEzL4Cg0hjyplDg4vU8I_3WEjjtVD09VirpEaSew-mX9cV1cZ1YOSmfatVROmKpoWvhotqPRFbw_OL0MCXN8ShX6eO_UvxJnM6y9xBQDEPe3Z59yIn_WxGlsmr5kJl6N');"></div>
+</div>
+</header>
+<div class="flex flex-1 overflow-hidden">
+<!-- Sidebar Navigation (Narrow Rail) -->
+<aside class="w-16 flex flex-col items-center py-6 gap-6 border-r border-slate-200 dark:border-[#20424b] bg-background-light dark:bg-background-dark">
+<button class="text-primary p-2 rounded-xl bg-primary/10 transition-colors">
+<span class="material-symbols-outlined">analytics</span>
+</button>
+<button class="text-slate-400 dark:text-[#8dc0ce] p-2 hover:bg-slate-100 dark:hover:bg-[#20424b] rounded-xl transition-colors">
+<span class="material-symbols-outlined">monitoring</span>
+</button>
+<button class="text-slate-400 dark:text-[#8dc0ce] p-2 hover:bg-slate-100 dark:hover:bg-[#20424b] rounded-xl transition-colors">
+<span class="material-symbols-outlined">payments</span>
+</button>
+<button class="text-slate-400 dark:text-[#8dc0ce] p-2 hover:bg-slate-100 dark:hover:bg-[#20424b] rounded-xl transition-colors">
+<span class="material-symbols-outlined">group</span>
+</button>
+<div class="mt-auto">
+<button class="text-slate-400 dark:text-[#8dc0ce] p-2 hover:bg-slate-100 dark:hover:bg-[#20424b] rounded-xl transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+</aside>
+<!-- Main Content Area: Sidebar Stats + Map -->
+<main class="flex-1 flex overflow-hidden">
+<!-- Data & Filters Panel -->
+<section class="w-80 lg:w-96 flex flex-col border-r border-slate-200 dark:border-[#20424b] bg-slate-50 dark:bg-[#0f1f23] overflow-y-auto">
+<div class="p-6 space-y-6">
+<div>
+<div class="flex items-center gap-2 mb-1">
+<span class="text-primary text-xs font-bold uppercase tracking-widest">Phase 5</span>
+<div class="size-1.5 rounded-full bg-primary animate-pulse"></div>
+</div>
+<h1 class="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Heatmap Analytique</h1>
+<p class="text-sm text-slate-500 dark:text-[#8dc0ce]">Densité des commandes à Korhogo</p>
+</div>
+<!-- Filters -->
+<div class="space-y-4">
+<div class="flex items-center justify-between text-xs font-bold text-[#8dc0ce] uppercase px-1">
+<span>Période</span>
+<span class="text-primary cursor-pointer">Modifier</span>
+</div>
+<div class="grid grid-cols-3 gap-1 p-1 bg-slate-200 dark:bg-[#20424b] rounded-xl">
+<button class="py-2 text-xs font-bold rounded-lg bg-white dark:bg-background-dark text-slate-900 dark:text-white shadow-sm">24h</button>
+<button class="py-2 text-xs font-bold rounded-lg text-slate-500 dark:text-[#8dc0ce] hover:text-white">7j</button>
+<button class="py-2 text-xs font-bold rounded-lg text-slate-500 dark:text-[#8dc0ce] hover:text-white">30j</button>
+</div>
+<div class="flex items-center justify-between text-xs font-bold text-[#8dc0ce] uppercase px-1 pt-2">
+<span>Type de Commande</span>
+</div>
+<div class="flex h-11 items-center justify-center rounded-xl bg-slate-200 dark:bg-[#20424b] p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm text-slate-500 dark:text-[#8dc0ce] has-[:checked]:text-primary text-xs font-bold">
+<span>Tout</span>
+<input checked="" class="hidden" name="filter-type" type="radio" value="All"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm text-slate-500 dark:text-[#8dc0ce] has-[:checked]:text-primary text-xs font-bold">
+<span>Resto</span>
+<input class="hidden" name="filter-type" type="radio" value="Resto"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm text-slate-500 dark:text-[#8dc0ce] has-[:checked]:text-primary text-xs font-bold">
+<span>Driver</span>
+<input class="hidden" name="filter-type" type="radio" value="Driver"/>
+</label>
+</div>
+</div>
+<hr class="border-slate-200 dark:border-[#20424b]"/>
+<!-- Zone Statistics -->
+<div class="space-y-4">
+<h3 class="text-xs font-bold text-[#8dc0ce] uppercase tracking-wider px-1">Statistiques par Zone</h3>
+<!-- Zone Card 1 -->
+<div class="group p-4 rounded-xl bg-white dark:bg-[#1c2e35] border border-slate-200 dark:border-[#20424b] hover:border-primary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-bold text-slate-900 dark:text-white">Centre-ville</h4>
+<span class="bg-red-500/10 text-red-500 text-[10px] px-2 py-0.5 rounded-full font-bold">Peak activity</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-black text-slate-900 dark:text-white">1,245</p>
+<p class="text-xs text-slate-500 dark:text-[#8dc0ce]">commandes complétées</p>
+</div>
+<div class="h-8 w-20 flex items-end gap-0.5">
+<div class="w-full bg-red-500 h-2/5 rounded-t-sm"></div>
+<div class="w-full bg-red-500 h-3/5 rounded-t-sm"></div>
+<div class="w-full bg-red-500 h-2/5 rounded-t-sm"></div>
+<div class="w-full bg-red-500 h-4/5 rounded-t-sm"></div>
+<div class="w-full bg-red-500 h-5/5 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Zone Card 2 -->
+<div class="group p-4 rounded-xl bg-white dark:bg-[#1c2e35] border border-slate-200 dark:border-[#20424b] hover:border-primary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-bold text-slate-900 dark:text-white">Quartier Nord</h4>
+<span class="bg-orange-500/10 text-orange-500 text-[10px] px-2 py-0.5 rounded-full font-bold">Medium</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-black text-slate-900 dark:text-white">850</p>
+<p class="text-xs text-slate-500 dark:text-[#8dc0ce]">commandes complétées</p>
+</div>
+<div class="h-8 w-20 flex items-end gap-0.5">
+<div class="w-full bg-orange-500 h-3/5 rounded-t-sm"></div>
+<div class="w-full bg-orange-500 h-2/5 rounded-t-sm"></div>
+<div class="w-full bg-orange-500 h-4/5 rounded-t-sm"></div>
+<div class="w-full bg-orange-500 h-3/5 rounded-t-sm"></div>
+<div class="w-full bg-orange-500 h-2/5 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+<!-- Zone Card 3 -->
+<div class="group p-4 rounded-xl bg-white dark:bg-[#1c2e35] border border-slate-200 dark:border-[#20424b] hover:border-primary transition-all cursor-pointer">
+<div class="flex justify-between items-start mb-2">
+<h4 class="font-bold text-slate-900 dark:text-white">Zone Sud</h4>
+<span class="bg-emerald-500/10 text-emerald-500 text-[10px] px-2 py-0.5 rounded-full font-bold">Low density</span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-2xl font-black text-slate-900 dark:text-white">430</p>
+<p class="text-xs text-slate-500 dark:text-[#8dc0ce]">commandes complétées</p>
+</div>
+<div class="h-8 w-20 flex items-end gap-0.5">
+<div class="w-full bg-emerald-500 h-1/5 rounded-t-sm"></div>
+<div class="w-full bg-emerald-500 h-2/5 rounded-t-sm"></div>
+<div class="w-full bg-emerald-500 h-1/5 rounded-t-sm"></div>
+<div class="w-full bg-emerald-500 h-1/5 rounded-t-sm"></div>
+<div class="w-full bg-emerald-500 h-1/5 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto p-6">
+<button class="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-xl shadow-lg shadow-primary/20 transition-all">
+<span class="material-symbols-outlined">download</span>
+<span>Exporter les données</span>
+</button>
+</div>
+</section>
+<!-- Map Area -->
+<section class="flex-1 relative bg-[#0b0d11] overflow-hidden">
+<!-- Map Placeholder -->
+<div class="absolute inset-0 z-0 map-container bg-cover bg-center opacity-40 grayscale" data-alt="Dark stylized city map of Korhogo" data-location="Korhogo, Ivory Coast" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCenalyfJAssr9X0-ykmkqjfJ3u1PSJI1_kLPMOkZigHuGbfwcOMfXQLoU0-LcHVErBkM6TKZwtbwP2VBSSlWpjEQ6qBNP8bBVImR-MOBIPIcmiretXNy8bOcxf2pybwg4JmmnWZKQIsUwqnqAjywF0lfrnal7c413Ta9XE4Lithw9GlsKswXgeA65r5o6cH3dMA3lS72QFdagSeEDYYyTVG4iYQtPg6FI2tvlztvc_q0uL6o_24KX-yB8YTvCTjJrmkOZW0y7X7r7C');"></div>
+<!-- Simulated Heatmap Layer -->
+<div class="absolute inset-0 z-10 pointer-events-none opacity-60">
+<!-- Red Hot Zone -->
+<div class="absolute top-[35%] left-[40%] w-[25%] h-[35%] rounded-full blur-[60px] bg-red-600/60"></div>
+<!-- Orange Medium Zone -->
+<div class="absolute top-[20%] left-[25%] w-[30%] h-[30%] rounded-full blur-[80px] bg-orange-500/40"></div>
+<!-- Green Low Zone -->
+<div class="absolute bottom-[10%] right-[15%] w-[20%] h-[25%] rounded-full blur-[100px] bg-emerald-500/30"></div>
+</div>
+<!-- Floating Overlays -->
+<!-- Quick Summary Bar -->
+<div class="absolute top-4 left-1/2 -translate-x-1/2 z-30 flex items-center gap-6 px-6 py-3 bg-background-dark/80 backdrop-blur-md border border-[#20424b] rounded-full shadow-2xl">
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold text-[#8dc0ce] uppercase tracking-tighter">Commandes Actives</span>
+<span class="text-sm font-black text-white">2,525</span>
+</div>
+<div class="w-px h-6 bg-[#20424b]"></div>
+<div class="flex flex-col items-center">
+<span class="text-[10px] font-bold text-[#8dc0ce] uppercase tracking-tighter">Progression</span>
+<span class="text-sm font-black text-emerald-400">+12.4%</span>
+</div>
+<div class="w-px h-6 bg-[#20424b]"></div>
+<div class="flex items-center gap-2">
+<div class="size-2 rounded-full bg-emerald-500 animate-pulse"></div>
+<span class="text-xs font-bold text-white uppercase tracking-widest">En Direct</span>
+</div>
+</div>
+<!-- Legend -->
+<div class="absolute bottom-6 left-6 z-30 p-4 bg-background-dark/80 backdrop-blur-md border border-[#20424b] rounded-xl shadow-2xl min-w-[200px]">
+<p class="text-xs font-bold text-[#8dc0ce] mb-3 uppercase">Légende de Densité</p>
+<div class="h-2 w-full heatmap-gradient rounded-full mb-2"></div>
+<div class="flex justify-between text-[10px] font-bold text-slate-400 uppercase">
+<span>Faible</span>
+<span>Moyenne</span>
+<span>Pic</span>
+</div>
+</div>
+<!-- Map Controls -->
+<div class="absolute bottom-6 right-6 z-30 flex flex-col gap-2">
+<button class="size-10 flex items-center justify-center bg-background-dark/80 backdrop-blur-md border border-[#20424b] rounded-lg text-white hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">add</span>
+</button>
+<button class="size-10 flex items-center justify-center bg-background-dark/80 backdrop-blur-md border border-[#20424b] rounded-lg text-white hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">remove</span>
+</button>
+<button class="size-10 mt-2 flex items-center justify-center bg-background-dark/80 backdrop-blur-md border border-[#20424b] rounded-lg text-white hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+<button class="size-10 flex items-center justify-center bg-background-dark/80 backdrop-blur-md border border-[#20424b] rounded-lg text-white hover:bg-primary transition-colors">
+<span class="material-symbols-outlined">layers</span>
+</button>
+</div>
+<!-- Active Zone Markers -->
+<div class="absolute top-[45%] left-[50%] z-20 flex flex-col items-center">
+<div class="bg-primary px-3 py-1 rounded-full text-[10px] font-bold text-white shadow-xl animate-bounce">Centre-ville</div>
+<div class="size-4 rounded-full border-2 border-white bg-primary shadow-lg"></div>
+</div>
+</section>
+</main>
+</div>
+</body></html>

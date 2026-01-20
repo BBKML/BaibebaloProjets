@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;family=Noto+Sans:wght@400;500&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#00a390",
+                        "background-light": "#f9f9f6",
+                        "background-dark": "#2d2e2f",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .ios-blur {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark flex items-center justify-center min-h-screen p-0 m-0 overflow-hidden">
+<!-- Main Device Wrapper (Phone Form Factor) -->
+<div class="relative w-full max-w-[430px] h-[932px] bg-white dark:bg-background-dark shadow-2xl overflow-hidden flex flex-col border-[8px] border-black rounded-[60px]">
+<!-- Background Map Layer -->
+<div class="absolute inset-0 z-0">
+<div class="w-full h-full bg-cover bg-center grayscale-[0.3] brightness-75" data-location="Abidjan, Ivory Coast" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBc66k0EVvEqtKPxp8ynVNJEpL9snFGzWq_acgKrMdeBm6SqyjQaxUwdtUwBPTfUphf4L3idsaayf9-PhlCZD7aMY6pChtBaCGBbjhk1dSSoGOsfU34sOS_R5nxgiLa-WS2x4tZ8BdVH_T2P31NqQYFjA5cJaUKOCZXeRhICNQag6uI8loYzZ55NwAD2ay4Hq48kh31WCvhIuNOpGRZDsdRX2UQDF8ui7LXWxY5S1MSNl6Ya5eSpQDD9A28shBLwdz4JAnOfcj0CPd9");'>
+<!-- Simulated UI Elements on Map -->
+<div class="absolute top-20 right-4 flex flex-col gap-2">
+<button class="flex size-12 items-center justify-center rounded-xl bg-white/90 dark:bg-background-dark/90 shadow-lg ios-blur">
+<span class="material-symbols-outlined text-primary">add</span>
+</button>
+<button class="flex size-12 items-center justify-center rounded-xl bg-white/90 dark:bg-background-dark/90 shadow-lg ios-blur">
+<span class="material-symbols-outlined text-primary">remove</span>
+</button>
+<button class="mt-2 flex size-12 items-center justify-center rounded-xl bg-white/90 dark:bg-background-dark/90 shadow-lg ios-blur">
+<span class="material-symbols-outlined text-primary">my_location</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Dark Overlay -->
+<div class="absolute inset-0 z-10 bg-black/40"></div>
+<!-- Content Area -->
+<div class="relative z-20 flex flex-col h-full items-center justify-end pb-12 px-6">
+<!-- Central Action Card -->
+<div class="w-full bg-background-light/95 dark:bg-background-dark/95 ios-blur p-8 rounded-xl shadow-[0_20px_50px_rgba(0,0,0,0.3)] flex flex-col items-center animate-in fade-in slide-in-from-bottom-10 duration-700">
+<!-- Stylized Icon Container -->
+<div class="relative mb-8">
+<div class="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
+<div class="relative size-24 bg-primary flex items-center justify-center rounded-full shadow-lg shadow-primary/40">
+<span class="material-symbols-outlined text-white text-5xl">location_on</span>
+</div>
+</div>
+<!-- Text Content -->
+<h2 class="text-background-dark dark:text-white tracking-tight text-3xl font-extrabold leading-tight text-center pb-3">
+                    Localisation requise
+                </h2>
+<p class="text-background-dark/70 dark:text-white/70 text-base font-normal leading-relaxed text-center pb-8">
+                    Nous avons besoin de votre position pour trouver les meilleurs restaurants et services de livraison près de chez vous à Abidjan.
+                </p>
+<!-- Actions -->
+<div class="flex flex-col w-full gap-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-5 rounded-xl transition-all shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+                        Autoriser la localisation
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+<button class="w-full bg-transparent hover:bg-black/5 dark:hover:bg-white/5 text-background-dark dark:text-white font-semibold py-4 rounded-xl transition-all border-2 border-transparent">
+                        Saisir manuellement
+                    </button>
+</div>
+</div>
+<!-- iOS Home Indicator -->
+<div class="mt-8 w-32 h-1.5 bg-white/30 rounded-full"></div>
+</div>
+<!-- Status Bar Simulation -->
+<div class="absolute top-0 left-0 w-full h-12 flex items-center justify-between px-10 z-30">
+<div class="text-white font-semibold text-sm">9:41</div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-white text-sm">signal_cellular_4_bar</span>
+<span class="material-symbols-outlined text-white text-sm">wifi</span>
+<span class="material-symbols-outlined text-white text-sm rotate-90">battery_full</span>
+</div>
+</div>
+</div>
+</body></html>

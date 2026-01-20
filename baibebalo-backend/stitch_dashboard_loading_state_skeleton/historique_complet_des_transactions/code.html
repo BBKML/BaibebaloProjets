@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Historique Complet des Transactions - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#235c4e",
+                        "background-light": "#ffffff",
+                        "background-dark": "#17191c",
+                        "accent-green": "#07882e",
+                        "accent-red": "#e72e08",
+                        "muted-teal": "#5e877d",
+                        "surface-light": "#f9fbfa",
+                        "border-light": "#eaf0ef"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#111816] dark:text-white font-display">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-border-light dark:border-zinc-800">
+<div class="max-w-[1440px] mx-auto px-6 py-3 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+</div>
+<h2 class="text-lg font-bold tracking-tight">BAIBEBALO <span class="text-primary font-black">Admin</span></h2>
+</div>
+<div class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Dashboard</a>
+<a class="text-sm font-semibold text-primary border-b-2 border-primary pb-1" href="#">Finances</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Orders</a>
+<a class="text-sm font-semibold hover:text-primary transition-colors" href="#">Users</a>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative group">
+<span class="material-symbols-outlined p-2 rounded-full hover:bg-surface-light dark:hover:bg-zinc-800 cursor-pointer">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-accent-red rounded-full border-2 border-white dark:border-background-dark"></span>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-9 border border-border-light" data-alt="User profile avatar showing professional portrait" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCmGrsPU73hF0ZZOC1XWR8EU0a7qQ2CDucdjJDn44uE9IfZrFrlh0lbugnGhSAgt0r6Zrs_KQRPqvYXgYK7zc-kFsuThjHQk92xubKYy4zNI9lksXydc71_JBVMN9GlBQBwo6--kmWs75Y1Hp8JQ-USPA2Xa7t4EZhlwO6tIG0ewaW8cT8u_zRiqPMjsdqU06yrO5iEsJrGvMNGkzkgAKkmU6JwGNpGgoWaxdtBF5Bvg0p3TPSP4VWI_J5Jk8gWdXGN60ZEf7PYGubG");'></div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+<!-- Page Heading & Actions -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+<div class="flex flex-col gap-1">
+<h1 class="text-3xl font-black tracking-tight">Historique Complet des Transactions</h1>
+<p class="text-muted-teal text-sm font-medium">Phase 4 Completion Finances • Data-heavy oversight</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg font-bold text-sm shadow-sm hover:opacity-90 transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                    Export CSV/Excel
+                </button>
+</div>
+</div>
+<!-- KPI Summary Cards -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+<div class="bg-background-light dark:bg-zinc-900 border border-border-light dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+<p class="text-muted-teal text-xs font-bold uppercase tracking-wider mb-2">Total Commissions</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">€12,450.00</h3>
+<span class="text-accent-green text-sm font-bold flex items-center"><span class="material-symbols-outlined text-sm mr-1">trending_up</span>+12%</span>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zinc-900 border border-border-light dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+<p class="text-muted-teal text-xs font-bold uppercase tracking-wider mb-2">Total Payments</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">€45,200.00</h3>
+<span class="text-accent-green text-sm font-bold flex items-center"><span class="material-symbols-outlined text-sm mr-1">trending_up</span>+5%</span>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zinc-900 border border-border-light dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+<p class="text-muted-teal text-xs font-bold uppercase tracking-wider mb-2">Total Withdrawals</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">€8,900.00</h3>
+<span class="text-accent-red text-sm font-bold flex items-center"><span class="material-symbols-outlined text-sm mr-1">trending_down</span>-2%</span>
+</div>
+</div>
+<div class="bg-background-light dark:bg-zinc-900 border border-border-light dark:border-zinc-800 rounded-xl p-5 shadow-sm">
+<p class="text-muted-teal text-xs font-bold uppercase tracking-wider mb-2">Total Refunds</p>
+<div class="flex items-end justify-between">
+<h3 class="text-2xl font-extrabold">€1,200.00</h3>
+<span class="text-accent-green text-sm font-bold flex items-center"><span class="material-symbols-outlined text-sm mr-1">trending_up</span>+0.5%</span>
+</div>
+</div>
+</div>
+<!-- Filter & Search Bar -->
+<div class="bg-background-light dark:bg-zinc-900 border border-border-light dark:border-zinc-800 rounded-xl mb-6 overflow-hidden">
+<div class="p-4 flex flex-wrap items-center gap-4 border-b border-border-light dark:border-zinc-800">
+<div class="flex-1 min-w-[300px]">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-muted-teal">search</span>
+<input class="w-full bg-surface-light dark:bg-zinc-800 border-none rounded-lg pl-10 pr-4 py-2.5 text-sm focus:ring-2 focus:ring-primary/20 focus:outline-none placeholder:text-muted-teal" placeholder="Search by description or transaction ID..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center gap-2 px-3 py-2 bg-surface-light dark:bg-zinc-800 rounded-lg text-sm font-semibold border border-transparent hover:border-primary/30 transition-all">
+<span class="material-symbols-outlined text-lg">calendar_today</span>
+<span>Last 30 Days</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-2 bg-surface-light dark:bg-zinc-800 rounded-lg text-sm font-semibold border border-transparent hover:border-primary/30 transition-all">
+<span class="material-symbols-outlined text-lg">payments</span>
+<span>Amount Range</span>
+</button>
+</div>
+</div>
+<div class="p-3 flex items-center gap-2 overflow-x-auto whitespace-nowrap scrollbar-hide">
+<span class="text-xs font-bold text-muted-teal px-3 uppercase tracking-widest">Filter:</span>
+<button class="px-4 py-1.5 bg-primary text-white text-xs font-bold rounded-full">All Types</button>
+<button class="px-4 py-1.5 bg-surface-light dark:bg-zinc-800 text-xs font-bold rounded-full hover:bg-border-light transition-colors">Commissions</button>
+<button class="px-4 py-1.5 bg-surface-light dark:bg-zinc-800 text-xs font-bold rounded-full hover:bg-border-light transition-colors">Payments</button>
+<button class="px-4 py-1.5 bg-surface-light dark:bg-zinc-800 text-xs font-bold rounded-full hover:bg-border-light transition-colors">Withdrawals</button>
+<button class="px-4 py-1.5 bg-surface-light dark:bg-zinc-800 text-xs font-bold rounded-full hover:bg-border-light transition-colors">Refunds</button>
+</div>
+</div>
+<!-- Transactions Table -->
+<div class="bg-background-light dark:bg-zinc-900 border border-border-light dark:border-zinc-800 rounded-xl overflow-hidden shadow-sm">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-surface-light dark:bg-zinc-800/50 border-b border-border-light dark:border-zinc-800">
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider">Date &amp; Time</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider">Type</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider">Description</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider">Transaction ID</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider">Amount</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider">Status</th>
+<th class="px-6 py-4 text-xs font-bold uppercase text-muted-teal tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-border-light dark:divide-zinc-800">
+<!-- Row 1 -->
+<tr class="hover:bg-surface-light dark:hover:bg-zinc-800/30 transition-colors">
+<td class="px-6 py-4">
+<p class="text-sm font-bold">24 Oct 2023</p>
+<p class="text-xs text-muted-teal">14:32:01</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded bg-accent-green/10 text-accent-green flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">monetization_on</span>
+</div>
+<span class="text-sm font-semibold">Commission</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Order #88392 Commission payout</td>
+<td class="px-6 py-4 text-xs font-mono text-muted-teal">TXN-492-9921</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-accent-green">+€124.50</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-accent-green/10 text-accent-green">Completed</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-muted-teal hover:text-primary">more_vert</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-surface-light dark:hover:bg-zinc-800/30 transition-colors">
+<td class="px-6 py-4">
+<p class="text-sm font-bold">24 Oct 2023</p>
+<p class="text-xs text-muted-teal">11:15:45</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded bg-primary/10 text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">payments</span>
+</div>
+<span class="text-sm font-semibold">Payment</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Subscription Renewal - Annual</td>
+<td class="px-6 py-4 text-xs font-mono text-muted-teal">TXN-501-8843</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold">+€499.00</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-accent-green/10 text-accent-green">Completed</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-muted-teal hover:text-primary">more_vert</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-surface-light dark:hover:bg-zinc-800/30 transition-colors">
+<td class="px-6 py-4">
+<p class="text-sm font-bold">23 Oct 2023</p>
+<p class="text-xs text-muted-teal">09:44:12</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded bg-accent-red/10 text-accent-red flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">account_balance</span>
+</div>
+<span class="text-sm font-semibold">Withdrawal</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Transfer to Bank Account (IBAN ...4421)</td>
+<td class="px-6 py-4 text-xs font-mono text-muted-teal">TXN-331-1049</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-accent-red">-€2,500.00</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-amber-500/10 text-amber-600">Pending</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-muted-teal hover:text-primary">more_vert</button>
+</td>
+</tr>
+<!-- Row 4 -->
+<tr class="hover:bg-surface-light dark:hover:bg-zinc-800/30 transition-colors">
+<td class="px-6 py-4">
+<p class="text-sm font-bold">22 Oct 2023</p>
+<p class="text-xs text-muted-teal">18:21:00</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded bg-zinc-500/10 text-zinc-600 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">undo</span>
+</div>
+<span class="text-sm font-semibold">Refund</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Customer Refund for Order #87121</td>
+<td class="px-6 py-4 text-xs font-mono text-muted-teal">TXN-009-1249</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-accent-red">-€45.90</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-accent-green/10 text-accent-green">Completed</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-muted-teal hover:text-primary">more_vert</button>
+</td>
+</tr>
+<!-- Row 5 -->
+<tr class="hover:bg-surface-light dark:hover:bg-zinc-800/30 transition-colors">
+<td class="px-6 py-4">
+<p class="text-sm font-bold">22 Oct 2023</p>
+<p class="text-xs text-muted-teal">16:10:33</p>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="size-7 rounded bg-accent-green/10 text-accent-green flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">monetization_on</span>
+</div>
+<span class="text-sm font-semibold">Commission</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm font-medium">Affiliate Bonus - Phase 4 milestone</td>
+<td class="px-6 py-4 text-xs font-mono text-muted-teal">TXN-442-9011</td>
+<td class="px-6 py-4">
+<span class="text-sm font-bold text-accent-green">+€1,000.00</span>
+</td>
+<td class="px-6 py-4">
+<span class="px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-accent-green/10 text-accent-green">Completed</span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="material-symbols-outlined text-muted-teal hover:text-primary">more_vert</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="bg-surface-light dark:bg-zinc-800/50 px-6 py-4 border-t border-border-light dark:border-zinc-800 flex flex-col md:flex-row items-center justify-between gap-4">
+<p class="text-xs font-semibold text-muted-teal">Affichage de 1-50 sur 2,400 transactions</p>
+<div class="flex items-center gap-2">
+<button class="size-8 flex items-center justify-center rounded border border-border-light dark:border-zinc-700 bg-background-light dark:bg-zinc-900 text-muted-teal hover:text-primary">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded border border-primary bg-primary text-white text-xs font-bold">1</button>
+<button class="size-8 flex items-center justify-center rounded border border-border-light dark:border-zinc-700 bg-background-light dark:bg-zinc-900 text-xs font-bold hover:border-primary hover:text-primary">2</button>
+<button class="size-8 flex items-center justify-center rounded border border-border-light dark:border-zinc-700 bg-background-light dark:bg-zinc-900 text-xs font-bold hover:border-primary hover:text-primary">3</button>
+<span class="text-muted-teal">...</span>
+<button class="size-8 flex items-center justify-center rounded border border-border-light dark:border-zinc-700 bg-background-light dark:bg-zinc-900 text-xs font-bold hover:border-primary hover:text-primary">48</button>
+<button class="size-8 flex items-center justify-center rounded border border-border-light dark:border-zinc-700 bg-background-light dark:bg-zinc-900 text-muted-teal hover:text-primary">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+</main>
+</body></html>

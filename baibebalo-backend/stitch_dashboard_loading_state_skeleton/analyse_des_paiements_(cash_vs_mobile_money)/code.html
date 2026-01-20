@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Analyse des Paiements | BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#175582",
+                "background-light": "#f9fafa",
+                "background-dark": "#111317",
+                "card-dark": "#1E222A",
+                "orange-money": "#F28D2B",
+                "mtn-momo": "#2F80ED",
+                "cash-green": "#37B24D",
+              },
+              fontFamily: {
+                "display": ["Inter", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+        .chart-gradient-orange { background: linear-gradient(180deg, rgba(242, 141, 43, 0.2) 0%, rgba(242, 141, 43, 0) 100%); }
+        .chart-gradient-blue { background: linear-gradient(180deg, rgba(47, 128, 237, 0.2) 0%, rgba(47, 128, 237, 0) 100%); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex-shrink-0 bg-[#121b21] border-r border-slate-800 hidden md:flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3 mb-8">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/50" data-alt="BAIBEBALO corporate logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDVRLR_k80d72l9GNOWOloIbXdRq21mvGKAXQrBZQNGSxhE2qZehuwoqbhRfspIkloHCvnefPCbDMK5Q3wMETpqgklhjal-xiyJ9oXiXQzeUWxV1szIqHT6Y-OrLzf5aZsSxHXePkFAWoJsOS6dGUvpfS4kTChIGOsjQD3kWVT28NnDD2bxG0ak8I59L38nj1maB88uPowlWoS5JxcNy8L7z6DD6FHV04dIrNid7USp54W1OOLNdebY0JUk91zdAVNRdYtyCCJ4eBWT");'></div>
+<div class="flex flex-col">
+<h1 class="text-white text-base font-bold leading-none">BAIBEBALO</h1>
+<p class="text-[#97b1c4] text-[10px] uppercase tracking-wider font-semibold mt-1">Admin Dashboard</p>
+</div>
+</div>
+<nav class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-primary text-white shadow-lg shadow-primary/20" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Analyses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<div class="pt-4 mt-4 border-t border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined">help_center</span>
+<span class="text-sm font-medium">Aide</span>
+</a>
+</div>
+</nav>
+</div>
+<div class="mt-auto p-6">
+<div class="bg-primary/10 rounded-xl p-4 border border-primary/20">
+<p class="text-xs text-primary font-bold uppercase mb-1">Version Pro</p>
+<p class="text-xs text-slate-400 mb-3">Accès illimité aux exports de rapports.</p>
+<button class="w-full py-2 bg-primary hover:bg-primary/90 text-white text-xs font-bold rounded-lg transition-all">Mettre à jour</button>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Top Navigation -->
+<header class="flex items-center justify-between sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-8 py-4">
+<div class="flex items-center gap-6">
+<div>
+<div class="flex items-center gap-2 text-slate-500 text-xs mb-1">
+<span>Analytics</span>
+<span class="material-symbols-outlined text-[14px]">chevron_right</span>
+<span class="text-slate-900 dark:text-slate-300 font-medium">Paiements Phase 5</span>
+</div>
+<h2 class="text-xl font-bold dark:text-white">Analyse des Paiements</h2>
+</div>
+<div class="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">calendar_today</span>
+<select class="bg-transparent border-none text-xs font-medium focus:ring-0 text-slate-600 dark:text-slate-300 cursor-pointer">
+<option>Derniers 30 jours</option>
+<option>Derniers 7 jours</option>
+<option>Ce mois</option>
+</select>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<label class="hidden md:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-400 text-[20px]">search</span>
+<input class="bg-transparent border-none text-xs focus:ring-0 text-slate-300 w-40" placeholder="Rechercher..." type="text"/>
+</label>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold flex items-center gap-2 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-[18px]">file_download</span>
+<span>Exporter</span>
+</button>
+<div class="flex items-center gap-2 ml-2 pl-4 border-l border-slate-200 dark:border-slate-800">
+<button class="p-2 text-slate-400 hover:text-primary transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+</button>
+<div class="size-8 rounded-full bg-slate-700 border border-slate-600 flex items-center justify-center overflow-hidden">
+<span class="material-symbols-outlined text-slate-300">person</span>
+</div>
+</div>
+</div>
+</header>
+<div class="p-8 space-y-8">
+<!-- Stats Row -->
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+<div class="bg-white dark:bg-card-dark rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-primary/10 rounded-lg text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+12.5%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Volume Mobile Money</p>
+<p class="text-2xl font-bold mt-1 dark:text-white">2,450,000 FCFA</p>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-cash-green/10 rounded-lg text-cash-green">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<span class="text-xs font-bold text-rose-500 bg-rose-500/10 px-2 py-1 rounded">-4.2%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Volume Cash</p>
+<p class="text-2xl font-bold mt-1 dark:text-white">3,120,000 FCFA</p>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-orange-money/10 rounded-lg text-orange-money">
+<span class="material-symbols-outlined">smartphone</span>
+</div>
+<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+8.1%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Tx Succès Orange</p>
+<p class="text-2xl font-bold mt-1 dark:text-white">98.2%</p>
+</div>
+<div class="bg-white dark:bg-card-dark rounded-xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex justify-between items-start mb-4">
+<div class="p-2 bg-mtn-momo/10 rounded-lg text-mtn-momo">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+<span class="text-xs font-bold text-emerald-500 bg-emerald-500/10 px-2 py-1 rounded">+2.4%</span>
+</div>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Tx Succès MTN</p>
+<p class="text-2xl font-bold mt-1 dark:text-white">95.6%</p>
+</div>
+</div>
+<!-- Main Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+<!-- Line Chart Section -->
+<div class="lg:col-span-2 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h3 class="text-lg font-bold dark:text-white">Évolution 30 Jours</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Tendance des volumes par méthode</p>
+</div>
+<div class="flex gap-4">
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-cash-green"></span>
+<span class="text-xs font-medium dark:text-slate-300">Cash</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-orange-money"></span>
+<span class="text-xs font-medium dark:text-slate-300">Orange</span>
+</div>
+<div class="flex items-center gap-2">
+<span class="w-3 h-3 rounded-full bg-mtn-momo"></span>
+<span class="text-xs font-medium dark:text-slate-300">MTN</span>
+</div>
+</div>
+</div>
+<!-- Visual Mock of Line Chart -->
+<div class="relative h-64 w-full mt-4 flex items-end justify-between px-2">
+<div class="absolute inset-0 flex flex-col justify-between pointer-events-none">
+<div class="border-t border-slate-100 dark:border-slate-800 w-full h-0"></div>
+<div class="border-t border-slate-100 dark:border-slate-800 w-full h-0"></div>
+<div class="border-t border-slate-100 dark:border-slate-800 w-full h-0"></div>
+<div class="border-t border-slate-100 dark:border-slate-800 w-full h-0"></div>
+</div>
+<!-- Mock Bars/Points for visualization -->
+<div class="relative w-full h-full pt-4">
+<svg class="w-full h-full overflow-visible" preserveaspectratio="none" viewbox="0 0 1000 200">
+<path d="M0,150 Q100,140 200,160 T400,120 T600,140 T800,90 T1000,110" fill="none" stroke="#37B24D" stroke-width="3"></path>
+<path d="M0,120 Q100,100 200,130 T400,80 T600,100 T800,60 T1000,70" fill="none" stroke="#F28D2B" stroke-width="3"></path>
+<path d="M0,180 Q100,160 200,170 T400,140 T600,150 T800,120 T1000,130" fill="none" stroke="#2F80ED" stroke-width="3"></path>
+</svg>
+</div>
+</div>
+<div class="flex justify-between mt-4 px-2">
+<span class="text-[10px] font-bold text-slate-400">01 OCT</span>
+<span class="text-[10px] font-bold text-slate-400">07 OCT</span>
+<span class="text-[10px] font-bold text-slate-400">14 OCT</span>
+<span class="text-[10px] font-bold text-slate-400">21 OCT</span>
+<span class="text-[10px] font-bold text-slate-400">30 OCT</span>
+</div>
+</div>
+<!-- Doughnut Chart Section -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm flex flex-col items-center">
+<div class="w-full text-left mb-6">
+<h3 class="text-lg font-bold dark:text-white">Répartition</h3>
+<p class="text-sm text-slate-500 dark:text-slate-400">Canaux de paiement</p>
+</div>
+<div class="relative w-48 h-48 mb-8 flex items-center justify-center">
+<!-- SVG Doughnut Mockup -->
+<svg class="w-full h-full -rotate-90" viewbox="0 0 36 36">
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#37B24D" stroke-dasharray="45, 100" stroke-width="3.5"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#F28D2B" stroke-dasharray="30, 100" stroke-dashoffset="-45" stroke-width="3.5"></circle>
+<circle cx="18" cy="18" fill="transparent" r="15.9" stroke="#2F80ED" stroke-dasharray="25, 100" stroke-dashoffset="-75" stroke-width="3.5"></circle>
+</svg>
+<div class="absolute inset-0 flex flex-col items-center justify-center">
+<p class="text-slate-400 text-[10px] uppercase font-bold tracking-widest">Total</p>
+<p class="text-xl font-bold dark:text-white leading-none">5.57M</p>
+</div>
+</div>
+<div class="w-full space-y-3">
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-cash-green"></div>
+<span class="text-sm font-medium dark:text-slate-300">Cash</span>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold dark:text-white">45%</p>
+<p class="text-[10px] text-slate-500">3.1M FCFA</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-orange-money"></div>
+<span class="text-sm font-medium dark:text-slate-300">Orange Money</span>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold dark:text-white">30%</p>
+<p class="text-[10px] text-slate-500">1.6M FCFA</p>
+</div>
+</div>
+<div class="flex items-center justify-between p-2 rounded-lg hover:bg-slate-50 dark:hover:bg-white/5 transition-colors">
+<div class="flex items-center gap-3">
+<div class="w-3 h-3 rounded-full bg-mtn-momo"></div>
+<span class="text-sm font-medium dark:text-slate-300">MTN MoMo</span>
+</div>
+<div class="text-right">
+<p class="text-sm font-bold dark:text-white">25%</p>
+<p class="text-[10px] text-slate-500">0.8M FCFA</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Success Table Section -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<div class="px-6 py-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<h3 class="text-lg font-bold dark:text-white">Taux de succès des transactions par opérateur</h3>
+<button class="text-primary text-xs font-bold hover:underline">Voir tout l'historique</button>
+</div>
+<div class="overflow-x-auto">
+<table class="w-full text-left">
+<thead class="bg-slate-50 dark:bg-slate-800/50">
+<tr>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Opérateur</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Volume (30j)</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Taux de succès</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Temps moyen</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider">Statut API</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-400 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-100 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-orange-500/20 flex items-center justify-center">
+<span class="text-orange-money font-bold text-[10px]">OM</span>
+</div>
+<span class="text-sm font-semibold dark:text-slate-200">Orange Money</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm dark:text-slate-300">1,245,000 FCFA</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-full w-[98%]"></div>
+</div>
+<span class="text-sm font-bold text-emerald-500">98.2%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm dark:text-slate-300">1.2 sec</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> OPÉRATIONNEL
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+<span class="text-mtn-momo font-bold text-[10px]">MTN</span>
+</div>
+<span class="text-sm font-semibold dark:text-slate-200">MTN MoMo</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm dark:text-slate-300">890,400 FCFA</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="bg-amber-500 h-full w-[95%]"></div>
+</div>
+<span class="text-sm font-bold text-amber-500">95.6%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm dark:text-slate-300">2.4 sec</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-1.5 text-[10px] font-bold text-amber-500 bg-amber-500/10 px-2.5 py-1 rounded-full w-fit">
+<span class="w-1.5 h-1.5 bg-amber-500 rounded-full animate-pulse"></span> LATENCE
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-white/[0.02] transition-colors">
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="size-8 rounded-lg bg-green-500/20 flex items-center justify-center">
+<span class="text-cash-green font-bold text-[10px]">CASH</span>
+</div>
+<span class="text-sm font-semibold dark:text-slate-200">Point de Vente</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm dark:text-slate-300">3,120,000 FCFA</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-2">
+<div class="w-16 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+<div class="bg-emerald-500 h-full w-[100%]"></div>
+</div>
+<span class="text-sm font-bold text-emerald-500">100%</span>
+</div>
+</td>
+<td class="px-6 py-4 text-sm dark:text-slate-300">N/A</td>
+<td class="px-6 py-4">
+<span class="flex items-center gap-1.5 text-[10px] font-bold text-emerald-500 bg-emerald-500/10 px-2.5 py-1 rounded-full w-fit">
+<span class="w-1.5 h-1.5 bg-emerald-500 rounded-full"></span> STABLE
+                                        </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+</div>
+<!-- Footer -->
+<footer class="p-8 mt-auto border-t border-slate-200 dark:border-slate-800 text-slate-500 text-xs flex justify-between items-center">
+<p>© 2023 BAIBEBALO - Phase 5 Analytics Module</p>
+<div class="flex gap-4">
+<a class="hover:text-primary transition-colors" href="#">Conditions d'utilisation</a>
+<a class="hover:text-primary transition-colors" href="#">Support technique</a>
+</div>
+</footer>
+</main>
+</div>
+</body></html>

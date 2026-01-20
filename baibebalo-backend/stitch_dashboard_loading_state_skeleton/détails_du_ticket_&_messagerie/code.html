@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Détails du Ticket &amp; Messagerie - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2e7cdc",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121820",
+                        "success": "#28a745",
+                        "warning": "#dc3545"
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e2e8f0;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #cbd5e1;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e141a] dark:text-white min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 flex items-center justify-between border-b border-solid border-[#e8edf2] dark:border-[#2a3441] bg-white dark:bg-[#1a222c] px-6 py-3">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-primary rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">support_agent</span>
+</div>
+<h2 class="text-lg font-extrabold tracking-tight">BAIBEBALO Admin</h2>
+</div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity" href="#">Tableau de bord</a>
+<a class="text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity" href="#">Commandes</a>
+<a class="text-sm font-semibold text-primary" href="#">Support</a>
+<a class="text-sm font-semibold opacity-60 hover:opacity-100 transition-opacity" href="#">Clients</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#516f94] text-lg">search</span>
+<input class="w-64 pl-10 pr-4 py-2 text-sm rounded-xl border-none bg-[#f0f2f5] dark:bg-[#2a3441] focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Rechercher un ticket..." type="text"/>
+</div>
+<button class="p-2 rounded-xl bg-[#f0f2f5] dark:bg-[#2a3441] hover:bg-[#e2e8f0] transition-colors relative">
+<span class="material-symbols-outlined text-xl">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white"></span>
+</button>
+<div class="size-9 rounded-full bg-cover bg-center border-2 border-primary/20" data-alt="Avatar of the logged-in administrator" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDn4tbl0xexul_7T2iInoUuibteDIV2ibdXn9ubarPJEv_p1cFZt9_KCCIMlKEkkpfGHe-0fFjKwNew5OTtyahxcfvW4fhmzBqTvXCCu9KQi_79jx3zEky-1xtisoQGxO3NP66HFEnhhGIxSlsMa6vZmjJPxi8QrsCg_SsKByg4mXz4SEpeyuxxlMteyDIwRa-ia56l09PKMaBWa1dI785iSXDfVw5pOzogdX4W6CZn47Jvfm8hqu28A1pQwWWcukDQY4O0ajKsrct4");'></div>
+</div>
+</header>
+<main class="max-w-[1600px] mx-auto flex h-[calc(100vh-64px)]">
+<!-- Contextual Sidebar -->
+<aside class="w-80 flex-shrink-0 border-r border-[#e8edf2] dark:border-[#2a3441] bg-white dark:bg-[#1a222c] overflow-y-auto custom-scrollbar p-6">
+<!-- Client Info Card -->
+<div class="mb-8">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#516f94] mb-4">Profil Client</h3>
+<div class="flex items-center gap-4 mb-4">
+<div class="size-14 rounded-2xl bg-cover bg-center" data-alt="Client profile picture Jean Dupont" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCvd76Zp1pLULAdofdWlVvXATnzxQ3k550jWQGShLhiCcpuK7_X-CVVzl9NyKkWm1_bI2I9pgJ6_7T0znWcyy_LZOsktxEC9acNOpV17ijTgkpy7A7-u-MmMCq8LwRizMNcxRK_ved-GbSQWxWKkmpMnMla8WYlYyjuW_9q1kecoKXVS1WVstJ4_xpZAP6TY6DaYQwTC03H230cWGV9883nVg0iK0dA3LDgI4jarse1OAcnxKOer7oO5Rrxw0CyejzXmUyZ-Iip20lC");'></div>
+<div>
+<h4 class="font-bold text-base">Jean Dupont</h4>
+<p class="text-sm text-[#516f94]">+33 6 12 34 56 78</p>
+</div>
+</div>
+<div class="space-y-2">
+<div class="flex items-center gap-3 p-3 rounded-xl bg-primary/5 dark:bg-primary/10 text-primary">
+<span class="material-symbols-outlined text-lg">shopping_bag</span>
+<div class="flex flex-col">
+<span class="text-xs opacity-80">Commande liée</span>
+<span class="text-sm font-bold">#BB-9872</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-sm">open_in_new</span>
+</div>
+</div>
+</div>
+<!-- Stats/History -->
+<div class="mb-8">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-xs font-bold uppercase tracking-widest text-[#516f94]">Historique</h3>
+<span class="text-[10px] px-2 py-0.5 bg-[#f0f2f5] dark:bg-[#2a3441] rounded-full font-bold">3 Commandes</span>
+</div>
+<div class="space-y-3">
+<div class="p-3 rounded-xl border border-[#e8edf2] dark:border-[#2a3441] hover:bg-background-light dark:hover:bg-background-dark/50 cursor-pointer transition-colors">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-bold">#BB-9541</span>
+<span class="text-[10px] text-success font-bold">Livré</span>
+</div>
+<div class="flex justify-between text-xs text-[#516f94]">
+<span>12 Oct 2023</span>
+<span class="font-semibold text-[#0e141a] dark:text-white">124.50 €</span>
+</div>
+</div>
+<div class="p-3 rounded-xl border border-[#e8edf2] dark:border-[#2a3441] opacity-70">
+<div class="flex justify-between items-start mb-1">
+<span class="text-xs font-bold">#BB-9210</span>
+<span class="text-[10px] text-success font-bold">Livré</span>
+</div>
+<div class="flex justify-between text-xs text-[#516f94]">
+<span>05 Sep 2023</span>
+<span>89.00 €</span>
+</div>
+</div>
+<button class="w-full py-2 text-xs font-bold text-primary hover:underline">Voir tout l'historique</button>
+</div>
+</div>
+<!-- Notes Section -->
+<div class="p-4 rounded-xl bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/30">
+<div class="flex items-center gap-2 mb-2 text-yellow-700 dark:text-yellow-500">
+<span class="material-symbols-outlined text-sm">sticky_note_2</span>
+<span class="text-xs font-bold">Note Interne</span>
+</div>
+<p class="text-xs leading-relaxed text-yellow-800 dark:text-yellow-400/80">
+                    Client régulier, préfère le contact par SMS pour les confirmations de livraison.
+                </p>
+</div>
+</aside>
+<!-- Main Content (Chat Area) -->
+<section class="flex-1 flex flex-col bg-white dark:bg-[#121820]">
+<!-- Ticket Header -->
+<div class="p-6 border-b border-[#e8edf2] dark:border-[#2a3441] flex flex-wrap items-center justify-between gap-4">
+<div class="flex-1 min-w-[300px]">
+<div class="flex items-center gap-2 mb-1 text-sm text-[#516f94]">
+<a class="hover:text-primary transition-colors" href="#">Tickets</a>
+<span>/</span>
+<span>Détails #BB-9872</span>
+</div>
+<h1 class="text-2xl font-black tracking-tight">Problème de livraison - Commande #BB-9872</h1>
+<div class="flex items-center gap-3 mt-2">
+<span class="px-2.5 py-0.5 rounded-full bg-primary/10 text-primary text-xs font-bold flex items-center gap-1">
+<span class="size-1.5 bg-primary rounded-full"></span>
+                            En cours
+                        </span>
+<span class="text-xs text-[#516f94]">Ouvert il y a 2 heures par Jean Dupont</span>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="h-10 px-4 rounded-xl bg-success text-white text-sm font-bold flex items-center gap-2 hover:bg-success/90 transition-colors">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+<span>Marquer comme résolu</span>
+</button>
+<button class="h-10 px-4 rounded-xl border border-[#e8edf2] dark:border-[#2a3441] text-sm font-bold hover:bg-background-light dark:hover:bg-[#1a222c] transition-colors">
+                        Transférer
+                    </button>
+<button class="h-10 w-10 flex items-center justify-center rounded-xl border border-[#e8edf2] dark:border-[#2a3441] text-warning hover:bg-warning/10 transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+</div>
+</div>
+<!-- Messages Area -->
+<div class="flex-1 overflow-y-auto p-6 space-y-8 custom-scrollbar bg-background-light/30 dark:bg-background-dark/20">
+<!-- Date Separator -->
+<div class="flex justify-center">
+<span class="text-[10px] font-bold uppercase tracking-widest text-[#516f94] bg-white dark:bg-[#1a222c] px-3 py-1 rounded-full border border-[#e8edf2] dark:border-[#2a3441]">Aujourd'hui</span>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 max-w-[80%]">
+<div class="size-10 rounded-xl bg-cover bg-center shrink-0" data-alt="Avatar Jean Dupont" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAVYHVJkXv8cPHE_lyk2VBuhYFo0QpBOAqJIjapJNwLGI_150BDKL1EfBiIg0AsXFQ8PlMQPfQAn66inHhRN3TgWzuDnei4lbNr9f2OkuhQcmoBJl9OLmhagpgN3ot7s4YvH0bQl8iKJcqRG4Tan8qKVeWv3ZNa9VWXaa6QfrwT6a6q_cLHFgK-f46XQ_XCw5hgx2AAOvQHmQLxRUaJ5XnQst0ccKmPeQ1Dz4KovQHvjT_NTRTsA7ESSLFJ1u6ioyUT9zMBIWuUBYcS");'></div>
+<div>
+<div class="flex items-baseline gap-3 mb-1">
+<span class="font-bold text-sm">Jean Dupont</span>
+<span class="text-[10px] text-[#516f94]">10:45</span>
+</div>
+<div class="p-4 rounded-2xl rounded-tl-none bg-white dark:bg-[#1a222c] shadow-sm border border-[#e8edf2] dark:border-[#2a3441]">
+<p class="text-sm leading-relaxed">
+                                Bonjour, j'ai passé commande il y a 4 jours et le suivi indique que le colis a été livré, mais je n'ai rien reçu. Est-ce qu'il y a eu une erreur d'adresse ? Ma commande est la #BB-9872.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Admin Message -->
+<div class="flex gap-4 max-w-[80%] ml-auto flex-row-reverse">
+<div class="size-10 rounded-xl bg-primary flex items-center justify-center text-white shrink-0">
+<span class="material-symbols-outlined text-xl">support_agent</span>
+</div>
+<div class="text-right">
+<div class="flex items-baseline justify-end gap-3 mb-1">
+<span class="text-[10px] text-[#516f94]">11:02</span>
+<span class="font-bold text-sm">Support BAIBEBALO</span>
+</div>
+<div class="p-4 rounded-2xl rounded-tr-none bg-primary text-white shadow-lg shadow-primary/20">
+<p class="text-sm leading-relaxed">
+                                Bonjour Jean, je suis navré pour ce désagrément. Je vérifie immédiatement avec le transporteur (Colissimo). Il arrive parfois que le statut soit mis à jour 24h avant la livraison effective.
+                            </p>
+</div>
+</div>
+</div>
+<!-- User Message -->
+<div class="flex gap-4 max-w-[80%]">
+<div class="size-10 rounded-xl bg-cover bg-center shrink-0" data-alt="Avatar Jean Dupont" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAsH1O-UsxV3O6sEi9ZvR6UoKY7-1ACSOnCNnKI3YI-qE3cIYWiDUZWG7kpCgmXhlXo-a2_WwFYP8awxLH47T98XxubEMXEbkOKGmRurrOMwCwlb8D5ekzdyM_OERJvvuX6W-vjN-bxr2QY5gYtaFhWrMujgfhK22CO4cM3P0_nwQbWBVfbfEQI0fa2nqT1secOLBMFfrnuYYH-pa5Q-NlGFb_Lbj2PF8bCImeQcdGzm6qNMIPAfe8uT9I3FqcJPOwfwn5XSiMBAJLu");'></div>
+<div>
+<div class="flex items-baseline gap-3 mb-1">
+<span class="font-bold text-sm">Jean Dupont</span>
+<span class="text-[10px] text-[#516f94]">11:15</span>
+</div>
+<div class="p-4 rounded-2xl rounded-tl-none bg-white dark:bg-[#1a222c] shadow-sm border border-[#e8edf2] dark:border-[#2a3441]">
+<p class="text-sm leading-relaxed">
+                                D'accord, merci. Je vais attendre demain alors. Mais j'ai vérifié ma boîte aux lettres et rien du tout.
+                            </p>
+</div>
+</div>
+</div>
+<!-- Admin Action Notification -->
+<div class="flex justify-center">
+<div class="flex items-center gap-2 text-[11px] text-[#516f94] italic">
+<span class="material-symbols-outlined text-sm">info</span>
+                        L'administrateur a contacté le transporteur.
+                    </div>
+</div>
+</div>
+<!-- Message Composer -->
+<div class="p-6 bg-white dark:bg-[#1a222c] border-t border-[#e8edf2] dark:border-[#2a3441]">
+<div class="max-w-4xl mx-auto bg-[#f0f2f5] dark:bg-[#2a3441] rounded-2xl p-2">
+<textarea class="w-full bg-transparent border-none focus:ring-0 text-sm p-3 min-h-[80px] resize-none placeholder-[#516f94]" placeholder="Saisissez votre réponse ici..."></textarea>
+<div class="flex items-center justify-between border-t border-[#e2e8f0] dark:border-[#384454] pt-2 mt-2">
+<div class="flex items-center gap-1">
+<button class="p-2 text-[#516f94] hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">attach_file</span>
+</button>
+<button class="p-2 text-[#516f94] hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">mood</span>
+</button>
+<button class="p-2 text-[#516f94] hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-xl">image</span>
+</button>
+<div class="w-px h-6 bg-[#e2e8f0] dark:bg-[#384454] mx-2"></div>
+<button class="px-3 py-1.5 rounded-lg text-[11px] font-bold bg-[#e2e8f0] dark:bg-[#384454] text-[#0e141a] dark:text-white hover:bg-[#d1d5db] transition-colors">
+                                Réponses types
+                            </button>
+</div>
+<button class="bg-primary text-white h-10 px-6 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span>Envoyer</span>
+<span class="material-symbols-outlined text-sm">send</span>
+</button>
+</div>
+</div>
+<p class="text-[10px] text-center mt-3 text-[#516f94]">Appuyez sur <kbd class="px-1.5 py-0.5 rounded bg-background-light border border-[#e8edf2] dark:border-[#2a3441] font-mono">Cmd + Enter</kbd> pour envoyer</p>
+</div>
+</section>
+</main>
+</body></html>

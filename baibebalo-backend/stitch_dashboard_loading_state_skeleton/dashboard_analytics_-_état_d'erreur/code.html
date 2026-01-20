@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Dashboard Analytics - État d'Erreur | BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0ea6ec",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#212935",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .sidebar-item-active {
+            background-color: rgba(14, 166, 236, 0.1);
+            color: #0ea6ec;
+            border-right: 3px solid #0ea6ec;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 transition-colors duration-200">
+<div class="flex h-screen overflow-hidden">
+<!-- SideNavBar -->
+<aside class="w-64 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-background-dark hidden md:flex flex-col">
+<div class="p-6">
+<div class="flex items-center gap-3">
+<div class="bg-primary p-1.5 rounded-lg">
+<svg class="w-6 h-6 text-white" fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 4H30.6666V17.3334H17.3334V30.6666H4V44H44V4Z" fill="currentColor"></path>
+</svg>
+</div>
+<div>
+<h1 class="text-slate-900 dark:text-white font-bold text-lg leading-none">BAIBEBALO</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Admin Dashboard</p>
+</div>
+</div>
+</div>
+<nav class="flex-1 px-3 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg sidebar-item-active" href="#">
+<span class="material-symbols-outlined">insights</span>
+<span class="text-sm font-medium">Analytics</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm font-medium">Reports</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">payments</span>
+<span class="text-sm font-medium">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Users</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Settings</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col min-w-0 bg-background-light dark:bg-background-dark overflow-hidden">
+<!-- TopNavBar -->
+<header class="h-16 flex items-center justify-between px-8 bg-white dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center flex-1 max-w-xl">
+<div class="relative w-full">
+<div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</div>
+<input class="block w-full pl-10 pr-3 py-2 border border-slate-200 dark:border-slate-700 rounded-lg leading-5 bg-slate-50 dark:bg-slate-800 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary sm:text-sm transition-all" placeholder="Rechercher des données..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-4 ml-4">
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 block h-2 w-2 rounded-full bg-red-500 ring-2 ring-white dark:ring-background-dark"></span>
+</button>
+<button class="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors">
+<span class="material-symbols-outlined">help</span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+<div class="flex items-center gap-3 pl-2">
+<div class="text-right hidden sm:block">
+<p class="text-sm font-semibold text-slate-900 dark:text-white leading-none">Admin User</p>
+<p class="text-xs text-slate-500 dark:text-slate-400 mt-1">Super Admin</p>
+</div>
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-cover bg-center border-2 border-white dark:border-slate-800 shadow-sm" data-alt="Photo de profil de l'administrateur" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAeag8zF8Udh82nFPXhJR-XyY8VS0NOduq_RSyV7uIVnKEfDIs2wr3t44R4SW3UExYsN7SkzfBnLrkDwofKaRDW5M26RFO71lL0PJJTK-QY84r2bYm3BbiMQyhNsEa7UYhQa1mRK9dXh0rIUaXOeDTtMe9v0GjsVlh128p7e8XLQ5Ul8ANA9aPJKBK-TbpP_sq4MvFEcuxgZvEOczJFDsUIhYWS0nY1TWibEUSOD5-Bt3hMaRl6Z0jqXkeuz6tiHidVRfu4sdVierL-')"></div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<main class="flex-1 overflow-y-auto p-8">
+<!-- Breadcrumbs -->
+<nav aria-label="Breadcrumb" class="flex mb-8">
+<ol class="flex items-center space-x-2">
+<li>
+<div class="flex items-center">
+<a class="text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 text-sm font-medium" href="#">Home</a>
+</div>
+</li>
+<li>
+<div class="flex items-center">
+<span class="material-symbols-outlined text-slate-400 text-sm mx-1">chevron_right</span>
+<span aria-current="page" class="text-slate-900 dark:text-white text-sm font-semibold">Analytics</span>
+</div>
+</li>
+</ol>
+</nav>
+<!-- Error State Section -->
+<div class="h-[calc(100%-4rem)] flex items-center justify-center">
+<div class="max-w-xl w-full text-center px-4 py-12 rounded-xl bg-white dark:bg-background-dark border border-slate-100 dark:border-slate-800 shadow-sm">
+<!-- EmptyState Component Inspired Illustration -->
+<div class="flex flex-col items-center gap-8">
+<div class="relative w-48 h-48 flex items-center justify-center">
+<!-- Abstract Disconnected Icon Pattern -->
+<div class="absolute inset-0 bg-slate-100 dark:bg-slate-800/50 rounded-full animate-pulse opacity-50"></div>
+<div class="relative flex items-center justify-center text-slate-300 dark:text-slate-600">
+<span class="material-symbols-outlined text-[120px] font-thin">link_off</span>
+</div>
+<div class="absolute -bottom-2 -right-2 bg-white dark:bg-background-dark p-2 rounded-lg border border-slate-100 dark:border-slate-700 shadow-lg">
+<span class="material-symbols-outlined text-red-400">error</span>
+</div>
+</div>
+<div class="space-y-3">
+<h2 class="text-slate-900 dark:text-white text-2xl font-bold tracking-tight">
+                                    Impossible de charger les données analytiques
+                                </h2>
+<p class="text-slate-500 dark:text-slate-400 text-base max-w-md mx-auto leading-relaxed">
+                                    Une erreur est survenue lors de la connexion au serveur. Veuillez vérifier votre connexion internet ou réessayer ultérieurement.
+                                </p>
+</div>
+<div class="pt-4">
+<button class="inline-flex items-center justify-center px-8 py-3 bg-primary hover:bg-primary/90 text-white font-bold rounded-lg shadow-lg shadow-primary/20 transition-all active:scale-95 gap-2">
+<span class="material-symbols-outlined text-[20px]">refresh</span>
+<span>Réessayer</span>
+</button>
+</div>
+<div class="mt-4 flex gap-6 text-slate-400 dark:text-slate-500 text-sm">
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px]">support_agent</span>
+                                    Contacter le support
+                                </a>
+<a class="hover:text-primary transition-colors flex items-center gap-1" href="#">
+<span class="material-symbols-outlined text-[16px]">history</span>
+                                    Dernier état connu
+                                </a>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</div>
+</body></html>

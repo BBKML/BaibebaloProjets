@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "secondary": "#ff6b6b",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#1a1c20",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+        /* Custom pattern inspired by Ivorian textiles for subtle personality */
+        .textile-pattern {
+            background-color: transparent;
+            background-image: radial-gradient(#22c38e22 0.5px, transparent 0.5px), radial-gradient(#22c38e22 0.5px, #f7f7f7 0.5px);
+            background-size: 20px 20px;
+            background-position: 0 0, 10px 10px;
+        }
+        .dark .textile-pattern {
+            background-image: radial-gradient(#22c38e11 0.5px, transparent 0.5px), radial-gradient(#22c38e11 0.5px, #1a1c20 0.5px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121715] dark:text-gray-100 min-h-screen">
+<div class="max-w-[480px] mx-auto min-h-screen flex flex-col textile-pattern relative">
+<!-- Top Navigation -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
+<button class="flex items-center justify-center size-10 rounded-full bg-white dark:bg-gray-800 ios-shadow">
+<span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Mon Panier</h1>
+<button class="text-sm font-semibold text-secondary px-3 py-1">Vider</button>
+</header>
+<main class="flex-1 px-4 py-6 space-y-4">
+<!-- Item 1 -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl ios-shadow flex items-center gap-4 border border-gray-50 dark:border-gray-700">
+<div class="size-20 rounded-lg bg-center bg-cover shrink-0" data-alt="Grilled fish with attieke and vegetables" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDwq7Ps-JxPcIXZLXyRglSQ71EUW9BdHaS0CTAW0wvU-6E_6T1DjDI84uMnYPAZ3sxT0YfFfE45gR6ERz9wxHCUbEW99pQUzdr9OhMyf0bLxkCH1pyKVUnA-vmI70FFyTa1VbgkkcnHYMciHYqaXfGXSeBxpaNvD3hfg-ryM1_r8nxCb4lOzfIo58W870srXBKJKa0BRiQWqB-O2xj1b5oCMYHC8E8wyH9B3g7mR0fla7W9FATAHE4NZJtyIved6GES70TV35injMuT");'></div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base truncate">Attiéké Poisson Grillé</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Extra Piment • Banane Plantain</p>
+<div class="flex items-center justify-between">
+<span class="font-bold text-primary">3 500 FCFA</span>
+<div class="flex items-center gap-3 bg-background-light dark:bg-gray-700 px-2 py-1 rounded-full">
+<button class="size-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-600 text-gray-400 font-bold">-</button>
+<span class="text-sm font-bold w-4 text-center">1</span>
+<button class="size-7 flex items-center justify-center rounded-full bg-primary text-white font-bold shadow-sm">+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl ios-shadow flex items-center gap-4 border border-gray-50 dark:border-gray-700">
+<div class="size-20 rounded-lg bg-center bg-cover shrink-0" data-alt="Traditional Garba dish with tuna" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDQWX0OkywnturfTpic-cIp5nmDW9ByuQfXCz5rMDERWxwnmtQAD6FgpoXe9b2Ap_BhBMqYQZ9hMjkBX8VJi5NqtVUWR93rxtHp97jTriaD_Noi2wVExxkXbVmdzoqpx9CZAoAxttuJ98LiL2qNNlE2ASIRUoBQROO4IOIwG_IPmCD88n9_zTIkpFaEmCZK4QPy_g7bwzJA44KrENw3KSmwyhXRjWtiOaw76TjwMuEAUyNNL70kh_PVN-rQaHgOygZ7kB5YM8ba3DG4");'></div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base truncate">Garba Spécial</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 mb-2">Format Large • Double Thon</p>
+<div class="flex items-center justify-between">
+<span class="font-bold text-primary">2 000 FCFA</span>
+<div class="flex items-center gap-3 bg-background-light dark:bg-gray-700 px-2 py-1 rounded-full">
+<button class="size-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-600 text-gray-400 font-bold">-</button>
+<span class="text-sm font-bold w-4 text-center">2</span>
+<button class="size-7 flex items-center justify-center rounded-full bg-primary text-white font-bold shadow-sm">+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="bg-white dark:bg-gray-800 p-4 rounded-xl ios-shadow flex items-center gap-4 border border-gray-50 dark:border-gray-700">
+<div class="size-20 rounded-lg bg-center bg-cover shrink-0" data-alt="Ivorian fruit cocktail drink" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB3PsVVuf75tQDaw6H89ClUF3l-Hqxv2CTvpZ_d1jADj5DefLks5pTuvi16MKtNAi0WIJ4mr0ESJk1QaVU7dEAuw4waBT_3jDxceUCCAVsu9zSTPCjc0wTZHEdYwpjLqocEknDUOHbIRj23xBZiGAmpwfwtGloSxLg1KiQY4UYJG5N0XCNbo8QHCEkW9A6hLoSio68pPxJ6x3JX6Uxkii7_7QLJbZKI2JYip9WU8a4sd_DttRbdXCeZ0pVZ1GZrJXSz5CkD-Urw_15e");'></div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-base truncate">Cocktail Bissap Ggingembre</h3>
+<p class="text-xs text-gray-500 dark:text-gray-400 mb-2">50cl • Glacé</p>
+<div class="flex items-center justify-between">
+<span class="font-bold text-primary">1 000 FCFA</span>
+<div class="flex items-center gap-3 bg-background-light dark:bg-gray-700 px-2 py-1 rounded-full">
+<button class="size-7 flex items-center justify-center rounded-full bg-white dark:bg-gray-600 text-gray-400 font-bold">-</button>
+<span class="text-sm font-bold w-4 text-center">1</span>
+<button class="size-7 flex items-center justify-center rounded-full bg-primary text-white font-bold shadow-sm">+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Promo Code -->
+<div class="pt-4">
+<p class="text-sm font-semibold mb-2 ml-1">Code Promo</p>
+<div class="flex items-stretch gap-2">
+<div class="relative flex-1">
+<input class="w-full h-12 pl-10 pr-4 rounded-xl border-none bg-white dark:bg-gray-800 focus:ring-2 focus:ring-primary ios-shadow dark:text-white placeholder:text-gray-400 text-sm" placeholder="Entrez votre code" type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">sell</span>
+</div>
+<button class="px-6 h-12 bg-secondary text-white font-bold rounded-xl ios-shadow active:scale-95 transition-transform">Appliquer</button>
+</div>
+</div>
+<!-- Summary -->
+<div class="bg-white dark:bg-gray-800 p-5 rounded-2xl ios-shadow space-y-3 mt-4">
+<div class="flex justify-between items-center">
+<span class="text-gray-500 dark:text-gray-400 text-sm">Sous-total</span>
+<span class="font-semibold text-sm">6 500 FCFA</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-gray-500 dark:text-gray-400 text-sm">Frais de livraison</span>
+<span class="font-semibold text-sm">500 FCFA</span>
+</div>
+<div class="h-px bg-gray-100 dark:bg-gray-700 my-2"></div>
+<div class="flex justify-between items-center">
+<span class="font-bold text-lg">TOTAL</span>
+<span class="font-extrabold text-2xl text-primary">7 000 FCFA</span>
+</div>
+</div>
+<div class="h-32"></div> <!-- Spacer for sticky button -->
+</main>
+<!-- Sticky Footer CTA -->
+<div class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-white/80 dark:bg-background-dark/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800">
+<button class="w-full bg-primary hover:bg-opacity-90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
+<span>Valider la commande</span>
+<span class="material-symbols-outlined">shopping_bag</span>
+</button>
+<!-- iOS Home Indicator Sim -->
+<div class="w-32 h-1.5 bg-gray-200 dark:bg-gray-700 mx-auto mt-4 rounded-full"></div>
+</div>
+<!-- Navigation Bar -->
+<nav class="fixed bottom-12 left-0 right-0 max-w-[480px] mx-auto hidden">
+<!-- Hidden as requested by "Standard mobile navigation bar" usually being at very bottom, but fixed above footer is better for accessibility -->
+</nav>
+</div>
+</body></html>

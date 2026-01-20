@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c5b8b",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#23272f",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#131416] dark:text-white">
+<div class="relative flex h-screen w-full max-w-[430px] mx-auto flex-col bg-background-light dark:bg-background-dark overflow-hidden shadow-2xl">
+<!-- TopAppBar -->
+<header class="flex items-center bg-white dark:bg-background-dark/50 backdrop-blur-md p-4 pb-2 justify-between sticky top-0 z-10 border-b border-[#e2e8f0] dark:border-white/10">
+<div class="text-[#131416] dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#131416] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Recherche</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+</header>
+<!-- SearchBar -->
+<div class="px-4 py-3 bg-white dark:bg-background-dark/50">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm border border-[#e2e8f0] dark:border-white/10 overflow-hidden">
+<div class="text-[#6c737f] flex bg-[#f1f2f3] dark:bg-gray-800 items-center justify-center pl-4">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden text-[#131416] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#f1f2f3] dark:bg-gray-800 h-full placeholder:text-[#6c737f] px-3 text-base font-normal leading-normal" placeholder="Chercher un plat ou resto..." value="Kebab Abidjan Nord"/>
+<div class="flex items-center justify-center bg-[#f1f2f3] dark:bg-gray-800 pr-4">
+<button class="flex cursor-pointer items-center justify-center rounded-full bg-transparent text-[#131416] dark:text-white hover:bg-gray-200 dark:hover:bg-gray-700 p-1">
+<span class="material-symbols-outlined text-gray-500">cancel</span>
+</button>
+</div>
+</div>
+</label>
+</div>
+<main class="flex-1 overflow-y-auto no-scrollbar">
+<!-- EmptyState -->
+<div class="flex flex-col px-6 py-12">
+<div class="flex flex-col items-center gap-8">
+<!-- Custom Illustration Placeholder -->
+<div class="relative flex items-center justify-center w-full max-w-[240px] aspect-square">
+<div class="absolute inset-0 bg-primary/5 dark:bg-primary/20 rounded-full scale-110 blur-xl"></div>
+<div class="relative bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-xl border border-primary/10 flex items-center justify-center">
+<span class="material-symbols-outlined !text-[80px] text-primary opacity-20 absolute">search</span>
+<span class="material-symbols-outlined !text-[48px] text-primary relative z-10">sentiment_dissatisfied</span>
+</div>
+</div>
+<div class="flex max-w-[480px] flex-col items-center gap-3">
+<p class="text-[#131416] dark:text-white text-xl font-bold leading-tight tracking-tight text-center">Aucun résultat trouvé</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-relaxed text-center px-4">
+                            Nous n'avons rien trouvé pour votre recherche. Essayez de rechercher autre chose ou vérifiez l'orthographe.
+                        </p>
+</div>
+<button class="flex min-w-[140px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-12 px-6 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="truncate">Réinitialiser</span>
+</button>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="mt-4">
+<h3 class="text-[#131416] dark:text-white text-lg font-bold leading-tight tracking-tight px-6 pb-2 pt-4">Suggestions pour vous</h3>
+<!-- Chips -->
+<div class="flex gap-2.5 px-6 py-3 flex-wrap">
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-white/10 px-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg">local_pizza</span>
+<p class="text-[#131416] dark:text-gray-200 text-sm font-semibold">Pizza</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-white/10 px-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg">lunch_dining</span>
+<p class="text-[#131416] dark:text-gray-200 text-sm font-semibold">Burger</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-white/10 px-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg">restaurant</span>
+<p class="text-[#131416] dark:text-gray-200 text-sm font-semibold">Choucouya</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-white/10 px-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg">set_meal</span>
+<p class="text-[#131416] dark:text-gray-200 text-sm font-semibold">Alloco</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-white/10 px-5 shadow-sm active:scale-95 transition-transform cursor-pointer">
+<span class="material-symbols-outlined text-primary text-lg">local_drink</span>
+<p class="text-[#131416] dark:text-gray-200 text-sm font-semibold">Boissons</p>
+</div>
+</div>
+</div>
+<div class="h-24"></div>
+</main>
+<!-- Bottom Navigation (iOS Style) -->
+<nav class="absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-xl border-t border-[#e2e8f0] dark:border-white/10 px-6 pb-8 pt-3 flex justify-between items-center z-20">
+<div class="flex flex-col items-center gap-1 opacity-50">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined font-bold">search</span>
+<span class="text-[10px] font-bold">Recherche</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-50">
+<span class="material-symbols-outlined">shopping_basket</span>
+<span class="text-[10px] font-bold">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 opacity-50">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profil</span>
+</div>
+</nav>
+<!-- Home Indicator -->
+<div class="absolute bottom-1.5 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-300 dark:bg-gray-700 rounded-full z-30"></div>
+</div>
+</body></html>

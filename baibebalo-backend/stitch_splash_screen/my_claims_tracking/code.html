@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#247d8f",
+                        "background-light": "#fafaf9",
+                        "background-dark": "#1f262e",
+                        "status-pending": "#FF8C1A",
+                        "status-active": "#2C89E9",
+                        "status-resolved": "#3AB757",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#121617] dark:text-[#f1f3f4] min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<nav class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 ios-blur border-b border-[#dde3e4] dark:border-[#3a444d]">
+<div class="flex items-center justify-between px-4 h-16">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight">Mes Réclamations</h1>
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-2xl">search</span>
+</button>
+</div>
+<!-- Tabs -->
+<div class="flex px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-primary text-primary pb-3 pt-2" href="#">
+<p class="text-sm font-bold tracking-wide">En cours</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-transparent text-[#677f83] dark:text-[#a0afb2] pb-3 pt-2" href="#">
+<p class="text-sm font-bold tracking-wide">Historique</p>
+</a>
+</div>
+</nav>
+<!-- Main Content -->
+<main class="p-4 space-y-4">
+<!-- New Claim Prompt -->
+<div class="bg-primary/10 dark:bg-primary/20 p-4 rounded-xl border border-primary/20 flex items-center justify-between">
+<div class="flex flex-col">
+<h3 class="font-bold text-primary dark:text-[#41b0c7]">Un problème ?</h3>
+<p class="text-xs text-[#247d8f] opacity-80">Signalez-le nous en quelques secondes.</p>
+</div>
+<button class="bg-primary text-white px-4 py-2 rounded-lg text-sm font-bold shadow-sm active:scale-95 transition-transform">
+                Nouveau ticket
+            </button>
+</div>
+<div class="space-y-3">
+<p class="text-[11px] font-bold uppercase tracking-widest text-[#677f83] px-1">Suivi Actif</p>
+<!-- Claim Card: Pending -->
+<div class="bg-white dark:bg-[#2a343d] p-4 rounded-xl border border-[#dde3e4] dark:border-[#3a444d] shadow-sm flex items-center gap-4 group active:bg-gray-50 dark:active:bg-gray-800 transition-colors cursor-pointer">
+<div class="flex items-center justify-center size-12 rounded-lg bg-[#f1f3f4] dark:bg-[#1f262e] text-primary shrink-0">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-sm font-bold text-primary">#TICKET-12345</span>
+<span class="bg-status-pending text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tight">En attente</span>
+</div>
+<p class="text-sm font-semibold truncate">Commande non reçue</p>
+<p class="text-[11px] text-[#677f83] dark:text-[#a0afb2]">12 Oct 2023 • Abidjan Mall</p>
+</div>
+<span class="material-symbols-outlined text-[#dde3e4] group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+<!-- Claim Card: Processing -->
+<div class="bg-white dark:bg-[#2a343d] p-4 rounded-xl border border-[#dde3e4] dark:border-[#3a444d] shadow-sm flex items-center gap-4 group active:bg-gray-50 dark:active:bg-gray-800 transition-colors cursor-pointer">
+<div class="flex items-center justify-center size-12 rounded-lg bg-[#f1f3f4] dark:bg-[#1f262e] text-primary shrink-0">
+<span class="material-symbols-outlined">shopping_bag</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-sm font-bold text-primary">#TICKET-12342</span>
+<span class="bg-status-active text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tight">En cours</span>
+</div>
+<p class="text-sm font-semibold truncate">Articles manquants dans le sac</p>
+<p class="text-[11px] text-[#677f83] dark:text-[#a0afb2]">11 Oct 2023 • Burger King</p>
+</div>
+<span class="material-symbols-outlined text-[#dde3e4] group-hover:text-primary transition-colors">chevron_right</span>
+</div>
+</div>
+<div class="space-y-3 pt-4">
+<p class="text-[11px] font-bold uppercase tracking-widest text-[#677f83] px-1">Récemment Résolus</p>
+<!-- Claim Card: Resolved -->
+<div class="bg-white dark:bg-[#2a343d] p-4 rounded-xl border border-[#dde3e4] dark:border-[#3a444d] shadow-sm flex items-center gap-4 group opacity-80 cursor-pointer">
+<div class="flex items-center justify-center size-12 rounded-lg bg-[#f1f3f4] dark:bg-[#1f262e] text-[#677f83] shrink-0">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-sm font-bold text-[#677f83]">#TICKET-12330</span>
+<span class="bg-status-resolved text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tight">Résolu</span>
+</div>
+<p class="text-sm font-semibold truncate">Erreur de facturation Mobile Money</p>
+<p class="text-[11px] text-[#677f83] dark:text-[#a0afb2]">05 Oct 2023 • Service Client</p>
+</div>
+<span class="material-symbols-outlined text-[#dde3e4]">chevron_right</span>
+</div>
+<!-- Claim Card: Resolved 2 -->
+<div class="bg-white dark:bg-[#2a343d] p-4 rounded-xl border border-[#dde3e4] dark:border-[#3a444d] shadow-sm flex items-center gap-4 group opacity-80 cursor-pointer">
+<div class="flex items-center justify-center size-12 rounded-lg bg-[#f1f3f4] dark:bg-[#1f262e] text-[#677f83] shrink-0">
+<span class="material-symbols-outlined">directions_bike</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2 mb-1">
+<span class="text-sm font-bold text-[#677f83]">#TICKET-12298</span>
+<span class="bg-status-resolved text-white text-[10px] font-extrabold px-2 py-0.5 rounded-full uppercase tracking-tight">Résolu</span>
+</div>
+<p class="text-sm font-semibold truncate">Comportement du livreur</p>
+<p class="text-[11px] text-[#677f83] dark:text-[#a0afb2]">28 Sep 2023 • Livraison Express</p>
+</div>
+<span class="material-symbols-outlined text-[#dde3e4]">chevron_right</span>
+</div>
+</div>
+<!-- Empty State Helper (Hidden by default, shown if no tickets) -->
+<div class="hidden flex flex-col items-center justify-center py-20 text-center space-y-4">
+<div class="size-24 rounded-full bg-primary/5 flex items-center justify-center">
+<span class="material-symbols-outlined text-5xl text-primary/30">task_alt</span>
+</div>
+<div>
+<h3 class="font-bold text-lg">Aucune réclamation</h3>
+<p class="text-sm text-[#677f83] max-w-[240px]">Tout semble en ordre ! Vos tickets apparaîtront ici.</p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 ios-blur border-t border-[#dde3e4] dark:border-[#3a444d] px-6 pb-8 pt-3">
+<div class="flex items-center justify-between max-w-md mx-auto">
+<a class="flex flex-col items-center gap-1 text-[#677f83] dark:text-[#a0afb2]" href="#">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#677f83] dark:text-[#a0afb2]" href="#">
+<span class="material-symbols-outlined text-2xl">list_alt</span>
+<span class="text-[10px] font-bold">Commandes</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1;">confirmation_number</span>
+<span class="text-[10px] font-bold">Tickets</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#677f83] dark:text-[#a0afb2]" href="#">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-bold">Profil</span>
+</a>
+</div>
+</footer>
+<!-- Safe Area Spacing -->
+<div class="h-8"></div>
+</body></html>

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f5f5f4",
+                        "background-dark": "#1f292e",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .ios-shadow { box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.05); }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex items-end justify-center">
+<!-- Bottom Sheet Modal Container -->
+<div class="relative w-full max-w-md bg-white dark:bg-[#121715] rounded-t-xl overflow-hidden ios-shadow flex flex-col max-h-[95vh]">
+<!-- Bottom Sheet Handle -->
+<div class="flex h-6 w-full items-center justify-center bg-white dark:bg-[#121715]">
+<div class="h-1.5 w-12 rounded-full bg-[#dce5e2] dark:bg-gray-700"></div>
+</div>
+<!-- Top App Bar -->
+<div class="flex items-center px-4 py-2 justify-between bg-white dark:bg-[#121715]">
+<div class="text-[#121715] dark:text-white flex size-10 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+<span class="material-symbols-outlined">close</span>
+</div>
+<h2 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Ajouter une adresse</h2>
+<div class="size-10"></div> <!-- Spacer for centering -->
+</div>
+<!-- Scrollable Content Area -->
+<div class="flex-1 overflow-y-auto pb-8">
+<!-- Map Section -->
+<div class="relative px-4 py-2">
+<div class="relative w-full aspect-video rounded-xl overflow-hidden bg-gray-200 shadow-inner group">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover transition-transform duration-700 group-hover:scale-105" data-alt="Detailed city map of Abidjan Ivory Coast" data-location="Abidjan, Côte d'Ivoire" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCyf6l4_jYJERvUidcDwaLPui7kOmPcY6_VqbSs_MYaJ6lPbBM19JrULi5CEUQmxvsF53JESBTMdOD-zduEQHrCdMOvrXPRb9PQJPx6QKAZhWl1QL92o0VIL3AGx15HHgr4pTxuUDk0H2d2pYaaiI4asxU6BEqrmXFjcwkmVTr-TN0DohSvaIFZdiAg-xb-202_SculByXqJhpN8dAYivPmV2-teN2Av3Ir-F5kos-zNklA4ul9EsoqEMMRnKWZii0OjqNmOp_d1p71");'>
+</div>
+<!-- Draggable Pin Overlay (Visual Representation) -->
+<div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+<div class="flex flex-col items-center mb-10 transform transition-transform duration-200">
+<div class="bg-primary p-2 rounded-full shadow-lg border-2 border-white flex items-center justify-center">
+<span class="material-symbols-outlined text-white" style="font-variation-settings: 'FILL' 1">location_on</span>
+</div>
+<div class="w-1.5 h-1.5 bg-primary/40 rounded-full mt-1 blur-[1px]"></div>
+</div>
+</div>
+<!-- Map Overlay Controls -->
+<div class="absolute bottom-3 right-3 flex flex-col gap-2">
+<button class="bg-white dark:bg-gray-800 p-2 rounded-lg shadow-md text-primary">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+</div>
+<p class="text-xs text-gray-400 mt-2 px-1">Faites glisser la carte pour ajuster votre position précisément.</p>
+</div>
+<!-- Form Fields -->
+<div class="px-4 space-y-4 mt-4">
+<!-- Address Title -->
+<label class="flex flex-col w-full">
+<p class="text-[#121715] dark:text-gray-200 text-sm font-semibold leading-normal pb-1.5">Titre de l'adresse</p>
+<input class="form-input flex w-full rounded-xl text-[#121715] dark:text-white focus:ring-2 focus:ring-primary/20 border border-[#dce5e2] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-14 placeholder:text-[#65867b]/60 px-4 text-base font-normal transition-all" placeholder="Ex: Maison, Bureau, Chez Maman" type="text" value=""/>
+</label>
+<!-- Textual Address (Derived from Pin) -->
+<label class="flex flex-col w-full">
+<p class="text-[#121715] dark:text-gray-200 text-sm font-semibold leading-normal pb-1.5">Adresse textuelle</p>
+<div class="relative flex w-full items-stretch group">
+<input class="form-input flex w-full rounded-xl text-[#121715] dark:text-white focus:ring-2 focus:ring-primary/20 border border-[#dce5e2] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary h-14 placeholder:text-[#65867b]/60 pl-4 pr-12 text-base font-normal transition-all" placeholder="Recherche d'adresse..." type="text" value="Cocody, Avenue Jean-Paul II, Abidjan"/>
+<div class="absolute right-3 top-1/2 -translate-y-1/2 text-primary flex items-center justify-center" data-icon="MapPin">
+<span class="material-symbols-outlined">map</span>
+</div>
+</div>
+</label>
+<!-- Delivery Instructions -->
+<label class="flex flex-col w-full">
+<p class="text-[#121715] dark:text-gray-200 text-sm font-semibold leading-normal pb-1.5">Instructions de livraison</p>
+<textarea class="form-textarea flex w-full rounded-xl text-[#121715] dark:text-white focus:ring-2 focus:ring-primary/20 border border-[#dce5e2] dark:border-gray-700 bg-white dark:bg-gray-800 focus:border-primary min-h-[100px] placeholder:text-[#65867b]/60 p-4 text-base font-normal transition-all" placeholder="Portail noir, sonnerie à gauche, 2ème étage..."></textarea>
+</label>
+<!-- Default Toggle -->
+<div class="flex items-center justify-between py-2 px-1">
+<div class="flex flex-col">
+<p class="text-[#121715] dark:text-white text-base font-semibold">Définir comme par défaut</p>
+<p class="text-xs text-gray-500">Utiliser cette adresse pour vos prochaines commandes</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Footer Action Button -->
+<div class="p-4 bg-white dark:bg-[#121715] border-t border-gray-100 dark:border-gray-800">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+                Enregistrer l'adresse
+            </button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#24748f",
+                        "background-light": "#f3f5f6",
+                        "background-dark": "#22262a",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Manrope', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 ios-blur border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center px-4 h-16 justify-between">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-[#121617] dark:text-white">arrow_back_ios_new</span>
+</button>
+<h1 class="text-[#121617] dark:text-white text-lg font-bold tracking-tight">Mes adresses</h1>
+<div class="size-10"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="pb-40 pt-4 px-4 space-y-4">
+<!-- Address Item: Maison (Default) -->
+<div class="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-start gap-4">
+<div class="flex items-center justify-center rounded-lg bg-primary/10 text-primary shrink-0 size-12">
+<span class="material-symbols-outlined">home</span>
+</div>
+<div class="flex flex-1 flex-col gap-1">
+<div class="flex items-center gap-2">
+<p class="text-[#121617] dark:text-white text-base font-bold leading-none">Maison</p>
+<span class="inline-flex items-center rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-primary">Par défaut</span>
+</div>
+<p class="text-[#677c83] dark:text-gray-400 text-sm font-medium leading-relaxed">Cité Sir, Villa 45, Cocody Angré, Abidjan</p>
+<div class="flex items-center gap-4 mt-2">
+<button class="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">edit</span> Modifier
+                    </button>
+<button class="flex items-center gap-1 text-red-500 text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">delete</span> Supprimer
+                    </button>
+</div>
+</div>
+</div>
+<!-- Address Item: Bureau -->
+<div class="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-start gap-4">
+<div class="flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[#121617] dark:text-gray-300 shrink-0 size-12">
+<span class="material-symbols-outlined">work</span>
+</div>
+<div class="flex flex-1 flex-col gap-1">
+<p class="text-[#121617] dark:text-white text-base font-bold leading-none">Bureau</p>
+<p class="text-[#677c83] dark:text-gray-400 text-sm font-medium leading-relaxed">Immeuble CCIA, Plateau, Abidjan</p>
+<div class="flex items-center gap-4 mt-2">
+<button class="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">edit</span> Modifier
+                    </button>
+<button class="flex items-center gap-1 text-red-500 text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">delete</span> Supprimer
+                    </button>
+</div>
+</div>
+</div>
+<!-- Address Item: Chez Maman -->
+<div class="bg-white dark:bg-zinc-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 flex items-start gap-4">
+<div class="flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 text-[#121617] dark:text-gray-300 shrink-0 size-12">
+<span class="material-symbols-outlined">favorite</span>
+</div>
+<div class="flex flex-1 flex-col gap-1">
+<p class="text-[#121617] dark:text-white text-base font-bold leading-none">Chez Maman</p>
+<p class="text-[#677c83] dark:text-gray-400 text-sm font-medium leading-relaxed">Rue des Jardins, Deux Plateaux, Abidjan</p>
+<div class="flex items-center gap-4 mt-2">
+<button class="flex items-center gap-1 text-primary text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">edit</span> Modifier
+                    </button>
+<button class="flex items-center gap-1 text-red-500 text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-sm">delete</span> Supprimer
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Actions Area -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 ios-blur border-t border-gray-200 dark:border-gray-800 px-4 pt-4 pb-8 z-40">
+<!-- Add Button -->
+<div class="mb-4">
+<button class="w-full flex items-center justify-center gap-2 rounded-xl h-14 bg-primary text-white text-base font-bold tracking-tight shadow-lg shadow-primary/20 hover:scale-[1.02] transition-transform active:scale-[0.98]">
+<span class="material-symbols-outlined">add_location_alt</span>
+<span>Ajouter une nouvelle adresse</span>
+</button>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="flex justify-between items-center px-2">
+<a class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Accueil</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Commandes</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined fill-1">location_on</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Adresses</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Compte</span>
+</a>
+</nav>
+</div>
+</body></html>

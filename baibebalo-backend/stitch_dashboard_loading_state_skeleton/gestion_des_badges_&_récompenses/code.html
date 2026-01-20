@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Gestion des Badges &amp; Récompenses</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#295ca3",
+                        "accent": "#FF6B35",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#16191d",
+                        "surface-dark": "#1e2126",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: { "DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px" },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #16191d;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #293342;
+            border-radius: 10px;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<div class="flex min-h-screen">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-surface-dark flex flex-col fixed h-full">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-accent rounded-lg flex items-center justify-center text-white font-bold text-xl">B</div>
+<div>
+<h1 class="text-accent text-lg font-bold leading-none">BAIBEBALO</h1>
+<p class="text-slate-500 text-xs mt-1">Admin Dashboard</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-6 space-y-2">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="text-sm font-medium">Livreurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined fill-icon">military_tech</span>
+<span class="text-sm font-medium">Badges &amp; Récompenses</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<div class="pt-6 pb-2 text-xs font-semibold text-slate-400 uppercase tracking-wider">Support</div>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm font-medium">Aide</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-cover bg-center border-2 border-primary" data-alt="Avatar of the administrator" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDq9qffpSy9amUyQRhIQIBmuPPq_6GMMUgJcdmHKDbvMIeMfeYsP0RMWI5iZSPQjxMtQd6YSW8EZhUlRkQYMlPiSqxE3m5d00VP-5INs6mpFgoK84ufgwdNsZRznc-impnrCWlHgsaKi59AQbEL07QhnYdVYiDMDNWNSWpPHKeJ_gKlZfjmxZbdq5TbvFv9H61VHuTF3z1PcMR-HdjNuVJdh5li6mh_oEik0ZphCDcomLH91jjE5H61sp2Fa4k9DNXkgb6oZ-wkAEHN')"></div>
+<div class="flex-1 overflow-hidden">
+<p class="text-sm font-semibold truncate">Admin BAIBE</p>
+<p class="text-xs text-slate-500 truncate">admin@baibebalo.com</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-pointer hover:text-white">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 ml-64 p-8">
+<!-- Header -->
+<header class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+<div>
+<h2 class="text-2xl font-bold dark:text-white">Gestion des Badges &amp; Récompenses</h2>
+<p class="text-slate-500 text-sm">Gérez et suivez les performances de vos livreurs</p>
+</div>
+<div class="flex items-center gap-3">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">search</span>
+<input class="pl-10 pr-4 py-2 bg-white dark:bg-surface-dark border border-slate-200 dark:border-slate-800 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent outline-none w-64 text-sm" placeholder="Rechercher un badge..." type="text"/>
+</div>
+<button class="bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg font-semibold text-sm flex items-center gap-2 transition-all">
+<span class="material-symbols-outlined text-[20px]">add_circle</span>
+                        Créer un badge
+                    </button>
+</div>
+</header>
+<!-- Stats Overview -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<p class="text-slate-500 text-sm font-medium">Badges attribués (Mois)</p>
+<div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">workspace_premium</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-bold">1,284</h3>
+<span class="text-emerald-500 text-sm font-medium flex items-center">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +5.4%
+                        </span>
+</div>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<p class="text-slate-500 text-sm font-medium">Livreur du mois</p>
+<div class="w-10 h-10 rounded-lg bg-accent/10 flex items-center justify-center text-accent">
+<span class="material-symbols-outlined">emoji_events</span>
+</div>
+</div>
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-cover bg-center border border-slate-700" data-alt="Profile picture of Mamadou K." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD8dmKgV_OmjSFRlI7-9i-cZ_KGZpRcYKPBN5l7uTzgSTb5ZgujoqTg-hiJvaMIO9RYuwuLWkb0pgGx5zBSEhlulEsyFLWlmyPzhrVA-LkiTJy8YLmssX9FSRCOpvUwRbHVnoHW3SmV-DJdNkSBcXVTplQ8YuPKNkK5x35Y7Php6coIlk4UrSXn6sZ61xHpWbZUwbF7hN6z3UhaFwxW8mgZpqgEFiuIWicHOa0D6-uzrF0FMR53IhPYwQpEOTt6dAYjLIeePp_vYD4h')"></div>
+<h3 class="text-xl font-bold">Mamadou K.</h3>
+</div>
+<p class="text-slate-500 text-xs mt-2">142 livraisons • 4.95 ⭐</p>
+</div>
+<div class="bg-white dark:bg-surface-dark p-6 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<p class="text-slate-500 text-sm font-medium">Taux d'engagement</p>
+<div class="w-10 h-10 rounded-lg bg-emerald-500/10 flex items-center justify-center text-emerald-500">
+<span class="material-symbols-outlined">bolt</span>
+</div>
+</div>
+<div class="flex items-baseline gap-2">
+<h3 class="text-3xl font-bold">88.4%</h3>
+<span class="text-emerald-500 text-sm font-medium flex items-center">
+<span class="material-symbols-outlined text-[16px]">trending_up</span> +2.1%
+                        </span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 xl:grid-cols-3 gap-8">
+<!-- Badge Grid (Left & Center) -->
+<div class="xl:col-span-2 space-y-6">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden">
+<div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<h3 class="font-bold text-lg">Catalogue des Badges</h3>
+<button class="text-primary text-sm font-semibold hover:underline">Voir tout</button>
+</div>
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6">
+<!-- Badge Card 1 -->
+<div class="group p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-transparent hover:border-primary transition-all cursor-pointer">
+<div class="w-20 h-20 mx-auto mb-4 bg-primary/20 rounded-full flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
+<div class="absolute inset-0 bg-gradient-to-br from-primary/30 to-transparent"></div>
+<span class="material-symbols-outlined text-4xl text-primary fill-icon">star_rate</span>
+</div>
+<h4 class="text-center font-bold mb-1">Super Driver</h4>
+<p class="text-xs text-slate-500 text-center mb-4 line-clamp-2">Note &gt; 4.8 &amp; 100+ livraisons sans incident.</p>
+<div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+<span class="text-[10px] font-bold uppercase text-slate-400">Détenteurs</span>
+<span class="text-xs font-bold text-primary">420</span>
+</div>
+</div>
+<!-- Badge Card 2 -->
+<div class="group p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-transparent hover:border-primary transition-all cursor-pointer">
+<div class="w-20 h-20 mx-auto mb-4 bg-emerald-500/20 rounded-full flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
+<div class="absolute inset-0 bg-gradient-to-br from-emerald-500/30 to-transparent"></div>
+<span class="material-symbols-outlined text-4xl text-emerald-500 fill-icon">speed</span>
+</div>
+<h4 class="text-center font-bold mb-1">Speed Star</h4>
+<p class="text-xs text-slate-500 text-center mb-4 line-clamp-2">Moyenne de livraison inférieure à 25 minutes.</p>
+<div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+<span class="text-[10px] font-bold uppercase text-slate-400">Détenteurs</span>
+<span class="text-xs font-bold text-emerald-500">156</span>
+</div>
+</div>
+<!-- Badge Card 3 -->
+<div class="group p-4 bg-slate-50 dark:bg-slate-900/50 rounded-xl border border-transparent hover:border-primary transition-all cursor-pointer">
+<div class="w-20 h-20 mx-auto mb-4 bg-accent/20 rounded-full flex items-center justify-center relative overflow-hidden group-hover:scale-105 transition-transform">
+<div class="absolute inset-0 bg-gradient-to-br from-accent/30 to-transparent"></div>
+<span class="material-symbols-outlined text-4xl text-accent fill-icon">eco</span>
+</div>
+<h4 class="text-center font-bold mb-1">Eco-Champion</h4>
+<p class="text-xs text-slate-500 text-center mb-4 line-clamp-2">Utilisation de véhicule électrique sur 50+ trajets.</p>
+<div class="flex items-center justify-between pt-4 border-t border-slate-200 dark:border-slate-800">
+<span class="text-[10px] font-bold uppercase text-slate-400">Détenteurs</span>
+<span class="text-xs font-bold text-accent">89</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Manual Assignment -->
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary">card_giftcard</span>
+<h3 class="font-bold text-lg">Récompense manuelle</h3>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+<div>
+<label class="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Sélectionner un livreur</label>
+<div class="relative">
+<input class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-lg focus:ring-2 focus:ring-primary px-4 py-2 text-sm" placeholder="Nom ou ID du livreur..." type="text"/>
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">search</span>
+</div>
+</div>
+<div>
+<label class="block text-xs font-semibold text-slate-500 mb-2 uppercase tracking-wide">Badge à attribuer</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900 border-none rounded-lg focus:ring-2 focus:ring-primary px-4 py-2 text-sm">
+<option>Super Driver</option>
+<option>Speed Star</option>
+<option>Eco-Champion</option>
+<option>Night Owl</option>
+</select>
+</div>
+<div class="md:col-span-2 mt-2">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-3 rounded-lg transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">send</span>
+                                    Récompenser le livreur
+                                </button>
+</div>
+</div>
+</div>
+</div>
+<!-- History Table (Right) -->
+<div class="xl:col-span-1">
+<div class="bg-white dark:bg-surface-dark rounded-xl border border-slate-200 dark:border-slate-800 h-full flex flex-col shadow-sm">
+<div class="px-6 py-4 border-b border-slate-200 dark:border-slate-800">
+<h3 class="font-bold text-lg">Activités récentes</h3>
+</div>
+<div class="flex-1 overflow-y-auto max-h-[600px] p-6 space-y-6">
+<!-- Item 1 -->
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-primary flex-shrink-0 bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuA3PhFIjrg2quqU2RuvsIMl-yEDiRS2-w_8OsEa_NR-EvbvmNPPhPTQ7iPZACi_pqo99OH-FC5RXv-b_B6USBHag7yQxLjl-aZwbRB-gNWXHrL0EjCq3qv0TCNvFG1k0pVDM8MsrI-NP8z__SsXZOrSgT3yAW3Er21-u_6CMKouKZdCJ31w79dldniJVF9FcbuaQMw_kWJ9Ti3lbs8Cu6_Fsr5nmKPdpT8FOdsqneehzu9ezcRo5gLqKtFX6iDf2fx01fqeBRxDFGFy')"></div>
+<div class="flex-1">
+<p class="text-sm font-semibold">
+<span class="text-white">Moussa B.</span>
+<span class="text-slate-500 font-normal">a reçu le badge</span>
+<span class="text-primary">Super Driver</span>
+</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">Aujourd'hui, 14:30 • Par Admin Jean</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-emerald-500 flex-shrink-0 bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDQQd-okP4EclIhVtmv5c5X5TOL2-lk84_GceJrMajSF89iJ_91bOxxRnIL1guw0-TaYsKocS8vr6ipJb_pcilG9Mgce5PvArUYi0uYWXw_QFazKK2E51v521ATOFu5zietjpK601qt-8w_xPlKzWLDCfUbEmSMmC4O2mx47P8i7Y9spUyL7fnQb4COToq8LFZG511WcZjWLlxJWs5mDLW826cDcSPsLIIMjw7nDRbi_PbJgY4vCPK0QPGV8Z8Xe24GsIcTznWv0fDD')"></div>
+<div class="flex-1">
+<p class="text-sm font-semibold">
+<span class="text-white">Fatou D.</span>
+<span class="text-slate-500 font-normal">a débloqué</span>
+<span class="text-emerald-500">Speed Star</span>
+</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">Aujourd'hui, 11:15 • Automatique</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-accent flex-shrink-0 bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDSXCQ_KAQ2ICWpsM2NQa2raXOFIRB1X8CpDlcIkF8L0ypPB1pXD1eJbznVq_Pog4aRW6XGcEh5UYhHDhIjppkb2APrKI0c0srfSr3KNL8Su081EoDCatarSBuJJRshl2CoXi8BilMEXGv8Ph06MSpU3fksWlWiAAReo_lVdzcX_0I1Bd64IDnMutgfbtIDDtXIRgNfqPqWEDWKdYmorQgWKteST_zl3cm17tYMi_s2Bh9T-YCzzlCUm7xJ-R_gXiyXn6AuNuss6bHi')"></div>
+<div class="flex-1">
+<p class="text-sm font-semibold">
+<span class="text-white">Koffi A.</span>
+<span class="text-slate-500 font-normal">a reçu le badge</span>
+<span class="text-accent">Eco-Champion</span>
+</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">Hier, 18:45 • Par Admin Marie</p>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="flex items-start gap-4">
+<div class="w-10 h-10 rounded-full bg-slate-800 border-2 border-primary flex-shrink-0 bg-cover bg-center" data-alt="User avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZOh1DgdolXwyX6TGmYJb3GxhD_A5JgMSwdoQjajNgGxstbf0I01Cj6MaPe8Jw-MjYtxBGpcl0H_RjlJWC9Z0bgTw6jAcck-Zly-MdPp_eC_o4rhBMji0pZwJPrgRxO4B0Ct0oFwfW-thUAY3iZZKIxAIHD6-fa2b56eaT29lhyKItMsboC_mCmzKmwXgoXhk7rOSdCl4luaSvN7rzpQ5LzlO_Oz4FCE36sIaSZTcaAAL0g62TqTtN0---6Fndrbvgv9BwWqrAVyvg')"></div>
+<div class="flex-1">
+<p class="text-sm font-semibold">
+<span class="text-white">Idriss S.</span>
+<span class="text-slate-500 font-normal">a reçu le badge</span>
+<span class="text-primary">Super Driver</span>
+</p>
+<p class="text-[10px] text-slate-500 mt-1 uppercase font-bold">Hier, 16:20 • Par Admin Jean</p>
+</div>
+</div>
+</div>
+<div class="p-6 border-t border-slate-200 dark:border-slate-800">
+<button class="w-full text-slate-400 hover:text-white text-sm font-medium transition-colors">Charger plus d'activités</button>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

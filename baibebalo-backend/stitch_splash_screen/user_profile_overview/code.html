@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>User Profile Overview - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#22c38e",
+              "background-light": "#fafaf9",
+              "background-dark": "#1c1f22",
+            },
+            fontFamily: {
+              "display": ["Plus Jakarta Sans", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.5rem", "lg": "1rem", "xl": "1.5rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .soft-shadow {
+            box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#121715] dark:text-white">
+<!-- Header / Top Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined cursor-pointer text-[#121715] dark:text-white">arrow_back_ios</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">Profil</h1>
+<div class="flex items-center gap-3">
+<button class="relative p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+</div>
+</header>
+<main class="px-4 pb-24">
+<!-- Profile Identity Card -->
+<section class="mt-4 mb-8 bg-white dark:bg-[#252a2e] p-6 rounded-xl soft-shadow flex flex-col items-center">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-primary/10" data-alt="Portrait of a young Ivorian professional man" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCPSYUIl-jAPwmBKMNQR8aCUKpI0tvqSBvnJTqWl4qlhdPnWlZbcQI8viPPlCLKDot2KTRLEx9j4Z7e6c6vDtsb3sUWgD0IqAc9mlOyDvodjmKMiewLXtI1aCoW5cg0CuCBcmPLOjNcyJJg5bCC5oUVUgKm3M3QQvZUibk5zZZAH0uGkufiHty9nkGCegpx0dfDf1idW8MPyqCb_A7eladTmqvBo6qmMMk6jHndF5DgYOJvA23Aw_K5AHxVNRDcdRGyStcPosWeQyZM");'>
+</div>
+<div class="absolute bottom-1 right-1 bg-primary text-white p-1.5 rounded-full border-2 border-white dark:border-[#252a2e]">
+<span class="material-symbols-outlined text-sm block">edit</span>
+</div>
+</div>
+<div class="mt-4 text-center">
+<h2 class="text-[22px] font-bold leading-tight">Koffi Kouassi</h2>
+<div class="mt-2 flex items-center justify-center gap-2">
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-sm font-medium">
+<span class="material-symbols-outlined text-sm mr-1">workspace_premium</span>
+                        Membre Argent
+                    </span>
+<span class="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 text-primary text-sm font-bold">
+                        1,250 pts
+                    </span>
+</div>
+</div>
+</section>
+<!-- Menu Group: Account -->
+<section class="mb-6">
+<h3 class="text-[#65867b] dark:text-gray-400 text-xs font-bold uppercase tracking-widest px-1 mb-3">Compte</h3>
+<div class="flex flex-col gap-2">
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#252a2e] p-4 rounded-lg soft-shadow cursor-pointer transition-transform active:scale-[0.98]">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">person</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-normal">Modifier mon profil</p>
+</div>
+<div class="shrink-0 text-gray-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#252a2e] p-4 rounded-lg soft-shadow cursor-pointer transition-transform active:scale-[0.98]">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-normal">Mes adresses</p>
+</div>
+<div class="shrink-0 text-gray-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<!-- List Item (Loyalty) -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#252a2e] p-4 rounded-lg soft-shadow cursor-pointer transition-transform active:scale-[0.98]">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">stars</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-normal">Points de fidélité</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-primary text-sm font-bold">Consulter</span>
+<div class="shrink-0 text-gray-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Menu Group: Preferences -->
+<section class="mb-8">
+<h3 class="text-[#65867b] dark:text-gray-400 text-xs font-bold uppercase tracking-widest px-1 mb-3">Préférences</h3>
+<div class="flex flex-col gap-2">
+<!-- List Item -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#252a2e] p-4 rounded-lg soft-shadow cursor-pointer transition-transform active:scale-[0.98]">
+<div class="text-[#121715] dark:text-white flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 size-10">
+<span class="material-symbols-outlined">settings</span>
+</div>
+<div class="flex-1">
+<p class="text-base font-semibold leading-normal">Paramètres</p>
+</div>
+<div class="shrink-0 text-gray-400">
+<span class="material-symbols-outlined">chevron_right</span>
+</div>
+</div>
+<!-- Logout Item -->
+<div class="mt-4 flex items-center gap-4 bg-red-50 dark:bg-red-900/10 p-4 rounded-lg cursor-pointer transition-transform active:scale-[0.98] border border-red-100 dark:border-red-900/20">
+<div class="text-red-500 flex items-center justify-center rounded-lg bg-red-100 dark:bg-red-500/20 shrink-0 size-10">
+<span class="material-symbols-outlined">logout</span>
+</div>
+<div class="flex-1">
+<p class="text-red-600 dark:text-red-400 text-base font-bold leading-normal">Déconnexion</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-50">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-[1]">person</span>
+<span class="text-[10px] font-bold">Profil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-[10px] font-medium">Aide</span>
+</div>
+</nav>
+<!-- iOS Indicator Bar Spacer -->
+<div class="h-8 bg-white dark:bg-background-dark fixed bottom-0 w-full z-[49]"></div>
+</body></html>

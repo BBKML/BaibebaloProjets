@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "accent-coral": "#FF9B8C",
+                        "background-light": "#fafaf9",
+                        "background-dark": "#12201b",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen">
+<div class="max-w-[430px] mx-auto min-h-screen flex flex-col pb-10">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 justify-between">
+<button class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-zinc-800 shadow-sm text-[#121715] dark:text-white">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h1 class="text-[#121715] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Parrainage</h1>
+</header>
+<main class="flex-1 overflow-y-auto px-4">
+<!-- HeaderImage / Illustration -->
+<div class="mt-4 mb-6 relative group">
+<div class="w-full aspect-[4/3] bg-primary/10 rounded-xl overflow-hidden relative flex items-center justify-center">
+<div class="absolute inset-0 bg-gradient-to-t from-primary/20 to-transparent"></div>
+<img alt="Friends sharing a meal together happily" class="w-full h-full object-cover" data-alt="Happy friends sharing a meal outdoors" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDgXYBW35pyza5Z_93wU8Y7q0YItp5j_M7cKdqGHCUAb4LW6zaHOnVZ03nmziLf00BcdTuVkN-Nv8sQJpgi0JJtCBqIzq-JBEX89tmpMsUOs6HK_KentSaHRW1tpOGNZ-m0NPttAVY4YuRn1gTE351Xzj3ihXPJCdkjBf85tG1XXfTfWy1kfkGqJYwtzBbMalh2QnADVtUvxDn8gTGFP2ZiiS_SlJ0zgT5Co0W8lGhdvD3UuMgV9IBNwCWNC5CnlCHnjYemMP1C9K23"/>
+</div>
+</div>
+<!-- HeadlineText -->
+<div class="mb-2">
+<h2 class="text-[#121715] dark:text-white tracking-tight text-[28px] font-extrabold leading-tight text-center">
+                    Invitez vos amis &amp; gagnez ensemble
+                </h2>
+</div>
+<!-- BodyText / Incentive Banner -->
+<div class="mb-8 px-2">
+<p class="text-[#121715] dark:text-zinc-300 text-base font-medium leading-normal text-center">
+                    Gagnez <span class="text-accent-coral font-bold text-lg">500 FCFA</span> pour chaque ami qui passe sa première commande.
+                </p>
+</div>
+<!-- Referral Code Card -->
+<div class="bg-white dark:bg-zinc-900 rounded-xl p-6 ios-shadow border border-zinc-100 dark:border-zinc-800 mb-8">
+<div class="flex flex-col items-center gap-4">
+<span class="text-zinc-400 dark:text-zinc-500 text-xs font-bold uppercase tracking-[0.2em]">Votre code unique</span>
+<div class="w-full bg-background-light dark:bg-zinc-800 border-2 border-dashed border-primary/30 rounded-lg py-4 flex flex-col items-center justify-center gap-2">
+<span class="text-[#121715] dark:text-white text-3xl font-black tracking-widest">JEAN2024</span>
+</div>
+<button class="flex w-full items-center justify-center gap-2 rounded-xl bg-primary text-white py-3 font-bold text-base transition-transform active:scale-95">
+<span class="material-symbols-outlined text-[20px]">content_copy</span>
+<span>Copier le code</span>
+</button>
+</div>
+</div>
+<!-- Quick Share Module -->
+<div class="mb-8">
+<h3 class="text-zinc-500 dark:text-zinc-400 text-sm font-bold text-center mb-4">PARTAGER VIA</h3>
+<div class="flex justify-center gap-6 mb-6">
+<button class="flex flex-col items-center gap-2 group">
+<div class="size-14 rounded-full bg-[#25D366]/10 flex items-center justify-center text-[#25D366] group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">chat</span>
+</div>
+<span class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">WhatsApp</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="size-14 rounded-full bg-[#1877F2]/10 flex items-center justify-center text-[#1877F2] group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">social_leaderboard</span>
+</div>
+<span class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Facebook</span>
+</button>
+<button class="flex flex-col items-center gap-2 group">
+<div class="size-14 rounded-full bg-zinc-900/10 dark:bg-white/10 flex items-center justify-center text-zinc-900 dark:text-white group-active:scale-90 transition-transform">
+<span class="material-symbols-outlined text-3xl">ios_share</span>
+</div>
+<span class="text-xs font-semibold text-zinc-600 dark:text-zinc-400">Plus</span>
+</button>
+</div>
+</div>
+<!-- Statistics Card -->
+<div class="grid grid-cols-2 gap-4 mb-8">
+<div class="bg-white dark:bg-zinc-900 p-5 rounded-xl ios-shadow border border-zinc-50 dark:border-zinc-800 flex flex-col items-center">
+<span class="text-3xl font-black text-primary mb-1">12</span>
+<span class="text-xs font-bold text-zinc-400 uppercase text-center">Amis invités</span>
+</div>
+<div class="bg-white dark:bg-zinc-900 p-5 rounded-xl ios-shadow border border-zinc-50 dark:border-zinc-800 flex flex-col items-center">
+<div class="flex items-baseline gap-1 mb-1">
+<span class="text-2xl font-black text-[#121715] dark:text-white">6,000</span>
+<span class="text-[10px] font-bold text-zinc-500">FCFA</span>
+</div>
+<span class="text-xs font-bold text-zinc-400 uppercase text-center">Bonus cumulés</span>
+</div>
+</div>
+<!-- Instructions / How it works -->
+<div class="bg-primary/5 rounded-xl p-5 mb-6">
+<h4 class="text-[#121715] dark:text-white font-bold text-sm mb-4">Comment ça marche ?</h4>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="size-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">1</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 font-medium">Partagez votre code unique à vos proches.</p>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">2</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 font-medium">Votre ami s'inscrit et passe sa première commande.</p>
+</div>
+<div class="flex items-start gap-3">
+<div class="size-6 rounded-full bg-primary text-white flex items-center justify-center text-xs font-bold shrink-0">3</div>
+<p class="text-sm text-zinc-600 dark:text-zinc-400 font-medium">Vous recevez instantanément <span class="font-bold text-[#121715] dark:text-white">500 FCFA</span> dans votre portefeuille.</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

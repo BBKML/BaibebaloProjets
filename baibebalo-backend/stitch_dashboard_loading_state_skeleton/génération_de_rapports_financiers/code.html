@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Génération de Rapports Financiers - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1c5cf2",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#f5f6f8",
+                        "background-dark": "#101522",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        .step-active { color: #1c5cf2; font-weight: 600; border-bottom: 2px solid #1c5cf2; }
+        .step-inactive { color: #94a3b8; }
+        .custom-checkbox:checked + div { border-color: #1c5cf2; background-color: rgba(28, 92, 242, 0.05); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0d111c] dark:text-white min-h-screen flex">
+<!-- Sidebar -->
+<aside class="w-64 border-r border-slate-200 dark:border-slate-800 flex flex-col h-screen sticky top-0 bg-white dark:bg-[#161b2c]">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 bg-brand-orange rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+<div>
+<h1 class="text-[#0d111c] dark:text-white text-base font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Admin Console</p>
+</div>
+</div>
+<nav class="flex-1 px-4 mt-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-sm font-medium">Transactions</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 bg-primary/10 text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-medium">Rapports Financiers</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2 bg-slate-50 dark:bg-slate-800 rounded-lg">
+<div class="size-8 rounded-full bg-cover" data-alt="User avatar placeholder" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAOodv4lFLY6dtneq4sv5NEKyodi3Q3J-gtM2muOzr7JXB8ySx6xc-wYt5R8VdETTOFYbasYk-v4jcABUX20Xrqrnc8ZjSA8bFFYVzckI8gXdHX6bIfLJJZvifRVD_ZmR7op23RW5GcQyLvsj0_Q-FwRMa0O_TcIx2Wh-Xz4hYjnaiTRTYWOs0zuk1xeTmLvE5biuK890lUskzewXUMVG8IYkdn56J9hWHHI1zWc7hu881wQ9G-Jv_tn20ya9q0BKUlWllh-F_vdvn6')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-semibold truncate dark:text-white">Admin Phase 4</p>
+<p class="text-[10px] text-slate-500 truncate uppercase">Connecté</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col items-center py-12 px-8 overflow-y-auto">
+<div class="max-w-4xl w-full">
+<!-- Headline -->
+<header class="mb-10 text-center">
+<h2 class="text-[#0d111c] dark:text-white text-3xl font-bold tracking-tight">Génération de Rapports Financiers</h2>
+<p class="text-slate-500 dark:text-slate-400 mt-2">Configurez votre rapport personnalisé en 3 étapes simples.</p>
+</header>
+<!-- Stepper -->
+<div class="flex items-center justify-between mb-12 px-10 relative">
+<div class="absolute top-1/2 left-0 w-full h-px bg-slate-200 dark:bg-slate-800 -translate-y-1/2 z-0"></div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="size-10 rounded-full bg-primary text-white flex items-center justify-center font-bold text-sm shadow-lg shadow-primary/20">1</div>
+<span class="mt-2 text-sm font-semibold text-primary">Métriques</span>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="size-10 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-400 flex items-center justify-center font-bold text-sm">2</div>
+<span class="mt-2 text-sm font-medium text-slate-400">Agrégation</span>
+</div>
+<div class="relative z-10 flex flex-col items-center">
+<div class="size-10 rounded-full bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 text-slate-400 flex items-center justify-center font-bold text-sm">3</div>
+<span class="mt-2 text-sm font-medium text-slate-400">Distribution</span>
+</div>
+</div>
+<!-- Wizard Card Container -->
+<div class="bg-white dark:bg-[#161b2c] rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+<!-- Progress Header -->
+<div class="p-6 bg-slate-50/50 dark:bg-slate-800/30 border-b border-slate-200 dark:border-slate-800">
+<div class="flex justify-between items-center mb-3">
+<span class="text-sm font-semibold text-slate-700 dark:text-slate-300">Étape 1 : Sélection des Métriques</span>
+<span class="text-xs font-medium text-slate-500 bg-slate-200/50 dark:bg-slate-700 px-2 py-1 rounded">33% Complété</span>
+</div>
+<div class="w-full bg-slate-200 dark:bg-slate-700 h-1.5 rounded-full overflow-hidden">
+<div class="bg-primary h-full w-1/3"></div>
+</div>
+<p class="text-xs text-slate-500 mt-3 italic">Choisissez les données financières que vous souhaitez inclure dans le calcul du rapport final.</p>
+</div>
+<!-- Step Content: Metrics Selection -->
+<div class="p-8 space-y-6">
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<!-- Revenue Option -->
+<label class="relative cursor-pointer group">
+<input checked="" class="sr-only peer custom-checkbox" type="checkbox"/>
+<div class="h-full p-5 border-2 border-slate-100 dark:border-slate-800 rounded-xl transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-slate-300 dark:hover:border-slate-600">
+<div class="size-10 rounded-lg bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1">Chiffre d'affaires</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Total brut généré par les ventes avant commissions.</p>
+<div class="absolute top-4 right-4 text-primary opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+</div>
+</div>
+</label>
+<!-- Commission Option -->
+<label class="relative cursor-pointer group">
+<input checked="" class="sr-only peer custom-checkbox" type="checkbox"/>
+<div class="h-full p-5 border-2 border-slate-100 dark:border-slate-800 rounded-xl transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-slate-300 dark:hover:border-slate-600">
+<div class="size-10 rounded-lg bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined">percent</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1">Commissions</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Frais de service prélevés sur chaque transaction.</p>
+<div class="absolute top-4 right-4 text-primary opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+</div>
+</div>
+</label>
+<!-- Payouts Option -->
+<label class="relative cursor-pointer group">
+<input class="sr-only peer custom-checkbox" type="checkbox"/>
+<div class="h-full p-5 border-2 border-slate-100 dark:border-slate-800 rounded-xl transition-all peer-checked:border-primary peer-checked:bg-primary/5 hover:border-slate-300 dark:hover:border-slate-600">
+<div class="size-10 rounded-lg bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<h4 class="font-bold text-slate-900 dark:text-white text-sm mb-1">Versements</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">Montant net versé aux vendeurs (Payouts).</p>
+<div class="absolute top-4 right-4 text-primary opacity-0 peer-checked:opacity-100">
+<span class="material-symbols-outlined text-xl">check_circle</span>
+</div>
+</div>
+</label>
+</div>
+<!-- Additional Filters -->
+<div class="mt-8 pt-8 border-t border-slate-100 dark:border-slate-800">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-sm font-bold text-slate-800 dark:text-slate-200">Filtres avancés</h3>
+<button class="text-xs font-semibold text-primary hover:underline">Effacer les filtres</button>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div>
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Catégorie de Produits</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+<option>Toutes les catégories</option>
+<option>Électronique</option>
+<option>Mode &amp; Accessoires</option>
+<option>Maison &amp; Jardin</option>
+</select>
+</div>
+<div>
+<label class="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Statut des Transactions</label>
+<select class="w-full bg-slate-50 dark:bg-slate-900 border-slate-200 dark:border-slate-700 rounded-lg text-sm px-4 py-2.5 outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary">
+<option>Toutes (Complétées, Remboursées...)</option>
+<option>Complétées uniquement</option>
+<option>En attente</option>
+</select>
+</div>
+</div>
+</div>
+</div>
+<!-- Navigation Footer -->
+<div class="px-8 py-5 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between">
+<button class="px-5 py-2.5 text-sm font-semibold text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition-colors">
+                        Annuler
+                    </button>
+<div class="flex gap-3">
+<button class="px-5 py-2.5 text-sm font-semibold border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-300 rounded-lg hover:bg-white dark:hover:bg-slate-700 disabled:opacity-50" disabled="">
+                            Précédent
+                        </button>
+<button class="px-8 py-2.5 text-sm font-bold bg-primary text-white rounded-lg shadow-md shadow-primary/20 hover:bg-primary/90 transition-all">
+                            Continuer vers Agrégation
+                        </button>
+</div>
+</div>
+</div>
+<!-- Contextual Help / Info -->
+<div class="mt-8 flex items-start gap-4 p-4 bg-primary/5 border border-primary/20 rounded-xl">
+<span class="material-symbols-outlined text-primary">info</span>
+<div>
+<h5 class="text-sm font-bold text-primary mb-1">Besoin d'aide ?</h5>
+<p class="text-xs text-slate-600 dark:text-slate-400 leading-relaxed">
+                        Les rapports générés ici sont conformes aux normes comptables de la Phase 4. Si vous avez besoin d'un export spécifique pour l'audit, veuillez consulter la section "Paramètres de conformité".
+                    </p>
+</div>
+</div>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#1a1c20",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+        .ivorian-pattern {
+            background-image: radial-gradient(#22c38e 0.5px, transparent 0.5px);
+            background-size: 12px 12px;
+            opacity: 0.1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display text-[#121715] dark:text-white">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 justify-between">
+<div class="flex items-center gap-2">
+<button class="flex size-10 items-center justify-center rounded-full bg-white dark:bg-[#2c3036] soft-shadow">
+<span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+</button>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Profil</h2>
+</div>
+<main class="max-w-md mx-auto pb-32">
+<!-- Header Section -->
+<div class="px-6 pt-4 pb-8">
+<h1 class="text-3xl font-extrabold tracking-tight mb-2">Parlez-nous de vous</h1>
+<p class="text-[#65867b] dark:text-gray-400">Complétez vos informations pour commencer à utiliser BAIBEBALO.</p>
+</div>
+<!-- Profile Photo Section -->
+<div class="flex flex-col items-center mb-10">
+<div class="relative group">
+<div class="size-36 rounded-full bg-white dark:bg-[#2c3036] flex items-center justify-center soft-shadow border-4 border-white dark:border-[#2c3036] overflow-hidden">
+<span class="material-symbols-outlined text-6xl text-gray-300 dark:text-gray-600">person</span>
+</div>
+<button class="absolute bottom-1 right-1 size-10 bg-primary rounded-full flex items-center justify-center text-white border-4 border-background-light dark:border-background-dark shadow-lg">
+<span class="material-symbols-outlined text-xl">add_a_photo</span>
+</button>
+</div>
+<p class="mt-4 text-sm font-semibold text-primary">Ajouter une photo</p>
+</div>
+<!-- Form Fields -->
+<div class="px-6 space-y-6">
+<!-- Nom -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#121715] dark:text-gray-200 ml-1">Nom (Obligatoire)</label>
+<div class="relative flex items-center">
+<input class="form-input w-full rounded-xl border-none bg-white dark:bg-[#2c3036] h-14 px-4 soft-shadow focus:ring-2 focus:ring-primary placeholder:text-[#65867b]/50 dark:placeholder:text-gray-500" placeholder="Ex: Coulibaly" type="text"/>
+</div>
+</div>
+<!-- Prénom -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#121715] dark:text-gray-200 ml-1">Prénom (Obligatoire)</label>
+<div class="relative flex items-center">
+<input class="form-input w-full rounded-xl border-none bg-white dark:bg-[#2c3036] h-14 px-4 soft-shadow focus:ring-2 focus:ring-primary placeholder:text-[#65867b]/50 dark:placeholder:text-gray-500" placeholder="Ex: Jean-Marc" type="text"/>
+</div>
+</div>
+<!-- Email -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#121715] dark:text-gray-200 ml-1">Email (Optionnel)</label>
+<div class="relative flex items-center">
+<input class="form-input w-full rounded-xl border-none bg-white dark:bg-[#2c3036] h-14 px-4 soft-shadow focus:ring-2 focus:ring-primary placeholder:text-[#65867b]/50 dark:placeholder:text-gray-500" placeholder="votre@email.com" type="email"/>
+</div>
+</div>
+<div class="grid grid-cols-2 gap-4">
+<!-- Genre -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#121715] dark:text-gray-200 ml-1">Genre</label>
+<div class="relative">
+<select class="form-select w-full rounded-xl border-none bg-white dark:bg-[#2c3036] h-14 px-4 soft-shadow focus:ring-2 focus:ring-primary appearance-none">
+<option value="">Choisir</option>
+<option value="homme">Homme</option>
+<option value="femme">Femme</option>
+<option value="autre">Autre</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">expand_more</span>
+</div>
+</div>
+<!-- Date de naissance -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-bold text-[#121715] dark:text-gray-200 ml-1">Naissance</label>
+<div class="relative">
+<input class="form-input w-full rounded-xl border-none bg-white dark:bg-[#2c3036] h-14 px-4 soft-shadow focus:ring-2 focus:ring-primary" type="date"/>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">calendar_today</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Visual Flourish: Pattern bottom -->
+<div class="mt-12 w-full h-24 ivorian-pattern"></div>
+</main>
+<!-- Bottom Action Button Container -->
+<div class="fixed bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light dark:via-background-dark to-transparent">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold text-lg py-4 rounded-xl shadow-lg shadow-primary/25 transition-all active:scale-[0.98]">
+                Terminer
+            </button>
+</div>
+</div>
+</body></html>

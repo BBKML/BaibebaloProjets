@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Restaurant Closed - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c5b8b",
+                        "background-light": "#f6f7f7",
+                        "background-dark": "#15181d",
+                        "dusty-terracotta": "#C29D8D",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .soft-lift {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        .desaturated {
+            filter: grayscale(0.8) contrast(0.9);
+        }
+        .menu-disabled {
+            background-color: rgba(246, 247, 247, 0.6);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#131416] dark:text-white">
+<!-- Top AppBar -->
+<div class="sticky top-0 z-50 bg-white dark:bg-background-dark/95 backdrop-blur-md">
+<div class="flex items-center p-4 justify-between">
+<div class="text-primary flex size-10 items-center justify-center rounded-full bg-primary/10" data-icon="arrow_back">
+<span class="material-symbols-outlined">arrow_back</span>
+</div>
+<h2 class="text-[#131416] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">BAIBEBALO</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex items-center justify-center text-primary">
+<span class="material-symbols-outlined" data-icon="info">info</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Header Image (Desaturated) -->
+<div class="@container">
+<div class="px-0 @[480px]:px-4">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden desaturated h-[220px] @[480px]:rounded-xl" data-alt="Beautifully plated Ivorian fusion dish at night" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCOm_rW_l9IOfg-z2s2CIfqX_FBN6LnA2jY3aXLqmafC_CWAipJaVCTcHlIdQPny81MsbpuIOt7knrntlQuAwD0SBheRbSISspogNORUOcETijt5M5L_Ysl7obabPWkfxReVRUErJbBUr4SeLDkUznWtWUQc4ZOWKeThoKtwG5nHxLC7NQMdsxxO9KXH2v3TBOV0ABTdLhujdFejeAAOrceHXYzL6MqmpLDGbhuUtt_LbFDjy3_8rM9i1cidI5UhQDh1H_1xsAAHn3C");'>
+</div>
+</div>
+</div>
+<!-- Closed Status Banner -->
+<div class="p-4 @container">
+<div class="flex flex-1 flex-col items-start justify-between gap-4 rounded-xl border border-dusty-terracotta/30 bg-[#FFF9F6] dark:bg-dusty-terracotta/10 p-5 soft-lift @[480px]:flex-row @[480px]:items-center">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-dusty-terracotta text-xl">schedule</span>
+<p class="text-[#131416] dark:text-white text-base font-bold leading-tight">Ce restaurant est actuellement fermé.</p>
+</div>
+<p class="text-[#6c737f] dark:text-gray-400 text-sm font-normal leading-normal ml-7">Réouverture à 18h00.</p>
+</div>
+<a class="text-sm font-bold leading-normal tracking-wide flex items-center gap-2 text-primary" href="#">
+                Voir les horaires
+                <span class="material-symbols-outlined text-sm">arrow_forward</span>
+</a>
+</div>
+</div>
+<!-- Profile Header / Info Card -->
+<div class="flex px-4 pb-4 @container">
+<div class="flex w-full flex-col gap-4 items-start bg-white dark:bg-background-dark/40 p-4 rounded-xl soft-lift border border-[#dee0e3] dark:border-gray-800">
+<div class="flex gap-4 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-20" data-alt="BAIBEBALO restaurant brand logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuArNCzJLugZvmxBXt1eu6U7-dJaq470Lmh8uKkoDdMNYTCl52S0R3xQaceJXHrM1VgwGcDBxamUnUjbPZsAYG6BExPxcjs1y64bJe2DifSEdV0LDNlUseNMfKPXWLCp9UDBac-Tq2H9C5sj2uSvBIvP-CcIotBRAiPT1JehGckJUuIpiAHGeTpQBRkmsDh9-lAa7P0gSRuOwjysYJopa0zuM4FmqbqiK2NTXOYQ6p5YSAFPg1B6vRKymCKJCvs3gwx4MgOM6KjGh8TC");'></div>
+<div class="flex flex-col">
+<p class="text-[#131416] dark:text-white text-xl font-bold leading-tight tracking-tight">BAIBEBALO</p>
+<p class="text-[#6c737f] dark:text-gray-400 text-sm font-normal leading-normal">Ivorian Fusion • 4.8★ (200+ avis)</p>
+<p class="text-[#6c737f] dark:text-gray-400 text-sm font-normal leading-normal">Livraison en 30-45 min</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Horizontal Category Chips -->
+<div class="sticky top-[72px] z-40 bg-background-light dark:bg-background-dark py-2">
+<div class="flex gap-3 px-4 overflow-x-auto no-scrollbar">
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary text-white px-6">
+<p class="text-sm font-bold">Grillades</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-gray-800 border border-[#dee0e3] dark:border-gray-700 px-6">
+<p class="text-[#131416] dark:text-white text-sm font-medium">Spécialités</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-gray-800 border border-[#dee0e3] dark:border-gray-700 px-6">
+<p class="text-[#131416] dark:text-white text-sm font-medium">Accompagnements</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-full bg-white dark:bg-gray-800 border border-[#dee0e3] dark:border-gray-700 px-6">
+<p class="text-[#131416] dark:text-white text-sm font-medium">Boissons</p>
+</div>
+</div>
+</div>
+<!-- Menu Grid -->
+<div class="p-4 flex flex-col gap-4 mb-24">
+<h3 class="text-lg font-bold mb-2">Populaire</h3>
+<!-- Menu Item 1 (Disabled/Closed state) -->
+<div class="relative flex gap-4 p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 desaturated">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-24 shrink-0" data-alt="Traditional Garba Royal dish with attiéké and tuna" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD69NntlBOP8KuHjCs2FBXrQtZbM-n0vpdKXW23EC6jb-ZPE8AlBBTxZcyo7bKVktqWo5Ji8YVpqZtimkeAgOf8_XAdROOes6eCTEy9xLSphbIIZj37zrNwoTY_WCA9_oULP85-nCk-odq7VdUTOgPZfAGOZF73Ks5xPIS3ZpxGhAF5pXJ8gavjdiXCJcef2Sa_ZkupeItk1UbDHvyVz2GZ5fN67A5d8-q7E_t5ABpYYtmQzXrB_-mZURlmfge-f3BwV62CZW5qllNC");'></div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<p class="text-sm font-bold">Garba Royal</p>
+<p class="text-xs text-[#6c737f] dark:text-gray-400 line-clamp-2">Attiéké avec thon frit, piments frais et oignons craquants.</p>
+</div>
+<p class="text-sm font-bold text-primary">2 500 FCFA</p>
+</div>
+<div class="absolute top-3 right-3 text-gray-400">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+<!-- Menu Item 2 -->
+<div class="relative flex gap-4 p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 desaturated">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-24 shrink-0" data-alt="Ivorian grilled chicken with spices" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCIWwMkHa4tMvl504jpL7BfFr34v-OOh1tRaJ4LToyf_N00vl6fD0TsoFaYqy7rlfkJDDiDYKx3BNEWtsZhVbDuJdp3HF2NfHSboRABwsZvXqIHGxp40xujNUQi_pS5dmFWxVq0rh6SLoiGvw3Kod4z70Vs_H2HFRAnSMCjzoHUQf5sYem-JtRRMYdUHjqGK_1ONreQNJsPhNnRfvQ0-xtzeLWldwpVhzAx3Ra1-w8CvhX1-S8yMBRy7YdptwBAWL6ejXQ1vtw8AUws");'></div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<p class="text-sm font-bold">Poulet Braisé Kankankan</p>
+<p class="text-xs text-[#6c737f] dark:text-gray-400 line-clamp-2">Quart de poulet mariné aux épices traditionnelles et braisé.</p>
+</div>
+<p class="text-sm font-bold text-primary">4 000 FCFA</p>
+</div>
+<div class="absolute top-3 right-3 text-gray-400">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+<!-- Menu Item 3 -->
+<div class="relative flex gap-4 p-3 bg-white/60 dark:bg-gray-800/40 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 desaturated">
+<div class="bg-center bg-no-repeat bg-cover rounded-lg size-24 shrink-0" data-alt="Fried plantains (Alloco)" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDJD5zZ_WUkLOMx57CfRzxD4PdB2j2aSSq1O_ppm-zJHBv6lILCShcHQNUpONWIP2BRSCWt2O09RtEtFYsYkZ6gnSN5T32Y8jynMg60Pw6yk8Cx66vRfNhdLKY5fpd4VkbeTGJDlmZZra2lstZBLgpjqEUJGykXK4IcR-3GS1TCTsmVkPYUTGUcxUzcw-xgdnYQ2K-CnSDRal8p-_boSYNTcCy6C_2PCAtlJguimxOB2wzQzamvjVSZWWnSdyIXj_SnKeRWFFyV0FxB");'></div>
+<div class="flex flex-col justify-between py-1">
+<div>
+<p class="text-sm font-bold">Alloco XL</p>
+<p class="text-xs text-[#6c737f] dark:text-gray-400 line-clamp-2">Portion généreuse de bananes plantains frites.</p>
+</div>
+<p class="text-sm font-bold text-primary">1 500 FCFA</p>
+</div>
+<div class="absolute top-3 right-3 text-gray-400">
+<span class="material-symbols-outlined">lock</span>
+</div>
+</div>
+</div>
+<!-- Floating Action Button -->
+<div class="fixed bottom-24 right-4 z-50">
+<button class="flex items-center gap-3 bg-primary text-white px-6 py-4 rounded-full soft-lift font-bold hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">notifications_active</span>
+<span>Me prévenir quand c'est ouvert</span>
+</button>
+</div>
+<!-- iOS Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/95 backdrop-blur-lg border-t border-[#dee0e3] dark:border-gray-800 px-6 pb-6 pt-3 flex justify-between items-center z-50">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#6c737f]">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px]">Explorer</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#6c737f]">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px]">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#6c737f]">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px]">Profil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-[#6c737f]">
+<span class="material-symbols-outlined">more_horiz</span>
+<span class="text-[10px]">Plus</span>
+</div>
+</div>
+</body></html>

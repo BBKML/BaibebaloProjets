@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Language Settings - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#c37322",
+                        "background-light": "#f9f8f6",
+                        "background-dark": "#2a2622",
+                        "card-warm": "#EFEAE0",
+                        "charcoal": "#272522",
+                        "warm-grey": "#757169"
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Epilogue', sans-serif;
+        }
+        .custom-radio-dot {
+            --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27%23c37322%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%274%27/%3e%3c/svg%3e');
+        }
+        .card-shadow {
+            box-shadow: 0 4px 20px -2px rgba(195, 115, 34, 0.08);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-charcoal dark:text-white min-h-screen flex flex-col font-display custom-radio-dot">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4 flex items-center justify-between border-b border-black/5">
+<button class="flex items-center justify-center size-10 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-charcoal dark:text-white">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-center flex-1 pr-10">Paramètres de langue</h1>
+</header>
+<main class="flex-1 px-6 py-8 flex flex-col gap-6">
+<!-- Selection Header Text -->
+<div class="space-y-1">
+<h2 class="text-2xl font-bold">Choisissez votre langue</h2>
+<p class="text-warm-grey text-sm">Sélectionnez la langue préférée pour naviguer dans BAIBEBALO.</p>
+</div>
+<!-- Language Cards -->
+<div class="flex flex-col gap-4">
+<!-- Card: Français -->
+<label class="group relative flex items-center justify-between p-5 rounded-xl bg-card-warm dark:bg-white/5 border-2 border-transparent has-[:checked]:border-primary card-shadow transition-all cursor-pointer">
+<input checked="" class="peer absolute opacity-0" name="language" type="radio" value="fr"/>
+<div class="flex items-center gap-5">
+<div class="size-14 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl">language</span>
+</div>
+<div class="flex flex-col">
+<span class="text-lg font-bold">Français</span>
+<span class="text-warm-grey text-sm">French</span>
+</div>
+</div>
+<div class="h-6 w-6 rounded-full border-2 border-warm-grey/30 group-has-[:checked]:border-primary flex items-center justify-center transition-colors">
+<div class="h-3 w-3 rounded-full bg-primary scale-0 group-has-[:checked]:scale-100 transition-transform"></div>
+</div>
+</label>
+<!-- Card: Sénoufo -->
+<label class="group relative flex items-center justify-between p-5 rounded-xl bg-card-warm dark:bg-white/5 border-2 border-transparent has-[:checked]:border-primary card-shadow transition-all cursor-pointer">
+<input class="peer absolute opacity-0" name="language" type="radio" value="snf"/>
+<div class="flex items-center gap-5">
+<div class="size-14 rounded-full bg-white dark:bg-zinc-800 flex items-center justify-center shadow-sm">
+<span class="material-symbols-outlined text-primary text-3xl">draw_abstract</span>
+</div>
+<div class="flex flex-col">
+<span class="text-lg font-bold">Sénoufo</span>
+<span class="text-warm-grey text-sm">Senufo</span>
+</div>
+</div>
+<div class="h-6 w-6 rounded-full border-2 border-warm-grey/30 group-has-[:checked]:border-primary flex items-center justify-center transition-colors">
+<div class="h-3 w-3 rounded-full bg-primary scale-0 group-has-[:checked]:scale-100 transition-transform"></div>
+</div>
+</label>
+</div>
+<!-- Information Pattern / Decorative Element -->
+<div class="mt-auto pt-8 flex flex-col items-center gap-6">
+<!-- BodyText - The Disclaimer -->
+<div class="flex items-start gap-3 px-4 max-w-xs text-center">
+<span class="material-symbols-outlined text-primary text-sm mt-0.5">info</span>
+<p class="text-warm-grey text-xs leading-relaxed font-medium">
+                    L'application sera redémarrée pour appliquer les changements
+                </p>
+</div>
+<!-- SingleButton - Primary Action -->
+<div class="w-full">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold h-14 rounded-xl shadow-lg shadow-primary/20 transition-all flex items-center justify-center gap-2 active:scale-[0.98]">
+<span>Appliquer les changements</span>
+<span class="material-symbols-outlined text-xl">done_all</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Safe Area Spacer -->
+<div class="h-8 bg-background-light dark:bg-background-dark"></div>
+</body></html>

@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Liste des Commandes - BAIBEBALO Mobile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2265c3",
+                        "accent": "#FF6B35",
+                        "background-light": "#ffffff",
+                        "background-dark": "#17191c",
+                        "card-light": "#F7F9FA",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        /* Custom scrollbar for chip overflow */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#0f131a] dark:text-white font-display">
+<!-- Mobile Container (Simulating 375px if on desktop, otherwise full) -->
+<div class="relative mx-auto min-h-screen max-w-[480px] flex flex-col pb-24 border-x border-gray-100 dark:border-gray-800 bg-background-light dark:bg-background-dark">
+<!-- Header -->
+<header class="sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-100 dark:border-gray-800 px-4 py-3">
+<div class="flex items-center justify-between gap-4">
+<div class="flex items-center gap-2">
+<div class="size-8 text-accent">
+<svg fill="none" viewbox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+<path d="M44 11.2727C44 14.0109 39.8386 16.3957 33.69 17.6364C39.8386 18.877 44 21.2618 44 24C44 26.7382 39.8386 29.123 33.69 30.3636C39.8386 31.6043 44 33.9891 44 36.7273C44 40.7439 35.0457 44 24 44C12.9543 44 4 40.7439 4 36.7273C4 33.9891 8.16144 31.6043 14.31 30.3636C8.16144 29.123 4 26.7382 4 24C4 21.2618 8.16144 18.877 14.31 17.6364C8.16144 16.3957 4 14.0109 4 11.2727C4 7.25611 12.9543 4 24 4C35.0457 4 44 7.25611 44 11.2727Z" fill="currentColor"></path>
+</svg>
+</div>
+<h1 class="text-lg font-bold tracking-tight text-[#0f131a] dark:text-white">BAIBEBALO</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="flex items-center justify-center size-10 rounded-full bg-gray-100 dark:bg-gray-800 text-[#536d93]">
+<span class="material-symbols-outlined text-[20px]">search</span>
+</button>
+<button class="flex items-center justify-center size-10 rounded-full bg-gray-100 dark:bg-gray-800 text-[#536d93]">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Search & Filter Area -->
+<div class="px-4 pt-4 flex gap-2">
+<div class="relative flex-1">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#536d93] text-[20px]">search</span>
+<input class="w-full h-11 pl-10 pr-4 bg-gray-100 dark:bg-gray-800 border-none rounded-xl text-sm focus:ring-2 focus:ring-primary placeholder:text-[#536d93]" placeholder="Rechercher une commande..." type="text"/>
+</div>
+<button class="flex items-center justify-center size-11 bg-primary text-white rounded-xl">
+<span class="material-symbols-outlined text-[22px]">tune</span>
+</button>
+</div>
+<!-- Section Title & Chips -->
+<div class="mt-6">
+<div class="flex items-center justify-between px-4 mb-3">
+<h2 class="text-xl font-bold tracking-tight">Commandes</h2>
+<span class="text-xs font-medium text-primary bg-primary/10 px-2 py-1 rounded-full">24 En attente</span>
+</div>
+<div class="flex gap-3 px-4 overflow-x-auto hide-scrollbar">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-primary px-4">
+<p class="text-white text-sm font-medium">Tous</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-4">
+<p class="text-[#536d93] text-sm font-medium">Payé</p>
+<span class="material-symbols-outlined text-[18px] text-[#536d93]">expand_more</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-4">
+<p class="text-[#536d93] text-sm font-medium">En cours</p>
+<span class="material-symbols-outlined text-[18px] text-[#536d93]">expand_more</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-1.5 rounded-full bg-gray-100 dark:bg-gray-800 px-4">
+<p class="text-[#536d93] text-sm font-medium">Urgent</p>
+</button>
+</div>
+</div>
+<!-- Order List Feed -->
+<div class="flex flex-col gap-4 p-4 mt-2">
+<!-- Bento Card 1 -->
+<div class="flex flex-col rounded-xl border border-gray-100 dark:border-gray-800 bg-card-light dark:bg-gray-900 overflow-hidden shadow-sm">
+<div class="flex items-center justify-between p-4 border-b border-gray-100/50 dark:border-gray-800/50">
+<span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md uppercase tracking-wider">#ORD-12894</span>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">
+<span class="size-1.5 rounded-full bg-green-600"></span>
+<span class="text-[11px] font-bold uppercase">Expédié</span>
+</div>
+</div>
+<div class="p-4 flex gap-4">
+<div class="size-14 rounded-lg bg-cover bg-center shrink-0" data-alt="Photo de profil client souriant" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCpJYWvkw6i9pt6VeHlhSpEEBJ5wsRzf5h_4-_WS1wrPp2FL0CeiJbvLa8SvHlD_3rPjpt1vPFByTpEuuVVp-FF8Vj0FPiWNcGNFUy19Qt4AM7w1n86_5jZuyi0v_iFV_qbnhiwYIy32o8xehpQ0QG55RqQg_zw90tDEURpucsr-wqSvn58n-yWwsqTXVK-f2mn4_Km5G3RJmsQgj8Zi67OlGFu7gY6NmG2aCf2xX1rYeINZt8nfYc3k_rsu5uwHVnhBO2DoIHlv5Ha');"></div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-[#0f131a] dark:text-white truncate">Jean Dupont</h3>
+<p class="text-sm text-[#536d93] flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            12/10/2023 • 14:30
+                        </p>
+</div>
+</div>
+<div class="px-4 pb-4 flex items-center justify-between mt-auto">
+<div>
+<p class="text-[10px] text-[#536d93] uppercase font-bold tracking-widest">Total</p>
+<p class="text-lg font-bold text-[#0f131a] dark:text-white">145,00 €</p>
+</div>
+<button class="flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white text-sm font-semibold rounded-lg">
+                        Détails
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Bento Card 2 - Pending -->
+<div class="flex flex-col rounded-xl border border-gray-100 dark:border-gray-800 bg-card-light dark:bg-gray-900 overflow-hidden shadow-sm">
+<div class="flex items-center justify-between p-4 border-b border-gray-100/50 dark:border-gray-800/50">
+<span class="text-xs font-bold text-primary bg-primary/10 px-2.5 py-1 rounded-md uppercase tracking-wider">#ORD-12895</span>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-700 dark:text-orange-400">
+<span class="size-1.5 rounded-full bg-orange-600 animate-pulse"></span>
+<span class="text-[11px] font-bold uppercase">En attente</span>
+</div>
+</div>
+<div class="p-4 flex gap-4">
+<div class="size-14 rounded-lg bg-cover bg-center shrink-0" data-alt="Portrait de Marie Curie profil client" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCii2YWB3R4q1sSAIwYF-CrrKNBOBA0SAfzBJ-NhYyp5DN3Kln1KTN2WobVRuJpYgsoFFg5aDrJvWw7v1C5obFo7Kx3Qt5PZe95Cy8uSTjW82Flih26QT-t60xgewohpd2NNEPH_l7XICxzQd3PO45KodyrFW1_AcfHVN9fb_j6Kk0H_KItrmhdGfs_IknZhak1p1WXkXl38pPHlBcaXa4jhg8vRyNu1gSITlXdU7l10ageQ6izuicEh2g565HagO9F-zp498Tt01T_');"></div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-[#0f131a] dark:text-white truncate">Marie Curie</h3>
+<p class="text-sm text-[#536d93] flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            12/10/2023 • 15:12
+                        </p>
+</div>
+</div>
+<div class="px-4 pb-4 flex items-center justify-between mt-auto">
+<div>
+<p class="text-[10px] text-[#536d93] uppercase font-bold tracking-widest">Total</p>
+<p class="text-lg font-bold text-[#0f131a] dark:text-white">89,50 €</p>
+</div>
+<button class="flex items-center justify-center gap-2 px-4 h-10 bg-primary text-white text-sm font-semibold rounded-lg">
+                        Détails
+                        <span class="material-symbols-outlined text-[18px]">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Bento Card 3 - Urgent/Warning -->
+<div class="flex flex-col rounded-xl border-2 border-accent/20 bg-accent/5 overflow-hidden shadow-sm">
+<div class="flex items-center justify-between p-4 border-b border-accent/10">
+<span class="text-xs font-bold text-accent bg-accent/10 px-2.5 py-1 rounded-md uppercase tracking-wider">#ORD-12896</span>
+<div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-accent text-white">
+<span class="material-symbols-outlined text-[12px] fill-1">warning</span>
+<span class="text-[11px] font-bold uppercase">Urgent</span>
+</div>
+</div>
+<div class="p-4 flex gap-4">
+<div class="size-14 rounded-lg bg-cover bg-center shrink-0" data-alt="Avatar client professionnel" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCCbMmWNvhDW_9ymKxmAgD9kMnLn061fa40CubmvkdrVdaMTb6TLOus3rZZns8Wq4fWIVh8oZxvwYTyXNfcGF3WbS-LyBm5WZJxHWeOKaBQi-sNB7OxPLcrFtvfdKrEthVumfcr_0qAJIUcmMxV4cd9ifZo_sfMfTaUrTvigusJD8d2Tdo64FCLQPLV69XExK5EOV90nWTOJofNsmcNzJLN065nS9eaxjN9uduTWf95mPuUgJ49zPQjwu05TME9i07M_ULDJbTNHd-G');"></div>
+<div class="flex-1 min-w-0">
+<h3 class="font-bold text-[#0f131a] dark:text-white truncate">Alan Turing</h3>
+<p class="text-sm text-[#536d93] flex items-center gap-1 mt-0.5">
+<span class="material-symbols-outlined text-[14px]">calendar_today</span>
+                            12/10/2023 • 16:45
+                        </p>
+</div>
+</div>
+<div class="px-4 pb-4 flex items-center justify-between mt-auto">
+<div>
+<p class="text-[10px] text-[#536d93] uppercase font-bold tracking-widest text-accent">Total</p>
+<p class="text-lg font-bold text-accent">520,00 €</p>
+</div>
+<button class="flex items-center justify-center gap-2 px-4 h-10 bg-accent text-white text-sm font-semibold rounded-lg shadow-lg shadow-accent/20">
+                        Traiter
+                        <span class="material-symbols-outlined text-[18px]">bolt</span>
+</button>
+</div>
+</div>
+<!-- Load More -->
+<button class="mt-4 flex w-full items-center justify-center gap-2 py-4 text-[#536d93] text-sm font-semibold hover:text-primary">
+                Charger plus de commandes
+                <span class="material-symbols-outlined text-[20px]">expand_more</span>
+</button>
+</div>
+<!-- Floating Action Button -->
+<button class="fixed bottom-24 right-6 flex items-center justify-center size-14 bg-primary text-white rounded-full shadow-xl z-40">
+<span class="material-symbols-outlined text-[28px]">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-background-light dark:bg-background-dark border-t border-gray-100 dark:border-gray-800 px-6 py-3 flex items-center justify-between z-50 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+<a class="flex flex-col items-center gap-1 text-[#536d93]" href="#">
+<span class="material-symbols-outlined text-[24px]">grid_view</span>
+<span class="text-[10px] font-medium">Dashboard</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined text-[24px] fill-1">shopping_bag</span>
+<span class="text-[10px] font-bold">Commandes</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#536d93]" href="#">
+<span class="material-symbols-outlined text-[24px]">group</span>
+<span class="text-[10px] font-medium">Clients</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-[#536d93]" href="#">
+<span class="material-symbols-outlined text-[24px]">settings</span>
+<span class="text-[10px] font-medium">Paramètres</span>
+</a>
+</nav>
+</div>
+</body></html>

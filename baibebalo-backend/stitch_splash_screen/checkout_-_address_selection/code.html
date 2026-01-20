@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#fafaf9",
+                        "background-dark": "#1a1c20",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .soft-shadow {
+            box-shadow: 0 4px 12px rgba(0,0,0,0.04);
+        }
+        .custom-radio:checked {
+            background-color: #22c38e;
+            border-color: #22c38e;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121715] dark:text-gray-100 min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto w-full">
+<div class="flex size-10 shrink-0 items-center justify-center rounded-full bg-white dark:bg-gray-800 shadow-sm border border-gray-100 dark:border-gray-700">
+<span class="material-symbols-outlined text-xl">arrow_back_ios_new</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Checkout</h2>
+</div>
+<!-- Progress Indicator -->
+<div class="flex flex-col gap-2 px-4 pb-4 max-w-md mx-auto">
+<div class="flex justify-between items-end">
+<p class="text-primary text-sm font-bold tracking-wide uppercase">Étape 1 sur 3</p>
+<p class="text-[#121715] dark:text-gray-400 text-xs font-medium">33% Complété</p>
+</div>
+<div class="h-1.5 w-full rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 33.33%;"></div>
+</div>
+</div>
+</div>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 overflow-y-auto px-4 pb-32 max-w-md mx-auto w-full">
+<!-- Headline -->
+<div class="py-6">
+<h1 class="text-[#121715] dark:text-white text-3xl font-extrabold leading-[1.1] tracking-tight">
+                Où souhaitez-vous recevoir votre commande ?
+            </h1>
+</div>
+<!-- GPS Action Card -->
+<button class="w-full group flex items-center gap-4 p-4 rounded-xl bg-primary/10 border border-primary/20 transition-all active:scale-[0.98] mb-8">
+<div class="flex size-12 shrink-0 items-center justify-center rounded-full bg-primary text-white shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-2xl">my_location</span>
+</div>
+<div class="flex flex-col text-left">
+<span class="text-primary font-bold text-base">Utiliser ma position actuelle</span>
+<span class="text-primary/70 text-xs font-medium">Précision GPS élevée</span>
+</div>
+<span class="material-symbols-outlined ml-auto text-primary opacity-50">chevron_right</span>
+</button>
+<!-- Saved Addresses Section -->
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-[#121715] dark:text-gray-100 text-lg font-bold tracking-tight">Adresses enregistrées</h3>
+<button class="text-primary text-sm font-bold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">add</span>
+                Ajouter
+            </button>
+</div>
+<div class="flex flex-col gap-4">
+<!-- Address Card 1 (Selected) -->
+<label class="relative flex cursor-pointer group">
+<input checked="" class="peer hidden" name="address" type="radio"/>
+<div class="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-transparent peer-checked:border-primary soft-shadow transition-all duration-200">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700 group-peer-checked:bg-primary/10">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300 peer-checked:text-primary">home</span>
+</div>
+<span class="font-bold text-base">Maison</span>
+</div>
+<div class="size-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center peer-checked:border-primary bg-white dark:bg-gray-800">
+<div class="size-3 rounded-full bg-primary scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed ml-13 pl-[52px]">
+                        Cocody, Rue des Jardins, Villa 45<br/>Abidjan, Côte d'Ivoire
+                    </p>
+</div>
+<!-- Custom Selection Ring logic -->
+<div class="absolute inset-0 pointer-events-none rounded-xl border-2 border-primary opacity-0 peer-checked:opacity-100 transition-opacity"></div>
+</label>
+<!-- Address Card 2 -->
+<label class="relative flex cursor-pointer group">
+<input class="peer hidden" name="address" type="radio"/>
+<div class="w-full p-4 bg-white dark:bg-gray-800 rounded-xl border-2 border-transparent peer-checked:border-primary soft-shadow transition-all duration-200">
+<div class="flex justify-between items-start mb-2">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-700">
+<span class="material-symbols-outlined text-gray-600 dark:text-gray-300">work</span>
+</div>
+<span class="font-bold text-base">Bureau</span>
+</div>
+<div class="size-6 rounded-full border-2 border-gray-300 dark:border-gray-600 flex items-center justify-center peer-checked:border-primary bg-white dark:bg-gray-800">
+<div class="size-3 rounded-full bg-primary scale-0 peer-checked:scale-100 transition-transform"></div>
+</div>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm leading-relaxed pl-[52px]">
+                        Plateau, Avenue Houdaille, Immeuble Postel 2000<br/>Abidjan, Côte d'Ivoire
+                    </p>
+</div>
+</label>
+</div>
+<!-- Map Mini Preview -->
+<div class="mt-8 rounded-xl overflow-hidden soft-shadow relative h-40 border-4 border-white dark:border-gray-800">
+<img class="w-full h-full object-cover grayscale opacity-60" data-alt="Modern map illustration of Abidjan city layout" data-location="Abidjan" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAUBOYHFu7NwEdIAXRVHBlDmLbDPuldNd81lagNSqyUyEYpVt46F3nK5MmXY2TT4rbd6o9lnIt1jjehUrONqY6ojxL8k41xkcG5SnbIGpk3xFd3qK2I2evjySXmF03BgF6LNn5Atl3d7VovuZWFWubbjHM-jMRfZxdkC0GcD1BIZl1x2OcbUsQlRigdqJJ_NEZAjei3iaVk4FqXs7noV8MgP1j-u_P5dyPslsWv5Mg0Rwtxl1_Yi2QOsgP4ca64aDd5CmwAmKl1mSTt"/>
+<div class="absolute inset-0 bg-gradient-to-t from-background-light/80 dark:from-background-dark/80 to-transparent"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-primary p-2 rounded-full shadow-lg animate-bounce">
+<span class="material-symbols-outlined text-white text-lg">location_on</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom CTA Bar -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 pb-8">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary hover:bg-primary/90 text-white h-16 rounded-2xl font-extrabold text-lg flex items-center justify-center gap-3 shadow-xl shadow-primary/20 transition-transform active:scale-[0.97]">
+<span>Continuer</span>
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+</div>
+</div>
+</body></html>

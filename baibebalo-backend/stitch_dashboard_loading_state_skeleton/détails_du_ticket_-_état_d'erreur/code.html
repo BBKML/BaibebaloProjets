@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Détails du Ticket - État d'Erreur | BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da2e7",
+                        "accent-orange": "#FF6B35",
+                        "background-light": "#f7f7f8",
+                        "background-dark": "#1a1f23",
+                        "card-dark": "#282f37",
+                        "sidebar-dark": "#15191c"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .soft-shadow { box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.3); }
+        .sidebar-item-active { background-color: rgba(13, 162, 231, 0.1); border-left: 3px solid #0da2e7; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased">
+<div class="flex h-screen overflow-hidden">
+<!-- Side Navigation Bar -->
+<aside class="w-64 flex-shrink-0 bg-white dark:bg-sidebar-dark border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between">
+<div class="flex flex-col pt-6">
+<!-- Brand Logo Section -->
+<div class="px-6 mb-10 flex items-center gap-3">
+<div class="w-10 h-10 rounded-lg flex items-center justify-center" style="background-color: #FF6B35;">
+<span class="material-symbols-outlined text-white text-2xl">rocket_launch</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-slate-900 dark:text-white text-lg font-bold leading-none tracking-tight">BAIBEBALO</h1>
+<p class="text-slate-500 dark:text-slate-400 text-xs mt-1">Admin Panel</p>
+</div>
+</div>
+<!-- Navigation Items -->
+<nav class="flex flex-col gap-1 px-3">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-primary sidebar-item-active" href="#">
+<span class="material-symbols-outlined text-[22px] fill-1">confirmation_number</span>
+<span class="text-sm font-semibold">Tickets de support</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">group</span>
+<span class="text-sm font-medium">Utilisateurs</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-white/5 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">settings</span>
+<span class="text-sm font-medium">Paramètres</span>
+</a>
+</nav>
+</div>
+<!-- Bottom Sidebar -->
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<a class="flex items-center gap-3 px-3 py-2.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 transition-colors" href="#">
+<span class="material-symbols-outlined text-[22px]">logout</span>
+<span class="text-sm font-medium">Déconnexion</span>
+</a>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Top Navigation Bar -->
+<header class="h-16 flex items-center justify-between px-8 bg-white/50 dark:bg-background-dark/50 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 sticky top-0 z-10">
+<div class="flex items-center gap-3">
+<button class="p-1 hover:bg-slate-100 dark:hover:bg-white/5 rounded transition-colors">
+<span class="material-symbols-outlined text-slate-500">menu_open</span>
+</button>
+<h2 class="text-slate-800 dark:text-slate-200 font-semibold">Détails du Ticket</h2>
+</div>
+<div class="flex items-center gap-6">
+<nav class="hidden md:flex items-center gap-4 text-sm font-medium">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Support</a>
+<span class="text-slate-300 dark:text-slate-700">/</span>
+<span class="text-slate-900 dark:text-white">Ticket #12345</span>
+</nav>
+<div class="flex items-center gap-3 pl-6 border-l border-slate-200 dark:border-slate-800">
+<div class="text-right">
+<p class="text-xs font-bold text-slate-900 dark:text-white">Admin User</p>
+<p class="text-[10px] text-slate-500">Super Admin</p>
+</div>
+<div class="size-9 rounded-full bg-primary/20 border-2 border-primary/30 flex items-center justify-center overflow-hidden">
+<img alt="Avatar" class="w-full h-full object-cover" data-alt="Portrait photo of a professional administrator" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA4B0rACnd9MzplzpuGGkjk0rB6F6onZDl0fJtAXCTA6vezlzcN4nJIR9VKn1YbIfwAx569brrVmeSLMyK3L-ocBfgIbUq9QDlR1xw9OWOWMtfEMzoESjAO8JnGpsg7-EBXbcP_k65u9NMP3foS4svgoHYk7W4PERZzppPrpfYrBltwrXjl2YMZbSft7U2Xk49xJJ0XayBtyFGSgD74k6iwgAyZUf0tE0Wx9Y8JANQvGfxFXRh5aLAiTCEMe_dBtrOTwsJxJ7b2XBZi"/>
+</div>
+</div>
+</div>
+</header>
+<!-- Error State Content -->
+<div class="flex-1 flex flex-col items-center justify-center p-6">
+<!-- Back Button -->
+<div class="w-full max-w-2xl mb-4">
+<button class="flex items-center gap-2 px-4 py-2 text-slate-500 hover:text-primary transition-all group">
+<span class="material-symbols-outlined text-sm transition-transform group-hover:-translate-x-1">arrow_back</span>
+<span class="text-sm font-semibold">Retour au support</span>
+</button>
+</div>
+<!-- Error Card -->
+<div class="w-full max-w-2xl bg-white dark:bg-card-dark rounded-xl soft-shadow border border-slate-200 dark:border-slate-700 overflow-hidden">
+<div class="p-12 flex flex-col items-center text-center">
+<!-- Illustration Container -->
+<div class="relative mb-8">
+<div class="absolute inset-0 bg-primary/10 blur-3xl rounded-full"></div>
+<div class="relative w-48 h-48 flex items-center justify-center">
+<svg class="text-slate-300 dark:text-slate-600" fill="none" height="180" viewbox="0 0 24 24" width="180" xmlns="http://www.w3.org/2000/svg">
+<path d="M21 15C21 15.5304 20.7893 16.0391 20.4142 16.4142C20.0391 16.7893 19.5304 17 19 17H7L3 21V5C3 4.46957 3.21071 3.96086 3.58579 3.58579C3.96086 3.21071 4.46957 3 5 3H19C19.5304 3 20.0391 3.21071 20.4142 3.58579C20.7893 3.96086 21 4.46957 21 5V15Z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"></path>
+<path class="animate-pulse" d="M15 8L9 12M9 8L15 12" stroke="#FF6B35" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"></path>
+</svg>
+<!-- Broken Effect Elements -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+<span class="material-symbols-outlined text-primary text-6xl opacity-20">error</span>
+</div>
+</div>
+</div>
+<!-- Error Text -->
+<div class="max-w-md mx-auto space-y-4">
+<h3 class="text-2xl font-bold text-slate-900 dark:text-slate-100 tracking-tight">
+                                Impossible de charger la conversation
+                            </h3>
+<p class="text-slate-500 dark:text-slate-400 leading-relaxed">
+                                Une erreur technique est survenue lors de la récupération des messages. 
+                                Veuillez vérifier votre connexion réseau ou réessayer ultérieurement.
+                            </p>
+</div>
+<!-- Action Buttons -->
+<div class="mt-10 flex flex-col sm:flex-row gap-4 w-full justify-center">
+<button class="px-8 py-3.5 bg-primary hover:bg-primary/90 text-white rounded-lg font-bold text-sm tracking-wide transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg">refresh</span>
+                                Réessayer
+                            </button>
+<button class="px-8 py-3.5 bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-slate-700 dark:text-slate-300 rounded-lg font-bold text-sm tracking-wide transition-all flex items-center justify-center gap-2">
+<span class="material-symbols-outlined text-lg">report</span>
+                                Signaler un bug
+                            </button>
+</div>
+</div>
+<!-- Status bar on card footer -->
+<div class="bg-slate-50 dark:bg-white/5 px-6 py-3 border-t border-slate-200 dark:border-slate-800 flex justify-between items-center">
+<div class="flex items-center gap-2">
+<div class="w-2 h-2 rounded-full bg-accent-orange"></div>
+<span class="text-[10px] uppercase font-bold tracking-wider text-slate-400">System Status: Interrupted</span>
+</div>
+<span class="text-[10px] text-slate-400 font-medium">Code d'erreur: 503_SRV_UNAVAIL</span>
+</div>
+</div>
+<!-- Assistance footer -->
+<p class="mt-8 text-sm text-slate-500 dark:text-slate-600">
+                    Besoin d'aide ? <a class="text-primary hover:underline font-medium" href="#">Consulter la documentation technique</a>
+</p>
+</div>
+</main>
+</div>
+</body></html>

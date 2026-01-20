@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#3c5b8b",
+                        "danger": "#e11d48",
+                        "background-light": "#ffffff",
+                        "background-dark": "#1a1c20",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .ios-blur {
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+        }
+        .modal-shadow {
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark antialiased">
+<!-- Main App Background (Simulated behind modal) -->
+<div class="relative flex h-screen w-full flex-col overflow-hidden opacity-40">
+<header class="flex items-center justify-between px-4 py-6">
+<span class="material-symbols-outlined text-primary">arrow_back_ios</span>
+<h1 class="text-lg font-bold">Paramètres du compte</h1>
+<div class="w-6"></div>
+</header>
+<div class="px-4 space-y-4">
+<div class="h-16 w-full rounded-xl bg-gray-100 dark:bg-gray-800"></div>
+<div class="h-16 w-full rounded-xl bg-gray-100 dark:bg-gray-800"></div>
+<div class="h-16 w-full rounded-xl bg-gray-100 dark:bg-gray-800"></div>
+<div class="h-16 w-full rounded-xl bg-primary/10"></div>
+</div>
+</div>
+<!-- Modal Backdrop -->
+<div class="fixed inset-0 z-50 flex items-end justify-center bg-black/60 ios-blur px-0 sm:items-center sm:px-4">
+<!-- Bottom Sheet / Modal Container -->
+<div class="relative w-full max-w-[480px] bg-white dark:bg-background-dark rounded-t-3xl sm:rounded-3xl modal-shadow overflow-hidden flex flex-col animate-in slide-in-from-bottom duration-300">
+<!-- BottomSheetHandle (visual only) -->
+<div class="flex h-6 w-full items-center justify-center sm:hidden">
+<div class="h-1.5 w-12 rounded-full bg-gray-200 dark:bg-gray-700"></div>
+</div>
+<div class="px-6 pt-4 pb-8">
+<!-- Danger Icon -->
+<div class="flex justify-center mb-6">
+<div class="flex h-20 w-20 items-center justify-center rounded-full bg-danger/10 text-danger">
+<span class="material-symbols-outlined !text-5xl" style="font-variation-settings: 'FILL' 1, 'wght' 400;">warning</span>
+</div>
+</div>
+<!-- HeadlineText -->
+<h3 class="text-slate-900 dark:text-white text-2xl font-extrabold leading-tight text-center mb-3">
+                    Supprimer mon compte ?
+                </h3>
+<!-- BodyText -->
+<p class="text-slate-600 dark:text-slate-400 text-base font-medium leading-relaxed text-center px-2 mb-8">
+                    Cette action est <span class="text-danger font-bold">irréversible</span>. Vous perdrez définitivement vos points de fidélité BAIBEBALO, votre historique et vos adresses.
+                </p>
+<!-- TextField -->
+<div class="mb-8">
+<label class="block mb-2">
+<span class="text-slate-900 dark:text-white text-sm font-bold uppercase tracking-wider pl-1">Validation</span>
+<div class="mt-2 relative">
+<input class="w-full rounded-xl border-2 border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 px-4 py-4 text-slate-900 dark:text-white placeholder:text-slate-400 focus:border-danger/50 focus:ring-0 transition-colors" placeholder="Tapez 'SUPPRIMER'" type="text"/>
+</div>
+</label>
+<p class="text-xs text-slate-400 mt-2 text-center">Veuillez confirmer en saisissant le mot clé</p>
+</div>
+<!-- ButtonGroup -->
+<div class="flex flex-col gap-3">
+<button class="flex w-full items-center justify-center rounded-xl bg-danger py-4 px-6 text-white text-base font-bold shadow-lg shadow-danger/20 active:scale-[0.98] transition-transform">
+<span>Confirmer la suppression</span>
+</button>
+<button class="flex w-full items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 py-4 px-6 text-slate-900 dark:text-white text-base font-bold active:scale-[0.98] transition-transform">
+<span>Garder mon compte</span>
+</button>
+</div>
+</div>
+<!-- Safe Area Spacer for iOS -->
+<div class="h-8 bg-white dark:bg-background-dark sm:hidden"></div>
+</div>
+</div>
+</body></html>

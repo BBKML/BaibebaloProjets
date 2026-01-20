@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Suivi de commande</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#12201b",
+                        "accent-yellow": "#FDC12A"
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .map-gradient-overlay {
+            background: linear-gradient(to bottom, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 20%, rgba(0,0,0,0) 80%, rgba(246, 248, 247, 1) 100%);
+        }
+        .driver-card-shadow {
+            box-shadow: 0 -10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#121715] dark:text-white antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-hidden mx-auto max-w-[430px] shadow-2xl bg-white dark:bg-background-dark">
+<!-- Top App Bar -->
+<div class="absolute top-0 left-0 w-full z-20 flex items-center justify-between p-6 bg-transparent">
+<button class="flex size-11 items-center justify-center rounded-full bg-white/90 dark:bg-background-dark/80 backdrop-blur-md shadow-sm border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">arrow_back_ios_new</span>
+</button>
+<div class="flex-1 px-4">
+<h2 class="text-[#121715] dark:text-white text-base font-bold leading-tight text-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md py-2 rounded-full border border-gray-100 dark:border-gray-800">
+                    Suivi de commande
+                </h2>
+</div>
+<button class="flex size-11 items-center justify-center rounded-full bg-white/90 dark:bg-background-dark/80 backdrop-blur-md shadow-sm border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">help_outline</span>
+</button>
+</div>
+<!-- Map Section (Top 65%) -->
+<div class="relative h-[65vh] w-full">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Map showing Abidjan city streets with delivery route" data-location="Abidjan, Ivory Coast" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCyf6l4_jYJERvUidcDwaLPui7kOmPcY6_VqbSs_MYaJ6lPbBM19JrULi5CEUQmxvsF53JESBTMdOD-zduEQHrCdMOvrXPRb9PQJPx6QKAZhWl1QL92o0VIL3AGx15HHgr4pTxuUDk0H2d2pYaaiI4asxU6BEqrmXFjcwkmVTr-TN0DohSvaIFZdiAg-xb-202_SculByXqJhpN8dAYivPmV2-teN2Av3Ir-F5kos-zNklA4ul9EsoqEMMRnKWZii0OjqNmOp_d1p71');">
+</div>
+<div class="absolute inset-0 map-gradient-overlay"></div>
+<!-- Map Markers -->
+<!-- Restaurant Marker -->
+<div class="absolute top-[30%] left-[40%] flex flex-col items-center">
+<div class="bg-white p-2 rounded-xl shadow-lg border-2 border-primary">
+<span class="material-symbols-outlined text-primary text-xl">restaurant</span>
+</div>
+<div class="w-1 h-3 bg-primary/40 rounded-full mt-1"></div>
+</div>
+<!-- Driver Marker (Animated Feel) -->
+<div class="absolute top-[55%] left-[60%] flex flex-col items-center">
+<div class="relative">
+<div class="absolute -inset-2 bg-primary/20 rounded-full animate-pulse"></div>
+<div class="relative bg-primary p-3 rounded-full shadow-xl border-4 border-white dark:border-background-dark">
+<span class="material-symbols-outlined text-white text-2xl">delivery_dining</span>
+</div>
+</div>
+<div class="bg-primary/90 text-white text-[10px] font-bold px-2 py-0.5 rounded-full mt-2 uppercase tracking-wider">Livreur</div>
+</div>
+<!-- Map Controls -->
+<div class="absolute bottom-10 right-6 flex flex-col gap-3">
+<button class="flex size-12 items-center justify-center rounded-xl bg-white dark:bg-background-dark shadow-lg">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">my_location</span>
+</button>
+</div>
+</div>
+<!-- Bottom Sheet / Floating Card -->
+<div class="relative flex flex-1 flex-col z-30">
+<div class="flex-1 bg-white dark:bg-background-dark rounded-t-[2.5rem] driver-card-shadow px-6 pt-2 pb-8 flex flex-col items-stretch">
+<!-- Handle -->
+<div class="flex h-6 w-full items-center justify-center mb-4">
+<div class="h-1.5 w-12 rounded-full bg-[#dce5e2] dark:bg-gray-700"></div>
+</div>
+<!-- Status Header -->
+<div class="mb-6">
+<h3 class="text-xl font-bold text-[#121715] dark:text-white">Le livreur est en route</h3>
+<p class="text-[#65867b] text-sm font-medium mt-1">Votre commande est en cours de livraison</p>
+</div>
+<!-- Stats / ETA -->
+<div class="grid grid-cols-2 gap-4 mb-6">
+<div class="flex flex-col gap-1 rounded-2xl p-4 bg-primary/10 border border-primary/20">
+<p class="text-[#121715] dark:text-primary text-xs font-semibold uppercase tracking-wider">Arrivée prévue</p>
+<p class="text-primary text-2xl font-extrabold">15 min</p>
+</div>
+<div class="flex flex-col gap-1 rounded-2xl p-4 bg-[#f0f4f3] dark:bg-white/5 border border-transparent">
+<p class="text-[#65867b] text-xs font-semibold uppercase tracking-wider">Distance</p>
+<p class="text-[#121715] dark:text-white text-2xl font-extrabold">2.4 km</p>
+</div>
+</div>
+<!-- Driver Info Section -->
+<div class="flex items-center gap-4 mb-8 p-1">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-2xl h-20 w-20 shadow-md border-2 border-white dark:border-gray-800" data-alt="Professional portrait of delivery driver Bakary D." style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBWMq8gUZKs-me5o2VgkCP62nhI3nAuC863XSDNV5bN3N8csaQyyzmB9LqGaOX73tnEajVMWS9yYJjntU5vvJlIugmsJ_xmn0ytH_cowcflwl6O_IbI3g3YvxRkNnhpQwo9arpLfTxnRFeZtmKZ-vM8xnFwNQwXDA_NEMNZXGehFi7hkyVU5aCgPtvN_joKfYYEQeFVNfLVLEas_qewbc6A3myHbUe1oU1bEToydMfC4f_XMlzwXyTyzRTiGOk6IZ8joxShG4y35odJ');">
+</div>
+</div>
+<div class="flex flex-col flex-1">
+<div class="flex items-center gap-2">
+<p class="text-[#121715] dark:text-white text-lg font-bold leading-tight">Bakary D.</p>
+<div class="flex items-center bg-accent-yellow/10 px-2 py-0.5 rounded-full">
+<span class="material-symbols-outlined text-accent-yellow text-sm fill-1">star</span>
+<span class="text-accent-yellow text-xs font-bold ml-1">4.8</span>
+</div>
+</div>
+<p class="text-[#65867b] dark:text-gray-400 text-sm mt-0.5">Moto rouge • ABC-123-XY</p>
+</div>
+</div>
+<!-- Actions -->
+<div class="flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center gap-3 overflow-hidden rounded-xl h-14 bg-primary text-white text-base font-bold shadow-lg shadow-primary/20 hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">call</span>
+<span>Appeler le livreur</span>
+</button>
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-[#f0f4f3] dark:bg-white/5 text-[#121715] dark:text-white text-sm font-bold transition-all">
+<span>Détails de la commande</span>
+</button>
+</div>
+<!-- iOS Home Indicator Spacing -->
+<div class="h-6"></div>
+</div>
+</div>
+</div>
+</body></html>

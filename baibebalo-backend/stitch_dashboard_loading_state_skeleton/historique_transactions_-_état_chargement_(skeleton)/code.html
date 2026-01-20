@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Historique Transactions (Chargement)</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0da2e7",
+                        "brand-orange": "#FF7A00",
+                        "background-light": "#fafafa",
+                        "background-dark": "#17191c",
+                        "card-dark": "#23272e",
+                        "shimmer-base": "#3a3f47",
+                        "shimmer-highlight": "#474c56",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                    animation: {
+                        'pulse-subtle': 'pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .skeleton-shimmer {
+            background: linear-gradient(90deg, #3a3f47 25%, #474c56 50%, #3a3f47 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite linear;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        .sidebar-fixed { width: 280px; position: fixed; height: 100vh; left: 0; top: 0; }
+        .main-content { margin-left: 280px; width: calc(100% - 280px); }
+        .header-fixed { position: sticky; top: 0; z-index: 50; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden">
+<!-- Sidebar Navigation -->
+<aside class="sidebar-fixed bg-white dark:bg-card-dark border-r border-slate-200 dark:border-slate-800 flex flex-col justify-between p-6 transition-colors duration-300">
+<div class="flex flex-col gap-8">
+<!-- Branding -->
+<div class="flex items-center gap-3 px-2">
+<div class="size-10 bg-brand-orange rounded-xl flex items-center justify-center text-white shadow-lg shadow-brand-orange/20">
+<span class="material-symbols-outlined text-3xl">account_balance_wallet</span>
+</div>
+<div class="flex flex-col">
+<h2 class="text-xl font-black leading-none tracking-tight text-brand-orange">BAIBEBALO</h2>
+<span class="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-1">Admin Dashboard</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex flex-col gap-1">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-semibold">Tableau de bord</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg bg-primary/10 text-primary border border-primary/20 shadow-sm transition-all cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">history</span>
+<span class="text-sm font-semibold">Historique</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-semibold">Utilisateurs</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-sm font-semibold">Rapports</span>
+</div>
+<div class="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm font-semibold">Paramètres</span>
+</div>
+<div class="flex items-center gap-3 px-4 py-3 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all cursor-pointer">
+<span class="material-symbols-outlined">help</span>
+<span class="text-sm font-semibold">Support</span>
+</div>
+</div>
+</nav>
+</div>
+<button class="flex items-center justify-center gap-2 w-full py-3 px-4 bg-slate-100 dark:bg-slate-800 rounded-xl text-red-500 font-bold text-sm hover:bg-red-500 hover:text-white transition-all duration-300">
+<span class="material-symbols-outlined text-lg">logout</span>
+<span>Déconnexion</span>
+</button>
+</aside>
+<!-- Main Content Area -->
+<main class="main-content min-h-screen flex flex-col">
+<!-- Header -->
+<header class="header-fixed bg-white/80 dark:bg-background-dark/80 backdrop-blur-xl border-b border-slate-200 dark:border-slate-800 px-8 py-4 flex items-center justify-between">
+<div class="flex-1 max-w-md">
+<div class="flex items-center bg-slate-100 dark:bg-card-dark rounded-full px-4 py-2 border border-slate-200 dark:border-slate-700">
+<span class="material-symbols-outlined text-slate-400">search</span>
+<div class="ml-2 h-4 w-32 skeleton-shimmer rounded"></div>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-full">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+<div class="h-8 w-px bg-slate-200 dark:border-slate-800"></div>
+<div class="flex items-center gap-3">
+<div class="flex flex-col items-end">
+<div class="h-3 w-20 skeleton-shimmer rounded mb-1"></div>
+<div class="h-2 w-12 skeleton-shimmer rounded"></div>
+</div>
+<div class="size-10 rounded-full skeleton-shimmer border border-slate-200 dark:border-slate-700" data-alt="User profile abstract avatar placeholder"></div>
+</div>
+</div>
+</header>
+<!-- Page Content -->
+<section class="p-8 flex flex-col gap-6">
+<!-- Heading & Primary Action -->
+<div class="flex flex-wrap items-center justify-between gap-4">
+<div class="flex flex-col gap-1">
+<h1 class="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Historique des Transactions</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Gestion et suivi en temps réel des flux financiers</p>
+</div>
+<button class="bg-primary text-white px-6 py-3 rounded-xl font-bold text-sm flex items-center gap-2 shadow-lg shadow-primary/25 hover:scale-105 transition-transform active:scale-95">
+<span class="material-symbols-outlined">add_circle</span>
+                    Nouvelle Transaction
+                </button>
+</div>
+<!-- Filter Skeleton Row -->
+<div class="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+<div class="h-10 w-40 skeleton-shimmer rounded-lg border border-shimmer-base/30"></div>
+<div class="h-10 w-48 skeleton-shimmer rounded-lg border border-shimmer-base/30"></div>
+<div class="h-10 w-36 skeleton-shimmer rounded-lg border border-shimmer-base/30"></div>
+<div class="h-10 w-32 skeleton-shimmer rounded-lg border border-shimmer-base/30"></div>
+</div>
+<!-- Table Section -->
+<div class="bg-white dark:bg-card-dark rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50 dark:bg-slate-800/50">
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Date</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Référence</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Utilisateur</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Montant</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Statut</th>
+<th class="px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody>
+<!-- Skeleton Rows -->
+<script>
+                                for (let i = 0; i < 8; i++) {
+                                    document.write(`
+                                        <tr class="border-t border-slate-100 dark:border-slate-800/50 animate-pulse-subtle">
+                                            <td class="px-6 py-5">
+                                                <div class="h-4 w-28 skeleton-shimmer rounded opacity-60"></div>
+                                            </td>
+                                            <td class="px-6 py-5">
+                                                <div class="h-4 w-24 skeleton-shimmer rounded opacity-40"></div>
+                                            </td>
+                                            <td class="px-6 py-5">
+                                                <div class="flex items-center gap-3">
+                                                    <div class="size-8 rounded-full skeleton-shimmer opacity-30"></div>
+                                                    <div class="h-4 w-32 skeleton-shimmer rounded opacity-50"></div>
+                                                </div>
+                                            </td>
+                                            <td class="px-6 py-5">
+                                                <div class="h-4 w-16 skeleton-shimmer rounded opacity-70"></div>
+                                            </td>
+                                            <td class="px-6 py-5">
+                                                <div class="h-6 w-20 skeleton-shimmer rounded-full opacity-40"></div>
+                                            </td>
+                                            <td class="px-6 py-5 text-right">
+                                                <div class="flex justify-end gap-2">
+                                                    <div class="size-8 skeleton-shimmer rounded opacity-20"></div>
+                                                    <div class="size-8 skeleton-shimmer rounded opacity-20"></div>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `);
+                                }
+                            </script>
+</tbody>
+</table>
+</div>
+<!-- Pagination Skeleton -->
+<div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="h-4 w-40 skeleton-shimmer rounded opacity-40"></div>
+<div class="flex gap-2">
+<div class="h-8 w-8 skeleton-shimmer rounded opacity-30"></div>
+<div class="h-8 w-8 skeleton-shimmer rounded opacity-30"></div>
+<div class="h-8 w-8 skeleton-shimmer rounded opacity-30"></div>
+<div class="h-8 w-8 skeleton-shimmer rounded opacity-30"></div>
+</div>
+</div>
+</div>
+<!-- Loading Status Indicator -->
+<div class="flex items-center justify-center py-4 gap-3 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined animate-spin">progress_activity</span>
+<p class="text-sm font-medium tracking-wide">Mise à jour des transactions en cours...</p>
+</div>
+</section>
+</main>
+</body></html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Admin - Base de Connaissances</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1966b3",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#111921",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .sidebar-scroll::-webkit-scrollbar { width: 4px; }
+        .sidebar-scroll::-webkit-scrollbar-thumb { background: #e2e8f0; border-radius: 10px; }
+        .article-content h2 { font-size: 1.5rem; font-weight: 700; margin-top: 2rem; margin-bottom: 1rem; color: #0e141b; }
+        .article-content p { margin-bottom: 1.25rem; line-height: 1.7; color: #374151; }
+        .custom-shadow { box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e141b] antialiased">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-[#e8edf3] bg-white dark:bg-[#1a232e] px-6 py-3 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-brand-orange rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">account_balance_wallet</span>
+</div>
+<h2 class="text-[#0e141b] dark:text-white text-lg font-bold leading-tight tracking-tight">BAIBEBALO Admin</h2>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex gap-2">
+<button class="p-2 rounded-lg bg-[#f0f2f5] hover:bg-[#e8edf3] transition-colors text-[#507395]">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<button class="p-2 rounded-lg bg-[#f0f2f5] hover:bg-[#e8edf3] transition-colors text-[#507395]">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+<div class="h-8 w-[1px] bg-[#e8edf3]"></div>
+<div class="flex items-center gap-3">
+<span class="text-sm font-medium text-[#0e141b] dark:text-white">Admin User</span>
+<div class="size-9 rounded-full bg-primary/20 bg-cover bg-center border border-primary/10" data-alt="Avatar of the administrator" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBsCbX4YCh_CENTRL-959JP66mbuErFJ3Qn0j0_aqMEhrK30VeuNm47yRtE3jiU7oQ4lH4ZAyTyTHVg1CYmsGnQAqxwe_MZE4byHsxM9uRld61Mko1Y-44tqfjuX-QJyfc7HzVosDKP4d5cKM75us7kiGAvHt1bCxL5BUjtxlW_k7cHZDKqGB2Vvp9YuNnCPeUMLL_jkvyO2zYWFIjVsB9R0fY2eIzyXrYulr3ruc7-6DCgjL-Wqjj1q1L4SQG22UiVc4CTNZKiuggz')"></div>
+</div>
+</div>
+</header>
+<div class="flex h-[calc(100-64px)] overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-80 flex flex-col border-r border-[#e8edf3] bg-white dark:bg-[#1a232e]">
+<div class="p-5 border-b border-[#e8edf3]">
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#507395] text-xl">search</span>
+<input class="w-full pl-10 pr-4 py-2 bg-[#f0f2f5] border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 transition-all" placeholder="Rechercher... (Cmd+K)" type="text"/>
+</div>
+</div>
+<nav class="flex-1 overflow-y-auto sidebar-scroll p-4 space-y-6">
+<div>
+<h3 class="px-3 text-[11px] font-bold text-[#507395] uppercase tracking-wider mb-2">Documentation</h3>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#0e141b] hover:bg-[#f0f2f5] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">house</span>
+                            Introduction
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#0e141b] hover:bg-[#f0f2f5] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">settings</span>
+                            Configuration
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#0e141b] hover:bg-[#f0f2f5] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">group</span>
+                            Gestion Utilisateurs
+                        </a>
+</div>
+</div>
+<div>
+<div class="flex items-center justify-between px-3 mb-2">
+<h3 class="text-[11px] font-bold text-[#507395] uppercase tracking-wider">Paiements</h3>
+<span class="material-symbols-outlined text-sm cursor-pointer">expand_more</span>
+</div>
+<div class="space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium bg-primary/10 text-primary rounded-lg" href="#">
+<span class="material-symbols-outlined text-lg">notifications_active</span>
+                            Notifications
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#0e141b] hover:bg-[#f0f2f5] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">credit_card</span>
+                            Flux de Paiement
+                        </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium text-[#0e141b] hover:bg-[#f0f2f5] rounded-lg transition-colors" href="#">
+<span class="material-symbols-outlined text-lg">terminal</span>
+                            API &amp; Intégrations
+                        </a>
+</div>
+</div>
+</nav>
+<div class="p-4 border-t border-[#e8edf3]">
+<button class="w-full py-2.5 bg-brand-orange text-white text-sm font-bold rounded-lg flex items-center justify-center gap-2 hover:bg-[#e85a24] transition-colors">
+<span class="material-symbols-outlined text-lg">contact_support</span>
+                    Contact Support
+                </button>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 overflow-y-auto bg-white">
+<div class="max-w-[840px] mx-auto px-8 py-10">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-sm font-medium text-[#507395] mb-8">
+<a class="hover:text-primary" href="#">Accueil</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<a class="hover:text-primary" href="#">Guide Utilisateur</a>
+<span class="material-symbols-outlined text-xs">chevron_right</span>
+<span class="text-[#0e141b]">Notifications</span>
+</nav>
+<!-- Article Header -->
+<header class="mb-10">
+<h1 class="text-4xl font-extrabold text-[#0e141b] tracking-tight leading-tight mb-4">
+                        Comment configurer les notifications de paiement
+                    </h1>
+<div class="flex items-center gap-4 text-sm text-[#507395]">
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">calendar_today</span>
+                            Dernière mise à jour : 12 Octobre 2023
+                        </div>
+<div class="w-1 h-1 rounded-full bg-[#507395]"></div>
+<div class="flex items-center gap-1.5">
+<span class="material-symbols-outlined text-base">schedule</span>
+                            Temps de lecture : 5 min
+                        </div>
+</div>
+</header>
+<!-- Article Body -->
+<article class="article-content border-b border-[#e8edf3] pb-12">
+<p class="text-lg leading-relaxed text-gray-700">
+                        La configuration des notifications de paiement est cruciale pour maintenir vos utilisateurs informés en temps réel de l'état de leurs transactions. BAIBEBALO permet une personnalisation poussée par canal (Email, SMS, Push).
+                    </p>
+<div class="my-8 rounded-xl overflow-hidden border border-[#e8edf3] custom-shadow bg-[#f8fafb] p-6">
+<div class="flex items-center gap-2 text-primary font-bold mb-4">
+<span class="material-symbols-outlined">info</span>
+                            Note importante
+                        </div>
+<p class="text-sm m-0">Avant de configurer les webhooks, assurez-vous que votre serveur est capable de répondre avec un statut HTTP 200 en moins de 2 secondes.</p>
+</div>
+<h2>1. Accéder aux paramètres</h2>
+<p>
+                        Rendez-vous dans la section <strong>Paramètres &gt; Système &gt; Notifications</strong> de votre tableau de bord administrateur. Vous y trouverez trois onglets distincts pour chaque type de notification.
+                    </p>
+<h2>2. Configuration du flux de travail</h2>
+<p>
+                        Le diagramme ci-dessous illustre le parcours d'un signal de notification depuis la passerelle de paiement jusqu'à l'utilisateur final.
+                    </p>
+<div class="my-10 rounded-xl overflow-hidden border border-[#e8edf3] bg-[#f8fafb] flex flex-col items-center">
+<div class="w-full aspect-video bg-gradient-to-br from-primary/5 to-primary/20 flex items-center justify-center p-8">
+<div class="grid grid-cols-3 gap-8 w-full">
+<div class="bg-white p-4 rounded-lg shadow-sm border border-primary/20 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary mb-2">payments</span>
+<span class="text-xs font-bold uppercase">Paiement Reçu</span>
+</div>
+<div class="flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">arrow_forward</span>
+</div>
+<div class="bg-white p-4 rounded-lg shadow-sm border border-primary/20 flex flex-col items-center text-center">
+<span class="material-symbols-outlined text-primary mb-2">hub</span>
+<span class="text-xs font-bold uppercase">Hub BAIBEBALO</span>
+</div>
+</div>
+</div>
+<div class="p-3 text-xs text-[#507395] italic border-t border-[#e8edf3] w-full text-center">
+                            Diagramme architectural du service de notification
+                        </div>
+</div>
+<h2>3. Définir les déclencheurs (Triggers)</h2>
+<p>
+                        Vous pouvez choisir parmi une liste de 12 événements prédéfinis. Les plus courants sont :
+                    </p>
+<ul class="list-disc pl-5 space-y-2 mb-6 text-gray-700">
+<li><strong>SUCCESS :</strong> Transaction validée.</li>
+<li><strong>FAILED :</strong> Échec du paiement (solde insuffisant, etc).</li>
+<li><strong>REFUNDED :</strong> Remboursement effectué.</li>
+<li><strong>PENDING :</strong> Paiement en attente de vérification manuelle.</li>
+</ul>
+</article>
+<!-- Feedback Section -->
+<section class="py-12 flex flex-col items-center text-center">
+<h4 class="text-xl font-bold mb-6">Cet article vous a-t-il aidé ?</h4>
+<div class="flex gap-4">
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-[#e8edf3] hover:border-primary hover:bg-primary/5 transition-all font-medium group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-primary">thumb_up</span>
+                            Oui, merci !
+                        </button>
+<button class="flex items-center gap-2 px-6 py-2.5 rounded-full border-2 border-[#e8edf3] hover:border-red-500 hover:bg-red-50 transition-all font-medium group">
+<span class="material-symbols-outlined text-gray-400 group-hover:text-red-500">thumb_down</span>
+                            Pas vraiment
+                        </button>
+</div>
+<div class="mt-10 p-6 bg-[#f8fafb] rounded-xl w-full flex items-center justify-between">
+<div class="text-left">
+<p class="font-bold text-[#0e141b]">Vous ne trouvez pas votre réponse ?</p>
+<p class="text-sm text-[#507395]">Nos experts sont disponibles pour vous aider 24/7.</p>
+</div>
+<button class="px-5 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-[#155392] transition-colors">
+                            Ouvrir un ticket
+                        </button>
+</div>
+</section>
+</div>
+</main>
+<!-- Right Mini-TOC -->
+<aside class="hidden xl:flex w-64 flex-col border-l border-[#e8edf3] bg-white p-6">
+<h4 class="text-[11px] font-bold text-[#507395] uppercase tracking-wider mb-4">Sur cette page</h4>
+<div class="space-y-4 text-sm font-medium text-[#507395]">
+<a class="block hover:text-primary transition-colors border-l-2 border-primary pl-3 text-primary" href="#">Accéder aux paramètres</a>
+<a class="block hover:text-primary transition-colors pl-3 border-l-2 border-transparent" href="#">Flux de travail</a>
+<a class="block hover:text-primary transition-colors pl-3 border-l-2 border-transparent" href="#">Définir les déclencheurs</a>
+<a class="block hover:text-primary transition-colors pl-3 border-l-2 border-transparent" href="#">Modèles d'emails</a>
+</div>
+<div class="mt-auto pt-6 border-t border-[#e8edf3]">
+<div class="rounded-xl bg-primary/5 p-4">
+<p class="text-xs font-bold text-primary mb-2">PRO TIP</p>
+<p class="text-xs leading-relaxed text-[#507395]">Utilisez les variables <span class="bg-primary/10 px-1 rounded">{{user_name}}</span> pour personnaliser vos messages.</p>
+</div>
+</div>
+</aside>
+</div>
+</body></html>

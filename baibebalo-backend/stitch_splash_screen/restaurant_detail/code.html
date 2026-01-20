@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#1a1c20",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        .hero-gradient {
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(247,247,247,1) 100%);
+        }
+        .dark .hero-gradient {
+            background: linear-gradient(to bottom, rgba(0,0,0,0) 60%, rgba(26,28,32,1) 100%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Hero Section -->
+<div class="relative h-72 w-full overflow-hidden">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Gourmet grilled platter of Ivorian food" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBu5-PLPYljZm-9_dxeWE7cTWsDrDQWIQCj4H_k3HPdJivXwf5XYtNb_LH0Cu6dCnuJKnZsERlfxKmOh21Coou5i37L0LV0mJ7MyMHmmyqEg-lGCkBb4eFG-kSQOVplTp_XEH4b6OtXpRpxxLmAKr-kF3Me8ibTYdUeUZYqFYcVopw5mhoz0xF47zWVqN_i8dhm_sisN8fX_dT1962ImWAREX6W72IbsnJC8eNbLVa1uW4BoyVkaJ1crXL01dOlqdxLMPIVT-bNmqq_");'>
+</div>
+<div class="absolute inset-0 hero-gradient"></div>
+<!-- Top Nav Overlay -->
+<div class="absolute top-0 left-0 right-0 p-4 flex justify-between items-center z-10">
+<button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30">
+<span class="material-symbols-outlined">arrow_back</span>
+</button>
+<div class="flex gap-2">
+<button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30">
+<span class="material-symbols-outlined">search</span>
+</button>
+<button class="w-10 h-10 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center text-white border border-white/30">
+<span class="material-symbols-outlined">favorite</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Restaurant Profile Overlap -->
+<div class="px-4 -mt-16 relative z-20">
+<div class="bg-white dark:bg-[#22252a] rounded-xl p-6 shadow-xl shadow-black/5 border border-white dark:border-white/5">
+<div class="flex flex-col items-center">
+<div class="w-20 h-20 rounded-xl bg-primary/10 border-4 border-white dark:border-[#22252a] flex items-center justify-center overflow-hidden mb-3">
+<div class="w-full h-full bg-center bg-cover" data-alt="Restaurant logo with African motifs" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDoMrNTc8TTLHnL4sWn3BYYJ4wxwdJGQ9kwaAkAZJJQ2bzdaWcUGpdyXjX0s0OvEO1tZ_WKJ5nN07WQ11cMT-kaBPjWbtGqhlStayOqeispYR3f-eketDp3ArDoFMB_D5x98ePlVHy8cvs5vFQ72fC0dzLwXjqJMNBX3Z33ZUT3_VDTYeAcpPy8Y6L6bKJqcJ562kr644VpDNBj3r7pvidNjb1sH3KLwjrRmcBtScj8pIbL4WXQqFzGLDxxjCeKS_7ErKDwifwZHDN0");'></div>
+</div>
+<h1 class="text-2xl font-bold tracking-tight mb-1">Chez Tanti</h1>
+<p class="text-slate-500 dark:text-slate-400 text-sm mb-4">Ivorian • Grill • Traditional Flavors</p>
+<div class="flex w-full items-center justify-between border-t border-slate-100 dark:border-white/5 pt-4">
+<div class="text-center flex-1 border-r border-slate-100 dark:border-white/5">
+<p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Rating</p>
+<div class="flex items-center justify-center gap-1">
+<span class="material-symbols-outlined text-primary text-sm fill-1">star</span>
+<span class="font-bold">4.5</span>
+</div>
+</div>
+<div class="text-center flex-1 border-r border-slate-100 dark:border-white/5">
+<p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Delivery</p>
+<p class="font-bold">25-40 min</p>
+</div>
+<div class="text-center flex-1">
+<p class="text-xs text-slate-400 font-medium uppercase tracking-wider mb-1">Fee</p>
+<p class="font-bold">500 FCFA</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sticky Tabs Navigation -->
+<div class="sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-lg border-b border-slate-200 dark:border-white/5 mt-6">
+<div class="flex overflow-x-auto hide-scrollbar px-4 gap-6">
+<a class="py-4 border-b-2 border-primary text-primary font-bold text-sm whitespace-nowrap" href="#">Entrées</a>
+<a class="py-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 font-bold text-sm whitespace-nowrap" href="#">Plats principaux</a>
+<a class="py-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 font-bold text-sm whitespace-nowrap" href="#">Boissons</a>
+<a class="py-4 border-b-2 border-transparent text-slate-500 dark:text-slate-400 font-bold text-sm whitespace-nowrap" href="#">Desserts</a>
+</div>
+</div>
+<!-- Menu List -->
+<div class="px-4 pb-32">
+<h3 class="text-lg font-bold py-6">Les Entrées Populaires</h3>
+<div class="space-y-4">
+<!-- Menu Item 1 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#22252a] p-3 rounded-lg border border-slate-100 dark:border-white/5">
+<div class="w-24 h-24 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Plate of golden fried alloco bananas" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDrhzjpZNFYKnreXH6wHuGqJwr6bxa7fSORYJkmHaiSJXySyxwN0Ss-sAuWxaQpFRCcnlrzjGapjH31iBJx8ByDQPUhfRp1IKD1n2Bu7rCVQszOflTag2yyyqwXo1YdjmH5FFHX_mf7uaDLUX73jQbCqQheJpzgENDF-82uW4F0ZqK7_GIMjhU9UBbFpYlB5hPiRC49_BjjDmWGlUd9RJauGL_chaV3X5BJiBOFCy-Hlp8zS7fiDBv6qjLf_2o7CrCBxaKpLHU58xGd");'></div>
+<div class="flex-1 min-w-0">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Alloco Classic</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 mb-2">Plantain frite servie avec sa sauce pimentée signature.</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">1.500 FCFA</span>
+<button class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Menu Item 2 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#22252a] p-3 rounded-lg border border-slate-100 dark:border-white/5">
+<div class="w-24 h-24 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Fresh seasonal garden salad" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBZmamCMWnkjnhg7Ziz4EEOUrm4jtRITaupIvevcvIw-W6hKYa-MYWP2HGCQfcXn6u9QzbyG5-BrQ-hX0bNw94ozVKuzrZPMTIoSKXpoMXtL0BVj3wmcCwFV9BL06Slfna1PDGKaN21x7si1VnTPbpT8FKQ9Az3UGlO9ZoY0WvFwlwhln8T5wy3Y4MXbrdgXg-HwVswYL6itXQetNDPonPd7hIYFqs8o9O3VOVBz-4lRwJRQOg8EQ8M7mr-7qJ_YcIy_hbX-yU9K1iB");'></div>
+<div class="flex-1 min-w-0">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Salade Fraîcheur</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 mb-2">Tomates, concombres, oignons et vinaigrette maison.</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">2.000 FCFA</span>
+<button class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<h3 class="text-lg font-bold py-6">Plats Principaux</h3>
+<div class="space-y-4">
+<!-- Menu Item 3 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#22252a] p-3 rounded-lg border border-slate-100 dark:border-white/5">
+<div class="w-24 h-24 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Traditional Garba de Thon dish" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAYf3h1VAi9Bj604Tbu5Ay_yra9jLxM6IaErKTTDNzqAWVWT9oiJpkSCBeAm0GbZMfoW6x1tDjs_36h82QZgx8tJ2kW_qYLGHQX1337aGrPRXOjB_u3JBgOwzY0Fbk3ySOH9Y76_BTZY5P2Nq5YQQRK7-de4pUHwIut_BI3z0iFY1vfBGwr4BRNFUt0mNDA3QE2SXTT03nrwmPQd8f6SFeakz5Az4LIJo3z_mrT6KDL3tThbJHvQSI7rdWk-rCaVjkYgKpJnwFrdDZV");'></div>
+<div class="flex-1 min-w-0">
+<div class="flex items-center gap-2">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Garba de Thon</h4>
+<span class="bg-primary/20 text-primary text-[10px] font-bold px-1.5 py-0.5 rounded">POPULAR</span>
+</div>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 mb-2">Attiéké traditionnel servi avec thon frit et piments.</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">2.500 FCFA</span>
+<button class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Menu Item 4 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#22252a] p-3 rounded-lg border border-slate-100 dark:border-white/5">
+<div class="w-24 h-24 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Grilled chicken with spices" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD4vysUnUXfSkrBda_0HKejL87rcAgjfuTkQNwXJ4PNpjzHgoy2NkR_r7LC8ivQtxq9CrkdiEsjftgSangaUdyIBO59JQvTdHWIhzEkxou5Hh4yt59LPlREmBKHIrzheNxkSt8BCLCobyq7XHpvkX5u7o85h8prWhZflpyiTjidXx8STdSNcoev3W9zIyzYZEwZxiehbsU6zB2YDe0ZM-utPepYZujAPT4dzYRDJon3PPCiM8zFX8KbR0D8X2tdjjAbQbzpvaVFWygG");'></div>
+<div class="flex-1 min-w-0">
+<h4 class="font-bold text-slate-900 dark:text-white truncate">Poulet Braisé</h4>
+<p class="text-xs text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 mb-2">Demi-poulet mariné et braisé au charbon de bois.</p>
+<div class="flex items-center justify-between">
+<span class="text-primary font-bold">4.500 FCFA</span>
+<button class="w-8 h-8 rounded-full bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/30">
+<span class="material-symbols-outlined text-sm">add</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Basket Button (FAB) -->
+<div class="fixed bottom-24 left-4 right-4 z-50">
+<button class="w-full bg-primary text-white py-4 rounded-xl shadow-2xl shadow-primary/40 flex items-center justify-between px-6 font-bold">
+<div class="flex items-center gap-3">
+<span class="bg-white/20 px-2.5 py-1 rounded-lg text-sm">2</span>
+<span>Voir le panier</span>
+</div>
+<span>4.000 FCFA</span>
+</button>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#22252a] border-t border-slate-100 dark:border-white/5 px-6 py-3 flex justify-between items-center z-50 rounded-t-xl">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">restaurant</span>
+<span class="text-[10px] font-bold">Explore</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">search</span>
+<span class="text-[10px] font-medium">Recherche</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Compte</span>
+</button>
+</nav>
+</body></html>

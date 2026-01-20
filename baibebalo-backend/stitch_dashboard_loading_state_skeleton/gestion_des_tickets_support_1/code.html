@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Gestion des Tickets Support - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0ea5e9",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#f8fafc",
+                        "background-dark": "#0f172a",
+                        "urgent": "#E64A4A",
+                        "high": "#FF9C33",
+                        "normal": "#3D8FFC",
+                        "new": "#0ea5e9",
+                        "progress": "#D1B36C",
+                        "resolved": "#10b981",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style type="text/tailwindcss">
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 10px;
+        }
+        .dark .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #334155;
+        }
+    </style>
+</head>
+<body class="font-display bg-background-light dark:bg-background-dark text-[#1e293b] dark:text-slate-200 min-h-screen flex flex-col">
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800 px-4 md:px-10 py-3 flex items-center justify-between">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-3">
+<div class="size-8 bg-brand-orange rounded-lg flex items-center justify-center text-white">
+<span class="material-symbols-outlined text-xl">support_agent</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight hidden sm:block">BAIBEBALO <span class="text-slate-500 font-medium">Admin</span></h2>
+</div>
+<nav class="hidden lg:flex items-center gap-6">
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-sm font-semibold transition-colors" href="#">Dashboard</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-sm font-semibold transition-colors" href="#">Commandes</a>
+<a class="text-slate-500 dark:text-slate-400 hover:text-primary dark:hover:text-white text-sm font-semibold transition-colors" href="#">Utilisateurs</a>
+<a class="text-primary dark:text-primary text-sm font-bold border-b-2 border-primary py-1" href="#">Support</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 focus-within:ring-2 ring-primary/20 transition-all">
+<span class="material-symbols-outlined text-slate-400 text-lg">search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-32 md:w-64 placeholder:text-slate-400" placeholder="Rechercher..." type="text"/>
+</div>
+<div class="flex gap-2">
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-900"></span>
+</button>
+<button class="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg text-slate-600 dark:text-slate-300 transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</div>
+<div class="size-10 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden">
+<img alt="Admin Profile" class="size-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCn16vgjWG1oVuCI3wfDsZNbBnOPr-siIMq4Ml3x1mjDnGVsClwHhTQe6paSOvvkonuMQeRw5avsmfxrnYwqXZczob8Li4wGrefEnfAuNRwvA_AcFs3xtmRyK5b5B_MZ6mTYKj-u7WJdre5YlcW-HJu6FtceUffz7J2FpkuV3g40PtLAMlqSgouAR0DCIexHEbvYoR7WTcsJMtiHc2j9pcZzQh0g5jCvSqWERYSKjPXIy6JdkcV3yDN6XnYJr9gVtuJwfh1eiI0c65v"/>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-7xl mx-auto w-full p-4 md:p-8 space-y-6">
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Gestion des Tickets Support</h1>
+<p class="text-slate-500 dark:text-slate-400 max-w-2xl font-medium">Flux centralisé des demandes d'assistance clients, restaurants et livreurs de l'écosystème BAIBEBALO.</p>
+</div>
+<div class="flex items-center gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-750 transition-all text-slate-700 dark:text-slate-200">
+<span class="material-symbols-outlined text-lg">file_download</span> Exporter
+            </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg text-sm font-bold shadow-md hover:bg-sky-500 transition-all">
+<span class="material-symbols-outlined text-lg">add</span> Nouveau Ticket
+            </button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-4 space-y-4">
+<div class="flex flex-wrap items-center gap-3">
+<div class="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-lg">
+<button class="px-4 py-1.5 text-xs font-bold rounded-md bg-white dark:bg-primary shadow-sm text-primary dark:text-white">Tous</button>
+<button class="px-4 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">Nouveau</button>
+<button class="px-4 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">En cours</button>
+<button class="px-4 py-1.5 text-xs font-bold text-slate-500 dark:text-slate-400 hover:text-primary transition-colors">Résolu</button>
+</div>
+<div class="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+<div class="flex gap-2 flex-wrap">
+<button class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-primary transition-colors">
+                    Type: Tous <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-primary transition-colors">
+                    Priorité: Toutes <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+<button class="flex items-center gap-2 px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-xs font-bold text-slate-700 dark:text-slate-200 hover:border-primary transition-colors">
+                    Période <span class="material-symbols-outlined text-sm">calendar_today</span>
+</button>
+</div>
+<button class="ml-auto text-xs font-bold text-slate-400 hover:text-primary transition-colors">Réinitialiser</button>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800/50 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-slate-50/50 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-700">
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-32">ID</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-40">Utilisateur</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sujet</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-36">Priorité</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-40">Statut</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-48">Date de création</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-16 text-center"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-slate-200 dark:divide-slate-800">
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+<td class="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-200 font-medium">#SUP-456</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                            Client
+                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">Problème de paiement commande #123</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Le client signale une double débit...</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-urgent/10 text-urgent">
+<span class="size-1.5 rounded-full bg-urgent"></span> Urgent
+                        </span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary">
+                            Nouveau
+                        </span>
+</td>
+<td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">12 Oct 2023, 14:20</td>
+<td class="px-6 py-4 text-center">
+<button class="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-lg text-slate-500">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+<td class="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-200 font-medium">#SUP-457</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary">
+                            Resto
+                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">Modification menu indisponible</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Impossible d'ajouter des options de burger...</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-normal/10 text-normal">
+<span class="size-1.5 rounded-full bg-normal"></span> Normale
+                        </span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-progress/10 text-progress">
+                            En cours
+                        </span>
+</td>
+<td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">12 Oct 2023, 13:45</td>
+<td class="px-6 py-4 text-center">
+<button class="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-lg text-slate-500">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+<td class="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-200 font-medium">#SUP-458</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-brand-orange/10 text-brand-orange">
+                            Livreur
+                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">Problème de géolocalisation</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Le livreur ne reçoit pas les mises à jour...</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-high/10 text-high">
+<span class="size-1.5 rounded-full bg-high"></span> Élevée
+                        </span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary">
+                            Nouveau
+                        </span>
+</td>
+<td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">12 Oct 2023, 12:10</td>
+<td class="px-6 py-4 text-center">
+<button class="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-lg text-slate-500">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+<td class="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-200 font-medium">#SUP-459</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200">
+                            Client
+                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">Remboursement non reçu</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Délai de 5 jours dépassé...</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-high/10 text-high">
+<span class="size-1.5 rounded-full bg-high"></span> Élevée
+                        </span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-progress/10 text-progress">
+                            En cours
+                        </span>
+</td>
+<td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">11 Oct 2023, 18:30</td>
+<td class="px-6 py-4 text-center">
+<button class="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-lg text-slate-500">more_vert</span>
+</button>
+</td>
+</tr>
+<tr class="hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors group">
+<td class="px-6 py-4 font-mono text-xs text-slate-700 dark:text-slate-200 font-medium">#SUP-460</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-primary/10 text-primary">
+                            Resto
+                        </span>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">Accès compte bloqué</p>
+<p class="text-xs text-slate-500 dark:text-slate-400">Identifiants incorrects après MAJ...</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-normal/10 text-normal">
+<span class="size-1.5 rounded-full bg-normal"></span> Normale
+                        </span>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold bg-resolved/10 text-resolved">
+                            Résolu
+                        </span>
+</td>
+<td class="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">11 Oct 2023, 16:15</td>
+<td class="px-6 py-4 text-center">
+<button class="p-1 rounded-md opacity-0 group-hover:opacity-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-all">
+<span class="material-symbols-outlined text-lg text-slate-500">more_vert</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="px-6 py-4 bg-slate-50/50 dark:bg-slate-800/80 border-t border-slate-200 dark:border-slate-700 flex flex-col sm:flex-row items-center justify-between gap-4">
+<p class="text-xs text-slate-500 dark:text-slate-400 font-semibold">Affichage de 1 à 10 sur 458 tickets</p>
+<div class="flex items-center gap-2">
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-white dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_left</span>
+</button>
+<button class="size-8 flex items-center justify-center rounded-lg bg-primary text-white text-xs font-bold shadow-sm">1</button>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-white dark:hover:bg-slate-700">2</button>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-white dark:hover:bg-slate-700">3</button>
+<span class="text-slate-400 px-1">...</span>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-bold hover:bg-white dark:hover:bg-slate-700">46</button>
+<button class="size-8 flex items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700 text-slate-500 hover:bg-white dark:hover:bg-slate-700 transition-colors">
+<span class="material-symbols-outlined text-lg">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+<div class="size-10 rounded-lg bg-urgent/10 flex items-center justify-center text-urgent">
+<span class="material-symbols-outlined">warning</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400">Tickets Urgents</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">12</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+<div class="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400">Non assignés</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">34</p>
+</div>
+</div>
+<div class="bg-white dark:bg-slate-800/50 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex items-center gap-4">
+<div class="size-10 rounded-lg bg-resolved/10 flex items-center justify-center text-resolved">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div>
+<p class="text-xs font-bold text-slate-500 dark:text-slate-400">Résolus aujourd'hui</p>
+<p class="text-2xl font-black text-slate-900 dark:text-white">89</p>
+</div>
+</div>
+</div>
+</main>
+<button class="fixed bottom-6 right-6 size-12 bg-primary text-white rounded-full shadow-xl hover:scale-110 transition-transform flex items-center justify-center z-50">
+<span class="material-symbols-outlined">question_mark</span>
+</button>
+
+</body></html>

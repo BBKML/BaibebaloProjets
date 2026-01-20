@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#22262a",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#121715] dark:text-white">
+<div class="relative mx-auto flex h-full min-h-screen max-w-[430px] flex-col overflow-x-hidden pb-32">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md px-4 py-4">
+<button class="flex h-10 w-10 items-center justify-center rounded-full bg-white dark:bg-gray-800 ios-shadow">
+<span class="material-symbols-outlined text-[#121715] dark:text-white">arrow_back_ios_new</span>
+</button>
+<h2 class="ml-4 text-lg font-bold leading-tight tracking-tight flex-1">Détails de la commande</h2>
+</header>
+<!-- Status & ID Card -->
+<div class="px-4 py-2">
+<div class="bg-white dark:bg-gray-800 p-5 rounded-xl ios-shadow border border-gray-100 dark:border-gray-700">
+<div class="flex justify-between items-start mb-4">
+<div>
+<p class="text-xs font-semibold uppercase tracking-wider text-[#65867b] dark:text-gray-400">ID de commande</p>
+<h1 class="text-xl font-bold text-[#121715] dark:text-white">#BAIB-12345</h1>
+</div>
+<span class="bg-primary/10 text-primary text-xs font-bold px-3 py-1.5 rounded-full">
+                        Livré
+                    </span>
+</div>
+<div class="flex items-center gap-2 text-sm text-[#65867b] dark:text-gray-400">
+<span class="material-symbols-outlined text-sm">calendar_today</span>
+<span>12 Oct 2023, 14:30</span>
+</div>
+</div>
+</div>
+<!-- Section: Delivery Address -->
+<div class="px-4 pt-4">
+<h3 class="text-sm font-bold uppercase tracking-wider text-[#65867b] dark:text-gray-400 px-1 mb-2">Adresse de livraison</h3>
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 px-4 py-4 rounded-xl ios-shadow border border-gray-100 dark:border-gray-700">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#121715] dark:text-white text-base font-semibold leading-normal">Maison 4, Rue des Jardins</p>
+<p class="text-[#65867b] dark:text-gray-400 text-sm font-normal">Cocody, Abidjan</p>
+</div>
+</div>
+</div>
+<!-- Section: Order Items -->
+<div class="px-4 pt-6">
+<div class="flex items-center justify-between px-1 mb-2">
+<h3 class="text-sm font-bold uppercase tracking-wider text-[#65867b] dark:text-gray-400">Articles commandés</h3>
+<span class="text-xs font-medium text-primary">2 Articles</span>
+</div>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl ios-shadow border border-gray-100 dark:border-gray-700">
+<div class="size-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+<img class="h-full w-full object-cover" data-alt="Dish of Garba Ivorian local food" src="https://lh3.googleusercontent.com/aida-public/AB6AXuANOTXezeRhpfq3bTFXEGbG9MUjjTaFwq_j0eWhrJa-JgVUgnAMGJhpQnlmeH4qCIYyGvEAZEhxcxaCip7b8rX7V93M-ZLFXzI4Pllup5aObobMWtUF-7a7zyIbLU16JE17fVLtUmQL5i90JyfVsu_kbjh4hQFykeY4IAP20KFlmEtwfNeQc3K8Rdp-4xPCU1mZjBez09Ufh5iUOPlL_bfjVcihrbI0Dmzz9T-YlzYrEq9d_ctdl5Qkq6sru2fyiVBBPs0hItZzeVYn"/>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<div class="flex justify-between items-start">
+<p class="text-[#121715] dark:text-white text-base font-semibold">Garba Spécial</p>
+<p class="text-primary font-bold">3.500 FCFA</p>
+</div>
+<p class="text-[#65867b] dark:text-gray-400 text-sm">Quantité: 1</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800 p-3 rounded-xl ios-shadow border border-gray-100 dark:border-gray-700">
+<div class="size-16 shrink-0 overflow-hidden rounded-lg bg-gray-100">
+<img class="h-full w-full object-cover" data-alt="Refreshing red bissap juice in glass" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhlZjXA-2Fl94otYcbEapZ4P8QXFuzQ9ihxkmwbLpp_jx3fUMiLVxk3vxKO8xFcbKo6Rm2adAFLfAEYUMfzq079CN51s7BPKW9mqD-zgAxnjZAsmifCf2SmzfSIK0iA4XBQBwvX9K7c1JP3-yAFPh2s192MppMzuB7JfDKZkotI_9lRu2_Ct7Z5d62wato2HUc6cvOt66NwKvjgCx5cWSVZ55Q60DB_NTfVk9RTPbtabqkg2Vh7_pPxor0fUfoVtPdPtqZNxsm47Tl"/>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<div class="flex justify-between items-start">
+<p class="text-[#121715] dark:text-white text-base font-semibold">Bissap Rouge</p>
+<p class="text-primary font-bold">1.000 FCFA</p>
+</div>
+<p class="text-[#65867b] dark:text-gray-400 text-sm">Quantité: 2</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: Payment Summary -->
+<div class="px-4 pt-6 pb-8">
+<h3 class="text-sm font-bold uppercase tracking-wider text-[#65867b] dark:text-gray-400 px-1 mb-2">Résumé du paiement</h3>
+<div class="bg-white dark:bg-gray-800 p-5 rounded-xl ios-shadow border border-gray-100 dark:border-gray-700 space-y-3">
+<div class="flex justify-between text-sm">
+<span class="text-[#65867b] dark:text-gray-400">Sous-total</span>
+<span class="font-medium">4.500 FCFA</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-[#65867b] dark:text-gray-400">Frais de livraison</span>
+<span class="font-medium text-primary">Gratuit</span>
+</div>
+<div class="flex justify-between text-sm">
+<span class="text-[#65867b] dark:text-gray-400">Taxes</span>
+<span class="font-medium">0 FCFA</span>
+</div>
+<div class="pt-3 border-t border-dashed border-gray-200 dark:border-gray-600 flex justify-between items-center">
+<span class="text-base font-bold text-[#121715] dark:text-white">Total</span>
+<span class="text-xl font-extrabold text-[#121715] dark:text-white">4.500 FCFA</span>
+</div>
+<div class="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex items-center justify-between">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-orange-500">account_balance_wallet</span>
+<span class="text-sm font-medium text-[#121715] dark:text-white">Orange Money</span>
+</div>
+<span class="text-xs text-[#65867b] dark:text-gray-400">Payé</span>
+</div>
+</div>
+</div>
+<!-- Sticky Footer Actions -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/80 dark:bg-gray-900/80 backdrop-blur-xl border-t border-gray-100 dark:border-gray-800 p-4 pb-8 flex flex-col gap-3">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">refresh</span>
+                Commander à nouveau
+            </button>
+<button class="w-full bg-transparent border-2 border-gray-200 dark:border-gray-700 text-[#636973] dark:text-gray-300 font-bold py-4 rounded-xl active:scale-95 transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">support_agent</span>
+                Contacter le support
+            </button>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1b6e98",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121b20",
+                        "card-dark": "#1a262e",
+                        "border-dark": "#273b45",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .heatmap-cell:hover { transform: scale(1.1); transition: all 0.2s; z-index: 10; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #273b45; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Navigation -->
+<aside class="w-64 flex flex-col bg-white dark:bg-background-dark border-r border-slate-200 dark:border-border-dark">
+<div class="p-6 flex items-center gap-3">
+<div class="h-10 w-10 rounded-full bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-sm font-bold uppercase tracking-wider">BAIBEBALO</h1>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest">Admin Dashboard</p>
+</div>
+</div>
+<nav class="flex-1 px-4 py-4 space-y-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-card-dark transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm font-medium">Tableau de bord</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-card-dark transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<span class="text-sm font-medium">Commandes</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">query_stats</span>
+<span class="text-sm font-semibold">Analytique</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-card-dark transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="text-sm font-medium">Clients</span>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-card-dark transition-colors" href="#">
+<span class="material-symbols-outlined">campaign</span>
+<span class="text-sm font-medium">Marketing</span>
+</a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-border-dark">
+<div class="flex items-center gap-3 px-2 py-3">
+<div class="h-10 w-10 rounded-full bg-cover bg-center" data-alt="Avatar de l'administrateur système" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBRgOglUiYtidy2YCWJef86OHTAfhpNl1AWAnXYhz-qyq9WxUS7wUrvE7te9r7PQgGRoluS4z4KGiYE1ltxyQLj87VXrbOx8et9x0Q1avvfXi9EXF95sk_TtzMUJfj0oR6BBQDEuCtnmrTj8lrIT95XugRO6gd9XlfbByLoJByEYtEiU6348gffEUqZFHwNC69TKoWPK9nv_lsHcFqpoD9N0OtGQjPbNkoDGja7mTZVSzgcVtZAuX-5YYsPYEp8Alh3CuH19E-VnCyJ')"></div>
+<div class="flex-1 min-w-0">
+<p class="text-sm font-bold truncate">Jean Admin</p>
+<p class="text-xs text-slate-500 truncate">Super Admin</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">settings</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- Top Navigation -->
+<header class="h-16 flex items-center justify-between px-8 border-b border-slate-200 dark:border-border-dark bg-white/50 dark:bg-background-dark/50 backdrop-blur-sm z-10">
+<div class="flex items-center gap-4">
+<h2 class="text-xl font-bold">Analyse Temporelle</h2>
+<span class="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded leading-none">Phase 5</span>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative flex items-center bg-slate-100 dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-lg px-3 py-1.5">
+<span class="material-symbols-outlined text-slate-400 text-lg mr-2">calendar_today</span>
+<span class="text-sm font-medium">Derniers 30 jours</span>
+<span class="material-symbols-outlined text-slate-400 text-lg ml-2">expand_more</span>
+</div>
+<button class="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-4 py-2 rounded-lg text-sm font-bold transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-lg">download</span>
+<span>Exporter Rapport</span>
+</button>
+<div class="h-8 w-[1px] bg-slate-200 dark:border-border-dark mx-2"></div>
+<button class="p-2 text-slate-500 hover:bg-slate-100 dark:hover:bg-card-dark rounded-lg transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Dashboard Content Scrollable Area -->
+<div class="flex-1 overflow-y-auto custom-scrollbar p-8">
+<!-- KPI Row -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+<div class="bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark flex flex-col justify-between shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-tight">Total Commandes</p>
+<span class="material-symbols-outlined text-primary">analytics</span>
+</div>
+<div class="mt-4">
+<h3 class="text-3xl font-bold tracking-tight">12,450</h3>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-emerald-500 text-sm">trending_up</span>
+<p class="text-emerald-500 text-sm font-bold">+12.4%</p>
+<span class="text-slate-400 text-xs ml-1">vs mois dernier</span>
+</div>
+</div>
+</div>
+<div class="bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark flex flex-col justify-between shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-tight">Pic d'Affluence</p>
+<span class="material-symbols-outlined text-amber-500">schedule</span>
+</div>
+<div class="mt-4">
+<h3 class="text-3xl font-bold tracking-tight">12:00 - 14:00</h3>
+<p class="text-slate-400 text-sm mt-1">Moyenne hebdomadaire</p>
+</div>
+</div>
+<div class="bg-white dark:bg-card-dark p-6 rounded-xl border border-slate-200 dark:border-border-dark flex flex-col justify-between shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-sm font-medium text-slate-500 dark:text-slate-400 uppercase tracking-tight">Jour le Plus Actif</p>
+<span class="material-symbols-outlined text-primary">event_available</span>
+</div>
+<div class="mt-4">
+<h3 class="text-3xl font-bold tracking-tight">Vendredi</h3>
+<div class="flex items-center gap-1 mt-1">
+<p class="text-slate-400 text-sm">Volume indexé: <span class="text-white font-bold">1.4x</span></p>
+</div>
+</div>
+</div>
+</div>
+<!-- Main Analysis Zone -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+<!-- Bar Chart: Commandes par Heure -->
+<div class="lg:col-span-2 bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-border-dark p-6 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold">Commandes par Heure</h4>
+<p class="text-sm text-slate-500">Répartition des ventes sur un cycle de 24 heures</p>
+</div>
+<div class="flex gap-2">
+<div class="flex items-center gap-1.5 text-xs">
+<span class="w-3 h-3 rounded-full bg-primary/30"></span>
+<span>Base</span>
+</div>
+<div class="flex items-center gap-1.5 text-xs">
+<span class="w-3 h-3 rounded-full bg-primary"></span>
+<span>Périodes de Pic</span>
+</div>
+</div>
+</div>
+<div class="h-64 flex items-end gap-1.5 md:gap-3 px-2">
+<!-- Generate bars for 24h -->
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[20%] relative group" title="00h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[15%] relative group" title="01h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[10%] relative group" title="02h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[8%] relative group" title="03h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[12%] relative group" title="04h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[25%] relative group" title="05h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[40%] relative group" title="06h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[55%] relative group" title="07h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[65%] relative group" title="08h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[70%] relative group" title="09h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[75%] relative group" title="10h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[85%] relative group" title="11h"></div>
+<div class="flex-1 bg-primary rounded-t h-[95%] relative group" title="12h (PIC)"></div>
+<div class="flex-1 bg-primary rounded-t h-[100%] relative group" title="13h (PIC)"></div>
+<div class="flex-1 bg-primary rounded-t h-[85%] relative group" title="14h (PIC)"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[65%] relative group" title="15h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[60%] relative group" title="16h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[70%] relative group" title="17h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[85%] relative group" title="18h"></div>
+<div class="flex-1 bg-primary rounded-t h-[95%] relative group" title="19h (PIC)"></div>
+<div class="flex-1 bg-primary rounded-t h-[98%] relative group" title="20h (PIC)"></div>
+<div class="flex-1 bg-primary rounded-t h-[92%] relative group" title="21h (PIC)"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[60%] relative group" title="22h"></div>
+<div class="flex-1 bg-slate-200 dark:bg-border-dark/50 rounded-t h-[35%] relative group" title="23h"></div>
+</div>
+<div class="flex justify-between mt-4 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+<span>00:00</span>
+<span>04:00</span>
+<span>08:00</span>
+<span>12:00</span>
+<span>16:00</span>
+<span>20:00</span>
+<span>23:59</span>
+</div>
+</div>
+<!-- Insights Panel -->
+<div class="flex flex-col gap-6">
+<div class="bg-emerald-950/20 dark:bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-6 relative overflow-hidden flex-1 shadow-sm">
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-emerald-500">lightbulb</span>
+<h4 class="text-sm font-bold uppercase text-emerald-500 tracking-wider">Opportunity insight</h4>
+</div>
+<h3 class="text-lg font-bold mb-2">Meilleur créneau promo</h3>
+<p class="text-sm text-slate-400 leading-relaxed mb-6">
+                                    Augmentez vos ventes de <span class="text-emerald-500 font-bold">+18%</span> en programmant des offres flash entre <span class="text-white font-bold">11h00 et 12h00</span>. Ce créneau capte l'anticipation du déjeuner.
+                                </p>
+<button class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-2 rounded-lg text-sm font-bold transition-colors">
+                                    Planifier Promo
+                                </button>
+</div>
+<div class="absolute -bottom-6 -right-6 text-emerald-500/10 scale-[5] select-none">
+<span class="material-symbols-outlined" style="font-size: 48px;">trending_up</span>
+</div>
+</div>
+<div class="bg-white dark:bg-card-dark border border-slate-200 dark:border-border-dark rounded-xl p-6 shadow-sm">
+<h4 class="text-sm font-bold uppercase text-slate-500 tracking-wider mb-4">Alertes Activité</h4>
+<div class="space-y-4">
+<div class="flex items-start gap-3">
+<div class="h-2 w-2 rounded-full bg-amber-500 mt-1.5"></div>
+<div>
+<p class="text-xs font-bold uppercase tracking-tight">Surcharge Prévue</p>
+<p class="text-xs text-slate-500">Demain 12:30 (+15% vs habituel)</p>
+</div>
+</div>
+<div class="flex items-start gap-3">
+<div class="h-2 w-2 rounded-full bg-primary mt-1.5"></div>
+<div>
+<p class="text-xs font-bold uppercase tracking-tight">Optimisation Logistique</p>
+<p class="text-xs text-slate-500">Préparer 4 coursiers suppl. ven. 19h</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Visualization Row -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<!-- Heatmap Horaire -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-border-dark p-6 shadow-sm overflow-hidden">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h4 class="text-lg font-bold">Heatmap Hebdomadaire</h4>
+<p class="text-sm text-slate-500">Densité des commandes par Jour x Heure</p>
+</div>
+<div class="flex items-center gap-2">
+<span class="text-[10px] text-slate-500">Min</span>
+<div class="flex h-2 w-24 rounded overflow-hidden">
+<div class="flex-1 bg-primary/10"></div>
+<div class="flex-1 bg-primary/30"></div>
+<div class="flex-1 bg-primary/60"></div>
+<div class="flex-1 bg-primary"></div>
+</div>
+<span class="text-[10px] text-slate-500">Max</span>
+</div>
+</div>
+<div class="relative">
+<div class="flex">
+<div class="w-8"></div>
+<div class="flex-1 flex justify-between text-[8px] font-bold text-slate-500 pb-2">
+<span>00</span><span>04</span><span>08</span><span>12</span><span>16</span><span>20</span><span>23</span>
+</div>
+</div>
+<div class="space-y-1">
+<!-- Days of Week Rows -->
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-slate-400">LUN</span>
+<div class="flex-1 flex gap-1">
+<!-- Mocking cells for 24 hours -->
+<div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div>
+</div>
+</div>
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-slate-400">MAR</span>
+<div class="flex-1 flex gap-1">
+<!-- Repeat pattern variation -->
+<div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div>
+</div>
+</div>
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-slate-400">MER</span>
+<div class="flex-1 flex gap-1">
+<div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div>
+</div>
+</div>
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-slate-400">JEU</span>
+<div class="flex-1 flex gap-1">
+<div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div>
+</div>
+</div>
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-primary">VEN</span>
+<div class="flex-1 flex gap-1">
+<div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/15 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div>
+</div>
+</div>
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-slate-400">SAM</span>
+<div class="flex-1 flex gap-1">
+<div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/5 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div>
+</div>
+</div>
+<div class="flex items-center gap-1 group">
+<span class="w-8 text-[10px] font-bold text-slate-400">DIM</span>
+<div class="flex-1 flex gap-1">
+<div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/10 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/15 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/25 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/30 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/50 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/60 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/80 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/90 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/70 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/40 heatmap-cell"></div><div class="h-5 flex-1 rounded-sm bg-primary/20 heatmap-cell"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Line Chart: Commandes par Jour de la Semaine -->
+<div class="bg-white dark:bg-card-dark rounded-xl border border-slate-200 dark:border-border-dark p-6 shadow-sm">
+<div class="flex items-center justify-between mb-8">
+<div>
+<h4 class="text-lg font-bold">Commandes par Jour</h4>
+<p class="text-sm text-slate-500">Tendances quotidiennes moyennes</p>
+</div>
+</div>
+<div class="h-64 relative">
+<!-- SVG Line Chart Mockup -->
+<svg class="w-full h-full" viewbox="0 0 700 200">
+<!-- Grid Lines -->
+<line stroke="#273b45" stroke-dasharray="4" x1="0" x2="700" y1="50" y2="50"></line>
+<line stroke="#273b45" stroke-dasharray="4" x1="0" x2="700" y1="100" y2="100"></line>
+<line stroke="#273b45" stroke-dasharray="4" x1="0" x2="700" y1="150" y2="150"></line>
+<!-- Main Path -->
+<path d="M 0 140 L 116 130 L 232 150 L 348 110 L 464 40 L 580 80 L 700 70" fill="none" stroke="#1b6e98" stroke-linecap="round" stroke-linejoin="round" stroke-width="4"></path>
+<!-- Points -->
+<circle cx="116" cy="130" fill="#1b6e98" r="6"></circle>
+<circle cx="232" cy="150" fill="#1b6e98" r="6"></circle>
+<circle cx="348" cy="110" fill="#1b6e98" r="6"></circle>
+<circle cx="464" cy="40" fill="#1b6e98" r="6"></circle> <!-- Peak Friday -->
+<circle cx="580" cy="80" fill="#1b6e98" r="6"></circle>
+</svg>
+<div class="flex justify-between mt-4 px-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+<span>Lun</span>
+<span>Mar</span>
+<span>Mer</span>
+<span>Jeu</span>
+<span class="text-primary font-black">Ven</span>
+<span>Sam</span>
+<span>Dim</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

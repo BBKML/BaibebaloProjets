@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1f66ad",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#121920",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-nav {
+            background-color: rgba(31, 102, 173, 0.1);
+            color: #1f66ad;
+            border-left: 3px solid #1f66ad;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0f141a] dark:text-slate-200">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar -->
+<aside class="w-64 flex flex-col bg-white dark:bg-slate-900 border-r border-slate-200 dark:border-slate-800">
+<div class="p-6 flex items-center gap-3">
+<div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">rocket_launch</span>
+</div>
+<div>
+<h1 class="text-sm font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-[10px] text-slate-500 uppercase tracking-widest font-semibold">Admin Panel</p>
+</div>
+</div>
+<nav class="flex-1 px-4 space-y-1 mt-4">
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+                    Tableau de bord
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+                    Commandes
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">group</span>
+                    Utilisateurs
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">storefront</span>
+                    Commerçants
+                </a>
+<div class="pt-4 pb-2 px-3 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Configuration</div>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg active-nav" href="#">
+<span class="material-symbols-outlined">settings</span>
+                    Paramètres Généraux
+                </a>
+<a class="flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-lg text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+                    Logistique
+                </a>
+</nav>
+<div class="p-4 border-t border-slate-200 dark:border-slate-800">
+<div class="flex items-center gap-3 p-2">
+<div class="w-8 h-8 rounded-full bg-slate-200" data-alt="Avatar of the administrator" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDf1rKD5YryKz5ss4UUOXAT-SRRA_ttSG0_Tp4PhKTUZotK2k6g_YIIKA6Glbrtygm-CzgxyHYwLTe8hdpE1GOLdU2rcyxjQiE-USdUnvXRtUqAfBaAAh0xQwY4-m0vBIKy0baG4VbQBwfPhZb6w5hoZYY6ZwhYjSu1pUEYND2JNtSpuOuYyt_YXiBdYnQi-QlDljHg0r9i2aZr7oDfiV8tFz4FCp4GHXpEyB_1N2pZuCIbCLF8qJKRmcXolE9fMwDZLzMS4SPlgPFi");'></div>
+<div class="flex-1 min-w-0">
+<p class="text-xs font-bold truncate">Jean Administrateur</p>
+<p class="text-[10px] text-slate-500 truncate">admin@baibebalo.com</p>
+</div>
+<span class="material-symbols-outlined text-slate-400 text-sm">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- Header -->
+<header class="h-16 flex items-center justify-between px-8 bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shrink-0">
+<div class="flex items-center gap-4">
+<nav class="flex items-center gap-2 text-sm font-medium text-slate-500">
+<a class="hover:text-primary transition-colors" href="#">Admin</a>
+<span class="text-slate-300">/</span>
+<span class="text-slate-900 dark:text-white">Configuration Générale</span>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative group">
+<div class="flex items-center gap-3 px-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700">
+<span class="flex h-2 w-2 rounded-full bg-emerald-500"></span>
+<span class="text-xs font-bold text-slate-700 dark:text-slate-300">Live Platform Monitoring</span>
+</div>
+</div>
+<button class="p-2 text-slate-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</header>
+<!-- Scrollable Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-8">
+<!-- Page Title -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h2 class="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">Paramètres Généraux</h2>
+<p class="text-slate-500 mt-1">Contrôlez les paramètres opérationnels critiques de la plateforme BAIBEBALO.</p>
+</div>
+<div class="flex items-center gap-3 bg-white dark:bg-slate-900 p-1.5 pr-4 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+<label class="relative inline-flex items-center cursor-pointer ml-2">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+<div class="flex flex-col">
+<span class="text-xs font-bold text-slate-900 dark:text-white leading-none">Status Plateforme</span>
+<span class="text-[10px] text-emerald-600 font-bold uppercase tracking-tighter">Ouvert aux commandes</span>
+</div>
+</div>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+<!-- Section: Frais de Livraison -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">payments</span>
+<h3 class="font-bold text-lg">Frais de Livraison</h3>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-help" title="Configurez les frais facturés aux clients pour la livraison.">info</span>
+</div>
+<div class="p-6 flex-1 space-y-6">
+<div class="grid grid-cols-1 gap-4">
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Frais de base</label>
+<div class="relative rounded-lg shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent py-3 pl-4 pr-12 focus:border-primary focus:ring-primary sm:text-sm" placeholder="2.50" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="text-slate-500 sm:text-sm">€</span>
+</div>
+</div>
+<p class="mt-2 text-xs text-slate-500 italic">Frais fixe appliqué à chaque commande livraison.</p>
+</div>
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Frais par kilomètre</label>
+<div class="relative rounded-lg shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent py-3 pl-4 pr-12 focus:border-primary focus:ring-primary sm:text-sm" placeholder="0.75" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="text-slate-500 sm:text-sm">€/km</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">save</span>
+                                Sauvegarder
+                            </button>
+</div>
+</section>
+<!-- Section: Délais -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">schedule</span>
+<h3 class="font-bold text-lg">Gestion des Délais</h3>
+</div>
+<span class="material-symbols-outlined text-slate-400 cursor-help" title="Estimation des temps de traitement pour les clients.">info</span>
+</div>
+<div class="p-6 flex-1 space-y-6">
+<div class="grid grid-cols-1 gap-4">
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Temps de préparation moyen</label>
+<div class="relative rounded-lg shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent py-3 pl-4 pr-16 focus:border-primary focus:ring-primary sm:text-sm" placeholder="15" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="text-slate-500 sm:text-sm">min</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Délai de livraison maximum</label>
+<div class="relative rounded-lg shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent py-3 pl-4 pr-16 focus:border-primary focus:ring-primary sm:text-sm" placeholder="45" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="text-slate-500 sm:text-sm">min</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">save</span>
+                                Sauvegarder
+                            </button>
+</div>
+</section>
+<!-- Section: Seuils de commande -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">universal_currency_alt</span>
+<h3 class="font-bold text-lg">Seuils de commande</h3>
+</div>
+</div>
+<div class="p-6 flex-1 space-y-6">
+<div class="grid grid-cols-1 gap-4">
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Commande minimum pour livraison</label>
+<div class="relative rounded-lg shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent py-3 pl-4 pr-12 focus:border-primary focus:ring-primary sm:text-sm" placeholder="10.00" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="text-slate-500 sm:text-sm">€</span>
+</div>
+</div>
+</div>
+<div>
+<label class="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">Seuil de livraison offerte</label>
+<div class="relative rounded-lg shadow-sm">
+<input class="block w-full rounded-lg border-slate-300 dark:border-slate-700 bg-transparent py-3 pl-4 pr-12 focus:border-primary focus:ring-primary sm:text-sm" placeholder="50.00" type="number"/>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-4">
+<span class="text-slate-500 sm:text-sm">€</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">save</span>
+                                Sauvegarder
+                            </button>
+</div>
+</section>
+<!-- Section: Fonctionnalités -->
+<section class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col h-full">
+<div class="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">toggle_on</span>
+<h3 class="font-bold text-lg">Fonctionnalités</h3>
+</div>
+</div>
+<div class="p-6 flex-1 divide-y divide-slate-100 dark:divide-slate-800">
+<div class="py-4 first:pt-0 flex items-center justify-between">
+<div class="pr-8">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Activer le Click &amp; Collect</p>
+<p class="text-xs text-slate-500">Permettre aux clients de récupérer leurs commandes sur place.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="py-4 flex items-center justify-between">
+<div class="pr-8">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Précommandes autorisées</p>
+<p class="text-xs text-slate-500">Autoriser les commandes pour les jours suivants.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+<div class="py-4 last:pb-0 flex items-center justify-between">
+<div class="pr-8">
+<p class="text-sm font-bold text-slate-900 dark:text-white">Paiement à la livraison</p>
+<p class="text-xs text-slate-500">Activer le paiement en espèces ou TPE mobile à la réception.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
+</label>
+</div>
+</div>
+<div class="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
+<button class="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">save</span>
+                                Sauvegarder
+                            </button>
+</div>
+</section>
+</div>
+</div>
+</main>
+</div>
+</body></html>

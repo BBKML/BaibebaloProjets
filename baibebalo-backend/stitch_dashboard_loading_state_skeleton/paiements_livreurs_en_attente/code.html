@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Paiements Livreurs en Attente - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#207fdf",
+                        "background-light": "#f9fafb",
+                        "background-dark": "#1f262e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Inter', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e141b] dark:text-white">
+<div class="flex h-screen overflow-hidden">
+<!-- Sidebar Component -->
+<aside class="w-64 border-r border-[#e8edf3] dark:border-gray-700 bg-white dark:bg-[#151b23] flex flex-col">
+<div class="p-6 flex flex-col gap-6">
+<div class="flex gap-3 items-center">
+<div class="bg-primary rounded-lg p-2 text-white">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-[#0e141b] dark:text-white text-sm font-bold leading-tight">BAIBEBALO Admin</h1>
+<p class="text-[#507395] dark:text-gray-400 text-xs">Gestionnaire financier</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1">
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#507395] dark:text-gray-400 hover:bg-[#e8edf3] dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-medium">Tableau de bord</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#507395] dark:text-gray-400 hover:bg-[#e8edf3] dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">shopping_bag</span>
+<p class="text-sm font-medium">Commandes</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#507395] dark:text-gray-400 hover:bg-[#e8edf3] dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">local_shipping</span>
+<p class="text-sm font-medium">Livreurs</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border-r-4 border-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">account_balance_wallet</span>
+<p class="text-sm font-bold">Finances</p>
+</a>
+<a class="flex items-center gap-3 px-3 py-2 rounded-lg text-[#507395] dark:text-gray-400 hover:bg-[#e8edf3] dark:hover:bg-gray-800 transition-colors" href="#">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium">Paramètres</p>
+</a>
+</nav>
+</div>
+<div class="mt-auto p-6 border-t border-[#e8edf3] dark:border-gray-700">
+<div class="flex items-center gap-3">
+<div class="w-10 h-10 rounded-full bg-cover" data-alt="Admin profile avatar" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDthOpQG8dgFlnyUA98CXWDTPnQw86UVd1MAmyV2lqNm2tkAwyFSB4TWKWqGJIhTO99-5CViQRcn_wVaMogrzmnpjxg9alZ7zybhFpmimKK-wrDMT48t1p4mV_UCRyBmPeeZoQ0zFPR3y0bkIT7wggLFbo0Iqij1UGhVFIuZMcyjbaDcugVNsfCX-rzqEJKG60P58_FJoDs2TvWsm3P2SNhrPGRBWLfRcnt1bXjNovUoox44gkiX60WDO46fj7ymwuLFx1cEfMfHxqM");'></div>
+<div class="overflow-hidden">
+<p class="text-sm font-medium truncate dark:text-white">Admin Phase 4</p>
+<p class="text-xs text-[#507395] dark:text-gray-400">Déconnexion</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content -->
+<main class="flex-1 flex flex-col overflow-hidden">
+<!-- TopNavBar -->
+<header class="flex items-center justify-between border-b border-[#e8edf3] dark:border-gray-700 bg-white dark:bg-[#151b23] px-8 py-4">
+<div class="flex items-center gap-6">
+<h2 class="text-lg font-bold">Paiements Livreurs</h2>
+<nav class="hidden md:flex gap-6">
+<a class="text-[#507395] dark:text-gray-400 text-sm font-medium hover:text-primary" href="#">Aperçu</a>
+<a class="text-primary text-sm font-bold border-b-2 border-primary" href="#">En attente</a>
+<a class="text-[#507395] dark:text-gray-400 text-sm font-medium hover:text-primary" href="#">Historique</a>
+<a class="text-[#507395] dark:text-gray-400 text-sm font-medium hover:text-primary" href="#">Rapports</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden lg:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#507395] text-xl">search</span>
+<input class="bg-[#f0f2f5] dark:bg-gray-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm w-64 focus:ring-2 focus:ring-primary" placeholder="Rechercher un paiement..."/>
+</div>
+<button class="p-2 rounded-lg bg-[#f0f2f5] dark:bg-gray-800 text-[#507395] dark:text-gray-400 relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full border-2 border-white dark:border-gray-800"></span>
+</button>
+<button class="p-2 rounded-lg bg-[#f0f2f5] dark:bg-gray-800 text-[#507395] dark:text-gray-400">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<!-- Content Area -->
+<div class="flex-1 overflow-y-auto p-8 space-y-6">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-sm">
+<a class="text-[#507395] dark:text-gray-400 hover:text-primary" href="#">Finances</a>
+<span class="text-[#507395] dark:text-gray-600">/</span>
+<span class="font-semibold text-primary">Paiements Livreurs en Attente</span>
+</nav>
+<!-- Page Heading & Actions -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-4">
+<div class="space-y-1">
+<h1 class="text-3xl font-black tracking-tight">Paiements Livreurs en Attente</h1>
+<p class="text-[#507395] dark:text-gray-400">Gérez et validez les soldes en attente pour vos livreurs partenaires.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-gray-800 border border-[#e8edf3] dark:border-gray-700 rounded-lg text-sm font-bold shadow-sm hover:bg-gray-50 transition-colors">
+<span class="material-symbols-outlined text-lg">download</span>
+                            Exporter CSV
+                        </button>
+<button class="flex items-center gap-2 px-6 py-2.5 bg-primary text-white rounded-lg text-sm font-bold shadow-md shadow-primary/20 hover:bg-primary/90 transition-all">
+<span class="material-symbols-outlined text-lg">check_circle</span>
+                            Payer la sélection (3)
+                        </button>
+</div>
+</div>
+<!-- Filters Bar -->
+<div class="bg-white dark:bg-[#151b23] p-4 rounded-xl border border-[#e8edf3] dark:border-gray-700 flex flex-wrap gap-4 items-center">
+<div class="flex items-center gap-2 px-3 py-2 bg-background-light dark:bg-gray-800 rounded-lg border border-[#e8edf3] dark:border-gray-700 flex-1 min-w-[200px]">
+<span class="material-symbols-outlined text-[#507395]">person_search</span>
+<input class="bg-transparent border-none focus:ring-0 text-sm w-full p-0" placeholder="Filtrer par nom de livreur" type="text"/>
+</div>
+<div class="flex items-center gap-2 px-3 py-2 bg-background-light dark:bg-gray-800 rounded-lg border border-[#e8edf3] dark:border-gray-700">
+<span class="material-symbols-outlined text-[#507395]">calendar_today</span>
+<select class="bg-transparent border-none focus:ring-0 text-sm pr-8 py-0">
+<option>Toutes les périodes</option>
+<option>Semaine 1, Oct 2023</option>
+<option>Semaine 2, Oct 2023</option>
+</select>
+</div>
+<div class="flex items-center gap-2 px-3 py-2 bg-background-light dark:bg-gray-800 rounded-lg border border-[#e8edf3] dark:border-gray-700">
+<span class="material-symbols-outlined text-[#507395]">payments</span>
+<select class="bg-transparent border-none focus:ring-0 text-sm pr-8 py-0">
+<option>Tout montant</option>
+<option>&gt; 500 €</option>
+<option>100 - 500 €</option>
+</select>
+</div>
+<button class="p-2 text-primary hover:bg-primary/10 rounded-lg transition-colors">
+<span class="material-symbols-outlined">filter_list</span>
+</button>
+</div>
+<!-- Table Container -->
+<div class="bg-white dark:bg-[#151b23] rounded-xl border border-[#e8edf3] dark:border-gray-700 overflow-hidden shadow-sm">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-background-light dark:bg-gray-800/50 border-b border-[#e8edf3] dark:border-gray-700">
+<th class="px-6 py-4 w-12 text-center">
+<input class="rounded text-primary focus:ring-primary" type="checkbox"/>
+</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#507395] dark:text-gray-400">Livreur</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#507395] dark:text-gray-400">Période</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#507395] dark:text-gray-400">Montant dû</th>
+<th class="px-6 py-4 text-xs font-bold uppercase tracking-wider text-[#507395] dark:text-gray-400">Statut</th>
+<th class="px-6 py-4 text-right"></th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#e8edf3] dark:divide-gray-700">
+<!-- Row 1 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-center">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover" data-alt="Driver Jean Dupont avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuB0hC_u3clL2r9YkXZydCpkv3DkGYe6dglwCqiskaRjaZBbZXw-RtqYeyVyyQ1eHn_9H1-e1Q5s6dL159kQch1eXMy40jrheYu6VERBKg-WniYGHu1gzzGsk3nipT7Hs3J5Su5L7DMJCpbMcLS0hmyVguu13YoSt2a7urOAJAl9Rq_1QRvMXalNzvSRCYzQ6pRU8GtD623rhEudve_XegFtUBLELVq5_qVLYOvEiqfpQmYO-JuOrT2cLg2p3A_NXJIbI9i_lv_T4nCI');"></div>
+<div>
+<p class="font-semibold text-sm">Jean Dupont</p>
+<p class="text-xs text-[#507395]">ID: LV-24091</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Semaine 42, 2023</p>
+<p class="text-xs text-[#507395]">16 oct - 22 oct</p>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-bold text-gray-900 dark:text-white">150,00 €</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        En attente
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[#507395] hover:text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-center">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover" data-alt="Driver Marc Lawson avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuD6aQ_WSTOy0S7A399kfJpiB-ZyisUbrmAxEEsOFy5Vrg_lXrHopl1BTeGFrlPql_ZZB3-sWPV_It22RkBCW82F0P1YEKowwe-mOMpiKZu3mjCdLP0pP8y8B9_wbMJAkBIO0izt-mp21xsxdjPEWtqBnOYVQGuzjQwykBHsAKAoQBLU3LdDbbmwnVtXIeZ2HbhhcfVIAOcA0TL8bgWzQ2Vz4KT_xyjGvJNKA4JfQB-sUkXu6b7yXwY0DMPN1McOcfqfPawPut8jwQB0');"></div>
+<div>
+<p class="font-semibold text-sm">Marc Lawson</p>
+<p class="text-xs text-[#507395]">ID: LV-24088</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Semaine 42, 2023</p>
+<p class="text-xs text-[#507395]">16 oct - 22 oct</p>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-bold text-gray-900 dark:text-white">245,50 €</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        En attente
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[#507395] hover:text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-center">
+<input checked="" class="rounded text-primary focus:ring-primary" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover" data-alt="Driver Sophie Petit avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC4r2APj26BPZJcrGsB9F4niXGsXQzCQ6_gPUfHOxQfwxmNg6at2-9Ux7i_o6b_q4q9uIi1tRarXi2MmF7sYh4EocQb28W4cPtNWo-KT35NujMvTQ5kxtzhzTvcIJOWB_spCT0jlNu2KW9DNgNoG1rHqMxDskl6zcjpgCbEiHfs5nzK-NzwHMePp6GuZEBS2m70SkKxa5WFbpmSPm3-I8jgJfx2OnY86HDghiFKddr43ayocAHAicW2aWQB-OxxXJ56mT9XFP9JQL4n');"></div>
+<div>
+<p class="font-semibold text-sm">Sophie Petit</p>
+<p class="text-xs text-[#507395]">ID: LV-24102</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Semaine 42, 2023</p>
+<p class="text-xs text-[#507395]">16 oct - 22 oct</p>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-bold text-gray-900 dark:text-white">512,10 €</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400">
+<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>
+                                        En attente
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[#507395] hover:text-primary">
+<span class="material-symbols-outlined">more_vert</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 (Processed example) -->
+<tr class="opacity-70 grayscale-[0.5] hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors">
+<td class="px-6 py-4 text-center">
+<input class="rounded text-gray-300" disabled="" type="checkbox"/>
+</td>
+<td class="px-6 py-4">
+<div class="flex items-center gap-3">
+<div class="w-8 h-8 rounded-full bg-cover" data-alt="Driver Amadou Diallo avatar" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDqV4Jtff3iuL443Iovz_mOp4AVjG-oXjihgcTu6lZHCZIWqdomb8m8YmQa4J4Jg9pALm5-u4OCtakVhgbMymNt_gKqmRXyXM-MJrR-7rammHAu-oFmosUMbFZH3vDZcNtwJ4yWchbziCqgP_VwQcQqsZVDeB8gcj0dgvzX3Y9VrVXSuze4WH2w5XpN1pR42-bGRpcI4FfXO_9W0QAOqEaJvKfuS8PU49wkA5Sr1ewJZwLDJnq_LKNkzqxFmhnlTM-TYt3zm14oSHk3');"></div>
+<div>
+<p class="font-semibold text-sm">Amadou Diallo</p>
+<p class="text-xs text-[#507395]">ID: LV-23998</p>
+</div>
+</div>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm">Semaine 41, 2023</p>
+<p class="text-xs text-[#507395]">09 oct - 15 oct</p>
+</td>
+<td class="px-6 py-4">
+<p class="text-sm font-bold text-gray-900 dark:text-white">320,00 €</p>
+</td>
+<td class="px-6 py-4">
+<span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400">
+<span class="material-symbols-outlined text-[14px]">check_circle</span>
+                                        Traité
+                                    </span>
+</td>
+<td class="px-6 py-4 text-right">
+<button class="text-[#507395] hover:text-primary">
+<span class="material-symbols-outlined">description</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+<!-- Pagination -->
+<div class="px-6 py-4 bg-background-light dark:bg-gray-800/50 border-t border-[#e8edf3] dark:border-gray-700 flex items-center justify-between">
+<p class="text-sm text-[#507395]">Affichage de 1-4 sur 12 livreurs</p>
+<div class="flex gap-2">
+<button class="px-3 py-1 bg-white dark:bg-gray-800 border border-[#e8edf3] dark:border-gray-700 rounded text-sm disabled:opacity-50" disabled="">
+                                Précédent
+                            </button>
+<button class="px-3 py-1 bg-primary text-white rounded text-sm font-bold">1</button>
+<button class="px-3 py-1 bg-white dark:bg-gray-800 border border-[#e8edf3] dark:border-gray-700 rounded text-sm hover:bg-gray-50">2</button>
+<button class="px-3 py-1 bg-white dark:bg-gray-800 border border-[#e8edf3] dark:border-gray-700 rounded text-sm hover:bg-gray-50">3</button>
+<button class="px-3 py-1 bg-white dark:bg-gray-800 border border-[#e8edf3] dark:border-gray-700 rounded text-sm hover:bg-gray-50">
+                                Suivant
+                            </button>
+</div>
+</div>
+</div>
+<!-- Stats Summary Section -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+<div class="bg-primary/5 border border-primary/20 p-5 rounded-xl">
+<p class="text-xs font-bold uppercase tracking-wider text-primary mb-1">Total à payer</p>
+<p class="text-2xl font-black text-primary">1 227,70 €</p>
+</div>
+<div class="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 p-5 rounded-xl">
+<p class="text-xs font-bold uppercase tracking-wider text-amber-700 dark:text-amber-400 mb-1">Livreurs en attente</p>
+<p class="text-2xl font-black text-amber-700 dark:text-amber-400">08</p>
+</div>
+<div class="bg-white dark:bg-[#151b23] border border-[#e8edf3] dark:border-gray-700 p-5 rounded-xl">
+<p class="text-xs font-bold uppercase tracking-wider text-[#507395] mb-1">Dernier paiement groupé</p>
+<p class="text-2xl font-black">21 Oct 2023</p>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

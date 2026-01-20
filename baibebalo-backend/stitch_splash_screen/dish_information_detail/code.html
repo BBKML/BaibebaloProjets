@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Epilogue:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#d95c26",
+                        "background-light": "#fcfaf8",
+                        "background-dark": "#2d2b2a",
+                    },
+                    fontFamily: {
+                        "display": ["Epilogue", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Epilogue', sans-serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#171312] dark:text-[#fcfaf8]">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden max-w-[480px] mx-auto bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- TopAppBar / Close Action -->
+<div class="absolute top-4 right-4 z-20">
+<button class="flex items-center justify-center size-10 rounded-full bg-white/80 backdrop-blur-md text-[#171312] shadow-sm">
+<span class="material-symbols-outlined">close</span>
+</button>
+</div>
+<!-- HeaderImage -->
+<div class="relative w-full h-[40vh] overflow-hidden">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover" data-alt="Authentic Ivorian braised chicken with attiéké side" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBTwYQvXQtLjR-tZgsEdCL2V6tZCE-3Vp9VUlQlgNFLEF-C2OWrdUYJDaKS_IYChzgfCFg38Mr4x4V6gQ52Qw-MCC8eNMID0g1y8rE-lDs8HiHSrktsjy6SEGIq2AHaPsymaptiLIzJnswIx5eAyy-O4j-yIpKjOi51a-sgQRpyHntTipW5ehsHut6N2n1nmyiF8WiPp3e5ychzjc0aFnVNCZ5JgGjyJ16xqBePMtCpOHEIHtrCyPYXQmnMVIwnwFn7kR2g3Tt_KLv9");'>
+</div>
+<div class="absolute bottom-0 left-0 w-full h-24 bg-gradient-to-t from-background-light dark:from-background-dark to-transparent"></div>
+</div>
+<!-- HeadlineText Section -->
+<div class="px-6 -mt-6 relative z-10">
+<div class="inline-flex items-center gap-1 px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold uppercase tracking-wider mb-3">
+<span class="material-symbols-outlined text-sm">local_fire_department</span>
+                Signature Dish
+            </div>
+<h1 class="text-[#171312] dark:text-white tracking-tight text-[32px] font-black leading-tight pb-2 font-display">
+                Poulet Braisé à l'Ivoirienne
+            </h1>
+<p class="text-primary font-bold text-lg mb-4">12.500 FCFA</p>
+</div>
+<!-- Nutritional Info Grid (Custom Component) -->
+<div class="px-6 py-4 grid grid-cols-4 gap-3">
+<div class="flex flex-col items-center p-3 rounded-xl bg-white dark:bg-[#3d3b3a] border border-[#e5dfdc] dark:border-transparent">
+<span class="text-primary font-bold text-sm">650</span>
+<span class="text-[10px] uppercase text-[#866f65] dark:text-[#a3938d]">kcal</span>
+</div>
+<div class="flex flex-col items-center p-3 rounded-xl bg-white dark:bg-[#3d3b3a] border border-[#e5dfdc] dark:border-transparent">
+<span class="text-primary font-bold text-sm">45g</span>
+<span class="text-[10px] uppercase text-[#866f65] dark:text-[#a3938d]">Prot</span>
+</div>
+<div class="flex flex-col items-center p-3 rounded-xl bg-white dark:bg-[#3d3b3a] border border-[#e5dfdc] dark:border-transparent">
+<span class="text-primary font-bold text-sm">12g</span>
+<span class="text-[10px] uppercase text-[#866f65] dark:text-[#a3938d]">Gluc</span>
+</div>
+<div class="flex flex-col items-center p-3 rounded-xl bg-white dark:bg-[#3d3b3a] border border-[#e5dfdc] dark:border-transparent">
+<span class="text-primary font-bold text-sm">28g</span>
+<span class="text-[10px] uppercase text-[#866f65] dark:text-[#a3938d]">Lip</span>
+</div>
+</div>
+<!-- BodyText -->
+<div class="px-6 py-2">
+<h3 class="text-sm font-bold uppercase tracking-widest text-[#866f65] mb-2">Histoire du plat</h3>
+<p class="text-[#171312] dark:text-[#e5dfdc] text-base font-normal leading-relaxed pb-4">
+                Notre poulet braisé est mariné pendant 24 heures dans un mélange secret d'épices de Grand-Bassam, puis grillé lentement au feu de bois pour une peau croustillante et une chair incroyablement tendre. Servi avec de l'Attiéké frais et notre fameuse sauce pimentée maison.
+            </p>
+<div class="flex flex-wrap gap-2 pt-2">
+<span class="px-3 py-1 rounded-full bg-[#e5dfdc] dark:bg-[#4d4b4a] text-xs font-medium">Sans Gluten</span>
+<span class="px-3 py-1 rounded-full bg-[#e5dfdc] dark:bg-[#4d4b4a] text-xs font-medium">Contient : Moutarde</span>
+</div>
+</div>
+<div class="h-px bg-[#e5dfdc] dark:bg-[#4d4b4a] mx-6 my-6"></div>
+<!-- RatingSummary -->
+<div class="px-6">
+<h3 class="text-sm font-bold uppercase tracking-widest text-[#866f65] mb-4">Avis des gourmets</h3>
+<div class="flex flex-wrap gap-x-8 gap-y-6">
+<div class="flex flex-col gap-1">
+<p class="text-[#171312] dark:text-white text-4xl font-black leading-tight tracking-[-0.033em]">4.8</p>
+<div class="flex gap-0.5 text-primary">
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm fill-icon">star</span>
+<span class="material-symbols-outlined text-sm">star_half</span>
+</div>
+<p class="text-[#866f65] dark:text-[#a3938d] text-xs font-normal">124 avis vérifiés</p>
+</div>
+<div class="grid min-w-[140px] flex-1 grid-cols-[12px_1fr_30px] items-center gap-y-2">
+<p class="text-[#171312] dark:text-white text-[10px] font-bold">5</p>
+<div class="flex h-1.5 flex-1 overflow-hidden rounded-full bg-[#e5dfdc] dark:bg-[#4d4b4a] ml-2">
+<div class="rounded-full bg-primary" style="width: 80%;"></div>
+</div>
+<p class="text-[#866f65] text-[10px] font-normal text-right">80%</p>
+<p class="text-[#171312] dark:text-white text-[10px] font-bold">4</p>
+<div class="flex h-1.5 flex-1 overflow-hidden rounded-full bg-[#e5dfdc] dark:bg-[#4d4b4a] ml-2">
+<div class="rounded-full bg-primary" style="width: 15%;"></div>
+</div>
+<p class="text-[#866f65] text-[10px] font-normal text-right">15%</p>
+<p class="text-[#171312] dark:text-white text-[10px] font-bold">3</p>
+<div class="flex h-1.5 flex-1 overflow-hidden rounded-full bg-[#e5dfdc] dark:bg-[#4d4b4a] ml-2">
+<div class="rounded-full bg-primary" style="width: 5%;"></div>
+</div>
+<p class="text-[#866f65] text-[10px] font-normal text-right">5%</p>
+</div>
+</div>
+</div>
+<!-- Featured Review (Custom) -->
+<div class="px-6 py-6 space-y-4 mb-24">
+<div class="p-4 rounded-xl bg-white dark:bg-[#3d3b3a] shadow-sm border border-[#e5dfdc] dark:border-transparent">
+<div class="flex items-center gap-3 mb-2">
+<div class="size-8 rounded-full bg-primary/20 flex items-center justify-center text-primary font-bold text-xs">AM</div>
+<div>
+<p class="text-xs font-bold">Awa M.</p>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-[10px] fill-icon">star</span>
+<span class="material-symbols-outlined text-[10px] fill-icon">star</span>
+<span class="material-symbols-outlined text-[10px] fill-icon">star</span>
+<span class="material-symbols-outlined text-[10px] fill-icon">star</span>
+<span class="material-symbols-outlined text-[10px] fill-icon">star</span>
+</div>
+</div>
+</div>
+<p class="text-sm italic text-[#171312] dark:text-[#e5dfdc]">"Le goût du pays ! Le poulet est bien assaisonné jusqu'aux os."</p>
+</div>
+</div>
+<!-- Sticky Action Bar -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[480px] bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-[#e5dfdc] dark:border-[#4d4b4a] p-4 z-30">
+<div class="flex gap-4 items-center">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-[#866f65]">Total</span>
+<span class="text-lg font-black text-primary">12.500 F</span>
+</div>
+<button class="flex-1 bg-primary hover:bg-[#c44d1e] text-white rounded-xl h-14 flex items-center justify-center gap-2 font-display font-black text-lg shadow-lg active:scale-95 transition-transform">
+<span>Personnaliser</span>
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+<div class="h-10 bg-transparent"></div>
+</div>
+</body></html>

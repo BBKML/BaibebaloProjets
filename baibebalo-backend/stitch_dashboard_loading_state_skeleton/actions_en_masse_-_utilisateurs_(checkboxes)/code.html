@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Actions en Masse - Utilisateurs | BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#2c5d8c",
+                        "brand-orange": "#FF6B35",
+                        "background-light": "#ffffff",
+                        "background-dark": "#22262a",
+                    },
+                    fontFamily: {
+                        "display": ["Manrope", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Manrope', sans-serif; }
+        .material-symbols-outlined { font-size: 20px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark text-[#101519] dark:text-gray-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 w-full border-b border-[#e9edf1] dark:border-gray-700 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="max-w-[1440px] mx-auto px-6 h-16 flex items-center justify-between">
+<div class="flex items-center gap-12">
+<div class="flex items-center gap-3">
+<div class="size-8 flex items-center justify-center rounded-lg bg-brand-orange text-white">
+<span class="material-symbols-outlined font-bold">layers</span>
+</div>
+<h1 class="text-brand-orange text-xl font-extrabold tracking-tight">BAIBEBALO</h1>
+</div>
+<nav class="hidden md:flex items-center gap-8">
+<a class="text-[#5b748b] dark:text-gray-400 text-sm font-semibold hover:text-primary transition-colors" href="#">Tableau de bord</a>
+<a class="text-primary dark:text-blue-400 text-sm font-bold border-b-2 border-primary py-5" href="#">Utilisateurs</a>
+<a class="text-[#5b748b] dark:text-gray-400 text-sm font-semibold hover:text-primary transition-colors" href="#">Paramètres</a>
+</nav>
+</div>
+<div class="flex items-center gap-6">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-[#5b748b]">search</span>
+<input class="pl-10 pr-4 py-2 bg-[#f1f5f9] dark:bg-gray-800 border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Rechercher un utilisateur..." type="text"/>
+</div>
+<div class="flex items-center gap-3 border-l border-[#e9edf1] dark:border-gray-700 pl-6">
+<div class="size-9 rounded-full bg-primary/10 flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">notifications</span>
+</div>
+<div class="size-10 rounded-full bg-cover bg-center border-2 border-white shadow-sm" data-alt="Photo de profil de l'administrateur" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDaWO72JdMPfk7IwBdxR7jdA65WhsJ0MqDOKhqGGu0IoeY479FMN-9_fDlwIC7pI5UZERKE9Ak_-2oFhtb5CvMgGH5uGtomzpyhdQnLIi3C7_T-Id6Fxoy1hbQKFg28D5SJZMSVLxoxxuLbmlKXJJjQuDitZFa_3_IN_i--X3XXey45K6UlpuiGg9YwiTS-EYMFyU1D6AsMbri4xgHo0SgJy5F0QcMISfaoaQ6JWLP1H2-hU1Shbo9_aV_y_qQtMcNlRZWNB3PrEztD')"></div>
+</div>
+</div>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-6 py-8">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 mb-6">
+<a class="text-[#5b748b] text-sm font-medium hover:underline" href="#">Admin</a>
+<span class="text-[#cbd5e1] text-sm">/</span>
+<a class="text-[#5b748b] text-sm font-medium hover:underline" href="#">Phase 2</a>
+<span class="text-[#cbd5e1] text-sm">/</span>
+<span class="text-primary text-sm font-bold">Gestion Utilisateurs</span>
+</nav>
+<!-- Page Heading & Stats -->
+<div class="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+<div>
+<h2 class="text-3xl font-black text-[#101519] dark:text-white tracking-tight">Gestion des Utilisateurs</h2>
+<p class="text-[#5b748b] dark:text-gray-400 mt-1">1,284 comptes au total • <span class="text-green-600 font-medium">12 nouveaux aujourd'hui</span></p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-gray-800 border border-[#e2e8f0] dark:border-gray-700 rounded-lg text-sm font-bold text-[#101519] dark:text-white hover:bg-gray-50 transition-colors shadow-sm">
+<span class="material-symbols-outlined text-gray-400">filter_list</span>
+                    Filtrer
+                </button>
+<button class="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md">
+<span class="material-symbols-outlined">person_add</span>
+                    Nouveau Utilisateur
+                </button>
+</div>
+</div>
+<!-- Floating Bulk Action Bar (Contextual) -->
+<div class="mb-6 sticky top-20 z-40">
+<div class="bg-primary shadow-xl shadow-primary/20 rounded-xl p-4 flex flex-wrap items-center justify-between text-white border border-white/10">
+<div class="flex items-center gap-4 px-2">
+<div class="size-6 bg-white/20 rounded flex items-center justify-center">
+<input checked="" class="rounded border-none text-primary focus:ring-0" type="checkbox"/>
+</div>
+<span class="font-bold text-sm tracking-wide">12 UTILISATEURS SÉLECTIONNÉS</span>
+<button class="text-xs text-white/70 hover:text-white underline font-medium">Tout désélectionner</button>
+</div>
+<div class="flex gap-2">
+<button class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 rounded-lg text-xs font-bold transition-colors">
+<span class="material-symbols-outlined !text-lg">download</span>
+                        EXPORTER CSV
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-red-500/30 rounded-lg text-xs font-bold transition-colors border border-white/5">
+<span class="material-symbols-outlined !text-lg">person_off</span>
+                        SUSPENDRE
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-white text-primary rounded-lg text-xs font-black transition-all hover:scale-[1.02] active:scale-95 shadow-lg shadow-black/10">
+<span class="material-symbols-outlined !text-lg">how_to_reg</span>
+                        ACTIVER LES COMPTES
+                    </button>
+</div>
+</div>
+</div>
+<!-- Data Table Container -->
+<div class="bg-white dark:bg-gray-900 rounded-xl border border-[#e2e8f0] dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="overflow-x-auto custom-scrollbar">
+<table class="w-full text-left border-collapse">
+<thead>
+<tr class="bg-[#f8fafc] dark:bg-gray-800/50 border-b border-[#e2e8f0] dark:border-gray-700">
+<th class="p-4 w-12 text-center">
+<input checked="" class="rounded border-[#cbd5e1] text-primary focus:ring-primary/20" type="checkbox"/>
+</th>
+<th class="p-4 text-xs font-extrabold text-[#5b748b] uppercase tracking-wider">Utilisateur</th>
+<th class="p-4 text-xs font-extrabold text-[#5b748b] uppercase tracking-wider">Rôle</th>
+<th class="p-4 text-xs font-extrabold text-[#5b748b] uppercase tracking-wider text-center">Statut</th>
+<th class="p-4 text-xs font-extrabold text-[#5b748b] uppercase tracking-wider">Dernière Connexion</th>
+<th class="p-4 text-xs font-extrabold text-[#5b748b] uppercase tracking-wider text-right">Actions</th>
+</tr>
+</thead>
+<tbody class="divide-y divide-[#f1f5f9] dark:divide-gray-800">
+<!-- Row 1 (Selected) -->
+<tr class="bg-primary/5 hover:bg-primary/10 transition-colors group">
+<td class="p-4 text-center">
+<input checked="" class="rounded border-[#cbd5e1] text-primary focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Avatar de Marc Lefebvre" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCeQXlnUtRBnBL9TovaQRhMBXq4Zt4GRf95CVm8W1reel26Xdk47jd7ZscLtHxM9_6X1tqMfDackvzUHgcplGK0C6NuxqYZa8lcWKNqYdqFKoDNE7gECmPsa1axx48C5vURjQbjsvpBMv7K8TS1aLICCum3aN0QmEMZ1OsueeK4y2d4cnKPmK-yDL9gbeJbpXZtLGhP_J-JSER8db_QNG0H8dyIwgFqoaSSXRdXeephj0zZu-jk8bVepe7KZAxDo0FITjwR8J7Shh2o')"></div>
+<div>
+<div class="font-bold text-[#101519] dark:text-gray-100">Marc Lefebvre</div>
+<div class="text-xs text-[#5b748b]">marc.l@baibebalo.com</div>
+</div>
+</div>
+</td>
+<td class="p-4 text-sm font-medium">Administrateur</td>
+<td class="p-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                    Actif
+                                </span>
+</td>
+<td class="p-4 text-sm text-[#5b748b]">Il y a 2 heures</td>
+<td class="p-4 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 2 (Selected) -->
+<tr class="bg-primary/5 hover:bg-primary/10 transition-colors group">
+<td class="p-4 text-center">
+<input checked="" class="rounded border-[#cbd5e1] text-primary focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-blue-100 flex items-center justify-center text-primary font-black text-xs">SD</div>
+<div>
+<div class="font-bold text-[#101519] dark:text-gray-100">Sophie Dubois</div>
+<div class="text-xs text-[#5b748b]">s.dubois@baibebalo.com</div>
+</div>
+</div>
+</td>
+<td class="p-4 text-sm font-medium">Manager</td>
+<td class="p-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-yellow-100 text-yellow-700 border border-yellow-200">
+                                    En attente
+                                </span>
+</td>
+<td class="p-4 text-sm text-[#5b748b]">Jamais connecté</td>
+<td class="p-4 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 3 (Not Selected) -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors group">
+<td class="p-4 text-center">
+<input class="rounded border-[#cbd5e1] text-primary focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Avatar de Amélie Roche" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuChsRTBdwGt2M3wUrDXfIjyX2EfL4Fe-D0E8jStgnRgx-hCmLQG8xG71Vxmf-6FQW0QeNeFLNKjoavtZKsqJtqnbg35g0yFaU86cQBmbWfkPjo81jshwdGxEcvsTsoNFF2rVay-nGELfwEM_xrG4izSKkyuWoUvMBWv703F6hWbUnpggHpBo8k7ZjfCXcHxVziMifsPJIFMhWVa4fRiwm7lBtsYo9MelY3oi-KtFkvvQHa88AZ0L87Ow1YXLFdjEzuS4_aa6HolameK')"></div>
+<div>
+<div class="font-bold text-[#101519] dark:text-gray-100">Amélie Roche</div>
+<div class="text-xs text-[#5b748b]">amelie.r@partner.com</div>
+</div>
+</div>
+</td>
+<td class="p-4 text-sm font-medium">Utilisateur</td>
+<td class="p-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-gray-100 text-gray-700 border border-gray-200">
+                                    Suspendu
+                                </span>
+</td>
+<td class="p-4 text-sm text-[#5b748b]">Hier, 14:32</td>
+<td class="p-4 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- Row 4 (Selected) -->
+<tr class="bg-primary/5 hover:bg-primary/10 transition-colors group">
+<td class="p-4 text-center">
+<input checked="" class="rounded border-[#cbd5e1] text-primary focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-orange-100 flex items-center justify-center text-brand-orange font-black text-xs">JN</div>
+<div>
+<div class="font-bold text-[#101519] dark:text-gray-100">Julien N'Goran</div>
+<div class="text-xs text-[#5b748b]">julien.n@baibebalo.com</div>
+</div>
+</div>
+</td>
+<td class="p-4 text-sm font-medium">Admin Système</td>
+<td class="p-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                    Actif
+                                </span>
+</td>
+<td class="p-4 text-sm text-[#5b748b]">Aujourd'hui, 09:10</td>
+<td class="p-4 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+<!-- More rows placeholder for visual density -->
+<tr class="hover:bg-gray-50 dark:hover:bg-gray-800/30 transition-colors group opacity-80">
+<td class="p-4 text-center">
+<input class="rounded border-[#cbd5e1] text-primary focus:ring-primary/20" type="checkbox"/>
+</td>
+<td class="p-4">
+<div class="flex items-center gap-3">
+<div class="size-10 rounded-full bg-cover bg-center" data-alt="Avatar de Thomas Morel" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC3JgfBIcW8SjfqN0Pd2LI-Lg4yOydO_NLBzkpv8qkPNoV7gCZRH9VhXfKWzoO8FEubWQixvcB_gyHSHeyKR_FHHaEbIC0WK5XTv1fYm-LWnZG9qiQTvbWHlL8dcSUKa30IufQ9Ji8JtUZFb76quJjQtu2kL82XnLVJh8pAYqTAt-0U0TzEPYMV9LgLuJ_x-7T0LmijSIzeTPZ_847pTX8IdxSMyop9esd-85XDHKTsKx0C11FJ8HX9l6lIXVc97LJXS8j1g_sleRFT')"></div>
+<div>
+<div class="font-bold text-[#101519] dark:text-gray-100">Thomas Morel</div>
+<div class="text-xs text-[#5b748b]">t.morel@client.com</div>
+</div>
+</div>
+</td>
+<td class="p-4 text-sm font-medium">Utilisateur</td>
+<td class="p-4 text-center">
+<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-bold bg-green-100 text-green-700 border border-green-200">
+                                    Actif
+                                </span>
+</td>
+<td class="p-4 text-sm text-[#5b748b]">Il y a 3 jours</td>
+<td class="p-4 text-right">
+<button class="text-gray-400 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">more_horiz</span>
+</button>
+</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Table Footer / Pagination -->
+<div class="p-4 flex items-center justify-between border-t border-[#f1f5f9] dark:border-gray-800">
+<div class="text-xs font-medium text-[#5b748b]">
+                    Affichage de <span class="font-bold text-[#101519] dark:text-white">1-50</span> sur <span class="font-bold text-[#101519] dark:text-white">1,284</span> utilisateurs
+                </div>
+<div class="flex items-center gap-2">
+<button class="p-2 border border-[#e2e8f0] dark:border-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50" disabled="">
+<span class="material-symbols-outlined">chevron_left</span>
+</button>
+<div class="flex items-center gap-1">
+<button class="px-3.5 py-1.5 rounded-lg bg-primary text-white text-sm font-bold">1</button>
+<button class="px-3.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-bold">2</button>
+<button class="px-3.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-bold">3</button>
+<span class="px-2 text-gray-400">...</span>
+<button class="px-3.5 py-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 text-sm font-bold">26</button>
+</div>
+<button class="p-2 border border-[#e2e8f0] dark:border-gray-700 rounded-lg hover:bg-gray-50 transition-colors">
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Utility Bottom Bar (Optional, contextual help) -->
+<div class="mt-12 p-6 bg-[#f8fafc] dark:bg-gray-800/20 border-2 border-dashed border-[#e2e8f0] dark:border-gray-700 rounded-2xl flex flex-col md:flex-row items-center justify-between gap-6">
+<div class="flex items-center gap-4">
+<div class="size-12 rounded-xl bg-white dark:bg-gray-800 shadow-sm flex items-center justify-center text-primary border border-[#e2e8f0] dark:border-gray-700">
+<span class="material-symbols-outlined !text-3xl">info</span>
+</div>
+<div>
+<h4 class="font-bold text-[#101519] dark:text-white">Astuce: Raccourcis Clavier</h4>
+<p class="text-sm text-[#5b748b]">Utilisez <kbd class="px-2 py-0.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs">Espace</kbd> pour sélectionner et <kbd class="px-2 py-0.5 bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded text-xs">Cmd+E</kbd> pour l'exportation rapide.</p>
+</div>
+</div>
+<button class="text-primary text-sm font-bold hover:underline">Consulter la documentation →</button>
+</div>
+</main>
+</body></html>

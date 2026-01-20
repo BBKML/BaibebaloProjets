@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Splash Screen</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#22c38e",
+                        "background-light": "#f7f7f7",
+                        "background-dark": "#22252a",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.5rem",
+                        "lg": "1rem",
+                        "xl": "1.5rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            margin: 0;
+            padding: 0;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        /* Custom spinner animation logic for a high-end feel */
+        @keyframes custom-spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .ios-spinner {
+            animation: custom-spin 1s linear infinite;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-primary dark:bg-background-dark font-display overflow-hidden">
+<div class="relative flex h-screen w-full flex-col items-center justify-between p-8">
+<!-- Top Spacer for iOS Status Bar -->
+<div class="h-12 w-full"></div>
+<!-- Central Branding Container -->
+<div class="flex flex-col items-center justify-center grow">
+<div class="relative group">
+<!-- Abstract Logo Shape (representing Baibebalo) -->
+<div class="bg-white/10 p-8 rounded-xl backdrop-blur-sm border border-white/20 mb-6">
+<div class="w-24 h-24 flex items-center justify-center bg-white rounded-lg shadow-xl">
+<span class="material-symbols-outlined text-primary text-6xl" style="font-variation-settings: 'FILL' 1, 'wght' 700;">
+                            delivery_dining
+                        </span>
+</div>
+</div>
+<!-- Brand Name -->
+<div class="text-center">
+<h1 class="text-white text-4xl font-bold tracking-tight mb-2">BAIBEBALO</h1>
+<p class="text-white/80 text-sm font-medium uppercase tracking-[0.2em]">Votre ville à domicile</p>
+</div>
+</div>
+</div>
+<!-- Bottom UI Section -->
+<div class="w-full flex flex-col items-center gap-12 pb-8">
+<!-- Loading Indicator Component -->
+<div class="flex flex-col items-center gap-4">
+<div class="w-8 h-8 rounded-full border-4 border-white/20 border-t-white ios-spinner"></div>
+<p class="text-white/60 text-xs font-medium uppercase tracking-widest">Initialisation</p>
+</div>
+<!-- MetaText Component -->
+<div class="flex flex-col items-center gap-1">
+<p class="text-white/40 text-[10px] font-normal leading-normal px-4 text-center">
+                    © 2024 BAIBEBALO Inc.
+                </p>
+<p class="text-white/30 text-[10px] font-normal leading-normal px-4 text-center">
+                    v1.0.4-stable
+                </p>
+</div>
+</div>
+<!-- Decorative Background Elements for Depth (Soft UI) -->
+<div class="absolute inset-0 -z-10 pointer-events-none overflow-hidden">
+<div class="absolute top-[-10%] right-[-10%] w-80 h-80 bg-white/5 rounded-full blur-3xl"></div>
+<div class="absolute bottom-[-5%] left-[-5%] w-64 h-64 bg-black/5 rounded-full blur-3xl"></div>
+</div>
+</div>
+<!-- Hidden Image Data Requirements -->
+<div class="hidden">
+<!-- Mock element to satisfy data-alt requirements for invisible background layers if needed -->
+<div class="bg-center bg-no-repeat bg-cover" data-alt="Vibrant green gradient with soft geometric highlights"></div>
+</div>
+</body></html>

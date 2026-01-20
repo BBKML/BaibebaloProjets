@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Analyse par Cohorte (Rétention) - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#0aa4eb",
+                        "background-light": "#f9fafa",
+                        "background-dark": "#16191d",
+                        "card-dark": "#22282E",
+                        "border-dark": "#2D333B",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .cohort-cell-100 { background-color: #0aa4eb; color: white; }
+        .cohort-cell-80 { background-color: rgba(10, 164, 235, 0.85); color: white; }
+        .cohort-cell-60 { background-color: rgba(10, 164, 235, 0.65); color: white; }
+        .cohort-cell-40 { background-color: rgba(10, 164, 235, 0.45); color: white; }
+        .cohort-cell-20 { background-color: rgba(10, 164, 235, 0.25); color: #8fb8cc; }
+        .cohort-cell-5 { background-color: rgba(10, 164, 235, 0.10); color: #8fb8cc; }
+        .cohort-cell-0 { background-color: #1c2128; color: #4e5d66; }
+        
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: #16191d; }
+        ::-webkit-scrollbar-thumb { background: #2D333B; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #3c444d; }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased overflow-x-hidden">
+<div class="flex min-h-screen">
+<!-- SideNavBar -->
+<aside class="w-64 border-r border-border-dark bg-background-dark fixed h-full hidden lg:flex flex-col">
+<div class="p-6 flex flex-col h-full">
+<div class="flex items-center gap-3 mb-10">
+<div class="size-10 rounded-lg bg-primary flex items-center justify-center text-white">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h1 class="text-white text-base font-bold leading-tight">BAIBEBALO</h1>
+<p class="text-primary text-[10px] uppercase tracking-widest font-black">Admin Phase 5</p>
+</div>
+</div>
+<nav class="flex flex-col gap-1 flex-1">
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">dashboard</span>
+<p class="text-sm font-medium">Tableau de bord</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">shopping_bag</span>
+<p class="text-sm font-medium">Commandes</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">inventory_2</span>
+<p class="text-sm font-medium">Produits</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">group</span>
+<p class="text-sm font-medium">Utilisateurs</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg bg-primary/10 text-primary border border-primary/20">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">bar_chart_4_bars</span>
+<p class="text-sm font-bold">Analytics</p>
+</div>
+<div class="flex items-center gap-3 px-3 py-2 text-slate-400 hover:text-white hover:bg-white/5 rounded-lg cursor-pointer transition-colors">
+<span class="material-symbols-outlined">settings</span>
+<p class="text-sm font-medium">Paramètres</p>
+</div>
+</nav>
+<div class="mt-auto pt-6 border-t border-border-dark flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10" data-alt="Avatar of the administrator" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA3ADXnAO_Ay_aL7-B4T4wOCzX4gfNhFfmkxmbcDktG31kxlqDuZo_LbBx4RL5M1DGaZ2bALm332xJv6qzbi0eT5e-VNF5nqmDvUXw9FQ8uDOeA91gP-4c0JMrtIkGgxodJPpjuXMrbwoYT86fZjIL6FUoMX6QtSF9leUUYtVdCkgj2TcP6VJMwpjL__OLV0Th-EvXaDHu1KTb3CHbBDAUmwXHDBcjgxV96T7_1oEBBo89edueIJmPR-0O1dt1ICHUOBVKzPjByoqVg");'></div>
+<div class="flex-1 min-w-0">
+<p class="text-white text-xs font-bold truncate">Alex Durand</p>
+<p class="text-slate-500 text-[10px] truncate">Admin Principal</p>
+</div>
+<span class="material-symbols-outlined text-slate-500 text-sm">logout</span>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 lg:ml-64 flex flex-col min-h-screen">
+<!-- TopNavBar -->
+<header class="h-16 border-b border-border-dark bg-background-dark/80 backdrop-blur-md sticky top-0 z-40 px-8 flex items-center justify-between">
+<div class="flex items-center gap-6">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary">analytics</span>
+<h2 class="text-white text-sm font-bold tracking-tight">Analytics Cohorte</h2>
+</div>
+<div class="h-4 w-px bg-border-dark"></div>
+<nav class="hidden md:flex items-center gap-6">
+<a class="text-slate-400 hover:text-white text-xs font-semibold transition-colors" href="#">Dashboard</a>
+<a class="text-slate-400 hover:text-white text-xs font-semibold transition-colors" href="#">Ventes</a>
+<a class="text-white text-xs font-bold border-b-2 border-primary py-5" href="#">Cohorte</a>
+<a class="text-slate-400 hover:text-white text-xs font-semibold transition-colors" href="#">LTV</a>
+</nav>
+</div>
+<div class="flex items-center gap-4">
+<div class="relative hidden sm:block">
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-lg">search</span>
+<input class="bg-card-dark border-border-dark rounded-lg pl-10 pr-4 py-1.5 text-xs text-white focus:ring-primary focus:border-primary w-64" placeholder="Rechercher un segment..." type="text"/>
+</div>
+<button class="p-2 text-slate-400 hover:text-white transition-colors relative">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-background-dark"></span>
+</button>
+</div>
+</header>
+<div class="p-8 max-w-[1400px] mx-auto w-full space-y-8">
+<!-- Breadcrumbs -->
+<nav class="flex items-center gap-2 text-xs font-medium uppercase tracking-wider">
+<a class="text-slate-500 hover:text-primary transition-colors" href="#">Analytics</a>
+<span class="text-slate-700">/</span>
+<span class="text-primary font-black">Analyse par Cohorte</span>
+</nav>
+<!-- PageHeading -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
+<div class="space-y-2">
+<h1 class="text-white text-4xl font-black leading-tight tracking-tighter">Rétention Client</h1>
+<p class="text-slate-400 text-sm max-w-xl font-medium">Visualisez l'évolution de la fidélité de vos clients mois après mois à l'aide de notre graphique matriciel de cohorte.</p>
+</div>
+<div class="flex gap-3">
+<button class="flex items-center gap-2 px-4 py-2 bg-card-dark hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-all border border-border-dark">
+<span class="material-symbols-outlined text-sm">filter_list</span>
+                        Filtres Avancés
+                    </button>
+<button class="flex items-center gap-2 px-4 py-2 bg-primary hover:bg-primary/80 text-white rounded-lg text-xs font-bold transition-all">
+<span class="material-symbols-outlined text-sm">download</span>
+                        Exporter CSV
+                    </button>
+</div>
+</div>
+<!-- Stats -->
+<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+<div class="bg-card-dark border border-border-dark p-6 rounded-xl hover:border-primary/50 transition-colors">
+<p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Rétention Moyenne</p>
+<div class="flex items-end justify-between">
+<p class="text-white text-3xl font-black tracking-tighter leading-none">24.5%</p>
+<span class="text-green-400 text-xs font-bold flex items-center">+2.1% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+</div>
+<div class="bg-card-dark border border-border-dark p-6 rounded-xl">
+<p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Cohorte Active</p>
+<div class="flex items-end justify-between">
+<p class="text-white text-3xl font-black tracking-tighter leading-none">1,240</p>
+<span class="text-red-400 text-xs font-bold flex items-center">-0.5% <span class="material-symbols-outlined text-xs">trending_down</span></span>
+</div>
+</div>
+<div class="bg-card-dark border border-border-dark p-6 rounded-xl">
+<p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">LTV Moyen</p>
+<div class="flex items-end justify-between">
+<p class="text-white text-3xl font-black tracking-tighter leading-none">45.00 €</p>
+<span class="text-green-400 text-xs font-bold flex items-center">+5.2% <span class="material-symbols-outlined text-xs">trending_up</span></span>
+</div>
+</div>
+<div class="bg-card-dark border border-border-dark p-6 rounded-xl">
+<p class="text-slate-400 text-[10px] font-black uppercase tracking-widest mb-1">Churn Rate (M1)</p>
+<div class="flex items-end justify-between">
+<p class="text-white text-3xl font-black tracking-tighter leading-none">12.8%</p>
+<span class="text-green-400 text-xs font-bold flex items-center">-1.4% <span class="material-symbols-outlined text-xs">trending_down</span></span>
+</div>
+</div>
+</div>
+<!-- Heatmap Section -->
+<div class="bg-card-dark border border-border-dark rounded-xl overflow-hidden">
+<!-- Control Panel -->
+<div class="p-6 border-b border-border-dark flex flex-wrap items-center justify-between gap-4">
+<div class="flex items-center gap-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Type de Cohorte</label>
+<select class="bg-background-dark border-border-dark text-white rounded-lg text-xs py-2 pl-3 pr-8 focus:ring-primary">
+<option>Date d'inscription</option>
+<option>Premier achat</option>
+<option>Première interaction</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Segment Client</label>
+<select class="bg-background-dark border-border-dark text-white rounded-lg text-xs py-2 pl-3 pr-8 focus:ring-primary">
+<option>Tous les utilisateurs</option>
+<option>Clients B2B</option>
+<option>Clients B2C</option>
+<option>Clients VIP</option>
+</select>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Période</label>
+<select class="bg-background-dark border-border-dark text-white rounded-lg text-xs py-2 pl-3 pr-8 focus:ring-primary">
+<option>Derniers 12 mois</option>
+<option>Derniers 6 mois</option>
+<option>Année 2023</option>
+</select>
+</div>
+</div>
+<!-- Legend -->
+<div class="flex flex-col items-end gap-2">
+<span class="text-[10px] font-black text-slate-500 uppercase tracking-widest">Légende Rétention</span>
+<div class="flex items-center gap-1">
+<span class="text-[10px] text-slate-500">0%</span>
+<div class="flex h-3 w-32 rounded-full overflow-hidden">
+<div class="h-full w-1/4 cohort-cell-20"></div>
+<div class="h-full w-1/4 cohort-cell-40"></div>
+<div class="h-full w-1/4 cohort-cell-80"></div>
+<div class="h-full w-1/4 cohort-cell-100"></div>
+</div>
+<span class="text-[10px] text-slate-500">100%</span>
+</div>
+</div>
+</div>
+<!-- Heatmap Table -->
+<div class="overflow-x-auto">
+<table class="w-full border-collapse">
+<thead>
+<tr class="bg-background-dark/50">
+<th class="p-4 text-left text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark min-w-[140px]">Mois</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">Users</th>
+<th class="p-4 text-center text-[10px] font-black text-primary uppercase tracking-widest border-b border-border-dark bg-primary/5">M0</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+1</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+2</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+3</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+4</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+5</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+6</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+7</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+8</th>
+<th class="p-4 text-center text-[10px] font-black text-slate-500 uppercase tracking-widest border-b border-border-dark">M+9</th>
+</tr>
+</thead>
+<tbody class="text-xs font-medium">
+<!-- Janvier -->
+<tr class="border-b border-border-dark/50 hover:bg-white/5 transition-colors">
+<td class="p-4 text-white font-bold border-r border-border-dark/50">Janvier 2024</td>
+<td class="p-4 text-center text-slate-400 border-r border-border-dark/50">1,240</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">100%</td>
+<td class="p-4 text-center cohort-cell-80 font-bold">42.5%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">35.2%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">28.1%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">25.0%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">22.4%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">21.8%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">20.5%</td>
+<td class="p-4 text-center cohort-cell-5 font-bold">18.2%</td>
+<td class="p-4 text-center cohort-cell-5 font-bold">15.4%</td>
+</tr>
+<!-- Février -->
+<tr class="border-b border-border-dark/50 hover:bg-white/5 transition-colors">
+<td class="p-4 text-white font-bold border-r border-border-dark/50">Février 2024</td>
+<td class="p-4 text-center text-slate-400 border-r border-border-dark/50">980</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">100%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">38.1%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">29.4%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">24.2%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">22.1%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">20.5%</td>
+<td class="p-4 text-center cohort-cell-5 font-bold">17.8%</td>
+<td class="p-4 text-center cohort-cell-5 font-bold">15.2%</td>
+<td class="p-4 text-center cohort-cell-5 font-bold">14.0%</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+</tr>
+<!-- Mars -->
+<tr class="border-b border-border-dark/50 hover:bg-white/5 transition-colors">
+<td class="p-4 text-white font-bold border-r border-border-dark/50">Mars 2024</td>
+<td class="p-4 text-center text-slate-400 border-r border-border-dark/50">1,520</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">100%</td>
+<td class="p-4 text-center cohort-cell-80 font-bold">48.2%</td>
+<td class="p-4 text-center cohort-cell-80 font-bold">41.0%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">36.5%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">32.2%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">28.9%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">26.4%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">22.1%</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+</tr>
+<!-- Avril -->
+<tr class="border-b border-border-dark/50 hover:bg-white/5 transition-colors">
+<td class="p-4 text-white font-bold border-r border-border-dark/50">Avril 2024</td>
+<td class="p-4 text-center text-slate-400 border-r border-border-dark/50">1,105</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">100%</td>
+<td class="p-4 text-center cohort-cell-80 font-bold">44.1%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">34.8%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">29.1%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">26.5%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">21.8%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">20.2%</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+</tr>
+<!-- Mai -->
+<tr class="border-b border-border-dark/50 hover:bg-white/5 transition-colors">
+<td class="p-4 text-white font-bold border-r border-border-dark/50">Mai 2024</td>
+<td class="p-4 text-center text-slate-400 border-r border-border-dark/50">1,340</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">100%</td>
+<td class="p-4 text-center cohort-cell-80 font-bold">41.9%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">33.5%</td>
+<td class="p-4 text-center cohort-cell-40 font-bold">27.8%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">23.1%</td>
+<td class="p-4 text-center cohort-cell-20 font-bold">20.4%</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+</tr>
+<!-- Juin -->
+<tr class="border-b border-border-dark/50 hover:bg-white/5 transition-colors">
+<td class="p-4 text-white font-bold border-r border-border-dark/50">Juin 2024</td>
+<td class="p-4 text-center text-slate-400 border-r border-border-dark/50">1,620</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">100%</td>
+<td class="p-4 text-center cohort-cell-100 font-bold">52.4%</td>
+<td class="p-4 text-center cohort-cell-80 font-bold">44.8%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">38.2%</td>
+<td class="p-4 text-center cohort-cell-60 font-bold">34.1%</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+<td class="p-4 text-center cohort-cell-0">-</td>
+</tr>
+</tbody>
+<tfoot>
+<tr class="bg-background-dark/80">
+<td class="p-4 text-[10px] font-black text-slate-500 uppercase tracking-widest border-t border-border-dark">Moyenne Colonne</td>
+<td class="p-4 border-t border-border-dark"></td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">100%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">44.5%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">36.1%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">30.8%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">27.3%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">23.4%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">21.5%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">19.2%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">16.1%</td>
+<td class="p-4 text-center text-white font-bold border-t border-border-dark">15.4%</td>
+</tr>
+</tfoot>
+</table>
+</div>
+<!-- Pagination/Footer -->
+<div class="p-4 border-t border-border-dark flex items-center justify-between">
+<p class="text-[10px] font-medium text-slate-500 italic">Affichage des 12 dernières cohortes mensuelles. Données mises à jour il y a 2 heures.</p>
+<div class="flex gap-2">
+<button class="size-8 rounded-lg border border-border-dark flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_left</span>
+</button>
+<button class="size-8 rounded-lg border border-border-dark flex items-center justify-center text-slate-400 hover:text-white transition-colors">
+<span class="material-symbols-outlined text-sm">chevron_right</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Insights Section -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+<div class="bg-card-dark border border-border-dark p-6 rounded-xl">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">lightbulb</span>
+<h3 class="text-white text-sm font-bold">Analyse Flash</h3>
+</div>
+<ul class="space-y-3">
+<li class="flex gap-3 text-xs">
+<span class="text-green-500 font-black">•</span>
+<p class="text-slate-400"><strong class="text-white">Pic de rétention :</strong> La cohorte de <span class="text-primary font-bold">Juin 2024</span> affiche la meilleure rétention à M+1 (52.4%), probablement liée à la campagne d'été.</p>
+</li>
+<li class="flex gap-3 text-xs">
+<span class="text-yellow-500 font-black">•</span>
+<p class="text-slate-400"><strong class="text-white">Stabilité :</strong> Les cohortes de début d'année (Jan-Avril) se stabilisent autour de 20% après 6 mois, indiquant une base de clients fidèles solide.</p>
+</li>
+</ul>
+</div>
+<div class="bg-card-dark border border-border-dark p-6 rounded-xl relative overflow-hidden">
+<div class="flex items-center gap-3 mb-4">
+<span class="material-symbols-outlined text-primary">trending_up</span>
+<h3 class="text-white text-sm font-bold">Projections LTV</h3>
+</div>
+<div class="flex items-center justify-between">
+<div>
+<p class="text-slate-400 text-xs font-medium mb-1">Valeur prédite à 12 mois</p>
+<p class="text-white text-2xl font-black">156.40 € <span class="text-[10px] text-primary font-bold">/ client</span></p>
+</div>
+<div class="w-24 h-12 flex items-end gap-1">
+<div class="flex-1 bg-primary/20 h-4 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/40 h-6 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/60 h-8 rounded-t-sm"></div>
+<div class="flex-1 bg-primary/80 h-10 rounded-t-sm"></div>
+<div class="flex-1 bg-primary h-12 rounded-t-sm"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

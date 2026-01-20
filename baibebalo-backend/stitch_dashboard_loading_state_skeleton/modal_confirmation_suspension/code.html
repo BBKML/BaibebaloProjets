@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Confirmation de Suspension - BAIBEBALO Admin</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#07a5ed",
+                        "background-light": "#f5f7f8",
+                        "background-dark": "#0f1d23",
+                        "danger": "#E03E3E",
+                        "warning": "#FF8000",
+                        "surface-dark": "#182c35",
+                        "border-dark": "#2f576a"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .modal-overlay {
+            background-color: rgba(10, 15, 18, 0.85);
+            backdrop-filter: blur(4px);
+        }
+    </style>
+</head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Mock Background Content (Blurred User List) -->
+<div class="fixed inset-0 z-0 overflow-hidden flex flex-col pointer-events-none opacity-40 grayscale">
+<header class="flex items-center justify-between border-b border-solid border-border-dark px-10 py-3 bg-background-dark">
+<div class="flex items-center gap-8">
+<div class="flex items-center gap-4 text-white">
+<div class="size-6 text-primary">
+<span class="material-symbols-outlined">shield_person</span>
+</div>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">BAIBEBALO Admin</h2>
+</div>
+</div>
+</header>
+<main class="p-10 flex flex-col gap-6">
+<div class="h-10 w-64 bg-surface-dark rounded-lg"></div>
+<div class="space-y-4">
+<div class="h-16 w-full bg-surface-dark rounded-lg"></div>
+<div class="h-16 w-full bg-surface-dark rounded-lg"></div>
+<div class="h-16 w-full bg-surface-dark rounded-lg"></div>
+<div class="h-16 w-full bg-surface-dark rounded-lg"></div>
+<div class="h-16 w-full bg-surface-dark rounded-lg"></div>
+</div>
+</main>
+</div>
+<!-- Modal Overlay -->
+<div class="fixed inset-0 z-50 flex items-center justify-center p-4 modal-overlay">
+<!-- Modal Container -->
+<div class="relative w-full max-w-[520px] bg-background-light dark:bg-[#16272f] rounded-xl shadow-2xl border border-border-dark/30 overflow-hidden">
+<!-- Warning Header -->
+<div class="pt-8 pb-4 flex flex-col items-center">
+<div class="size-16 bg-warning/10 text-warning rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined !text-[40px]">warning</span>
+</div>
+<h2 class="text-white tracking-tight text-[24px] font-bold leading-tight px-6 text-center">
+                    Suspendre l'utilisateur ?
+                </h2>
+<p class="text-[#8eb9cc] text-sm mt-2 px-10 text-center">
+                    Cette action restreindra l'accès de l'utilisateur à la plateforme immédiatement.
+                </p>
+</div>
+<!-- Content Body -->
+<div class="px-8 py-4 space-y-6">
+<!-- Selected User Card -->
+<div class="bg-surface-dark/50 border border-border-dark/50 rounded-lg p-4 flex items-center gap-4">
+<div class="size-12 rounded-full bg-center bg-cover border-2 border-border-dark" data-alt="Avatar photo of user Jean Dupont" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDZ1T24E6QIMe0_DqM3fQtgIy0mVzgvhEPDGn8aC_5RTwQfkZR2vnPIm0R6VAH7D-sOWwpLCyyVJHXlSMyrtbvEoy7Ftd0VxtCu7liF8agm4UcXSZVvAkE2KT8n13QbC-DYuYCtZrO0jdw99kabrKJ9xGquC70YTlknrWEmcPcQsE4WzSwg60mEz53CjHmnhS78w7HgQQkdJISWYN-CYC7KTg6n20TrdQ6VAHAmz1d3kMGhc6nHVW_T1cgijmrwe-uH0Jcpz7Bmv51o");'>
+</div>
+<div class="flex flex-col">
+<p class="text-white text-base font-bold leading-tight">Jean Dupont</p>
+<p class="text-[#8eb9cc] text-sm font-normal">jean.dupont@email.com</p>
+</div>
+<div class="ml-auto">
+<span class="text-[10px] uppercase tracking-wider font-bold bg-primary/20 text-primary px-2 py-1 rounded">ID: #8821</span>
+</div>
+</div>
+<!-- Form Section -->
+<div class="space-y-4">
+<!-- Dropdown Reason -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-sm font-semibold flex items-center gap-1">
+                            Raison de la suspension <span class="text-danger">*</span>
+</label>
+<div class="relative">
+<select class="form-input flex w-full appearance-none rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-border-dark bg-surface-dark h-12 px-4 text-sm font-normal cursor-pointer">
+<option disabled="" selected="" value="">Sélectionner une raison</option>
+<option value="behavior">Comportement inapproprié</option>
+<option value="inactivity">Inactivité prolongée</option>
+<option value="fraud">Fraude suspectée</option>
+<option value="terms">Violation des conditions d'utilisation</option>
+<option value="other">Autre raison</option>
+</select>
+<div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-3 text-[#8eb9cc]">
+<span class="material-symbols-outlined">keyboard_arrow_down</span>
+</div>
+</div>
+</div>
+<!-- Additional Comments -->
+<div class="flex flex-col gap-2">
+<label class="text-white text-sm font-semibold">
+                            Commentaires additionnels <span class="text-[#8eb9cc] font-normal text-xs">(Optionnel)</span>
+</label>
+<textarea class="form-input w-full rounded-lg text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-border-dark bg-surface-dark p-3 text-sm font-normal min-h-[100px] placeholder:text-[#8eb9cc]/50" placeholder="Précisez les détails pour l'historique administratif..."></textarea>
+</div>
+</div>
+</div>
+<!-- Footer Actions -->
+<div class="bg-surface-dark/30 p-6 mt-4 flex gap-3 border-t border-border-dark/30">
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-12 bg-transparent hover:bg-white/5 text-white border border-border-dark text-sm font-bold transition-all">
+                    Annuler
+                </button>
+<button class="flex-[1.5] cursor-pointer items-center justify-center rounded-lg h-12 bg-danger hover:bg-danger/90 text-white flex gap-2 text-sm font-bold shadow-lg shadow-danger/20 transition-all">
+<span class="material-symbols-outlined text-sm">block</span>
+                    Confirmer la suspension
+                </button>
+</div>
+<!-- Security Badge -->
+<div class="pb-4 pt-2 flex justify-center items-center gap-1.5 opacity-40">
+<span class="material-symbols-outlined text-[14px]">lock</span>
+<span class="text-[10px] font-medium uppercase tracking-widest">Action Journalisée - Admin ID: 442</span>
+</div>
+</div>
+</div>
+</body></html>

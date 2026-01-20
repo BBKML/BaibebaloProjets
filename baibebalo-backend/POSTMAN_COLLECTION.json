@@ -1,0 +1,1068 @@
+{
+  "info": {
+    "name": "BAIBEBALO API",
+    "description": "Collection Postman pour tester l'API BAIBEBALO",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "user_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "restaurant_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "delivery_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "admin_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "restaurant_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "order_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentification",
+      "item": [
+        {
+          "name": "Envoyer OTP",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+2250701234567\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/send-otp",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "send-otp"]
+            }
+          }
+        },
+        {
+          "name": "Vérifier OTP",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"user_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"user_id\", jsonData.data.user.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+2250701234567\",\n  \"code\": \"123456\",\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Kouassi\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/verify-otp",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "verify-otp"]
+            }
+          }
+        },
+        {
+          "name": "Connexion Restaurant",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"restaurant_token\", jsonData.data.accessToken);",
+                  "    pm.collectionVariables.set(\"restaurant_id\", jsonData.data.restaurant.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"restaurant@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/partner/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "partner", "login"]
+            }
+          }
+        },
+        {
+          "name": "Connexion Livreur",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"delivery_token\", jsonData.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"phone\": \"+2250501234567\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/delivery/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "delivery", "login"]
+            }
+          }
+        },
+        {
+          "name": "Connexion Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"admin_token\", jsonData.data.accessToken);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@baibebalo.ci\",\n  \"password\": \"admin123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/admin/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "admin", "login"]
+            }
+          }
+        },
+        {
+          "name": "Rafraîchir Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{user_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh-token"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. Utilisateurs (Clients)",
+      "item": [
+        {
+          "name": "Mon Profil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Mettre à jour Profil",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"first_name\": \"Jean\",\n  \"last_name\": \"Kouassi\",\n  \"email\": \"jean.kouassi@example.com\",\n  \"gender\": \"male\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me"]
+            }
+          }
+        },
+        {
+          "name": "Mes Adresses",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/addresses",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "addresses"]
+            }
+          }
+        },
+        {
+          "name": "Ajouter Adresse",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Maison\",\n  \"address_line\": \"Quartier Tchengué, près de l'école primaire\",\n  \"district\": \"Tchengué\",\n  \"landmark\": \"Près de l'école primaire\",\n  \"latitude\": 9.4581,\n  \"longitude\": -5.6296,\n  \"is_default\": true\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/addresses",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "addresses"]
+            }
+          }
+        },
+        {
+          "name": "Mes Commandes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/orders?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "orders"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Mes Favoris",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/favorites",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "favorites"]
+            }
+          }
+        },
+        {
+          "name": "Points de Fidélité",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/users/me/loyalty",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "loyalty"]
+            }
+          }
+        },
+        {
+          "name": "Valider Code Promo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"code\": \"NOEL2025\",\n  \"restaurant_id\": \"{{restaurant_id}}\",\n  \"order_amount\": 5000\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/users/me/promotions/validate",
+              "host": ["{{base_url}}"],
+              "path": ["users", "me", "promotions", "validate"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. Restaurants (Public)",
+      "item": [
+        {
+          "name": "Lister Restaurants",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants?lat=9.4581&lng=-5.6296&radius=5&sort=distance",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants"],
+              "query": [
+                {
+                  "key": "lat",
+                  "value": "9.4581"
+                },
+                {
+                  "key": "lng",
+                  "value": "-5.6296"
+                },
+                {
+                  "key": "radius",
+                  "value": "5"
+                },
+                {
+                  "key": "sort",
+                  "value": "distance"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Détails Restaurant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants/{{restaurant_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "{{restaurant_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Menu Restaurant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants/{{restaurant_id}}/menu",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "{{restaurant_id}}", "menu"]
+            }
+          }
+        },
+        {
+          "name": "Avis Restaurant",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/restaurants/{{restaurant_id}}/reviews?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "{{restaurant_id}}", "reviews"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Inscription Restaurant",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Restaurant Chez Fatou\",\n  \"category\": \"Maquis\",\n  \"cuisine_type\": \"Sénoufo\",\n  \"description\": \"Maquis traditionnel\",\n  \"phone\": \"+2250707654321\",\n  \"email\": \"contact@chezfatou.ci\",\n  \"password\": \"password123\",\n  \"address\": \"Quartier Koko\",\n  \"district\": \"Koko\",\n  \"latitude\": 9.4500,\n  \"longitude\": -5.6200,\n  \"delivery_radius\": 8.0,\n  \"mobile_money_number\": \"+2250707654321\",\n  \"mobile_money_provider\": \"orange_money\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants/register",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. Restaurants (Authentifié)",
+      "item": [
+        {
+          "name": "Mon Profil",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/restaurants/me",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "me"]
+            }
+          }
+        },
+        {
+          "name": "Mes Commandes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/restaurants/me/orders?status=new",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "me", "orders"],
+              "query": [
+                {
+                  "key": "status",
+                  "value": "new"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accepter Commande",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estimated_preparation_time\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/accept",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "accept"]
+            }
+          }
+        },
+        {
+          "name": "Marquer en Préparation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/preparing",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "preparing"]
+            }
+          }
+        },
+        {
+          "name": "Marquer Prête",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/ready",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "ready"]
+            }
+          }
+        },
+        {
+          "name": "Mes Statistiques",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/restaurants/me/statistics?period=week",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "me", "statistics"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "week"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Créer Promotion",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{restaurant_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"type\": \"percentage\",\n  \"value\": 20,\n  \"valid_from\": \"2025-12-25T00:00:00Z\",\n  \"valid_until\": \"2025-12-31T23:59:59Z\",\n  \"code\": \"NOEL2025\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/restaurants/me/promotions",
+              "host": ["{{base_url}}"],
+              "path": ["restaurants", "me", "promotions"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. Commandes",
+      "item": [
+        {
+          "name": "Créer Commande",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200 || pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set(\"order_id\", jsonData.data.order.id);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_id\": \"{{restaurant_id}}\",\n  \"items\": [\n    {\n      \"menu_item_id\": \"uuid\",\n      \"quantity\": 2,\n      \"options\": {\n        \"size\": \"Grand\",\n        \"accompaniment\": \"Attiéké\"\n      }\n    }\n  ],\n  \"delivery_address_id\": \"uuid\",\n  \"payment_method\": \"cash\",\n  \"promo_code\": \"NOEL2025\",\n  \"special_instructions\": \"Appeler à l'arrivée\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders",
+              "host": ["{{base_url}}"],
+              "path": ["orders"]
+            }
+          }
+        },
+        {
+          "name": "Détails Commande",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Suivre Commande",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/track",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "track"]
+            }
+          }
+        },
+        {
+          "name": "Annuler Commande",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reason\": \"Changement d'avis\",\n  \"cancellation_type\": \"change_mind\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/cancel",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "cancel"]
+            }
+          }
+        },
+        {
+          "name": "Laisser Avis",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{user_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"restaurant_rating\": 5,\n  \"delivery_rating\": 5,\n  \"food_quality\": 5,\n  \"order_accuracy\": 5,\n  \"packaging\": 5,\n  \"comment\": \"Excellent service !\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/orders/{{order_id}}/review",
+              "host": ["{{base_url}}"],
+              "path": ["orders", "{{order_id}}", "review"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "6. Livreurs",
+      "item": [
+        {
+          "name": "Changer Statut",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_status\": \"available\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/status",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "status"]
+            }
+          }
+        },
+        {
+          "name": "Mettre à jour Position",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"latitude\": 9.4590,\n  \"longitude\": -5.6290\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/location",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "location"]
+            }
+          }
+        },
+        {
+          "name": "Commandes Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/delivery/available-orders?radius=5",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "available-orders"],
+              "query": [
+                {
+                  "key": "radius",
+                  "value": "5"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Accepter Livraison",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"estimated_arrival_time\": 25\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/orders/{{order_id}}/accept",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "orders", "{{order_id}}", "accept"]
+            }
+          }
+        },
+        {
+          "name": "Confirmer Récupération",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pickup_code\": \"1234\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/orders/{{order_id}}/pickup",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "orders", "{{order_id}}", "pickup"]
+            }
+          }
+        },
+        {
+          "name": "Confirmer Livraison",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"delivery_code\": \"5678\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/delivery/orders/{{order_id}}/deliver",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "orders", "{{order_id}}", "deliver"]
+            }
+          }
+        },
+        {
+          "name": "Mes Gains",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{delivery_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/delivery/earnings?period=month",
+              "host": ["{{base_url}}"],
+              "path": ["delivery", "earnings"],
+              "query": [
+                {
+                  "key": "period",
+                  "value": "month"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "7. Administrateur",
+      "item": [
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/dashboard",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "dashboard"]
+            }
+          }
+        },
+        {
+          "name": "Lister Utilisateurs",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/users?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "users"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Approuver Restaurant",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/restaurants/{{restaurant_id}}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "restaurants", "{{restaurant_id}}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Approuver Livreur",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/delivery-persons/{deliveryPersonId}/approve",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "delivery-persons", "{deliveryPersonId}", "approve"]
+            }
+          }
+        },
+        {
+          "name": "Vue Financière",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/admin/finances/overview",
+              "host": ["{{base_url}}"],
+              "path": ["admin", "finances", "overview"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
