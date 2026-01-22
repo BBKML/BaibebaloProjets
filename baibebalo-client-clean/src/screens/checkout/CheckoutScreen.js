@@ -7,23 +7,28 @@ import {
   TouchableOpacity,
   Alert,
   TextInput,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
+import useAuthStore from '../../store/authStore';
 import { getAddresses } from '../../api/users';
 import { createOrder, initiatePayment } from '../../api/orders';
 import { validatePromoCode } from '../../api/users';
 
-export default function CheckoutScreen({ navigation }) {
+export default function CheckoutScreen({ navigation, route }) {
   const { items, getTotal, clearCart, restaurantId } = useCartStore();
+  const { user } = useAuthStore();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
-  const [paymentMethod, setPaymentMethod] = useState('mobile_money');
+  const [paymentMethod, setPaymentMethod] = useState('cash');
+  const [paymentMethodSelected, setPaymentMethodSelected] = useState(false);
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [applyingPromo, setApplyingPromo] = useState(false);
+  const [promoApplied, setPromoApplied] = useState(false);
 
   useEffect(() => {
     loadAddresses();
@@ -31,12 +36,18 @@ export default function CheckoutScreen({ navigation }) {
     return unsubscribe;
   }, [navigation]);
 
+  useEffect(() => {
+    if (route?.params?.selectedAddressId) {
+      setSelectedAddress(route.params.selectedAddressId);
+    }
+  }, [route?.params?.selectedAddressId]);
+
   const loadAddresses = async () => {
     try {
       const response = await getAddresses();
-      const userAddresses = response.data?.addresses || [];
+      const userAddresses = response.data?.addresses || response.data?.data?.addresses || [];
       setAddresses(userAddresses);
-      if (userAddresses.length > 0) {
+      if (userAddresses.length > 0 && !selectedAddress) {
         setSelectedAddress(userAddresses[0].id);
       }
     } catch (error) {
@@ -57,29 +68,57 @@ export default function CheckoutScreen({ navigation }) {
 
     setLoading(true);
     try {
+      const selectedAddressData = addresses.find((address) => address.id === selectedAddress);
+      if (!selectedAddressData) {
+        Alert.alert('Erreur', 'Adresse de livraison introuvable');
+        return;
+      }
+
+      if (!selectedAddressData.latitude || !selectedAddressData.longitude) {
+        Alert.alert(
+          'Adresse incomplète',
+          'Veuillez ajouter la localisation GPS de cette adresse avant de commander.'
+        );
+        return;
+      }
+
       const orderData = {
         restaurant_id: restaurantId,
-        delivery_address_id: selectedAddress,
+        delivery_address: {
+          label: selectedAddressData.label || selectedAddressData.title || 'Adresse',
+          street: selectedAddressData.street || selectedAddressData.address_line || '',
+          city: selectedAddressData.city || selectedAddressData.district || '',
+          landmark: selectedAddressData.delivery_instructions || selectedAddressData.landmark || '',
+          address_line: selectedAddressData.address_line || selectedAddressData.street || '',
+          district: selectedAddressData.district || selectedAddressData.city || '',
+          latitude: selectedAddressData.latitude,
+          longitude: selectedAddressData.longitude,
+        },
         payment_method: paymentMethod,
         items: items.map((item) => ({
           menu_item_id: item.id,
           quantity: item.quantity,
           price: item.price,
-          customizations: item.customizations,
+          selected_options: item.selected_options || item.customizations || {},
         })),
         promo_code: promoCode.trim() || null,
       };
 
       const response = await createOrder(orderData);
+      const createdOrder = response.data?.order || response.data?.data?.order || response.data;
       
       // Si paiement mobile money, initier le paiement
-      if (paymentMethod === 'mobile_money' && response.data?.id) {
+      if (['orange_money', 'mtn_money', 'moov_money'].includes(paymentMethod) && createdOrder?.id) {
         try {
-          // TODO: Récupérer le numéro de téléphone de l'utilisateur
-          // await initiatePayment(response.data.id, {
-          //   payment_method: 'orange_money',
-          //   phone_number: userPhoneNumber,
-          // });
+          const userPhoneNumber = user?.phone;
+          if (!userPhoneNumber) {
+            Alert.alert('Paiement', 'Numéro de téléphone requis pour le paiement.');
+          } else {
+            await initiatePayment(createdOrder.id, {
+              payment_method: paymentMethod,
+              phone_number: userPhoneNumber,
+            });
+          }
         } catch (paymentError) {
           console.error('Erreur lors de l\'initiation du paiement:', paymentError);
           // Continuer quand même, le paiement peut être fait plus tard
@@ -90,9 +129,11 @@ export default function CheckoutScreen({ navigation }) {
       
       // Naviguer vers l'écran de confirmation
       navigation.replace('OrderConfirmation', {
-        orderId: response.data.id,
-        orderNumber: response.data.order_number || response.data.id,
-        estimatedTime: '12:45', // TODO: Calculer depuis estimated_delivery_time
+        orderId: createdOrder?.id,
+        orderNumber: createdOrder?.order_number || createdOrder?.id,
+        estimatedTime: createdOrder?.estimated_delivery_time
+          ? `${createdOrder.estimated_delivery_time}`
+          : '12:45',
       });
     } catch (error) {
       Alert.alert(
@@ -104,23 +145,101 @@ export default function CheckoutScreen({ navigation }) {
     }
   };
 
+  const openPaymentSelection = () => {
+    navigation.navigate('PaymentMethod', {
+      selectedMethod: paymentMethod,
+      itemsCount: items.length,
+      itemsTotal: total,
+      deliveryFee,
+      onSelect: (method) => {
+        setPaymentMethod(method);
+        setPaymentMethodSelected(true);
+      },
+    });
+  };
+
+  const formatCustomizations = (customizations) => {
+    if (!customizations) return 'Personnalisation: aucune';
+    if (Array.isArray(customizations)) {
+      const values = customizations
+        .map((opt) => (typeof opt === 'string' ? opt : opt?.value))
+        .filter(Boolean);
+      return values.length ? `Suppléments: ${values.join(', ')}` : 'Personnalisation: aucune';
+    }
+    if (typeof customizations === 'object') {
+      const values = Object.values(customizations).filter(Boolean);
+      return values.length ? `Suppléments: ${values.join(', ')}` : 'Personnalisation: aucune';
+    }
+    return 'Personnalisation: aucune';
+  };
+
+  const handleApplyPromo = async () => {
+    if (!promoCode.trim()) {
+      Alert.alert('Code promo', 'Veuillez saisir un code promo.');
+      return;
+    }
+
+    setApplyingPromo(true);
+    try {
+      const response = await validatePromoCode(promoCode.trim());
+      const discount = response.data?.discount || response.data?.amount || 0;
+      if (discount > 0) {
+        setPromoDiscount(discount);
+        setPromoApplied(true);
+      } else {
+        Alert.alert('Code promo', 'Code promo invalide ou expiré.');
+      }
+    } catch (error) {
+      Alert.alert(
+        'Code promo',
+        error.response?.data?.error?.message || 'Impossible d\'appliquer ce code.'
+      );
+    } finally {
+      setApplyingPromo(false);
+    }
+  };
+
   const total = getTotal();
   const deliveryFee = 1000;
-  const finalTotal = total + deliveryFee;
+  const serviceFee = 250;
+  const finalTotal = Math.max(0, total + deliveryFee + serviceFee - promoDiscount);
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Résumé de la commande</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <View style={styles.progressWrapper}>
+        <View style={styles.progressRow}>
+          <Text style={styles.progressLabel}>Progression</Text>
+          <Text style={styles.progressBadge}>Étape 2 sur 3</Text>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={styles.progressFill} />
+        </View>
+      </View>
+
       <ScrollView style={styles.content}>
         {/* Address Selection */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Adresse de livraison</Text>
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Adresse de livraison</Text>
+            <TouchableOpacity onPress={() => navigation.navigate('ManageAddresses')}>
+              <Text style={styles.cardAction}>Modifier</Text>
+            </TouchableOpacity>
+          </View>
           {addresses.length === 0 ? (
-          <TouchableOpacity
-            style={styles.addAddressButton}
-            onPress={() => {
-              navigation.navigate('AddAddress', { fromCheckout: true });
-            }}
-          >
+            <TouchableOpacity
+              style={styles.addAddressButton}
+              onPress={() => {
+                navigation.navigate('AddAddress', { fromCheckout: true });
+              }}
+            >
               <Ionicons name="add-circle-outline" size={24} color={COLORS.primary} />
               <Text style={styles.addAddressText}>Ajouter une adresse</Text>
             </TouchableOpacity>
@@ -136,13 +255,13 @@ export default function CheckoutScreen({ navigation }) {
               >
                 <Ionicons
                   name={selectedAddress === address.id ? 'radio-button-on' : 'radio-button-off'}
-                  size={24}
+                  size={22}
                   color={selectedAddress === address.id ? COLORS.primary : COLORS.textSecondary}
                 />
                 <View style={styles.addressInfo}>
                   <Text style={styles.addressLabel}>{address.label || 'Adresse'}</Text>
                   <Text style={styles.addressText}>
-                    {address.street}, {address.city}
+                    {[address.street, address.city].filter(Boolean).join(', ')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -150,24 +269,40 @@ export default function CheckoutScreen({ navigation }) {
           )}
         </View>
 
+        {/* Delivery Time */}
+        <View style={styles.card}>
+          <View style={styles.deliveryRow}>
+            <View>
+              <Text style={styles.deliveryLabel}>Temps d'attente</Text>
+              <Text style={styles.deliveryValue}>40-50 min</Text>
+              <Text style={styles.deliveryHint}>
+                <Ionicons name="time-outline" size={12} color={COLORS.primary} /> Livraison estimée
+              </Text>
+            </View>
+            <View style={styles.deliveryBadge}>
+              <Ionicons name="bicycle" size={28} color={COLORS.primary} />
+            </View>
+          </View>
+        </View>
+
         {/* Promo Code */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Code promo</Text>
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Code promo</Text>
           <View style={styles.promoContainer}>
             <TextInput
               style={styles.promoInput}
               placeholder="Entrez un code promo"
               value={promoCode}
               onChangeText={setPromoCode}
-              editable={!applyingPromo && promoDiscount === 0}
+              editable={!applyingPromo && !promoApplied}
             />
             <TouchableOpacity
-              style={[styles.promoButton, (applyingPromo || promoDiscount > 0) && styles.promoButtonDisabled]}
+              style={[styles.promoButton, (applyingPromo || promoApplied) && styles.promoButtonDisabled]}
               onPress={handleApplyPromo}
-              disabled={applyingPromo || promoDiscount > 0}
+              disabled={applyingPromo || promoApplied}
             >
               <Text style={styles.promoButtonText}>
-                {applyingPromo ? '...' : promoDiscount > 0 ? '✓' : 'Appliquer'}
+                {applyingPromo ? '...' : promoApplied ? '✓' : 'Appliquer'}
               </Text>
             </TouchableOpacity>
           </View>
@@ -182,72 +317,53 @@ export default function CheckoutScreen({ navigation }) {
         </View>
 
         {/* Payment Method */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Méthode de paiement</Text>
-          <TouchableOpacity
-            style={[
-              styles.paymentCard,
-              paymentMethod === 'mobile_money' && styles.paymentCardSelected,
-            ]}
-            onPress={() => setPaymentMethod('mobile_money')}
-          >
-            <Ionicons
-              name={paymentMethod === 'mobile_money' ? 'radio-button-on' : 'radio-button-off'}
-              size={24}
-              color={paymentMethod === 'mobile_money' ? COLORS.primary : COLORS.textSecondary}
-            />
-            <Text style={styles.paymentText}>Mobile Money</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.paymentCard,
-              paymentMethod === 'cash' && styles.paymentCardSelected,
-            ]}
-            onPress={() => setPaymentMethod('cash')}
-          >
-            <Ionicons
-              name={paymentMethod === 'cash' ? 'radio-button-on' : 'radio-button-off'}
-              size={24}
-              color={paymentMethod === 'cash' ? COLORS.primary : COLORS.textSecondary}
-            />
-            <Text style={styles.paymentText}>Espèces</Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Promo Code */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Code promo</Text>
-          <View style={styles.promoContainer}>
-            <TextInput
-              style={styles.promoInput}
-              placeholder="Entrez un code promo"
-              value={promoCode}
-              onChangeText={setPromoCode}
-              editable={!applyingPromo && promoDiscount === 0}
-            />
-            <TouchableOpacity
-              style={[styles.promoButton, (applyingPromo || promoDiscount > 0) && styles.promoButtonDisabled]}
-              onPress={handleApplyPromo}
-              disabled={applyingPromo || promoDiscount > 0}
-            >
-              <Text style={styles.promoButtonText}>
-                {applyingPromo ? '...' : promoDiscount > 0 ? '✓' : 'Appliquer'}
+        <View style={styles.card}>
+          <View style={styles.cardHeader}>
+            <Text style={styles.cardTitle}>Méthode de paiement</Text>
+            <TouchableOpacity onPress={openPaymentSelection}>
+              <Text style={styles.cardAction}>
+                {paymentMethodSelected ? 'Modifier' : 'Choisir'}
               </Text>
             </TouchableOpacity>
           </View>
-          {promoDiscount > 0 && (
-            <View style={styles.promoDiscountRow}>
-              <Text style={styles.promoDiscountLabel}>Réduction appliquée</Text>
-              <Text style={styles.promoDiscountValue}>
-                -{promoDiscount.toLocaleString('fr-FR')} FCFA
-              </Text>
-            </View>
-          )}
+          <View style={styles.paymentSummary}>
+            <Ionicons name="wallet-outline" size={20} color={COLORS.primary} />
+            <Text style={styles.paymentSummaryText}>
+              {paymentMethod === 'cash' ? 'Espèces' : 'Mobile Money'}
+            </Text>
+          </View>
         </View>
 
-        {/* Order Summary */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Résumé de la commande</Text>
+        {/* Order Items */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Détails de l'article</Text>
+          <View style={styles.itemsList}>
+            {items.map((item) => (
+              <View key={item.id} style={styles.itemRow}>
+                <Image
+                  source={{ uri: item.image_url || 'https://via.placeholder.com/96' }}
+                  style={styles.itemImage}
+                />
+                <View style={styles.itemInfo}>
+                  <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
+                  <Text style={styles.itemMeta} numberOfLines={1}>
+                    {formatCustomizations(item.customizations)}
+                  </Text>
+                  <View style={styles.itemFooter}>
+                    <Text style={styles.itemQty}>Quantité: {item.quantity}</Text>
+                    <Text style={styles.itemPrice}>
+                      {(item.price * item.quantity).toLocaleString('fr-FR')} FCFA
+                    </Text>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+        </View>
+
+        {/* Price Breakdown */}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Résumé de la commande</Text>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Sous-total</Text>
             <Text style={styles.summaryValue}>
@@ -258,6 +374,12 @@ export default function CheckoutScreen({ navigation }) {
             <Text style={styles.summaryLabel}>Frais de livraison</Text>
             <Text style={styles.summaryValue}>
               {deliveryFee.toLocaleString('fr-FR')} FCFA
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Taxes & Frais de service</Text>
+            <Text style={styles.summaryValue}>
+              {serviceFee.toLocaleString('fr-FR')} FCFA
             </Text>
           </View>
           {promoDiscount > 0 && (
@@ -280,11 +402,15 @@ export default function CheckoutScreen({ navigation }) {
       <View style={styles.footer}>
         <TouchableOpacity
           style={[styles.orderButton, loading && styles.orderButtonDisabled]}
-          onPress={handlePlaceOrder}
+          onPress={paymentMethodSelected ? handlePlaceOrder : openPaymentSelection}
           disabled={loading}
         >
           <Text style={styles.orderButtonText}>
-            {loading ? 'Traitement...' : 'Confirmer la commande'}
+            {loading
+              ? 'Traitement...'
+              : paymentMethodSelected
+              ? 'Confirmer la commande'
+              : 'Continuer vers le paiement'}
           </Text>
         </TouchableOpacity>
       </View>
@@ -297,19 +423,127 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  progressWrapper: {
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  progressBadge: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.primary,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: COLORS.border,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '66%',
+    height: '100%',
+    backgroundColor: COLORS.primary,
+  },
   content: {
     flex: 1,
   },
-  section: {
+  card: {
     backgroundColor: COLORS.white,
     padding: 16,
     marginBottom: 12,
+    borderRadius: 12,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
+  cardHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  cardTitle: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 16,
+    textTransform: 'uppercase',
+    letterSpacing: 0.6,
+  },
+  cardAction: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  deliveryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  deliveryLabel: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    fontWeight: '600',
+    marginBottom: 6,
+  },
+  deliveryValue: {
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  deliveryHint: {
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  deliveryBadge: {
+    width: 72,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addAddressButton: {
     flexDirection: 'row',
@@ -329,15 +563,12 @@ const styles = StyleSheet.create({
   addressCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    marginBottom: 12,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
   },
   addressCardSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '10',
+    backgroundColor: COLORS.primary + '08',
   },
   addressInfo: {
     flex: 1,
@@ -370,6 +601,62 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.text,
     marginLeft: 12,
+  },
+  paymentSummary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
+  },
+  paymentSummaryText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  itemsList: {
+    gap: 12,
+  },
+  itemRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  itemImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: COLORS.border,
+  },
+  itemInfo: {
+    flex: 1,
+  },
+  itemName: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  itemMeta: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 6,
+  },
+  itemFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  itemQty: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  itemPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -404,6 +691,7 @@ const styles = StyleSheet.create({
   promoContainer: {
     flexDirection: 'row',
     gap: 8,
+    marginTop: 12,
   },
   promoInput: {
     flex: 1,

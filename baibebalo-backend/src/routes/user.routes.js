@@ -4,15 +4,17 @@ const { authenticate, authorize } = require('../middlewares/auth');
 const { 
   validate, 
   paginationValidator,
-  uuidValidator 
+  uuidValidator,
+  uploadLimiter,
 } = require('../middlewares/validators');
 const userController = require('../controllers/user.controller');
+const { uploadMiddleware } = require('../services/upload.service');
 
 const router = express.Router();
 
 // Toutes ces routes nécessitent une authentification en tant qu'utilisateur
 router.use(authenticate);
-router.use(authorize('user'));
+router.use(authorize('user', 'client')); // Accepter 'user' et 'client' (synonymes)
 
 /**
  * @route   GET /api/v1/users/me
@@ -20,6 +22,53 @@ router.use(authorize('user'));
  * @access  Private (Client)
  */
 router.get('/me', userController.getProfile);
+
+/**
+ * @route   GET /api/v1/users/me/notification-preferences
+ * @desc    Obtenir les préférences de notifications
+ * @access  Private (Client)
+ */
+router.get('/me/notification-preferences', userController.getNotificationPreferences);
+
+/**
+ * @route   PUT /api/v1/users/me/notification-preferences
+ * @desc    Mettre à jour les préférences de notifications
+ * @access  Private (Client)
+ */
+router.put(
+  '/me/notification-preferences',
+  [
+    body('orderUpdates').optional().isBoolean().toBoolean(),
+    body('promotions').optional().isBoolean().toBoolean(),
+    body('newRestaurants').optional().isBoolean().toBoolean(),
+    body('deliveryStatus').optional().isBoolean().toBoolean(),
+    body('paymentReminders').optional().isBoolean().toBoolean(),
+    body('marketing').optional().isBoolean().toBoolean(),
+    body('sound').optional().isBoolean().toBoolean(),
+    body('vibration').optional().isBoolean().toBoolean(),
+  ],
+  validate,
+  userController.updateNotificationPreferences
+);
+
+/**
+ * @route   POST /api/v1/users/me/profile-picture
+ * @desc    Upload photo de profil utilisateur
+ * @access  Private (Client)
+ */
+router.post(
+  '/me/profile-picture',
+  uploadLimiter,
+  uploadMiddleware.single('profile_picture'),
+  userController.uploadProfilePicture
+);
+
+/**
+ * @route   DELETE /api/v1/users/me/profile-picture
+ * @desc    Supprimer la photo de profil utilisateur
+ * @access  Private (Client)
+ */
+router.delete('/me/profile-picture', userController.deleteProfilePicture);
 
 /**
  * @route   PUT /api/v1/users/me
@@ -40,16 +89,31 @@ router.put(
       .isLength({ min: 2, max: 100 })
       .withMessage('Nom invalide'),
     body('email')
-      .optional()
+      .optional({ nullable: true, checkFalsy: true })
       .isEmail()
       .normalizeEmail()
       .withMessage('Email invalide'),
     body('gender')
-      .optional()
+      .optional({ nullable: true, checkFalsy: true })
+      .customSanitizer((value) => {
+        if (!value) return value;
+        const normalized = String(value).toLowerCase();
+        const map = { m: 'male', f: 'female', o: 'other' };
+        return map[normalized] || normalized;
+      })
       .isIn(['male', 'female', 'other'])
       .withMessage('Genre invalide'),
     body('date_of_birth')
-      .optional()
+      .optional({ nullable: true, checkFalsy: true })
+      .customSanitizer((value) => {
+        if (!value) return value;
+        const strValue = String(value);
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(strValue)) {
+          const [day, month, year] = strValue.split('/');
+          return `${year}-${month}-${day}`;
+        }
+        return strValue;
+      })
       .isISO8601()
       .withMessage('Date de naissance invalide'),
   ],
@@ -253,7 +317,7 @@ router.get('/me/support/tickets',
 router.post('/me/support/tickets',
   [
     body('category')
-      .isIn(['order', 'payment', 'account', 'technical', 'other'])
+      .isIn(['order', 'payment', 'delivery', 'account', 'technical', 'other'])
       .withMessage('Catégorie invalide'),
     body('subject')
       .trim()

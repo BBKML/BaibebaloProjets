@@ -41,8 +41,8 @@ export default function OrderTrackingScreen({ route }) {
     try {
       setLoading(true);
       const response = await trackOrder(orderId);
-      // Le backend peut retourner la commande dans response.data.order ou response.data
-      setOrder(response.data?.order || response.data);
+      const orderData = response.data?.order || response.data?.data?.order || response.data;
+      setOrder(orderData);
     } catch (error) {
       console.error('Erreur lors du chargement de la commande:', error);
     } finally {

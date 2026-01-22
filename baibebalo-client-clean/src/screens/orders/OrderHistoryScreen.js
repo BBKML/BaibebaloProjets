@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   RefreshControl,
+  SectionList,
+  Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -25,11 +26,86 @@ export default function OrderHistoryScreen({ navigation }) {
     try {
       setLoading(true);
       const response = await getOrderHistory();
-      setOrders(response.data?.orders || []);
+      setOrders(response.data?.orders || response.data?.data?.orders || []);
     } catch (error) {
       console.error('Erreur lors du chargement des commandes:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const isSameDay = (a, b) =>
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate();
+
+  const getWeekStart = (date) => {
+    const copy = new Date(date);
+    const day = copy.getDay();
+    const diff = day === 0 ? -6 : 1 - day;
+    copy.setDate(copy.getDate() + diff);
+    copy.setHours(0, 0, 0, 0);
+    return copy;
+  };
+
+  const getSectionTitle = (date) => {
+    const now = new Date();
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (isSameDay(date, today)) return 'Aujourd\'hui';
+
+    const weekStart = getWeekStart(now);
+    const orderWeekStart = getWeekStart(date);
+    if (orderWeekStart.getTime() === weekStart.getTime()) return 'Cette semaine';
+
+    const lastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+    if (
+      date.getFullYear() === lastMonth.getFullYear() &&
+      date.getMonth() === lastMonth.getMonth()
+    ) {
+      return 'Mois dernier';
+    }
+
+    return 'Plus tôt';
+  };
+
+  const getTimeLabel = (date) => {
+    const now = new Date();
+    if (isSameDay(date, now)) {
+      return date.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+    }
+    return date.toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
+  const groupedOrders = useMemo(() => {
+    const groups = orders.reduce((acc, order) => {
+      const date = new Date(order.created_at);
+      const title = getSectionTitle(date);
+      if (!acc[title]) {
+        acc[title] = [];
+      }
+      acc[title].push({ ...order, _date: date });
+      return acc;
+    }, {});
+
+    const orderBy = ['Aujourd\'hui', 'Cette semaine', 'Mois dernier', 'Plus tôt'];
+    return orderBy
+      .filter((title) => groups[title]?.length)
+      .map((title) => ({
+        title,
+        data: groups[title].sort((a, b) => b._date - a._date),
+      }));
+  }, [orders]);
+
+  const handleReorder = (order) => {
+    const restaurantId = order.restaurant?.id;
+    if (restaurantId) {
+      navigation.navigate('RestaurantDetail', { restaurantId });
     }
   };
 
@@ -39,53 +115,29 @@ export default function OrderHistoryScreen({ navigation }) {
       onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
     >
       <View style={styles.orderHeader}>
-        <View>
-          <Text style={styles.orderNumber}>Commande #{item.order_number}</Text>
-          <Text style={styles.orderDate}>
-            {new Date(item.created_at).toLocaleDateString('fr-FR', {
-              day: 'numeric',
-              month: 'long',
-              year: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            })}
-          </Text>
+        <View style={styles.statusRow}>
+          <Text style={styles.statusBadgeText}>{STATUS_LABELS[item.status]}</Text>
+          <Text style={styles.statusDivider}>•</Text>
+          <Text style={styles.statusTime}>{getTimeLabel(item._date)}</Text>
         </View>
-        <View
-          style={[
-            styles.statusBadge,
-            { backgroundColor: STATUS_COLORS[item.status] + '20' },
-          ]}
-        >
-          <Text
-            style={[
-              styles.statusText,
-              { color: STATUS_COLORS[item.status] },
-            ]}
-          >
-            {STATUS_LABELS[item.status]}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.orderInfo}>
-        <View style={styles.orderInfoRow}>
-          <Ionicons name="restaurant" size={16} color={COLORS.textSecondary} />
-          <Text style={styles.orderInfoText}>{item.restaurant?.name}</Text>
-        </View>
-        <View style={styles.orderInfoRow}>
-          <Ionicons name="location" size={16} color={COLORS.textSecondary} />
-          <Text style={styles.orderInfoText} numberOfLines={1}>
-            {item.delivery_address?.street}
-          </Text>
-        </View>
-      </View>
-
-      <View style={styles.orderFooter}>
+        <Text style={styles.restaurantName}>{item.restaurant?.name || 'Restaurant'}</Text>
         <Text style={styles.orderTotal}>
           {item.total_amount?.toLocaleString('fr-FR')} FCFA
         </Text>
-        <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+      </View>
+      <Image
+        source={{ uri: item.restaurant?.image_url || 'https://via.placeholder.com/64' }}
+        style={styles.orderImage}
+      />
+      <View style={styles.orderFooter}>
+        <View style={styles.ratingBadge}>
+          <Ionicons name="star" size={14} color={COLORS.warning} />
+          <Text style={styles.ratingText}>{item.restaurant?.rating || '4.0'}</Text>
+        </View>
+        <TouchableOpacity style={styles.reorderButton} onPress={() => handleReorder(item)}>
+          <Text style={styles.reorderText}>Recommander</Text>
+          <Ionicons name="refresh" size={14} color={COLORS.primary} />
+        </TouchableOpacity>
       </View>
     </TouchableOpacity>
   );
@@ -94,21 +146,23 @@ export default function OrderHistoryScreen({ navigation }) {
     <View style={styles.container}>
       {orders.length === 0 && !loading ? (
         <View style={styles.emptyContainer}>
-          <Ionicons name="receipt-outline" size={64} color={COLORS.textLight} />
-          <Text style={styles.emptyText}>Aucune commande</Text>
-          <Text style={styles.emptySubtext}>
-            Vos commandes passées apparaîtront ici
-          </Text>
+          <EmptyOrderHistoryScreen />
         </View>
       ) : (
-        <FlatList
-          data={orders}
-          renderItem={renderOrder}
+        <SectionList
+          sections={groupedOrders}
           keyExtractor={(item) => item.id.toString()}
+          renderItem={renderOrder}
+          renderSectionHeader={({ section }) => (
+            <View style={styles.sectionHeader}>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+            </View>
+          )}
           contentContainerStyle={styles.listContent}
           refreshControl={
             <RefreshControl refreshing={loading} onRefresh={loadOrders} />
           }
+          stickySectionHeadersEnabled={false}
         />
       )}
     </View>
@@ -123,85 +177,101 @@ const styles = StyleSheet.create({
   listContent: {
     padding: 16,
   },
+  sectionHeader: {
+    marginTop: 4,
+    marginBottom: 8,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
   orderCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 12,
   },
   orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    flex: 1,
   },
-  orderNumber: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  orderDate: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 12,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  orderInfo: {
-    marginBottom: 12,
-  },
-  orderInfoRow: {
+  statusRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 8,
+    gap: 6,
+    marginBottom: 6,
   },
-  orderInfoText: {
-    fontSize: 14,
+  statusBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+    textTransform: 'uppercase',
+  },
+  statusDivider: {
+    fontSize: 12,
     color: COLORS.textSecondary,
-    flex: 1,
+  },
+  statusTime: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  restaurantName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
   },
   orderFooter: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
   },
   orderTotal: {
-    fontSize: 18,
-    fontWeight: 'bold',
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  orderImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 12,
+    backgroundColor: COLORS.border,
+  },
+  ratingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  reorderButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  reorderText: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.primary,
   },
   emptyContainer: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
   },
 });

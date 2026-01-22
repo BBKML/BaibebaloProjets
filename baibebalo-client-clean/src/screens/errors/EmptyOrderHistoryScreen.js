@@ -21,7 +21,7 @@ export default function EmptyOrderHistoryScreen({ navigation }) {
         </Text>
         <TouchableOpacity
           style={styles.exploreButton}
-          onPress={() => navigation.navigate('Home')}
+          onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
         >
           <Text style={styles.exploreButtonText}>Explorer les restaurants</Text>
         </TouchableOpacity>

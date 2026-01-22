@@ -18,6 +18,10 @@ export default function SearchFiltersModal({ visible, onClose, onApply, initialF
     maxDeliveryTime: initialFilters.maxDeliveryTime || 60,
     priceRange: initialFilters.priceRange || 'all',
     cuisineType: initialFilters.cuisineType || [],
+    freeDelivery: initialFilters.freeDelivery || false,
+    newRestaurants: initialFilters.newRestaurants || false,
+    mobileMoney: initialFilters.mobileMoney || false,
+    promotions: initialFilters.promotions || false,
     ...initialFilters,
   });
 
@@ -54,6 +58,10 @@ export default function SearchFiltersModal({ visible, onClose, onApply, initialF
       maxDeliveryTime: 60,
       priceRange: 'all',
       cuisineType: [],
+      freeDelivery: false,
+      newRestaurants: false,
+      mobileMoney: false,
+      promotions: false,
     });
   };
 
@@ -237,6 +245,27 @@ export default function SearchFiltersModal({ visible, onClose, onApply, initialF
                 ))}
               </View>
             </View>
+
+            {/* Options spéciales */}
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Options spéciales</Text>
+              {[
+                { key: 'freeDelivery', label: 'Livraison gratuite' },
+                { key: 'newRestaurants', label: 'Nouveaux restaurants' },
+                { key: 'mobileMoney', label: 'Accepte Mobile Money' },
+                { key: 'promotions', label: 'Promotions en cours' },
+              ].map((option) => (
+                <View key={option.key} style={styles.toggleRow}>
+                  <Text style={styles.toggleLabel}>{option.label}</Text>
+                  <Switch
+                    value={filters[option.key]}
+                    onValueChange={(value) => setFilters({ ...filters, [option.key]: value })}
+                    trackColor={{ false: COLORS.border, true: COLORS.primary }}
+                    thumbColor={COLORS.white}
+                  />
+                </View>
+              ))}
+            </View>
           </ScrollView>
 
           {/* Footer */}
@@ -413,6 +442,17 @@ const styles = StyleSheet.create({
   cuisineTagTextSelected: {
     fontWeight: '600',
     color: COLORS.white,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 10,
+  },
+  toggleLabel: {
+    fontSize: 14,
+    color: COLORS.text,
+    fontWeight: '500',
   },
   footer: {
     flexDirection: 'row',

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   View,
   Text,
@@ -6,17 +7,17 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useAuthStore from '../../store/authStore';
 
 export default function DataStorageScreen({ navigation }) {
-  const [cacheSize, setCacheSize] = useState('125 MB');
-  const [dataUsage, setDataUsage] = useState({
-    images: '85 MB',
-    videos: '30 MB',
-    other: '10 MB',
-  });
+  const { logout } = useAuthStore();
+  const [cacheSize, setCacheSize] = useState('40 MB');
+  const [lowDataMode, setLowDataMode] = useState(true);
 
   const handleClearCache = () => {
     Alert.alert(
@@ -28,9 +29,16 @@ export default function DataStorageScreen({ navigation }) {
           text: 'Effacer',
           style: 'destructive',
           onPress: () => {
-            // TODO: Implémenter l'effacement du cache
-            setCacheSize('0 MB');
-            Alert.alert('Succès', 'Le cache a été effacé');
+            void (async () => {
+              try {
+                await AsyncStorage.removeItem('recentSearches');
+                setCacheSize('0 MB');
+                Alert.alert('Succès', 'Le cache a été effacé');
+              } catch (error) {
+                console.error('Erreur effacement cache:', error);
+                Alert.alert('Erreur', 'Impossible d\'effacer le cache');
+              }
+            })();
           },
         },
       ]
@@ -47,8 +55,16 @@ export default function DataStorageScreen({ navigation }) {
           text: 'Effacer',
           style: 'destructive',
           onPress: () => {
-            // TODO: Implémenter l'effacement des données
-            Alert.alert('Succès', 'Toutes les données ont été effacées');
+            void (async () => {
+              try {
+                await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user', 'recentSearches']);
+                await logout();
+                Alert.alert('Succès', 'Toutes les données ont été effacées');
+              } catch (error) {
+                console.error('Erreur effacement données:', error);
+                Alert.alert('Erreur', 'Impossible d\'effacer les données');
+              }
+            })();
           },
         },
       ]
@@ -57,93 +73,103 @@ export default function DataStorageScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="chevron-back" size={20} color={COLORS.primary} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>Données et stockage</Text>
+        <View style={styles.topBarSpacer} />
+      </View>
+
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Données et stockage</Text>
+        <Text style={styles.headerTitle}>Stockage de l'application</Text>
         <Text style={styles.headerSubtitle}>
-          Gérez l'utilisation du stockage de l'application
+          Gérez l'espace utilisé par BAIBEBALO sur votre téléphone.
         </Text>
       </View>
 
-      {/* Utilisation du stockage */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Utilisation du stockage</Text>
-        <View style={styles.storageCard}>
-          <View style={styles.storageHeader}>
-            <Ionicons name="folder-outline" size={24} color={COLORS.primary} />
-            <View style={styles.storageInfo}>
-              <Text style={styles.storageLabel}>Cache total</Text>
-              <Text style={styles.storageValue}>{cacheSize}</Text>
-            </View>
+      <View style={styles.storageCard}>
+        <View style={styles.storageHeader}>
+          <View>
+            <Text style={styles.storageLabel}>Utilisation totale</Text>
+            <Text style={styles.storageValue}>124 Mo utilisés</Text>
           </View>
-          <View style={styles.storageDetails}>
-            <View style={styles.storageItem}>
-              <Text style={styles.storageItemLabel}>Images</Text>
-              <Text style={styles.storageItemValue}>{dataUsage.images}</Text>
-            </View>
-            <View style={styles.storageItem}>
-              <Text style={styles.storageItemLabel}>Vidéos</Text>
-              <Text style={styles.storageItemValue}>{dataUsage.videos}</Text>
-            </View>
-            <View style={styles.storageItem}>
-              <Text style={styles.storageItemLabel}>Autres</Text>
-              <Text style={styles.storageItemValue}>{dataUsage.other}</Text>
-            </View>
-          </View>
+          <Text style={styles.storagePill}>48% plein</Text>
+        </View>
+        <View style={styles.progressBar}>
+          <View style={styles.progressFill} />
+        </View>
+        <View style={styles.storageLegend}>
+          <Text style={styles.legendText}>App : 84 Mo</Text>
+          <Text style={styles.legendText}>Cache : {cacheSize}</Text>
+          <Text style={styles.legendText}>Total : 256 Mo</Text>
         </View>
       </View>
 
-      {/* Actions */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Actions</Text>
-        <TouchableOpacity
-          style={styles.actionCard}
-          onPress={handleClearCache}
-        >
-          <Ionicons name="trash-outline" size={24} color={COLORS.warning} />
+        <Text style={styles.sectionTitle}>Gestion du stockage</Text>
+        <TouchableOpacity style={styles.actionRow} onPress={handleClearCache}>
+          <View style={styles.actionIcon}>
+            <Ionicons name="trash-outline" size={20} color={COLORS.primary} />
+          </View>
           <View style={styles.actionContent}>
-            <Text style={styles.actionLabel}>Effacer le cache</Text>
+            <Text style={styles.actionLabel}>Vider le cache</Text>
             <Text style={styles.actionDescription}>
-              Supprime les fichiers temporaires
+              Supprimer les fichiers temporaires pour libérer 40 Mo
             </Text>
           </View>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={COLORS.textSecondary}
-          />
+          <Text style={styles.actionChip}>Vider</Text>
         </TouchableOpacity>
-        <TouchableOpacity
-          style={[styles.actionCard, styles.actionCardDanger]}
-          onPress={handleClearData}
-        >
-          <Ionicons name="warning-outline" size={24} color={COLORS.error} />
+        <TouchableOpacity style={styles.actionRow} onPress={handleClearData}>
+          <View style={styles.actionIconMuted}>
+            <Ionicons name="document-text-outline" size={20} color={COLORS.text} />
+          </View>
           <View style={styles.actionContent}>
-            <Text style={[styles.actionLabel, styles.actionLabelDanger]}>
-              Effacer toutes les données
-            </Text>
+            <Text style={styles.actionLabel}>Gérer les téléchargements</Text>
             <Text style={styles.actionDescription}>
-              Supprime toutes les données locales
+              Factures et reçus enregistrés
             </Text>
           </View>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={COLORS.textSecondary}
-          />
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
         </TouchableOpacity>
       </View>
 
-      {/* Informations */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Économie de données</Text>
+        <View style={styles.toggleRow}>
+          <View style={styles.toggleIcon}>
+            <Ionicons name="speedometer" size={20} color={COLORS.warning} />
+          </View>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionLabel}>Mode données réduites</Text>
+            <Text style={styles.actionDescription}>
+              Diminue la qualité des images pour économiser votre forfait
+            </Text>
+          </View>
+          <Switch
+            value={lowDataMode}
+            onValueChange={setLowDataMode}
+            trackColor={{ false: COLORS.border, true: COLORS.primary }}
+            thumbColor={COLORS.white}
+          />
+        </View>
+        <View style={styles.actionRow}>
+          <View style={styles.actionIconMuted}>
+            <Ionicons name="image-outline" size={20} color={COLORS.text} />
+          </View>
+          <View style={styles.actionContent}>
+            <Text style={styles.actionLabel}>Qualité des images</Text>
+            <Text style={styles.actionDescription}>Automatique</Text>
+          </View>
+          <Ionicons name="chevron-down" size={18} color={COLORS.textSecondary} />
+        </View>
+      </View>
+
       <View style={styles.infoSection}>
         <View style={styles.infoCard}>
-          <Ionicons
-            name="information-circle-outline"
-            size={24}
-            color={COLORS.info}
-          />
+          <Ionicons name="information-circle" size={18} color={COLORS.primary} />
           <Text style={styles.infoText}>
-            L'effacement du cache peut améliorer les performances de
-            l'application. Vos données personnelles ne seront pas affectées.
+            Conseil : Utilisez le Wi‑Fi pour télécharger vos reçus et factures.
           </Text>
         </View>
       </View>
@@ -151,109 +177,182 @@ export default function DataStorageScreen({ navigation }) {
   );
 }
 
+DataStorageScreen.propTypes = {
+  navigation: PropTypes.shape({
+    goBack: PropTypes.func.isRequired,
+  }).isRequired,
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    padding: 24,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  headerTitle: {
-    fontSize: 28,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topBarTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 8,
+  },
+  topBarSpacer: {
+    width: 40,
+  },
+  header: {
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginBottom: 4,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 12,
     color: COLORS.textSecondary,
-  },
-  section: {
-    padding: 16,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 16,
   },
   storageCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
+    margin: 16,
   },
   storageHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 16,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
-  },
-  storageInfo: {
-    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 12,
   },
   storageLabel: {
-    fontSize: 14,
+    fontSize: 10,
     color: COLORS.textSecondary,
-    marginBottom: 4,
+    textTransform: 'uppercase',
   },
   storageValue: {
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.primary,
-  },
-  storageDetails: {
-    gap: 12,
-  },
-  storageItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  storageItemLabel: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  storageItemValue: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 20,
+    fontWeight: '800',
     color: COLORS.text,
   },
-  actionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    gap: 12,
+  storagePill: {
+    fontSize: 12,
+    color: COLORS.primary,
+    backgroundColor: COLORS.primary + '10',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+    fontWeight: '700',
   },
-  actionCardDanger: {
-    borderWidth: 1,
-    borderColor: COLORS.error + '40',
+  progressBar: {
+    height: 8,
+    borderRadius: 6,
+    backgroundColor: COLORS.border,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '48%',
+    height: '100%',
+    backgroundColor: COLORS.primary,
+  },
+  storageLegend: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 8,
+  },
+  legendText: {
+    fontSize: 10,
+    color: COLORS.textSecondary,
+  },
+  section: {
+    paddingHorizontal: 16,
+    paddingTop: 8,
+  },
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 8,
   },
   actionContent: {
     flex: 1,
   },
   actionLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.text,
     marginBottom: 4,
   },
-  actionLabelDanger: {
-    color: COLORS.error,
-  },
   actionDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.textSecondary,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionIconMuted: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  actionChip: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.text,
+    backgroundColor: COLORS.background,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 12,
+    marginBottom: 8,
+  },
+  toggleIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.warning + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   infoSection: {
     padding: 16,
@@ -261,14 +360,14 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.info + '20',
+    backgroundColor: COLORS.primary + '10',
     borderRadius: 12,
     padding: 16,
     gap: 12,
   },
   infoText: {
     flex: 1,
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.text,
     lineHeight: 20,
   },

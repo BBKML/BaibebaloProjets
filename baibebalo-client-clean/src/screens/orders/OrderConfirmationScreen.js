@@ -1,18 +1,38 @@
 import React from 'react';
+import PropTypes from 'prop-types';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  Image,
+  Linking,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
 export default function OrderConfirmationScreen({ route, navigation }) {
   const { orderId, orderNumber, estimatedTime } = route.params || {};
+  const displayOrderNumber = orderNumber || 'BAIB-12345';
+  const displayEstimatedTime = estimatedTime || '12:45';
 
   const handleViewOrder = () => {
+    if (!orderId) {
+      Alert.alert('Commande', 'Identifiant de commande manquant.', [
+        {
+          text: 'Voir mes commandes',
+          onPress: () => {
+            navigation.reset({
+              index: 0,
+              routes: [{ name: 'MainTabs', params: { screen: 'Orders' } }],
+            });
+          },
+        },
+      ]);
+      return;
+    }
     navigation.replace('OrderTracking', { orderId });
   };
 
@@ -23,68 +43,106 @@ export default function OrderConfirmationScreen({ route, navigation }) {
     });
   };
 
+  const handleShareWhatsApp = async () => {
+    try {
+      const message = `Ma commande BAIBEBALO #${displayOrderNumber} est confirmée ✅`;
+      const url = `https://wa.me/?text=${encodeURIComponent(message)}`;
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+        return;
+      }
+      Alert.alert('WhatsApp', 'Impossible d\'ouvrir WhatsApp sur cet appareil.');
+    } catch (error) {
+      Alert.alert('WhatsApp', 'Une erreur est survenue lors du partage.');
+      console.error('Erreur partage WhatsApp:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Success Icon */}
+      <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <View style={styles.sheetHandle} />
+
         <View style={styles.iconContainer}>
+          <View style={styles.iconGlow} />
           <View style={styles.iconBackground}>
-            <Ionicons name="checkmark-circle" size={80} color={COLORS.white} />
+            <Ionicons name="checkmark" size={48} color={COLORS.white} />
           </View>
         </View>
 
-        {/* Title */}
         <Text style={styles.title}>Commande confirmée !</Text>
 
-        {/* Order ID Badge */}
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
-            ID DE COMMANDE #{orderNumber || 'BAIB-12345'}
+            ID DE COMMANDE #{displayOrderNumber}
           </Text>
         </View>
 
-        {/* Message */}
-        <Text style={styles.message}>Merci pour votre confiance !</Text>
-
-        {/* Estimated Time */}
-        <View style={styles.timeContainer}>
-          <Ionicons name="time-outline" size={20} color={COLORS.primary} />
-          <Text style={styles.timeText}>
-            Arrivée prévue à {estimatedTime || '12:45'}
-          </Text>
-        </View>
-
-        {/* Map Placeholder */}
-        <View style={styles.mapContainer}>
-          <View style={styles.mapPlaceholder}>
-            <Ionicons name="map-outline" size={40} color={COLORS.textSecondary} />
-            <Text style={styles.mapText}>Carte de livraison</Text>
+        <View style={styles.messageBlock}>
+          <Text style={styles.message}>Merci pour votre confiance !</Text>
+          <View style={styles.timeContainer}>
+            <Ionicons name="time-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.timeText}>
+              Arrivée prévue à {displayEstimatedTime}
+            </Text>
           </View>
+        </View>
+
+        <View style={styles.mapContainer}>
+          <Image
+            source={{
+              uri:
+                'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=600',
+            }}
+            style={styles.mapImage}
+          />
           <View style={styles.deliveryIndicator}>
             <View style={styles.deliveryDot} />
             <Text style={styles.deliveryText}>Livreur en route</Text>
           </View>
         </View>
-      </ScrollView>
 
-      {/* Action Buttons */}
-      <View style={styles.footer}>
-        <TouchableOpacity
-          style={styles.secondaryButton}
-          onPress={handleContinueShopping}
-        >
-          <Text style={styles.secondaryButtonText}>Continuer mes achats</Text>
+        <View style={styles.actions}>
+          <TouchableOpacity style={styles.primaryButton} onPress={handleViewOrder}>
+            <Ionicons name="car-outline" size={18} color={COLORS.white} />
+            <Text style={styles.primaryButtonText}>Suivre ma commande</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={handleContinueShopping}
+          >
+            <Text style={styles.secondaryButtonText}>Retour à l'accueil</Text>
+          </TouchableOpacity>
+        </View>
+
+        <TouchableOpacity style={styles.supportLink} onPress={() => navigation.navigate('ContactSupport')}>
+          <Text style={styles.supportText}>
+            Un problème avec votre commande ? Contactez le support
+          </Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.primaryButton} onPress={handleViewOrder}>
-          <Text style={styles.primaryButtonText}>Suivre ma commande</Text>
+        <TouchableOpacity style={styles.shareLink} onPress={handleShareWhatsApp}>
+          <Text style={styles.shareText}>Partager sur WhatsApp</Text>
         </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 }
+
+OrderConfirmationScreen.propTypes = {
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      orderId: PropTypes.string,
+      orderNumber: PropTypes.string,
+      estimatedTime: PropTypes.string,
+    }),
+  }),
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+    replace: PropTypes.func.isRequired,
+    reset: PropTypes.func.isRequired,
+  }).isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {
@@ -97,15 +155,30 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
     paddingTop: 60,
+    backgroundColor: COLORS.white,
+  },
+  sheetHandle: {
+    width: 48,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: COLORS.border,
+    marginBottom: 16,
   },
   iconContainer: {
-    marginBottom: 24,
+    marginBottom: 16,
     alignItems: 'center',
   },
+  iconGlow: {
+    position: 'absolute',
+    width: 140,
+    height: 140,
+    borderRadius: 70,
+    backgroundColor: COLORS.primary + '15',
+  },
   iconBackground: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
+    width: 80,
+    height: 80,
+    borderRadius: 40,
     backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
@@ -116,18 +189,18 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   title: {
-    fontSize: 28,
-    fontWeight: 'bold',
+    fontSize: 26,
+    fontWeight: '800',
     color: COLORS.text,
     textAlign: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   badge: {
     backgroundColor: COLORS.primary + '20',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 20,
-    marginBottom: 24,
+    marginBottom: 16,
   },
   badgeText: {
     color: COLORS.primary,
@@ -135,51 +208,47 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     letterSpacing: 1,
   },
-  message: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    textAlign: 'center',
+  messageBlock: {
+    alignItems: 'center',
+    gap: 8,
     marginBottom: 24,
+  },
+  message: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   timeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.background,
     paddingHorizontal: 16,
     paddingVertical: 12,
     borderRadius: 12,
     gap: 8,
-    marginBottom: 32,
   },
   timeText: {
-    fontSize: 16,
+    fontSize: 14,
     fontWeight: '600',
     color: COLORS.text,
   },
   mapContainer: {
     width: '100%',
-    height: 200,
+    height: 140,
     borderRadius: 16,
-    backgroundColor: COLORS.border,
-    marginBottom: 32,
+    backgroundColor: COLORS.background,
+    marginBottom: 24,
     overflow: 'hidden',
     position: 'relative',
   },
-  mapPlaceholder: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mapText: {
-    marginTop: 8,
-    fontSize: 14,
-    color: COLORS.textSecondary,
+  mapImage: {
+    width: '100%',
+    height: '100%',
   },
   deliveryIndicator: {
     position: 'absolute',
     bottom: 16,
     left: '50%',
-    transform: [{ translateX: -60 }],
+    transform: [{ translateX: -70 }],
     backgroundColor: COLORS.white,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -205,11 +274,8 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     textTransform: 'uppercase',
   },
-  footer: {
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+  actions: {
+    width: '100%',
     gap: 12,
   },
   primaryButton: {
@@ -217,6 +283,9 @@ const styles = StyleSheet.create({
     padding: 16,
     borderRadius: 12,
     alignItems: 'center',
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 8,
   },
   primaryButtonText: {
     color: COLORS.white,
@@ -235,5 +304,24 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: 16,
     fontWeight: '600',
+  },
+  supportLink: {
+    marginTop: 16,
+  },
+  supportText: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+  },
+  shareLink: {
+    marginTop: 10,
+  },
+  shareText: {
+    fontSize: 12,
+    color: COLORS.primary,
+    textAlign: 'center',
+    textDecorationLine: 'underline',
+    fontWeight: '700',
   },
 });

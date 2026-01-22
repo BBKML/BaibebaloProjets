@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendOTP, verifyOTP } from '../api/auth';
+import { setAuthStore } from './authStoreRef';
 
 const useAuthStore = create((set, get) => ({
   // État
@@ -11,6 +12,9 @@ const useAuthStore = create((set, get) => ({
   isLoading: false,
   phoneNumber: null,
   otpSent: false,
+  otpAttempts: 0,
+  otpMaxAttempts: 3,
+  otpExpiresAt: null,
 
   // Actions
   setUser: (user) => set({ user, isAuthenticated: !!user }),
@@ -22,13 +26,16 @@ const useAuthStore = create((set, get) => ({
   },
 
   sendOTP: async (phoneNumber) => {
-    set({ isLoading: true, phoneNumber });
+    set({
+      isLoading: true,
+      phoneNumber,
+      otpAttempts: 0,
+      otpExpiresAt: Date.now() + 5 * 60 * 1000,
+    });
     try {
       const response = await sendOTP(phoneNumber);
       console.log('✅ Réponse API sendOTP complète:', JSON.stringify(response, null, 2));
       
-      // sendOTP() retourne déjà response.data (voir auth.js)
-      // Donc response est directement { success: true, message: '...' }
       const isSuccess = response?.success === true;
       
       console.log('📊 Analyse réponse:', {
@@ -40,13 +47,11 @@ const useAuthStore = create((set, get) => ({
       if (isSuccess) {
         console.log('✅ OTP envoyé avec succès');
         console.log('✅ Retour du store: { success: true }');
-        // IMPORTANT: Mettre isLoading à false AVANT de retourner pour éviter les re-renders
-        set({ otpSent: true, isLoading: false });
         
-        // Attendre un peu pour s'assurer que l'état est mis à jour
-        await new Promise(resolve => setTimeout(resolve, 100));
+        // ⚠️ NE PAS mettre isLoading à false ici
+        // Le composant le fera après la navigation
+        set({ otpSent: true });
         
-        // Retourner explicitement success: true
         return { 
           success: true, 
           data: response,
@@ -55,25 +60,20 @@ const useAuthStore = create((set, get) => ({
       } else {
         const errorMsg = response?.message || response?.error?.message || 'Erreur lors de l\'envoi du code';
         console.error('❌ Réponse non réussie:', errorMsg);
+        set({ isLoading: false, otpSent: false });
         throw new Error(errorMsg);
       }
     } catch (error) {
       set({ isLoading: false, otpSent: false });
       
-      // Messages d'erreur plus détaillés
       let errorMessage = 'Erreur lors de l\'envoi du code';
       
-      // Gestion spécifique de l'erreur 429 (Too Many Requests)
       if (error.response?.status === 429) {
-        // Extraire le message d'erreur du backend
-        // Le rate limiter retourne: { success: false, error: { code: 'SMS_RATE_LIMIT', message: '...' } }
-        // L'erreur du service auth peut être dans error.response.data.error.message ou error.response.data.message
         errorMessage = error.response?.data?.error?.message 
           || error.response?.data?.message 
           || error.message
           || 'Trop de tentatives. Veuillez attendre avant de réessayer.';
       } else if (error.message?.includes('attendre') || error.message?.includes('minute')) {
-        // Détecter les erreurs de rate limiting même si elles ne sont pas en 429
         errorMessage = error.message;
       } else if (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error')) {
         errorMessage = 'Impossible de se connecter au serveur. Vérifiez que le backend est démarré et que l\'URL de l\'API est correcte.';
@@ -102,15 +102,24 @@ const useAuthStore = create((set, get) => ({
   },
 
   verifyOTP: async (code) => {
-    const { phoneNumber } = get();
+    const { phoneNumber, otpAttempts, otpMaxAttempts, otpExpiresAt } = get();
     if (!phoneNumber) {
       return { success: false, error: 'Numéro de téléphone manquant' };
+    }
+    if (otpAttempts >= otpMaxAttempts) {
+      return { success: false, error: 'Nombre maximal de tentatives atteint. Réessayez plus tard.' };
+    }
+    if (otpExpiresAt && Date.now() > otpExpiresAt) {
+      return { success: false, error: 'Le code OTP a expiré. Veuillez demander un nouveau code.' };
     }
 
     set({ isLoading: true });
     try {
       const response = await verifyOTP(phoneNumber, code);
-      const { user, accessToken, refreshToken, isNewUser } = response.data;
+      const payload = response?.data ? response.data : response;
+      const data = payload?.data ? payload.data : payload;
+      const isNewUser = payload?.isNewUser ?? data?.isNewUser ?? false;
+      const { user, accessToken, refreshToken } = data || {};
       
       // Sauvegarder les tokens
       await get().setTokens(accessToken, refreshToken);
@@ -123,11 +132,16 @@ const useAuthStore = create((set, get) => ({
         isAuthenticated: true,
         isLoading: false,
         otpSent: false,
+        otpAttempts: 0,
+        otpExpiresAt: null,
       });
       
-      return { success: true, data: { ...response.data, isNewUser } };
+      return { success: true, data: { ...(data || {}), isNewUser } };
     } catch (error) {
-      set({ isLoading: false });
+      set((state) => ({
+        isLoading: false,
+        otpAttempts: state.otpAttempts + 1,
+      }));
       return {
         success: false,
         error: error.response?.data?.error?.message || 'Code invalide',
@@ -187,5 +201,7 @@ const useAuthStore = create((set, get) => ({
     }
   },
 }));
+
+setAuthStore(useAuthStore);
 
 export default useAuthStore;

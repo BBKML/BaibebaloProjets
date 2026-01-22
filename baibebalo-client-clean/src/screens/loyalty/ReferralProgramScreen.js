@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
+import * as Clipboard from 'expo-clipboard';
 
 export default function ReferralProgramScreen({ navigation }) {
   const { user } = useAuthStore();
@@ -29,96 +30,114 @@ export default function ReferralProgramScreen({ navigation }) {
     }
   };
 
-  const handleCopyCode = () => {
-    // TODO: Implémenter la copie dans le presse-papiers
-    Alert.alert('Code copié', `Code ${referralCode} copié dans le presse-papiers`);
+  const handleCopyCode = async () => {
+    try {
+      await Clipboard.setStringAsync(referralCode);
+      Alert.alert('Code copié', `Code ${referralCode} copié dans le presse-papiers`);
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de copier le code');
+    }
   };
 
-  const benefits = [
-    {
-      icon: 'gift-outline',
-      title: 'Pour vous',
-      description: 'Gagnez 500 points pour chaque ami invité',
-    },
-    {
-      icon: 'people-outline',
-      title: 'Pour votre ami',
-      description: '500 points de bienvenue + 10% de réduction',
-    },
+  const shareOptions = [
+    { id: 'whatsapp', label: 'WhatsApp', icon: 'chatbubble-ellipses', color: '#25D366' },
+    { id: 'facebook', label: 'Facebook', icon: 'logo-facebook', color: '#1877F2' },
+    { id: 'more', label: 'Plus', icon: 'share-social', color: COLORS.text },
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerIcon}>
-          <Ionicons name="people" size={48} color={COLORS.primary} />
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>Parrainage</Text>
+        <View style={styles.iconButtonPlaceholder} />
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.heroImage}>
+          <View style={styles.heroOverlay} />
+          <Ionicons name="people" size={56} color={COLORS.primary} />
         </View>
-        <Text style={styles.headerTitle}>Programme de parrainage</Text>
-        <Text style={styles.headerSubtitle}>
-          Invitez vos amis et gagnez des récompenses
+
+        <Text style={styles.heroTitle}>Invitez vos amis & gagnez ensemble</Text>
+        <Text style={styles.heroSubtitle}>
+          Gagnez <Text style={styles.heroHighlight}>500 FCFA</Text> pour chaque ami qui passe sa première commande.
         </Text>
-      </View>
 
-      {/* Statistiques */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{referrals}</Text>
-          <Text style={styles.statLabel}>Amis invités</Text>
-        </View>
-        <View style={styles.statCard}>
-          <Text style={styles.statValue}>{earnings}</Text>
-          <Text style={styles.statLabel}>Points gagnés</Text>
-        </View>
-      </View>
-
-      {/* Code de parrainage */}
-      <View style={styles.codeSection}>
-        <Text style={styles.codeLabel}>Votre code de parrainage</Text>
-        <View style={styles.codeContainer}>
-          <Text style={styles.codeText}>{referralCode}</Text>
+        <View style={styles.codeCard}>
+          <Text style={styles.codeLabel}>Votre code unique</Text>
+          <View style={styles.codeBox}>
+            <Text style={styles.codeText}>{referralCode}</Text>
+          </View>
           <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
-            <Ionicons name="copy-outline" size={20} color={COLORS.primary} />
+            <Ionicons name="copy-outline" size={18} color={COLORS.white} />
+            <Text style={styles.copyButtonText}>Copier le code</Text>
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.shareButton} onPress={handleShareCode}>
-          <Ionicons name="share-social-outline" size={20} color={COLORS.white} />
-          <Text style={styles.shareButtonText}>Partager le code</Text>
-        </TouchableOpacity>
-      </View>
 
-      {/* Avantages */}
-      <View style={styles.benefitsSection}>
-        <Text style={styles.sectionTitle}>Comment ça marche ?</Text>
-        {benefits.map((benefit, index) => (
-          <View key={index} style={styles.benefitCard}>
-            <View style={styles.benefitIcon}>
-              <Ionicons name={benefit.icon} size={32} color={COLORS.primary} />
-            </View>
-            <View style={styles.benefitContent}>
-              <Text style={styles.benefitTitle}>{benefit.title}</Text>
-              <Text style={styles.benefitDescription}>{benefit.description}</Text>
-            </View>
+        <Text style={styles.shareTitle}>PARTAGER VIA</Text>
+        <View style={styles.shareRow}>
+          {shareOptions.map((option) => (
+            <TouchableOpacity
+              key={option.id}
+              style={styles.shareOption}
+              onPress={option.id === 'more' ? handleShareCode : handleShareCode}
+            >
+              <View style={[styles.shareIcon, { backgroundColor: option.color + '15' }]}>
+                <Ionicons name={option.icon} size={22} color={option.color} />
+              </View>
+              <Text style={styles.shareLabel}>{option.label}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{referrals}</Text>
+            <Text style={styles.statLabel}>Amis invités</Text>
           </View>
-        ))}
-      </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statValue}>{earnings} FCFA</Text>
+            <Text style={styles.statLabel}>Bonus cumulés</Text>
+          </View>
+        </View>
 
-      {/* Historique */}
-      <View style={styles.historySection}>
+        <View style={styles.stepsCard}>
+          <Text style={styles.stepsTitle}>Comment ça marche ?</Text>
+          <View style={styles.stepRow}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>1</Text>
+            </View>
+            <Text style={styles.stepText}>Partagez votre code unique à vos proches.</Text>
+          </View>
+          <View style={styles.stepRow}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>2</Text>
+            </View>
+            <Text style={styles.stepText}>Votre ami s'inscrit et passe sa première commande.</Text>
+          </View>
+          <View style={styles.stepRow}>
+            <View style={styles.stepBadge}>
+              <Text style={styles.stepBadgeText}>3</Text>
+            </View>
+            <Text style={styles.stepText}>
+              Vous recevez instantanément <Text style={styles.stepHighlight}>500 FCFA</Text> dans votre portefeuille.
+            </Text>
+          </View>
+        </View>
+
         <TouchableOpacity
           style={styles.historyButton}
           onPress={() => navigation.navigate('ReferralHistory')}
         >
-          <Ionicons name="time-outline" size={24} color={COLORS.text} />
+          <Ionicons name="time-outline" size={20} color={COLORS.text} />
           <Text style={styles.historyButtonText}>Voir l'historique</Text>
-          <Ionicons
-            name="chevron-forward"
-            size={20}
-            color={COLORS.textSecondary}
-          />
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
         </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -127,150 +146,205 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
+  topBar: {
+    flexDirection: 'row',
     alignItems: 'center',
-    padding: 32,
-    backgroundColor: COLORS.primary,
+    padding: 16,
   },
-  headerIcon: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: COLORS.white,
-    justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
   },
-  headerTitle: {
-    fontSize: 28,
+  iconButtonPlaceholder: {
+    width: 40,
+  },
+  topBarTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  scrollContent: {
+    paddingHorizontal: 16,
+    paddingBottom: 24,
+  },
+  heroImage: {
+    height: 220,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 16,
+    overflow: 'hidden',
+  },
+  heroOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.primary + '10',
+  },
+  heroTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  heroSubtitle: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  heroHighlight: {
+    color: '#FF9B8C',
+    fontWeight: '700',
+  },
+  codeCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 18,
+  },
+  codeLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    textAlign: 'center',
+    letterSpacing: 2,
+    marginBottom: 12,
+  },
+  codeBox: {
+    borderWidth: 2,
+    borderStyle: 'dashed',
+    borderColor: COLORS.primary + '40',
+    borderRadius: 12,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 12,
+    backgroundColor: COLORS.background,
+  },
+  codeText: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.text,
+    letterSpacing: 4,
+  },
+  copyButton: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  copyButtonText: {
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.white,
-    marginBottom: 8,
-    textAlign: 'center',
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: COLORS.white + 'CC',
+  shareTitle: {
+    fontSize: 12,
+    fontWeight: '700',
     textAlign: 'center',
+    color: COLORS.textSecondary,
+    marginBottom: 12,
   },
-  statsContainer: {
+  shareRow: {
     flexDirection: 'row',
-    padding: 16,
+    justifyContent: 'space-around',
+    marginBottom: 20,
+  },
+  shareOption: {
+    alignItems: 'center',
+    gap: 6,
+  },
+  shareIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  shareLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  statsRow: {
+    flexDirection: 'row',
     gap: 12,
-    marginTop: -24,
+    marginBottom: 18,
   },
   statCard: {
     flex: 1,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 20,
+    borderRadius: 14,
+    padding: 16,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   statValue: {
-    fontSize: 32,
+    fontSize: 22,
     fontWeight: '800',
     color: COLORS.primary,
     marginBottom: 4,
   },
   statLabel: {
-    fontSize: 14,
+    fontSize: 10,
+    fontWeight: '700',
     color: COLORS.textSecondary,
+    textTransform: 'uppercase',
   },
-  codeSection: {
+  stepsCard: {
+    backgroundColor: COLORS.primary + '08',
+    borderRadius: 16,
     padding: 16,
-    marginTop: 8,
+    marginBottom: 18,
   },
-  codeLabel: {
-    fontSize: 16,
-    fontWeight: '600',
+  stepsTitle: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.text,
     marginBottom: 12,
-    textAlign: 'center',
   },
-  codeContainer: {
+  stepRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
+    gap: 10,
+    alignItems: 'flex-start',
+    marginBottom: 10,
   },
-  codeText: {
-    flex: 1,
-    fontSize: 24,
-    fontWeight: '700',
-    color: COLORS.primary,
-    letterSpacing: 2,
-    textAlign: 'center',
-  },
-  copyButton: {
-    padding: 8,
-  },
-  shareButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+  stepBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  shareButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  benefitsSection: {
-    padding: 16,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 16,
-  },
-  benefitCard: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    gap: 16,
-  },
-  benefitIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary + '20',
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  benefitContent: {
+  stepBadgeText: {
+    color: COLORS.white,
+    fontSize: 11,
+    fontWeight: '700',
+  },
+  stepText: {
     flex: 1,
-  },
-  benefitTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  benefitDescription: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
-    lineHeight: 20,
+    lineHeight: 18,
   },
-  historySection: {
-    padding: 16,
-    marginTop: 8,
+  stepHighlight: {
+    color: COLORS.text,
+    fontWeight: '700',
   },
   historyButton: {
     flexDirection: 'row',
@@ -278,12 +352,14 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 16,
-    gap: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   historyButtonText: {
     flex: 1,
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.text,
   },
 });

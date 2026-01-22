@@ -2,11 +2,52 @@ const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const mapsService = require('../services/maps.service');
 
+const hasTicketMessagesColumn = async (runner, columnName) => {
+  const execute = typeof runner === 'function' ? runner : runner.query.bind(runner);
+  const result = await execute(
+    `SELECT EXISTS (
+      SELECT 1 FROM information_schema.columns 
+      WHERE table_name = 'ticket_messages' 
+      AND column_name = $1
+    ) as exists`,
+    [columnName]
+  );
+  return result.rows?.[0]?.exists === true;
+};
+
 /**
  * Obtenir le profil de l'utilisateur connecté
  */
 exports.getProfile = async (req, res) => {
   try {
+    const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+    const normalizeUploadsPath = (path) => {
+      if (!path) return path;
+      return path.replace(/\/api\/v\d+(?=\/uploads)/i, '');
+    };
+    const normalizeProfileUrl = (url) => {
+      if (!url) return url;
+      try {
+        const parsed = new URL(url);
+        const normalizedPath = normalizeUploadsPath(parsed.pathname);
+        if (['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+          return `${requestBaseUrl}${normalizedPath}`;
+        }
+        if (normalizedPath !== parsed.pathname) {
+          return `${parsed.origin}${normalizedPath}`;
+        }
+        return url;
+      } catch (error) {
+        if (url.startsWith('/')) {
+          return `${requestBaseUrl}${normalizeUploadsPath(url)}`;
+        }
+        if (url.startsWith('uploads/')) {
+          return `${requestBaseUrl}/${url}`;
+        }
+        return url;
+      }
+    };
+
     const result = await query(
       `SELECT id, phone, email, first_name, last_name, profile_picture, 
               gender, date_of_birth, referral_code, loyalty_points, 
@@ -29,7 +70,10 @@ exports.getProfile = async (req, res) => {
     res.json({
       success: true,
       data: {
-        user: result.rows[0],
+        user: {
+          ...result.rows[0],
+          profile_picture: normalizeProfileUrl(result.rows[0]?.profile_picture),
+        },
       },
     });
   } catch (error) {
@@ -44,12 +88,120 @@ exports.getProfile = async (req, res) => {
   }
 };
 
+const defaultNotificationPreferences = {
+  orderUpdates: true,
+  promotions: true,
+  newRestaurants: false,
+  deliveryStatus: true,
+  paymentReminders: true,
+  marketing: false,
+  sound: true,
+  vibration: true,
+};
+
+const sanitizeNotificationPreferences = (payload = {}) => ({
+  orderUpdates: payload.orderUpdates ?? defaultNotificationPreferences.orderUpdates,
+  promotions: payload.promotions ?? defaultNotificationPreferences.promotions,
+  newRestaurants: payload.newRestaurants ?? defaultNotificationPreferences.newRestaurants,
+  deliveryStatus: payload.deliveryStatus ?? defaultNotificationPreferences.deliveryStatus,
+  paymentReminders: payload.paymentReminders ?? defaultNotificationPreferences.paymentReminders,
+  marketing: payload.marketing ?? defaultNotificationPreferences.marketing,
+  sound: payload.sound ?? defaultNotificationPreferences.sound,
+  vibration: payload.vibration ?? defaultNotificationPreferences.vibration,
+});
+
+exports.getNotificationPreferences = async (req, res) => {
+  try {
+    const result = await query(
+      'SELECT notification_preferences FROM users WHERE id = $1',
+      [req.user.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'Utilisateur non trouvé',
+        },
+      });
+    }
+
+    const stored = result.rows[0]?.notification_preferences || {};
+
+    res.json({
+      success: true,
+      data: {
+        preferences: sanitizeNotificationPreferences(stored),
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getNotificationPreferences:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'FETCH_ERROR',
+        message: 'Erreur lors de la récupération des préférences',
+      },
+    });
+  }
+};
+
+exports.updateNotificationPreferences = async (req, res) => {
+  try {
+    const sanitized = sanitizeNotificationPreferences(req.body || {});
+
+    const result = await query(
+      `UPDATE users
+       SET notification_preferences = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING notification_preferences`,
+      [sanitized, req.user.id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Préférences mises à jour',
+      data: {
+        preferences: sanitizeNotificationPreferences(
+          result.rows[0]?.notification_preferences
+        ),
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur updateNotificationPreferences:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UPDATE_ERROR',
+        message: 'Erreur lors de la mise à jour des préférences',
+      },
+    });
+  }
+};
+
 /**
  * Mettre à jour le profil
  */
 exports.updateProfile = async (req, res) => {
   try {
-    const { first_name, last_name, email, gender, date_of_birth, profile_picture } = req.body;
+    const normalizeOptionalField = (value) => {
+      if (value === undefined) return undefined;
+      if (value === null) return null;
+      if (typeof value === 'string' && value.trim() === '') return null;
+      return value;
+    };
+
+    const normalizedBody = {
+      first_name: normalizeOptionalField(req.body.first_name),
+      last_name: normalizeOptionalField(req.body.last_name),
+      email: normalizeOptionalField(req.body.email),
+      gender: normalizeOptionalField(req.body.gender),
+      date_of_birth: normalizeOptionalField(req.body.date_of_birth),
+      profile_picture: normalizeOptionalField(req.body.profile_picture),
+    };
+
+    const { first_name, last_name, email, gender, date_of_birth, profile_picture } = normalizedBody;
     
     const updates = [];
     const values = [];
@@ -127,6 +279,161 @@ exports.updateProfile = async (req, res) => {
       error: {
         code: 'UPDATE_ERROR',
         message: 'Erreur lors de la mise à jour',
+      },
+    });
+  }
+};
+
+/**
+ * Upload photo de profil utilisateur
+ */
+exports.uploadProfilePicture = async (req, res) => {
+  try {
+    if (!req.file) {
+      logger.warn('Upload photo user: aucun fichier reçu', {
+        body: req.body,
+        files: req.files,
+        headers: req.headers['content-type'],
+      });
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'NO_FILE',
+          message: 'Aucun fichier fourni',
+        },
+      });
+    }
+
+    if (!req.file.buffer) {
+      logger.error('Upload photo user: fichier sans buffer', {
+        file: {
+          originalname: req.file.originalname,
+          mimetype: req.file.mimetype,
+          size: req.file.size,
+          fieldname: req.file.fieldname,
+        },
+      });
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_FILE',
+          message: 'Fichier invalide: buffer manquant',
+        },
+      });
+    }
+
+    const { uploadService } = require('../services/upload.service');
+    const config = require('../config');
+    const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+    const normalizeLocalUrl = (url) => {
+      if (!url) return url;
+      try {
+        const parsed = new URL(url);
+        if (['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+          return `${requestBaseUrl}${parsed.pathname}`;
+        }
+      } catch (error) {
+        if (url.startsWith('/')) {
+          return `${requestBaseUrl}${url}`;
+        }
+      }
+      return url;
+    };
+
+    return await transaction(async (client) => {
+      const uploadProvider = config.upload?.provider || 'local';
+      let uploadResult;
+
+      if (uploadProvider === 's3') {
+        try {
+          uploadResult = await uploadService.uploadToS3(req.file, 'user-profiles');
+        } catch (error) {
+          logger.error('Erreur upload S3 (user), tentative Cloudinary:', error);
+          if (config.upload?.cloudinary?.cloudName) {
+            uploadResult = await uploadService.uploadToCloudinary(req.file, 'user-profiles');
+          } else {
+            throw error;
+          }
+        }
+      } else if (uploadProvider === 'cloudinary') {
+        uploadResult = await uploadService.uploadToCloudinary(req.file, 'user-profiles');
+      } else {
+        uploadResult = await uploadService.uploadToLocal(
+          req.file,
+          'user-profiles',
+          { baseUrl: requestBaseUrl }
+        );
+      }
+
+      const publicUrl = normalizeLocalUrl(uploadResult.url);
+
+      await client.query(
+        'UPDATE users SET profile_picture = $1, updated_at = NOW() WHERE id = $2',
+        [publicUrl, req.user.id]
+      );
+
+      const updatedUser = await client.query(
+        'SELECT id, phone, email, first_name, last_name, profile_picture, gender, date_of_birth FROM users WHERE id = $1',
+        [req.user.id]
+      );
+
+      res.json({
+        success: true,
+        message: 'Photo de profil mise à jour avec succès',
+        data: {
+          profile_picture: publicUrl,
+          user: {
+            ...updatedUser.rows[0],
+            profile_picture: publicUrl,
+          },
+        },
+      });
+    });
+  } catch (error) {
+    logger.error('Erreur uploadProfilePicture user:', {
+      message: error.message,
+      stack: error.stack,
+      file: req.file ? {
+        originalname: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+        hasBuffer: !!req.file.buffer,
+      } : 'No file',
+    });
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UPLOAD_ERROR',
+        message: error.message || 'Erreur lors de l\'upload de la photo',
+      },
+    });
+  }
+};
+
+/**
+ * Supprimer la photo de profil utilisateur
+ */
+exports.deleteProfilePicture = async (req, res) => {
+  try {
+    const result = await query(
+      'UPDATE users SET profile_picture = NULL, updated_at = NOW() WHERE id = $1 RETURNING id, profile_picture',
+      [req.user.id]
+    );
+
+    res.json({
+      success: true,
+      message: 'Photo de profil supprimée',
+      data: {
+        user: result.rows[0],
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur deleteProfilePicture user:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'DELETE_ERROR',
+        message: 'Erreur lors de la suppression de la photo',
       },
     });
   }
@@ -621,12 +928,69 @@ exports.validatePromoCode = async (req, res) => {
  */
 exports.getSupportTickets = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération des tickets
-    res.status(501).json({
-      success: false,
-      error: {
-        code: 'NOT_IMPLEMENTED',
-        message: 'Fonctionnalité en cours de développement',
+    const { page = 1, limit = 20, status, priority, category } = req.query;
+    const offset = (page - 1) * limit;
+    const userType = req.user.type === 'client' ? 'user' : req.user.type;
+
+    let queryText = `
+      SELECT t.*
+      FROM support_tickets t
+      WHERE t.user_id = $1 AND t.user_type = $2
+    `;
+    const values = [req.user.id, userType];
+    let paramIndex = 3;
+
+    if (status) {
+      queryText += ` AND t.status = $${paramIndex++}`;
+      values.push(status);
+    }
+    if (priority) {
+      queryText += ` AND t.priority = $${paramIndex++}`;
+      values.push(priority);
+    }
+    if (category) {
+      queryText += ` AND t.category = $${paramIndex++}`;
+      values.push(category);
+    }
+
+    queryText += ` ORDER BY t.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    values.push(limit, offset);
+
+    const result = await query(queryText, values);
+
+    let countQuery = `
+      SELECT COUNT(*) 
+      FROM support_tickets t
+      WHERE t.user_id = $1 AND t.user_type = $2
+    `;
+    const countValues = [req.user.id, userType];
+    let countParamIndex = 3;
+
+    if (status) {
+      countQuery += ` AND t.status = $${countParamIndex++}`;
+      countValues.push(status);
+    }
+    if (priority) {
+      countQuery += ` AND t.priority = $${countParamIndex++}`;
+      countValues.push(priority);
+    }
+    if (category) {
+      countQuery += ` AND t.category = $${countParamIndex++}`;
+      countValues.push(category);
+    }
+
+    const countResult = await query(countQuery, countValues);
+
+    res.json({
+      success: true,
+      data: {
+        tickets: result.rows,
+        pagination: {
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          total: parseInt(countResult.rows[0].count, 10),
+          pages: Math.ceil(countResult.rows[0].count / limit),
+        },
       },
     });
   } catch (error) {
@@ -646,13 +1010,77 @@ exports.getSupportTickets = async (req, res) => {
  */
 exports.createSupportTicket = async (req, res) => {
   try {
-    // TODO: Implémenter la création de ticket
-    res.status(501).json({
-      success: false,
-      error: {
-        code: 'NOT_IMPLEMENTED',
-        message: 'Fonctionnalité en cours de développement',
-      },
+    const { category, subject, message, order_id, priority, photos } = req.body;
+    const userType = req.user.type === 'client' ? 'user' : req.user.type;
+
+    if (!subject || !message) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'MISSING_FIELDS',
+          message: 'Champs requis manquants: subject, message',
+        },
+      });
+    }
+
+    return await transaction(async (client) => {
+      const ticketNumberResult = await client.query(
+        'SELECT generate_ticket_number() AS ticket_number'
+      );
+      const ticketNumber = ticketNumberResult.rows?.[0]?.ticket_number;
+
+      const insertColumns = [
+        'ticket_number',
+        'subject',
+        'description',
+        'priority',
+        'category',
+        'user_type',
+        'user_id',
+        'order_id',
+        'status',
+      ];
+      const insertValues = [
+        ticketNumber,
+        subject,
+        message,
+        priority || 'medium',
+        category || null,
+        userType,
+        req.user.id,
+        order_id || null,
+        'open',
+      ];
+      const placeholders = insertValues.map((_, index) => `$${index + 1}`);
+
+      if (Array.isArray(photos)) {
+        insertColumns.push('photos');
+        insertValues.push(photos.filter((photo) => typeof photo === 'string' && photo.trim()));
+        placeholders.push(`$${placeholders.length + 1}`);
+      }
+
+      const result = await client.query(
+        `INSERT INTO support_tickets (${insertColumns.join(', ')})
+         VALUES (${placeholders.join(', ')})
+         RETURNING id, ticket_number, subject, description, priority, category, status, created_at, order_id`,
+        insertValues
+      );
+
+      const hasIsInternal = await hasTicketMessagesColumn(client, 'is_internal');
+      const insertMessageQuery = hasIsInternal
+        ? `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message, is_internal)
+           VALUES ($1, $2, $3, $4, false)`
+        : `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message)
+           VALUES ($1, $2, $3, $4)`;
+      await client.query(insertMessageQuery, [result.rows[0].id, userType, req.user.id, message]);
+
+      res.status(201).json({
+        success: true,
+        message: 'Ticket de support créé avec succès',
+        data: {
+          ticket: result.rows[0],
+        },
+      });
     });
   } catch (error) {
     logger.error('Erreur createSupportTicket:', error);
@@ -671,12 +1099,50 @@ exports.createSupportTicket = async (req, res) => {
  */
 exports.getSupportTicketById = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération d'un ticket
-    res.status(501).json({
-      success: false,
-      error: {
-        code: 'NOT_IMPLEMENTED',
-        message: 'Fonctionnalité en cours de développement',
+    const { ticketId } = req.params;
+    const userType = req.user.type === 'client' ? 'user' : req.user.type;
+
+    const ticketResult = await query(
+      `SELECT *
+       FROM support_tickets
+       WHERE id = $1 AND user_id = $2 AND user_type = $3`,
+      [ticketId, req.user.id, userType]
+    );
+
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TICKET_NOT_FOUND', message: 'Ticket non trouvé' },
+      });
+    }
+
+    const hasIsInternal = await hasTicketMessagesColumn(query, 'is_internal');
+    const messagesQuery = hasIsInternal
+      ? `SELECT id, sender_type, message, created_at
+         FROM ticket_messages
+         WHERE ticket_id = $1 AND (is_internal = false OR is_internal IS NULL)
+         ORDER BY created_at ASC`
+      : `SELECT id, sender_type, message, created_at
+         FROM ticket_messages
+         WHERE ticket_id = $1
+         ORDER BY created_at ASC`;
+    const messagesResult = await query(messagesQuery, [ticketId]);
+
+    const ticket = ticketResult.rows[0];
+    const messages = messagesResult.rows.map((message) => ({
+      id: message.id,
+      sender: message.sender_type,
+      text: message.message,
+      timestamp: message.created_at,
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        ticket: {
+          ...ticket,
+          messages,
+        },
       },
     });
   } catch (error) {
@@ -696,12 +1162,70 @@ exports.getSupportTicketById = async (req, res) => {
  */
 exports.addTicketMessage = async (req, res) => {
   try {
-    // TODO: Implémenter l'ajout de message
-    res.status(501).json({
-      success: false,
-      error: {
-        code: 'NOT_IMPLEMENTED',
-        message: 'Fonctionnalité en cours de développement',
+    const { ticketId } = req.params;
+    const { message } = req.body;
+    const userType = req.user.type === 'client' ? 'user' : req.user.type;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_MESSAGE', message: 'Message requis' },
+      });
+    }
+
+    const ticketResult = await query(
+      `SELECT id, status
+       FROM support_tickets
+       WHERE id = $1 AND user_id = $2 AND user_type = $3`,
+      [ticketId, req.user.id, userType]
+    );
+
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TICKET_NOT_FOUND', message: 'Ticket non trouvé' },
+      });
+    }
+
+    if (ticketResult.rows[0].status === 'closed') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'TICKET_CLOSED', message: 'Ticket fermé' },
+      });
+    }
+
+    const hasIsInternal = await hasTicketMessagesColumn(query, 'is_internal');
+    const insertMessageQuery = hasIsInternal
+      ? `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message, is_internal)
+         VALUES ($1, $2, $3, $4, false)
+         RETURNING id, sender_type, message, created_at`
+      : `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message)
+         VALUES ($1, $2, $3, $4)
+         RETURNING id, sender_type, message, created_at`;
+    const result = await query(insertMessageQuery, [ticketId, userType, req.user.id, message.trim()]);
+
+    await query(
+      `UPDATE support_tickets 
+       SET status = CASE 
+         WHEN status = 'open' THEN 'waiting_customer'
+         WHEN status = 'in_progress' THEN 'waiting_customer'
+         ELSE status
+       END,
+       updated_at = NOW()
+       WHERE id = $1`,
+      [ticketId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Message envoyé',
+      data: {
+        message: {
+          id: result.rows[0].id,
+          sender: result.rows[0].sender_type,
+          text: result.rows[0].message,
+          timestamp: result.rows[0].created_at,
+        },
       },
     });
   } catch (error) {
@@ -721,12 +1245,29 @@ exports.addTicketMessage = async (req, res) => {
  */
 exports.closeSupportTicket = async (req, res) => {
   try {
-    // TODO: Implémenter la fermeture de ticket
-    res.status(501).json({
-      success: false,
-      error: {
-        code: 'NOT_IMPLEMENTED',
-        message: 'Fonctionnalité en cours de développement',
+    const { ticketId } = req.params;
+    const userType = req.user.type === 'client' ? 'user' : req.user.type;
+
+    const result = await query(
+      `UPDATE support_tickets
+       SET status = 'closed', closed_at = NOW(), updated_at = NOW()
+       WHERE id = $1 AND user_id = $2 AND user_type = $3
+       RETURNING id, status, closed_at`,
+      [ticketId, req.user.id, userType]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TICKET_NOT_FOUND', message: 'Ticket non trouvé' },
+      });
+    }
+
+    res.json({
+      success: true,
+      message: 'Ticket fermé',
+      data: {
+        ticket: result.rows[0],
       },
     });
   } catch (error) {

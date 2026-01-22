@@ -2,6 +2,7 @@ const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
 const mapsService = require('../services/maps.service');
+const notificationService = require('../services/notification.service');
 
 /**
  * Générer un numéro de commande unique
@@ -29,6 +30,7 @@ exports.createOrder = async (req, res) => {
       restaurant_id,
       items,
       delivery_address,
+      delivery_address_id,
       special_instructions,
       payment_method,
       promo_code,
@@ -106,12 +108,58 @@ exports.createOrder = async (req, res) => {
         });
       }
 
-      // 3. Calculer les frais de livraison (distance)
+      // 3. Récupérer l'adresse de livraison si ID fourni
+      let resolvedDeliveryAddress = delivery_address;
+      if (!resolvedDeliveryAddress && delivery_address_id) {
+        const addressResult = await client.query(
+          'SELECT * FROM addresses WHERE id = $1 AND user_id = $2',
+          [delivery_address_id, req.user.id]
+        );
+        if (addressResult.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            error: {
+              code: 'ADDRESS_NOT_FOUND',
+              message: 'Adresse de livraison introuvable',
+            },
+          });
+        }
+        resolvedDeliveryAddress = {
+          label: addressResult.rows[0].title,
+          address_line: addressResult.rows[0].address_line,
+          district: addressResult.rows[0].district,
+          landmark: addressResult.rows[0].landmark,
+          latitude: parseFloat(addressResult.rows[0].latitude),
+          longitude: parseFloat(addressResult.rows[0].longitude),
+        };
+      }
+
+      if (!resolvedDeliveryAddress) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'DELIVERY_ADDRESS_REQUIRED',
+            message: 'Adresse de livraison requise',
+          },
+        });
+      }
+
+      if (!resolvedDeliveryAddress.latitude || !resolvedDeliveryAddress.longitude) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'DELIVERY_COORDINATES_REQUIRED',
+            message: 'Coordonnées GPS de livraison requises',
+          },
+        });
+      }
+
+      // 4. Calculer les frais de livraison (distance)
       const distance = await calculateDistance(
         restaurant.latitude,
         restaurant.longitude,
-        delivery_address.latitude,
-        delivery_address.longitude
+        resolvedDeliveryAddress.latitude,
+        resolvedDeliveryAddress.longitude
       );
 
       if (distance > restaurant.delivery_radius) {
@@ -126,7 +174,7 @@ exports.createOrder = async (req, res) => {
 
       const delivery_fee = calculateDeliveryFee(distance);
 
-      // 4. Appliquer le code promo si fourni
+      // 5. Appliquer le code promo si fourni
       let discount = 0;
       let promo_code_id = null;
 
@@ -173,13 +221,13 @@ exports.createOrder = async (req, res) => {
         }
       }
 
-      // 5. Calculer la commission restaurant
+      // 6. Calculer la commission restaurant
       const commission = (subtotal * restaurant.commission_rate) / 100;
 
-      // 6. Calculer le total
+      // 7. Calculer le total
       const total = subtotal + delivery_fee - discount;
 
-      // 7. Créer la commande
+      // 8. Créer la commande
       const order_number = generateOrderNumber();
 
       const orderResult = await client.query(
@@ -195,7 +243,7 @@ exports.createOrder = async (req, res) => {
         [
           order_number, req.user.id, restaurant_id,
           subtotal, delivery_fee, discount, commission, total,
-          JSON.stringify(delivery_address), special_instructions,
+          JSON.stringify(resolvedDeliveryAddress), special_instructions,
           payment_method, payment_method === 'cash' ? 'pending' : 'pending',
           'new', promo_code_id,
           30 // Estimation par défaut
@@ -291,6 +339,13 @@ exports.createOrder = async (req, res) => {
         'order_confirmed',
         { orderNumber: order.order_number }
       );
+
+      try {
+        await notificationService.sendOrderNotification(order.id, 'restaurant', 'new_order');
+        await notificationService.sendOrderNotification(order.id, 'client', 'order_confirmed');
+      } catch (notificationError) {
+        logger.warn('Notification push ignorée (createOrder)', { error: notificationError.message });
+      }
 
       logger.info(`Commande créée: ${order.order_number}`);
 
@@ -477,6 +532,12 @@ exports.cancelOrder = async (req, res) => {
         order_id: order.id,
         reason,
       });
+
+      try {
+        await notificationService.sendOrderNotification(order.id, 'restaurant', 'order_cancelled');
+      } catch (notificationError) {
+        logger.warn('Notification push ignorée (cancelOrder)', { error: notificationError.message });
+      }
 
       logger.info(`Commande annulée: ${order.order_number}`);
 
@@ -670,6 +731,12 @@ exports.acceptOrder = async (req, res) => {
         { orderNumber: order.order_number }
       );
 
+      try {
+        await notificationService.sendOrderNotification(order.id, 'client', 'order_confirmed');
+      } catch (notificationError) {
+        logger.warn('Notification push ignorée (acceptOrder)', { error: notificationError.message });
+      }
+
       logger.info(`Commande acceptée: ${order.order_number}`);
 
       res.json({
@@ -720,6 +787,12 @@ exports.rejectOrder = async (req, res) => {
       reason,
     });
 
+    try {
+      await notificationService.sendOrderNotification(order.id, 'client', 'order_cancelled');
+    } catch (notificationError) {
+      logger.warn('Notification push ignorée (rejectOrder)', { error: notificationError.message });
+    }
+
     logger.info(`Commande refusée: ${order.order_number}`);
 
     res.json({
@@ -767,6 +840,13 @@ exports.markOrderReady = async (req, res) => {
       });
     }
 
+    try {
+      await notificationService.sendOrderNotification(order.id, 'client', 'order_ready');
+      await notificationService.sendOrderNotification(order.id, 'delivery', 'order_ready_for_pickup');
+    } catch (notificationError) {
+      logger.warn('Notification push ignorée (markOrderReady)', { error: notificationError.message });
+    }
+
     logger.info(`Commande prête: ${order.order_number}`);
 
     res.json({
@@ -791,7 +871,8 @@ exports.trackOrder = async (req, res) => {
     const result = await query(
       `SELECT o.*, r.name as restaurant_name, 
               d.first_name as delivery_first_name, d.last_name as delivery_last_name,
-              d.phone as delivery_phone, d.current_latitude, d.current_longitude
+              d.phone as delivery_phone, d.current_latitude, d.current_longitude,
+              d.vehicle_type, d.vehicle_plate
        FROM orders o
        LEFT JOIN restaurants r ON o.restaurant_id = r.id
        LEFT JOIN delivery_persons d ON o.delivery_person_id = d.id
@@ -824,10 +905,79 @@ exports.trackOrder = async (req, res) => {
  */
 exports.reportIssue = async (req, res) => {
   try {
-    // TODO: Implémenter le signalement
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const { id } = req.params;
+    const { issue_type, description } = req.body;
+
+    const issueCategoryMap = {
+      wrong_items: 'order',
+      missing_items: 'order',
+      quality_issue: 'order',
+      late_delivery: 'delivery',
+      damaged: 'delivery',
+      other: 'other',
+    };
+
+    return await transaction(async (client) => {
+      const orderResult = await client.query(
+        'SELECT id, order_number FROM orders WHERE id = $1 AND user_id = $2',
+        [id, req.user.id]
+      );
+
+      if (orderResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
+        });
+      }
+
+      const ticketNumberResult = await client.query(
+        'SELECT generate_ticket_number() as ticket_number'
+      );
+      const ticketNumber = ticketNumberResult.rows[0].ticket_number;
+      const orderNumber = orderResult.rows[0].order_number;
+
+      const subject = `Signalement commande #${orderNumber}`;
+
+      const ticketResult = await client.query(
+        `INSERT INTO support_tickets (
+          ticket_number, user_type, user_id, order_id,
+          category, priority, subject, description, status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open')
+        RETURNING *`,
+        [
+          ticketNumber,
+          'user',
+          req.user.id,
+          id,
+          issueCategoryMap[issue_type] || 'other',
+          'medium',
+          subject,
+          description,
+        ]
+      );
+
+      const ticket = ticketResult.rows[0];
+
+      await client.query(
+        `INSERT INTO ticket_messages (
+          ticket_id, sender_type, sender_id, message
+        )
+        VALUES ($1, $2, $3, $4)`,
+        [ticket.id, 'user', req.user.id, description]
+      );
+
+      res.status(201).json({
+        success: true,
+        message: 'Signalement envoyé',
+        data: {
+          ticket: {
+            id: ticket.id,
+            ticket_number: ticket.ticket_number,
+            status: ticket.status,
+          },
+        },
+      });
     });
   } catch (error) {
     logger.error('Erreur reportIssue:', error);
@@ -857,6 +1007,12 @@ exports.markOrderPreparing = async (req, res) => {
         success: false,
         error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
       });
+    }
+
+    try {
+      await notificationService.sendOrderNotification(id, 'client', 'order_preparing');
+    } catch (notificationError) {
+      logger.warn('Notification push ignorée (markOrderPreparing)', { error: notificationError.message });
     }
 
     res.json({
@@ -927,6 +1083,12 @@ exports.markOrderDelivering = async (req, res) => {
       });
     }
 
+    try {
+      await notificationService.sendOrderNotification(id, 'client', 'delivery_on_way');
+    } catch (notificationError) {
+      logger.warn('Notification push ignorée (markOrderDelivering)', { error: notificationError.message });
+    }
+
     res.json({
       success: true,
       message: 'Commande en livraison',
@@ -959,6 +1121,12 @@ exports.confirmDelivery = async (req, res) => {
         success: false,
         error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
       });
+    }
+
+    try {
+      await notificationService.sendOrderNotification(id, 'client', 'order_delivered');
+    } catch (notificationError) {
+      logger.warn('Notification push ignorée (confirmDelivery)', { error: notificationError.message });
     }
 
     res.json({

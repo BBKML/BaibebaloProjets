@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
 const smsService = require('../services/sms.service');
+const whatsappService = require('../services/whatsapp.service');
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/auth');
 const { query } = require('../database/db');
 const logger = require('../utils/logger');
@@ -16,28 +17,62 @@ class AuthController {
       // Générer et sauvegarder l'OTP
       const code = await authService.createOTP(phone);
 
-      // Envoyer par SMS
-      await smsService.sendOTP(phone, code);
+      // Afficher le code OTP dans la console (mode dev) - Utiliser console.log ET logger
+      const otpMessage = `
+══════════════════════════════════════════════════════════════════
+🔐 CODE OTP GÉNÉRÉ
+══════════════════════════════════════════════════════════════════
+   📞 Numéro: ${phone}
+   🔑 Code OTP: ${code}
+   ⏰ Valide pendant: 5 minutes
+   📅 Date: ${new Date().toISOString()}
+══════════════════════════════════════════════════════════════════`;
+      
+      console.log(otpMessage);
+      logger.info('CODE OTP GÉNÉRÉ', { phone, code, expiresIn: '5 minutes' });
+
+      // Envoyer par SMS uniquement (WhatsApp désactivé)
+      // WhatsApp est désactivé, on envoie seulement par SMS
+      const smsResult = await smsService.sendOTP(phone, code);
+      const smsOk = smsResult?.success === true;
+
+      if (!smsOk) {
+        const smsError = smsResult?.error || smsResult?.message || 'Échec envoi OTP';
+        throw new Error(smsError);
+      }
 
       res.json({
         success: true,
         message: 'Code OTP envoyé par SMS',
+        data: {
+          channels: {
+            sms: smsOk,
+            whatsapp: false, // WhatsApp désactivé
+          },
+        },
       });
     } catch (error) {
-      logger.error('Erreur sendOTP', { error: error.message });
-      
       // Détecter les erreurs de rate limiting et retourner un 429
-      if (error.message && error.message.includes('attendre') && error.message.includes('minute')) {
+      if (error.statusCode === 429 || error.code === 'RATE_LIMIT_EXCEEDED' || 
+          (error.message && error.message.includes('attendre') && error.message.includes('minute'))) {
+        logger.warn('Rate limit OTP dépassé', { 
+          phone: req.body?.phone,
+          error: error.message 
+        });
         return res.status(429).json({
           success: false,
           error: {
             code: 'RATE_LIMIT_EXCEEDED',
-            message: error.message,
+            message: error.message || 'Veuillez attendre 1 minute avant de demander un nouveau code',
           },
         });
       }
       
-      // Pour les autres erreurs, passer au middleware d'erreur
+      // Pour les autres erreurs, logger et passer au middleware d'erreur
+      logger.error('Erreur sendOTP', { 
+        phone: req.body?.phone,
+        error: error.message 
+      });
       next(error);
     }
   }
@@ -58,6 +93,7 @@ class AuthController {
           error: {
             code: 'INVALID_OTP',
             message: 'Code OTP invalide ou expiré',
+            attemptsRemaining: otp?.attemptsRemaining ?? undefined,
           },
         });
       }
@@ -99,6 +135,16 @@ class AuthController {
         },
       });
     } catch (error) {
+      if (error.code === 'OTP_MAX_ATTEMPTS' || error.statusCode === 429) {
+        return res.status(429).json({
+          success: false,
+          error: {
+            code: 'OTP_MAX_ATTEMPTS',
+            message: error.message || 'Nombre maximum de tentatives atteint',
+            attemptsRemaining: error.attemptsRemaining ?? 0,
+          },
+        });
+      }
       logger.error('Erreur verifyOTP', { error: error.message });
       next(error);
     }

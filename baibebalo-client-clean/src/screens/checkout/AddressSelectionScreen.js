@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
@@ -14,7 +13,6 @@ import { getAddresses } from '../../api/users';
 export default function AddressSelectionScreen({ navigation, route }) {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(route?.params?.selectedAddressId || null);
-  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadAddresses();
@@ -22,56 +20,62 @@ export default function AddressSelectionScreen({ navigation, route }) {
 
   const loadAddresses = async () => {
     try {
-      setLoading(true);
       const response = await getAddresses();
-      setAddresses(response.data?.addresses || []);
-      if (response.data?.addresses?.length > 0 && !selectedAddress) {
-        setSelectedAddress(response.data.addresses[0].id);
+      const fetchedAddresses = response.data?.addresses || response.data?.data?.addresses || [];
+      setAddresses(fetchedAddresses);
+      if (fetchedAddresses.length > 0 && !selectedAddress) {
+        setSelectedAddress(fetchedAddresses[0].id);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des adresses:', error);
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSelect = () => {
     if (selectedAddress) {
       const onSelect = route?.params?.onSelect;
+      const nextRouteName = route?.params?.nextRouteName;
       if (onSelect) {
         onSelect(selectedAddress);
+        navigation.goBack();
+        return;
+      }
+      if (nextRouteName) {
+        navigation.navigate(nextRouteName, { selectedAddressId: selectedAddress });
+        return;
       }
       navigation.goBack();
     }
   };
 
+  const getAddressIcon = (label) => {
+    const normalized = label?.toLowerCase();
+    if (normalized === 'maison' || normalized === 'home') return 'home';
+    if (normalized === 'bureau' || normalized === 'work') return 'briefcase-outline';
+    return 'location-outline';
+  };
+
   const renderAddress = ({ item }) => {
     const isSelected = selectedAddress === item.id;
+    const addressLabel = item.label || 'Adresse';
+    const addressText = [item.street, item.city].filter(Boolean).join(', ');
     
     return (
       <TouchableOpacity
         style={[styles.addressCard, isSelected && styles.addressCardSelected]}
         onPress={() => setSelectedAddress(item.id)}
       >
-        <View style={styles.addressHeader}>
+        <View style={styles.addressRow}>
+          <View style={styles.addressIcon}>
+            <Ionicons name={getAddressIcon(item.label)} size={18} color={COLORS.textSecondary} />
+          </View>
+          <View style={styles.addressInfo}>
+            <Text style={styles.addressTitle}>{addressLabel}</Text>
+            <Text style={styles.addressText}>{addressText}</Text>
+          </View>
           <View style={[styles.radioButton, isSelected && styles.radioButtonSelected]}>
             {isSelected && <View style={styles.radioButtonInner} />}
           </View>
-          <View style={styles.addressInfo}>
-            <Text style={styles.addressTitle}>{item.title || 'Adresse'}</Text>
-            <Text style={styles.addressText}>{item.address}</Text>
-            {item.district && (
-              <Text style={styles.addressDistrict}>{item.district}</Text>
-            )}
-          </View>
-        </View>
-        <View style={styles.addressActions}>
-          <TouchableOpacity
-            style={styles.editButton}
-            onPress={() => navigation.navigate('AddAddress', { addressId: item.id })}
-          >
-            <Ionicons name="create-outline" size={18} color={COLORS.primary} />
-          </TouchableOpacity>
         </View>
       </TouchableOpacity>
     );
@@ -79,7 +83,50 @@ export default function AddressSelectionScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      <ScrollView style={styles.content}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Checkout</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
+      <View style={styles.progressWrapper}>
+        <View style={styles.progressRow}>
+          <Text style={styles.progressLabel}>Étape 1 sur 3</Text>
+          <Text style={styles.progressPercent}>33% Complété</Text>
+        </View>
+        <View style={styles.progressTrack}>
+          <View style={styles.progressFill} />
+        </View>
+      </View>
+
+      <ScrollView style={styles.content} contentContainerStyle={styles.contentInner}>
+        <Text style={styles.heroTitle}>
+          Où souhaitez-vous recevoir votre commande ?
+        </Text>
+
+        <TouchableOpacity
+          style={styles.gpsCard}
+          onPress={() => navigation.navigate('MapLocationSelector')}
+        >
+          <View style={styles.gpsIcon}>
+            <Ionicons name="locate" size={22} color={COLORS.white} />
+          </View>
+          <View style={styles.gpsInfo}>
+            <Text style={styles.gpsTitle}>Utiliser ma position actuelle</Text>
+            <Text style={styles.gpsSubtitle}>Précision GPS élevée</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.primary} />
+        </TouchableOpacity>
+
+        <View style={styles.savedHeader}>
+          <Text style={styles.savedTitle}>Adresses enregistrées</Text>
+          <TouchableOpacity onPress={() => navigation.navigate('AddAddress')}>
+            <Text style={styles.savedAction}>Ajouter</Text>
+          </TouchableOpacity>
+        </View>
+
         {addresses.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="location-outline" size={64} color={COLORS.textLight} />
@@ -96,22 +143,18 @@ export default function AddressSelectionScreen({ navigation, route }) {
             </TouchableOpacity>
           </View>
         ) : (
-          <FlatList
-            data={addresses}
-            renderItem={renderAddress}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
-            scrollEnabled={false}
-          />
+          <View style={styles.listContent}>
+            {addresses.map((address) => (
+              <View key={address.id}>{renderAddress({ item: address })}</View>
+            ))}
+          </View>
         )}
 
-        <TouchableOpacity
-          style={styles.addNewButton}
-          onPress={() => navigation.navigate('AddAddress')}
-        >
-          <Ionicons name="add-circle-outline" size={24} color={COLORS.primary} />
-          <Text style={styles.addNewButtonText}>Ajouter une nouvelle adresse</Text>
-        </TouchableOpacity>
+        <View style={styles.mapPreview}>
+          <View style={styles.mapPin}>
+            <Ionicons name="location" size={16} color={COLORS.white} />
+          </View>
+        </View>
       </ScrollView>
 
       {addresses.length > 0 && (
@@ -121,7 +164,7 @@ export default function AddressSelectionScreen({ navigation, route }) {
             onPress={handleSelect}
             disabled={!selectedAddress}
           >
-            <Text style={styles.confirmButtonText}>Confirmer</Text>
+            <Text style={styles.confirmButtonText}>Continuer</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -134,47 +177,170 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.background,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  headerSpacer: {
+    width: 40,
+  },
+  progressWrapper: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  progressRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginBottom: 8,
+  },
+  progressLabel: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.8,
+  },
+  progressPercent: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  progressTrack: {
+    height: 6,
+    backgroundColor: COLORS.border,
+    borderRadius: 6,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    width: '33%',
+    height: '100%',
+    backgroundColor: COLORS.primary,
+  },
   content: {
     flex: 1,
+    paddingHorizontal: 16,
+  },
+  contentInner: {
+    paddingBottom: 120,
+  },
+  heroTitle: {
+    fontSize: 26,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginVertical: 16,
+  },
+  gpsCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     padding: 16,
+    borderRadius: 16,
+    backgroundColor: COLORS.primary + '12',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+    marginBottom: 24,
+  },
+  gpsIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gpsInfo: {
+    flex: 1,
+  },
+  gpsTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  gpsSubtitle: {
+    fontSize: 12,
+    color: COLORS.primary,
+    opacity: 0.7,
+  },
+  savedHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  savedTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  savedAction: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   listContent: {
     gap: 12,
   },
   addressCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     borderWidth: 2,
-    borderColor: COLORS.border,
-    marginBottom: 12,
+    borderColor: 'transparent',
   },
   addressCardSelected: {
     borderColor: COLORS.primary,
     backgroundColor: COLORS.primary + '05',
   },
-  addressHeader: {
+  addressRow: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     gap: 12,
   },
-  radioButton: {
-    width: 24,
-    height: 24,
+  addressIcon: {
+    width: 40,
+    height: 40,
     borderRadius: 12,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioButton: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
     borderColor: COLORS.border,
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 2,
   },
   radioButtonSelected: {
     borderColor: COLORS.primary,
   },
   radioButtonInner: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: COLORS.primary,
   },
   addressInfo: {
@@ -189,37 +355,24 @@ const styles = StyleSheet.create({
   addressText: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginBottom: 4,
     lineHeight: 20,
   },
-  addressDistrict: {
-    fontSize: 12,
-    color: COLORS.textLight,
-  },
-  addressActions: {
-    marginTop: 12,
-    alignItems: 'flex-end',
-  },
-  editButton: {
-    padding: 8,
-  },
-  addNewButton: {
-    flexDirection: 'row',
+  mapPreview: {
+    height: 160,
+    borderRadius: 16,
+    backgroundColor: COLORS.border,
+    marginTop: 24,
+    marginBottom: 8,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    padding: 16,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    borderStyle: 'dashed',
-    marginTop: 8,
   },
-  addNewButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.primary,
+  mapPin: {
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   footer: {
     padding: 16,
@@ -229,8 +382,8 @@ const styles = StyleSheet.create({
   },
   confirmButton: {
     backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 16,
     alignItems: 'center',
   },
   confirmButtonDisabled: {
@@ -238,8 +391,8 @@ const styles = StyleSheet.create({
   },
   confirmButtonText: {
     color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
+    fontSize: 18,
+    fontWeight: '800',
   },
   emptyState: {
     flex: 1,

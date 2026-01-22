@@ -14,7 +14,7 @@ const config = {
   // ================================
   // SERVEUR
   // ================================
-  port: parseInt(process.env.PORT, 10) || 3000,
+  port: parseInt(process.env.PORT, 10) || 5000,
   apiVersion: process.env.API_VERSION || 'v1',
   
   // ================================
@@ -36,7 +36,7 @@ const config = {
   // URLS ET DOMAINES
   // ================================
   urls: {
-    apiBase: process.env.API_BASE_URL || 'http://localhost:3000',
+    apiBase: process.env.API_BASE_URL || `http://localhost:${process.env.PORT || 5000}`,
     clientApp: process.env.CLIENT_APP_URL || 'http://localhost:5173',
     adminPanel: process.env.ADMIN_PANEL_URL || 'http://localhost:5174',
     corsOrigin: process.env.CORS_ORIGIN || '',
@@ -112,7 +112,7 @@ const config = {
     twilio: {
       accountSid: process.env.TWILIO_ACCOUNT_SID || '',
       authToken: process.env.TWILIO_AUTH_TOKEN || '',
-      phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
+      phoneNumber: process.env.TWILIO_FROM || process.env.TWILIO_PHONE_NUMBER || '', // TWILIO_FROM ou TWILIO_PHONE_NUMBER
     },
     
     africasTalking: {
@@ -120,6 +120,27 @@ const config = {
       username: process.env.AFRICASTALKING_USERNAME || '',
       from: process.env.AFRICASTALKING_FROM || 'BAIBEBALO',
     },
+  },
+
+  // ================================
+  // FIREBASE (Notifications push)
+  // ================================
+  firebase: {
+    projectId: process.env.FIREBASE_PROJECT_ID || '',
+    clientEmail: process.env.FIREBASE_CLIENT_EMAIL || '',
+    privateKey: process.env.FIREBASE_PRIVATE_KEY || '',
+  },
+
+  // ================================
+  // WHATSAPP (Cloud API)
+  // ================================
+  whatsapp: {
+    enabled: false, // Désactivé - utiliser SMS Twilio uniquement
+    provider: 'dev', // Mode dev (pas Twilio)
+    token: process.env.WHATSAPP_TOKEN || '',
+    phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
+    templateName: process.env.WHATSAPP_OTP_TEMPLATE || 'baibebalo_otp',
+    languageCode: process.env.WHATSAPP_LANGUAGE_CODE || 'fr',
   },
   
   // ================================

@@ -59,6 +59,10 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_users_status ON users(status);`,
   `CREATE INDEX IF NOT EXISTS idx_users_created ON users(created_at DESC);`,
 
+  // Ajouter fcm_token si manquant
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS fcm_token TEXT;`,
+  `ALTER TABLE users ADD COLUMN IF NOT EXISTS notification_preferences JSONB DEFAULT '{}'::jsonb;`,
+
   // ======================================
   // Migration 3: Table addresses
   // ======================================
@@ -127,6 +131,9 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_restaurants_category ON restaurants(category);`,
   `CREATE INDEX IF NOT EXISTS idx_restaurants_rating ON restaurants(average_rating DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_restaurants_location ON restaurants USING gist (ll_to_earth(latitude, longitude));`,
+
+  // Ajouter fcm_token si manquant
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS fcm_token TEXT;`,
 
   // ======================================
   // Migration 5: Table menu_categories
@@ -217,6 +224,9 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_delivery_delivery_status ON delivery_persons(delivery_status);`,
   `CREATE INDEX IF NOT EXISTS idx_delivery_rating ON delivery_persons(average_rating DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_delivery_location ON delivery_persons USING gist (ll_to_earth(current_latitude, current_longitude));`,
+
+  // Ajouter fcm_token si manquant
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS fcm_token TEXT;`,
 
   // ======================================
   // Migration 8: Table orders
@@ -380,6 +390,8 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_promotions_code ON promotions(code);`,
   `CREATE INDEX IF NOT EXISTS idx_promotions_active ON promotions(is_active);`,
   `CREATE INDEX IF NOT EXISTS idx_promotions_dates ON promotions(valid_from, valid_until);`,
+  `ALTER TABLE promotions ADD COLUMN IF NOT EXISTS restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE;`,
+  `CREATE INDEX IF NOT EXISTS idx_promotions_restaurant ON promotions(restaurant_id);`,
 
   // ======================================
   // Migration 13: Table transactions
@@ -589,6 +601,15 @@ const migrations = [
 
   `CREATE INDEX IF NOT EXISTS idx_ticket_messages_ticket ON ticket_messages(ticket_id);`,
   `CREATE INDEX IF NOT EXISTS idx_ticket_messages_date ON ticket_messages(created_at);`,
+
+  // Ajouter la colonne is_internal si elle n'existe pas déjà
+  `DO $$ 
+    BEGIN
+      IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
+                     WHERE table_name='ticket_messages' AND column_name='is_internal') THEN
+        ALTER TABLE ticket_messages ADD COLUMN is_internal BOOLEAN DEFAULT false;
+      END IF;
+    END $$;`,
 
   // ======================================
   // Migration 20: Table app_settings

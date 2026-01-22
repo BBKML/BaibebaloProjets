@@ -26,7 +26,7 @@ export default function ManageAddressesScreen({ navigation }) {
     try {
       setLoading(true);
       const response = await getAddresses();
-      setAddresses(response.data?.addresses || []);
+      setAddresses(response.data?.addresses || response.data?.data?.addresses || []);
     } catch (error) {
       console.error('Erreur lors du chargement des adresses:', error);
     } finally {
@@ -43,16 +43,18 @@ export default function ManageAddressesScreen({ navigation }) {
         {
           text: 'Supprimer',
           style: 'destructive',
-          onPress: async () => {
-            try {
-              await deleteAddress(addressId);
-              loadAddresses();
-            } catch (error) {
-              Alert.alert(
-                'Erreur',
-                error.response?.data?.error?.message || 'Erreur lors de la suppression'
-              );
-            }
+          onPress: () => {
+            void (async () => {
+              try {
+                await deleteAddress(addressId);
+                loadAddresses();
+              } catch (error) {
+                Alert.alert(
+                  'Erreur',
+                  error.response?.data?.error?.message || 'Erreur lors de la suppression'
+                );
+              }
+            })();
           },
         },
       ]
@@ -63,13 +65,15 @@ export default function ManageAddressesScreen({ navigation }) {
     navigation.navigate('AddAddress', { address, isEdit: true });
   };
 
+  const getIconName = (label) => {
+    const normalized = label?.toLowerCase();
+    if (normalized === 'maison' || normalized === 'home') return 'home';
+    if (normalized === 'bureau' || normalized === 'work') return 'briefcase-outline';
+    return 'heart-outline';
+  };
+
   const renderAddress = ({ item }) => {
-    const iconName =
-      item.label?.toLowerCase() === 'maison' || item.label?.toLowerCase() === 'home'
-        ? 'home'
-        : item.label?.toLowerCase() === 'bureau' || item.label?.toLowerCase() === 'work'
-        ? 'briefcase'
-        : 'location';
+    const iconName = getIconName(item.label);
 
     return (
       <View style={styles.addressCard}>
@@ -89,8 +93,9 @@ export default function ManageAddressesScreen({ navigation }) {
               </View>
             )}
           </View>
-          <Text style={styles.addressText}>{item.street}</Text>
-          <Text style={styles.addressText}>{item.city}</Text>
+          <Text style={styles.addressText}>
+            {[item.street, item.city].filter(Boolean).join(', ')}
+          </Text>
           <View style={styles.addressActions}>
             <TouchableOpacity
               style={styles.actionButton}
@@ -116,6 +121,14 @@ export default function ManageAddressesScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Mes adresses</Text>
+        <View style={styles.headerSpacer} />
+      </View>
+
       {addresses.length === 0 && !loading ? (
         <View style={styles.emptyContainer}>
           <Ionicons name="location-outline" size={64} color={COLORS.textLight} />
@@ -123,33 +136,28 @@ export default function ManageAddressesScreen({ navigation }) {
           <Text style={styles.emptySubtext}>
             Ajoutez votre première adresse pour commencer
           </Text>
-          <TouchableOpacity
-            style={styles.addButton}
-            onPress={() => navigation.navigate('AddAddress')}
-          >
-            <Ionicons name="add" size={20} color={COLORS.white} />
-            <Text style={styles.addButtonText}>Ajouter une adresse</Text>
-          </TouchableOpacity>
         </View>
       ) : (
-        <>
-          <FlatList
-            data={addresses}
-            renderItem={renderAddress}
-            keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
-            refreshControl={
-              <RefreshControl refreshing={loading} onRefresh={loadAddresses} />
-            }
-          />
-          <TouchableOpacity
-            style={styles.fab}
-            onPress={() => navigation.navigate('AddAddress', { fromCheckout: false })}
-          >
-            <Ionicons name="add" size={28} color={COLORS.white} />
-          </TouchableOpacity>
-        </>
+        <FlatList
+          data={addresses}
+          renderItem={renderAddress}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={loading} onRefresh={loadAddresses} />
+          }
+        />
       )}
+
+      <View style={styles.bottomBar}>
+        <TouchableOpacity
+          style={styles.addButton}
+          onPress={() => navigation.navigate('AddAddress', { fromCheckout: false })}
+        >
+          <Ionicons name="add" size={20} color={COLORS.white} />
+          <Text style={styles.addButtonText}>Ajouter une nouvelle adresse</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -159,8 +167,35 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+  },
+  headerTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  headerSpacer: {
+    width: 40,
+  },
   listContent: {
     padding: 16,
+    paddingBottom: 120,
   },
   addressCard: {
     backgroundColor: COLORS.white,
@@ -177,8 +212,8 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   addressIcon: {
-    width: 48,
-    height: 48,
+    width: 52,
+    height: 52,
     borderRadius: 12,
     backgroundColor: COLORS.primary + '20',
     justifyContent: 'center',
@@ -250,34 +285,30 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 24,
   },
+  bottomBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 16,
+    paddingBottom: 24,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
   addButton: {
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 14,
     borderRadius: 12,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
   },
   addButtonText: {
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '600',
-  },
-  fab: {
-    position: 'absolute',
-    bottom: 20,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
   },
 });

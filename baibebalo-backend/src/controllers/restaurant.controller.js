@@ -6,74 +6,197 @@ const logger = require('../utils/logger');
  */
 exports.getRestaurants = async (req, res) => {
   try {
-    const { 
-      lat, 
-      lng, 
-      category, 
-      search, 
-      sort = 'distance', 
-      page = 1, 
+    const {
+      category,
+      search,
+      sort = 'distance',
+      page = 1,
       limit = 20,
       min_rating,
-      // max_delivery_fee peut être utilisé plus tard pour filtrage
-      is_open
+      is_open,
+      radius,
+      min_price,
+      max_price,
+      cuisine_type,
+      free_delivery,
+      promotions,
+      mobile_money,
+      new_restaurants,
+      max_delivery_time,
+      tags,
     } = req.query;
-    
+
+    const latitude = req.query.latitude || req.query.lat;
+    const longitude = req.query.longitude || req.query.lng;
+    const parsedLatitude = latitude !== undefined ? parseFloat(latitude) : null;
+    const parsedLongitude = longitude !== undefined ? parseFloat(longitude) : null;
+    const hasCoords = Number.isFinite(parsedLatitude) && Number.isFinite(parsedLongitude);
+
     const offset = (page - 1) * limit;
     const values = [];
     let paramIndex = 1;
-    
-    let queryText = `
-      SELECT r.*,
-        ${lat && lng ? `
-          earth_distance(
-            ll_to_earth(r.latitude, r.longitude),
-            ll_to_earth($${paramIndex}, $${paramIndex + 1})
-          ) / 1000 as distance_km
-        ` : 'NULL as distance_km'}
-      FROM restaurants r
-      WHERE r.status = 'active'
-    `;
-    
-    if (lat && lng) {
-      values.push(parseFloat(lat), parseFloat(lng));
-      paramIndex += 2;
-      
-      // Filtrer par rayon de livraison
-      queryText += ` AND earth_distance(
-        ll_to_earth(r.latitude, r.longitude),
-        ll_to_earth($1, $2)
-      ) / 1000 <= r.delivery_radius`;
+
+    const parsedTags = Array.isArray(tags)
+      ? tags.filter(Boolean)
+      : typeof tags === 'string'
+        ? tags.split(',').map((tag) => tag.trim()).filter(Boolean)
+        : [];
+
+    const boolFromQuery = (value) => value === true || value === 'true';
+
+    const distanceExpression = hasCoords
+      ? `earth_distance(
+          ll_to_earth(r.latitude, r.longitude),
+          ll_to_earth($1, $2)
+        ) / 1000`
+      : null;
+
+    if (hasCoords) {
+      values.push(parsedLatitude, parsedLongitude);
+      paramIndex = 3;
     }
-    
+
+    const whereClauses = [`r.status = 'active'`];
+
+    if (hasCoords) {
+      whereClauses.push(`${distanceExpression} <= r.delivery_radius`);
+      if (radius) {
+        whereClauses.push(`${distanceExpression} <= $${paramIndex}`);
+        values.push(parseFloat(radius));
+        paramIndex++;
+      }
+    }
+
     if (category) {
-      queryText += ` AND r.category = $${paramIndex}`;
+      whereClauses.push(`r.category = $${paramIndex}`);
       values.push(category);
       paramIndex++;
     }
-    
+
+    if (cuisine_type) {
+      whereClauses.push(`r.cuisine_type = $${paramIndex}`);
+      values.push(cuisine_type);
+      paramIndex++;
+    }
+
     if (search) {
-      queryText += ` AND (
+      whereClauses.push(`(
         r.name ILIKE $${paramIndex} OR 
         r.description ILIKE $${paramIndex} OR
-        r.cuisine_type ILIKE $${paramIndex}
-      )`;
+        r.cuisine_type ILIKE $${paramIndex} OR
+        EXISTS (
+          SELECT 1 FROM menu_items mi 
+          WHERE mi.restaurant_id = r.id 
+          AND mi.is_available = true
+          AND (mi.name ILIKE $${paramIndex} OR mi.description ILIKE $${paramIndex})
+        )
+      )`);
       values.push(`%${search}%`);
       paramIndex++;
     }
-    
+
     if (min_rating) {
-      queryText += ` AND r.average_rating >= $${paramIndex}`;
+      whereClauses.push(`r.average_rating >= $${paramIndex}`);
       values.push(parseFloat(min_rating));
       paramIndex++;
     }
-    
+
     if (is_open === 'true') {
-      queryText += ` AND r.is_open = true`;
+      whereClauses.push(`r.is_open = true`);
     }
-    
-    // Tri
-    if (sort === 'distance' && lat && lng) {
+
+    if (min_price || max_price) {
+      const priceConditions = [];
+      if (min_price) {
+        priceConditions.push(`mi.price >= $${paramIndex}`);
+        values.push(parseFloat(min_price));
+        paramIndex++;
+      }
+      if (max_price) {
+        priceConditions.push(`mi.price <= $${paramIndex}`);
+        values.push(parseFloat(max_price));
+        paramIndex++;
+      }
+      whereClauses.push(`EXISTS (
+        SELECT 1 FROM menu_items mi 
+        WHERE mi.restaurant_id = r.id 
+        AND mi.is_available = true
+        AND ${priceConditions.join(' AND ')}
+      )`);
+    }
+
+    if (parsedTags.length > 0) {
+      whereClauses.push(`EXISTS (
+        SELECT 1 FROM menu_items mi
+        WHERE mi.restaurant_id = r.id
+        AND mi.is_available = true
+        AND mi.tags && $${paramIndex}::text[]
+      )`);
+      values.push(parsedTags);
+      paramIndex++;
+    }
+
+    if (boolFromQuery(promotions)) {
+      whereClauses.push(`EXISTS (
+        SELECT 1 FROM promotions p
+        WHERE p.restaurant_id = r.id
+        AND p.is_active = true
+        AND p.valid_from <= NOW()
+        AND p.valid_until >= NOW()
+      )`);
+    }
+
+    if (boolFromQuery(free_delivery)) {
+      whereClauses.push(`EXISTS (
+        SELECT 1 FROM promotions p
+        WHERE p.restaurant_id = r.id
+        AND p.is_active = true
+        AND p.type = 'free_delivery'
+        AND p.valid_from <= NOW()
+        AND p.valid_until >= NOW()
+      )`);
+    }
+
+    if (boolFromQuery(mobile_money)) {
+      whereClauses.push(`r.mobile_money_provider IS NOT NULL`);
+    }
+
+    if (boolFromQuery(new_restaurants)) {
+      whereClauses.push(`r.created_at >= NOW() - INTERVAL '30 days'`);
+    }
+
+    if (max_delivery_time && hasCoords) {
+      whereClauses.push(`(15 + (${distanceExpression} * 3)) <= $${paramIndex}`);
+      values.push(parseFloat(max_delivery_time));
+      paramIndex++;
+    }
+
+    let queryText = `
+      SELECT r.*,
+        ${hasCoords ? `${distanceExpression} as distance_km` : 'NULL as distance_km'},
+        (SELECT MIN(price) FROM menu_items mi WHERE mi.restaurant_id = r.id AND mi.is_available = true) as min_price,
+        (SELECT MAX(price) FROM menu_items mi WHERE mi.restaurant_id = r.id AND mi.is_available = true) as max_price,
+        EXISTS (
+          SELECT 1 FROM promotions p
+          WHERE p.restaurant_id = r.id
+          AND p.is_active = true
+          AND p.valid_from <= NOW()
+          AND p.valid_until >= NOW()
+        ) as has_promotions,
+        EXISTS (
+          SELECT 1 FROM promotions p
+          WHERE p.restaurant_id = r.id
+          AND p.is_active = true
+          AND p.type = 'free_delivery'
+          AND p.valid_from <= NOW()
+          AND p.valid_until >= NOW()
+        ) as has_free_delivery,
+        (r.mobile_money_provider IS NOT NULL) as accepts_mobile_money
+      FROM restaurants r
+      WHERE ${whereClauses.join(' AND ')}
+    `;
+
+    if (sort === 'distance' && hasCoords) {
       queryText += ' ORDER BY distance_km ASC';
     } else if (sort === 'rating') {
       queryText += ' ORDER BY r.average_rating DESC, r.total_reviews DESC';
@@ -82,40 +205,40 @@ exports.getRestaurants = async (req, res) => {
     } else {
       queryText += ' ORDER BY r.created_at DESC';
     }
-    
-    // Pagination
+
     queryText += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     values.push(parseInt(limit), offset);
-    
+
     const result = await query(queryText, values);
-    
-    // Compter le total
-    let countQuery = `SELECT COUNT(*) FROM restaurants WHERE status = 'active'`;
-    const countValues = [];
-    
-    if (category) {
-      countQuery += ' AND category = $1';
-      countValues.push(category);
-    }
-    
-    const countResult = await query(countQuery, countValues);
+
+    const countQuery = `
+      SELECT COUNT(*) FROM restaurants r
+      WHERE ${whereClauses.join(' AND ')}
+    `;
+    const countResult = await query(countQuery, values.slice(0, values.length - 2));
     const total = parseInt(countResult.rows[0].count);
-    
-    // Enrichir avec informations favoris si utilisateur connecté
-    let restaurants = result.rows;
+
+    let restaurants = result.rows.map((restaurant) => ({
+      ...restaurant,
+      estimated_delivery_time:
+        hasCoords && restaurant.distance_km !== null
+          ? Math.ceil(15 + restaurant.distance_km * 3)
+          : null,
+    }));
+
     if (req.user?.id) {
       const favoritesResult = await query(
         'SELECT restaurant_id FROM favorites WHERE user_id = $1',
         [req.user.id]
       );
-      const favoriteIds = favoritesResult.rows.map(f => f.restaurant_id);
-      
-      restaurants = restaurants.map(r => ({
-        ...r,
-        is_favorite: favoriteIds.includes(r.id),
+      const favoriteIds = favoritesResult.rows.map((f) => f.restaurant_id);
+
+      restaurants = restaurants.map((restaurant) => ({
+        ...restaurant,
+        is_favorite: favoriteIds.includes(restaurant.id),
       }));
     }
-    
+
     res.json({
       success: true,
       data: {

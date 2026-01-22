@@ -12,6 +12,7 @@ const rateLimit = require('express-rate-limit');
 const morgan = require('morgan');
 const http = require('http');
 const socketIO = require('socket.io');
+const os = require('os');
 
 // Imports locaux
 const config = require('./src/config');
@@ -211,8 +212,14 @@ app.use(`/api/${config.apiVersion}/users`, require('./src/routes/user.routes'));
 // Routes restaurants
 app.use(`/api/${config.apiVersion}/restaurants`, require('./src/routes/restaurant.routes'));
 
+// Routes recherche
+app.use(`/api/${config.apiVersion}/search`, require('./src/routes/search.routes'));
+
 // Routes commandes
 app.use(`/api/${config.apiVersion}/orders`, require('./src/routes/order.routes'));
+
+// Routes notifications
+app.use(`/api/${config.apiVersion}/notifications`, require('./src/routes/notification.routes'));
 
 // Routes livreurs
 app.use(`/api/${config.apiVersion}/delivery`, require('./src/routes/delivery.routes'));
@@ -383,6 +390,21 @@ process.on('unhandledRejection', (reason, promise) => {
 
 const PORT = config.port;
 
+// Fonction pour détecter l'IP locale du réseau
+const getLocalIP = () => {
+  const interfaces = os.networkInterfaces();
+  for (const name of Object.keys(interfaces)) {
+    for (const iface of interfaces[name]) {
+      // Ignorer les adresses internes (non IPv4) et loopback
+      if (iface.family === 'IPv4' && !iface.internal) {
+        return iface.address;
+      }
+    }
+  }
+  // Fallback : utiliser une variable d'environnement ou localhost
+  return process.env.LOCAL_IP || 'localhost';
+};
+
 const startServer = async () => {
   try {
     // Tester la connexion à la base de données (optionnel en dev)
@@ -394,6 +416,9 @@ const startServer = async () => {
       logger.warn('   Certaines routes nécessiteront une DB connectée');
     }
 
+    // Détecter l'IP locale
+    const localIP = getLocalIP();
+
     // Démarrer le serveur (écouter sur toutes les interfaces pour permettre l'accès depuis le réseau local)
     const HOST = '0.0.0.0'; // Écouter sur toutes les interfaces pour permettre l'accès depuis le réseau local
     server.listen(PORT, HOST, () => {
@@ -404,8 +429,12 @@ const startServer = async () => {
       console.log(`   📍 Port: ${PORT}`);
       console.log(`   📝 Environnement: ${config.env}`);
       console.log(`   🌐 URL locale: http://localhost:${PORT}`);
-      console.log(`   🌐 URL réseau: http://192.168.1.7:${PORT}`);
-      console.log(`   💡 Pour accéder depuis un téléphone, utilisez: http://192.168.1.7:${PORT}`);
+      if (localIP !== 'localhost') {
+        console.log(`   🌐 URL réseau: http://${localIP}:${PORT}`);
+        console.log(`   💡 Pour accéder depuis un téléphone, utilisez: http://${localIP}:${PORT}`);
+      } else {
+        console.log(`   ⚠️  IP réseau non détectée. Utilisez localhost ou définissez LOCAL_IP dans .env`);
+      }
       console.log(`   📖 API Version: ${config.apiVersion}`);
       console.log('');
       console.log('   🧪 ROUTES DE TEST DISPONIBLES:');
@@ -414,8 +443,6 @@ const startServer = async () => {
       console.log(`   POST   http://localhost:${PORT}/api/${config.apiVersion}/test/auth/login`);
       console.log(`   POST   http://localhost:${PORT}/api/${config.apiVersion}/test/auth/register`);
       console.log(`   POST   http://localhost:${PORT}/api/${config.apiVersion}/test/restaurants/search`);
-      console.log('');
-      console.log('   📚 Documentation complète: http://localhost:3000/');
       console.log('');
       console.log('═'.repeat(60) + '\n');
     });

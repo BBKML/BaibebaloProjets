@@ -1,24 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import PropTypes from 'prop-types';
 import {
   View,
   Text,
   StyleSheet,
-  ScrollView,
   TouchableOpacity,
   Image,
+  Linking,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { trackOrder } from '../../api/orders';
 
 export default function TrackingDriverAssignedScreen({ navigation, route }) {
   const { orderId } = route.params || {};
   const [order, setOrder] = useState(null);
   const [driver, setDriver] = useState({
-    name: 'Kouassi Jean',
-    phone: '+225 07 XX XX XX XX',
+    name: 'Livreur',
+    phone: '',
     rating: 4.8,
     vehicle: 'Moto',
-    plateNumber: 'AB-123-CD',
+    plateNumber: '',
     avatar: null,
   });
 
@@ -27,329 +30,313 @@ export default function TrackingDriverAssignedScreen({ navigation, route }) {
   }, [orderId]);
 
   const loadOrderDetails = async () => {
-    // TODO: Implémenter l'appel API
-    setOrder({
-      id: orderId,
-      restaurant: 'Restaurant Le Délices',
-      estimatedTime: '25-30 min',
-      status: 'driver_assigned',
-    });
+    if (!orderId) return;
+    try {
+      const response = await trackOrder(orderId);
+      const orderData = response.data?.order || response.data?.data?.order || response.data;
+      setOrder(orderData);
+      setDriver((prev) => ({
+        ...prev,
+        name: [orderData?.delivery_first_name, orderData?.delivery_last_name]
+          .filter(Boolean)
+          .join(' ') || prev.name,
+        phone: orderData?.delivery_phone || '',
+      }));
+    } catch (error) {
+      console.error('Erreur suivi commande:', error);
+    }
   };
 
   const handleCallDriver = () => {
-    // TODO: Implémenter l'appel téléphonique
-    console.log('Appeler le livreur:', driver.phone);
+    if (!driver.phone) {
+      Alert.alert('Livreur', 'Numéro du livreur indisponible.');
+      return;
+    }
+    Linking.openURL(`tel:${driver.phone}`);
   };
 
   const handleChatDriver = () => {
-    // TODO: Implémenter le chat avec le livreur
-    console.log('Chatter avec le livreur');
+    navigation.navigate('OrderDetails', { orderId });
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header avec statut */}
-      <View style={styles.header}>
-        <View style={styles.statusBadge}>
-          <Ionicons name="bicycle" size={24} color={COLORS.white} />
-          <Text style={styles.statusText}>Livreur assigné</Text>
+    <View style={styles.container}>
+      <Image
+        source={{
+          uri:
+            'https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=900',
+        }}
+        style={styles.mapImage}
+      />
+      <View style={styles.mapOverlay} />
+
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <View style={styles.topTitlePill}>
+          <Text style={styles.topTitle}>Suivi de commande</Text>
         </View>
-        <Text style={styles.statusSubtext}>
-          Votre commande est en préparation
-        </Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="help-circle-outline" size={18} color={COLORS.text} />
+        </TouchableOpacity>
       </View>
 
-      {/* Informations du livreur */}
-      <View style={styles.driverSection}>
-        <Text style={styles.sectionTitle}>Votre livreur</Text>
+      <View style={styles.bottomSheet}>
+        <View style={styles.handle} />
+        <Text style={styles.sheetTitle}>Le livreur est en route</Text>
+        <Text style={styles.sheetSubtitle}>Votre commande est en cours de livraison</Text>
+
+        <View style={styles.statsRow}>
+          <View style={styles.statCardPrimary}>
+            <Text style={styles.statLabel}>Arrivée prévue</Text>
+            <Text style={styles.statValue}>
+              {order?.estimated_delivery_time ? `${order.estimated_delivery_time} min` : '15 min'}
+            </Text>
+          </View>
+          <View style={styles.statCard}>
+            <Text style={styles.statLabelMuted}>Distance</Text>
+            <Text style={styles.statValueMuted}>
+              {order?.distance_km ? `${Number(order.distance_km).toFixed(1)} km` : '2.4 km'}
+            </Text>
+          </View>
+        </View>
+
         <View style={styles.driverCard}>
           <View style={styles.driverAvatar}>
             {driver.avatar ? (
               <Image source={{ uri: driver.avatar }} style={styles.avatarImage} />
             ) : (
-              <Ionicons name="person" size={40} color={COLORS.textSecondary} />
+              <Ionicons name="person" size={32} color={COLORS.textSecondary} />
             )}
           </View>
           <View style={styles.driverInfo}>
-            <Text style={styles.driverName}>{driver.name}</Text>
-            <View style={styles.driverMeta}>
-              <Ionicons name="star" size={16} color={COLORS.warning} />
-              <Text style={styles.driverRating}>{driver.rating}</Text>
-              <Text style={styles.separator}>•</Text>
-              <Text style={styles.driverVehicle}>{driver.vehicle}</Text>
+            <View style={styles.driverRow}>
+              <Text style={styles.driverName}>{driver.name}</Text>
+              <View style={styles.ratingBadge}>
+                <Ionicons name="star" size={12} color={COLORS.warning} />
+                <Text style={styles.ratingText}>{driver.rating}</Text>
+              </View>
             </View>
-            <Text style={styles.driverPlate}>{driver.plateNumber}</Text>
+            <Text style={styles.driverVehicle}>
+              {driver.vehicle} • {driver.plateNumber}
+            </Text>
           </View>
         </View>
 
-        {/* Actions */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={handleCallDriver}
-          >
-            <Ionicons name="call" size={20} color={COLORS.primary} />
-            <Text style={styles.actionButtonText}>Appeler</Text>
+          <TouchableOpacity style={styles.primaryAction} onPress={handleCallDriver}>
+            <Ionicons name="call" size={18} color={COLORS.white} />
+            <Text style={styles.primaryActionText}>Appeler le livreur</Text>
           </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.actionButtonPrimary]}
-            onPress={handleChatDriver}
-          >
-            <Ionicons name="chatbubble" size={20} color={COLORS.white} />
-            <Text style={[styles.actionButtonText, styles.actionButtonTextPrimary]}>
-              Chat
-            </Text>
+          <TouchableOpacity style={styles.secondaryAction} onPress={handleChatDriver}>
+            <Text style={styles.secondaryActionText}>Détails de la commande</Text>
           </TouchableOpacity>
         </View>
       </View>
-
-      {/* Timeline */}
-      <View style={styles.timelineSection}>
-        <Text style={styles.sectionTitle}>Suivi de commande</Text>
-        <View style={styles.timeline}>
-          <View style={styles.timelineItem}>
-            <View style={[styles.timelineDot, styles.timelineDotActive]} />
-            <View style={styles.timelineContent}>
-              <Text style={styles.timelineTitle}>Commande confirmée</Text>
-              <Text style={styles.timelineTime}>Il y a 5 min</Text>
-            </View>
-          </View>
-          <View style={styles.timelineItem}>
-            <View style={[styles.timelineDot, styles.timelineDotActive]} />
-            <View style={styles.timelineContent}>
-              <Text style={styles.timelineTitle}>En préparation</Text>
-              <Text style={styles.timelineTime}>Il y a 3 min</Text>
-            </View>
-          </View>
-          <View style={styles.timelineItem}>
-            <View style={[styles.timelineDot, styles.timelineDotActive]} />
-            <View style={styles.timelineContent}>
-              <Text style={styles.timelineTitle}>Livreur assigné</Text>
-              <Text style={styles.timelineTime}>Maintenant</Text>
-            </View>
-          </View>
-          <View style={styles.timelineItem}>
-            <View style={styles.timelineDot} />
-            <View style={styles.timelineContent}>
-              <Text style={[styles.timelineTitle, styles.timelineTitlePending]}>
-                En route
-              </Text>
-              <Text style={styles.timelineTime}>Bientôt</Text>
-            </View>
-          </View>
-          <View style={styles.timelineItem}>
-            <View style={styles.timelineDot} />
-            <View style={styles.timelineContent}>
-              <Text style={[styles.timelineTitle, styles.timelineTitlePending]}>
-                Livré
-              </Text>
-            </View>
-          </View>
-        </View>
-      </View>
-
-      {/* Informations de la commande */}
-      <View style={styles.orderInfoSection}>
-        <Text style={styles.sectionTitle}>Informations</Text>
-        <View style={styles.infoCard}>
-          <View style={styles.infoRow}>
-            <Ionicons name="restaurant" size={20} color={COLORS.textSecondary} />
-            <Text style={styles.infoText}>{order?.restaurant || 'Restaurant'}</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="time" size={20} color={COLORS.textSecondary} />
-            <Text style={styles.infoText}>
-              Arrivée prévue: {order?.estimatedTime || '25-30 min'}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </ScrollView>
+    </View>
   );
 }
+
+TrackingDriverAssignedScreen.propTypes = {
+  navigation: PropTypes.shape({
+    goBack: PropTypes.func.isRequired,
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      orderId: PropTypes.string,
+    }),
+  }),
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    padding: 24,
-    backgroundColor: COLORS.primary,
-    alignItems: 'center',
+  mapImage: {
+    ...StyleSheet.absoluteFillObject,
   },
-  statusBadge: {
+  mapOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+  topBar: {
+    position: 'absolute',
+    top: 20,
+    left: 16,
+    right: 16,
+    zIndex: 10,
     flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: COLORS.white + '20',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
+  },
+  iconButton: {
+    width: 40,
+    height: 40,
     borderRadius: 20,
-    marginBottom: 8,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.white,
+  topTitlePill: {
+    flex: 1,
+    marginHorizontal: 12,
+    backgroundColor: COLORS.white,
+    paddingVertical: 6,
+    borderRadius: 20,
+    alignItems: 'center',
   },
-  statusSubtext: {
-    fontSize: 14,
-    color: COLORS.white + 'CC',
-  },
-  driverSection: {
-    padding: 16,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
+  topTitle: {
+    fontSize: 12,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 16,
+  },
+  bottomSheet: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    padding: 20,
+    gap: 12,
+  },
+  handle: {
+    width: 48,
+    height: 5,
+    borderRadius: 3,
+    backgroundColor: COLORS.border,
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+  sheetTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  sheetSubtitle: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  statsRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  statCardPrimary: {
+    flex: 1,
+    backgroundColor: COLORS.primary + '15',
+    borderRadius: 16,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+  },
+  statLabel: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.text,
+    textTransform: 'uppercase',
+  },
+  statValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+  statCard: {
+    flex: 1,
+    backgroundColor: COLORS.background,
+    borderRadius: 16,
+    padding: 12,
+  },
+  statLabelMuted: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+  },
+  statValueMuted: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.text,
   },
   driverCard: {
     flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    gap: 16,
+    alignItems: 'center',
+    gap: 12,
   },
   driverAvatar: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 16,
     backgroundColor: COLORS.background,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   avatarImage: {
     width: 64,
     height: 64,
-    borderRadius: 32,
+    borderRadius: 16,
   },
   driverInfo: {
     flex: 1,
   },
+  driverRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   driverName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 8,
   },
-  driverMeta: {
+  ratingBadge: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
-    marginBottom: 4,
+    backgroundColor: COLORS.warning + '15',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 10,
   },
-  driverRating: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginLeft: 4,
-  },
-  separator: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginHorizontal: 8,
+  ratingText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.warning,
   },
   driverVehicle: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  driverPlate: {
     fontSize: 12,
-    color: COLORS.textLight,
+    color: COLORS.textSecondary,
   },
   actionsContainer: {
-    flexDirection: 'row',
-    gap: 12,
+    gap: 10,
   },
-  actionButton: {
-    flex: 1,
-    flexDirection: 'row',
+  primaryAction: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    paddingVertical: 14,
     alignItems: 'center',
+    flexDirection: 'row',
     justifyContent: 'center',
     gap: 8,
-    backgroundColor: COLORS.white,
-    borderWidth: 2,
-    borderColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
   },
-  actionButtonPrimary: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
-  },
-  actionButtonText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  actionButtonTextPrimary: {
+  primaryActionText: {
     color: COLORS.white,
-  },
-  timelineSection: {
-    padding: 16,
-    marginTop: 8,
-  },
-  timeline: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-  },
-  timelineItem: {
-    flexDirection: 'row',
-    marginBottom: 20,
-  },
-  timelineDot: {
-    width: 16,
-    height: 16,
-    borderRadius: 8,
-    backgroundColor: COLORS.border,
-    marginRight: 16,
-    marginTop: 2,
-  },
-  timelineDotActive: {
-    backgroundColor: COLORS.primary,
-    borderWidth: 3,
-    borderColor: COLORS.primary + '40',
-  },
-  timelineContent: {
-    flex: 1,
-  },
-  timelineTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  timelineTitlePending: {
-    color: COLORS.textSecondary,
-  },
-  timelineTime: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  orderInfoSection: {
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  infoCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-  },
-  infoRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  infoText: {
     fontSize: 14,
+    fontWeight: '700',
+  },
+  secondaryAction: {
+    backgroundColor: COLORS.background,
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  secondaryActionText: {
     color: COLORS.text,
+    fontSize: 13,
+    fontWeight: '700',
   },
 });

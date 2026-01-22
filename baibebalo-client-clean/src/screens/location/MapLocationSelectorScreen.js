@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   View,
   Text,
@@ -8,10 +9,12 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import * as Location from 'expo-location';
 
 export default function MapLocationSelectorScreen({ navigation, route }) {
   const { onSelectLocation } = route.params || {};
   const [selectedLocation, setSelectedLocation] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   const handleSelectLocation = () => {
     if (selectedLocation) {
@@ -21,6 +24,39 @@ export default function MapLocationSelectorScreen({ navigation, route }) {
       navigation.goBack();
     } else {
       Alert.alert('Erreur', 'Veuillez sélectionner un emplacement sur la carte');
+    }
+  };
+
+  const handlePickCurrentLocation = async () => {
+    try {
+      setLoading(true);
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission requise', 'Nous avons besoin de votre localisation.');
+        return;
+      }
+
+      const current = await Location.getCurrentPositionAsync({});
+      const [address] = await Location.reverseGeocodeAsync({
+        latitude: current.coords.latitude,
+        longitude: current.coords.longitude,
+      });
+
+      const label = [address?.street, address?.streetNumber].filter(Boolean).join(' ');
+      const city = address?.city || address?.subAdministrativeArea || '';
+      const fullAddress = [label, city].filter(Boolean).join(', ') || 'Position actuelle';
+
+      setSelectedLocation({
+        lat: current.coords.latitude,
+        lng: current.coords.longitude,
+        address: fullAddress,
+      });
+      Alert.alert('Emplacement sélectionné', fullAddress);
+    } catch (error) {
+      console.error('Erreur localisation:', error);
+      Alert.alert('Erreur', 'Impossible d\'obtenir votre localisation.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -48,18 +84,11 @@ export default function MapLocationSelectorScreen({ navigation, route }) {
           </Text>
           <TouchableOpacity
             style={styles.selectButton}
-            onPress={() => {
-              // TODO: Implémenter la sélection sur la carte
-              setSelectedLocation({
-                lat: 5.3364,
-                lng: -4.0267,
-                address: 'Cocody Angré, Abidjan',
-              });
-              Alert.alert('Emplacement sélectionné', 'Cocody Angré, Abidjan');
-            }}
+            onPress={handlePickCurrentLocation}
+            disabled={loading}
           >
             <Text style={styles.selectButtonText}>
-              Sélectionner cet emplacement
+              {loading ? 'Localisation...' : 'Utiliser ma position actuelle'}
             </Text>
           </TouchableOpacity>
         </View>
@@ -99,6 +128,17 @@ export default function MapLocationSelectorScreen({ navigation, route }) {
     </View>
   );
 }
+
+MapLocationSelectorScreen.propTypes = {
+  navigation: PropTypes.shape({
+    goBack: PropTypes.func.isRequired,
+  }).isRequired,
+  route: PropTypes.shape({
+    params: PropTypes.shape({
+      onSelectLocation: PropTypes.func,
+    }),
+  }),
+};
 
 const styles = StyleSheet.create({
   container: {

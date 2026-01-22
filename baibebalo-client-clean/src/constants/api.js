@@ -3,7 +3,7 @@ export const API_CONFIG = {
   // URL de base de l'API
   // Pour téléphone physique, utilisez l'IP de votre machine au lieu de localhost
   // Trouvez votre IP avec: ipconfig (Windows) ou ifconfig (Mac/Linux)
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.12:5000/api/v1',
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.6:5000/api/v1',
   
   // Timeout des requêtes
   TIMEOUT: 30000,
@@ -21,6 +21,7 @@ export const API_CONFIG = {
     USERS: {
       ME: '/users/me',
       UPDATE_ME: '/users/me',
+      PROFILE_PICTURE: '/users/me/profile-picture',
       ADDRESSES: '/users/me/addresses',
       ORDERS: '/users/me/orders',
       FAVORITES: '/users/me/favorites',
@@ -32,6 +33,7 @@ export const API_CONFIG = {
       SUPPORT_TICKET: (id) => `/users/me/support/tickets/${id}`,
       SUPPORT_TICKET_MESSAGES: (id) => `/users/me/support/tickets/${id}/messages`,
       SUPPORT_TICKET_CLOSE: (id) => `/users/me/support/tickets/${id}/close`,
+      NOTIFICATION_PREFERENCES: '/users/me/notification-preferences',
       EXPORT_DATA: '/users/me/export',
       DELETE_ACCOUNT: '/users/me',
     },
@@ -55,5 +57,8 @@ export const API_CONFIG = {
       PAYMENT_INITIATE: (id) => `/orders/${id}/payment/initiate`,
       PAYMENT_STATUS: (id) => `/orders/${id}/payment/status`,
     },
+
+    // Recherche
+    SEARCH: '/search',
   },
 };

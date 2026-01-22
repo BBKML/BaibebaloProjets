@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../constants/api';
+import { getAuthStore } from '../store/authStoreRef';
 
 // Créer l'instance Axios
 const apiClient = axios.create({
@@ -10,6 +11,16 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+const safeLogout = async () => {
+  const store = getAuthStore?.();
+  const logout = store?.getState?.()?.logout;
+  if (typeof logout === 'function') {
+    await logout();
+    return;
+  }
+  await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+};
 
 // Intercepteur pour ajouter le token
 apiClient.interceptors.request.use(
@@ -55,7 +66,7 @@ apiClient.interceptors.response.use(
       if (errorMessage.includes('utilisateur inexistant') || errorMessage.includes('user not found')) {
         console.warn('⚠️ Utilisateur inexistant - Déconnexion automatique');
         // Utilisateur supprimé ou inexistant - déconnexion complète
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+        await safeLogout();
         // Ne pas essayer de rafraîchir le token
         return Promise.reject(error);
       }
@@ -77,7 +88,7 @@ apiClient.interceptors.response.use(
       } catch (refreshError) {
         // Refresh token invalide - déconnexion
         console.warn('⚠️ Refresh token invalide - Déconnexion automatique');
-        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'user']);
+        await safeLogout();
         // Rediriger vers l'écran de connexion
         return Promise.reject(refreshError);
       }

@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import PropTypes from 'prop-types';
 import {
   View,
   Text,
@@ -9,6 +10,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { getNotificationPreferences, updateNotificationPreferences } from '../../api/users';
 
 export default function NotificationPreferencesScreen({ navigation }) {
   const [preferences, setPreferences] = useState({
@@ -21,6 +23,26 @@ export default function NotificationPreferencesScreen({ navigation }) {
     sound: true,
     vibration: true,
   });
+  const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadPreferences = async () => {
+      try {
+        const response = await getNotificationPreferences();
+        const prefs = response.data?.preferences || response.data?.data?.preferences;
+        if (prefs) {
+          setPreferences((prev) => ({ ...prev, ...prefs }));
+        }
+      } catch (error) {
+        console.error('Erreur chargement préférences:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadPreferences();
+  }, []);
 
   const notificationCategories = [
     {
@@ -95,6 +117,20 @@ export default function NotificationPreferencesScreen({ navigation }) {
     });
   };
 
+  const handleSavePreferences = async () => {
+    try {
+      setSaving(true);
+      await updateNotificationPreferences(preferences);
+      navigation.navigate('SettingsUpdateSuccess', {
+        message: 'Vos préférences de notifications ont été mises à jour.',
+      });
+    } catch (error) {
+      console.error('Erreur sauvegarde préférences:', error);
+    } finally {
+      setSaving(false);
+    }
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View style={styles.header}>
@@ -104,11 +140,11 @@ export default function NotificationPreferencesScreen({ navigation }) {
         </Text>
       </View>
 
-      {notificationCategories.map((category, categoryIndex) => (
-        <View key={categoryIndex} style={styles.category}>
+      {notificationCategories.map((category) => (
+        <View key={category.title} style={styles.category}>
           <Text style={styles.categoryTitle}>{category.title}</Text>
-          {category.items.map((item, itemIndex) => (
-            <View key={itemIndex} style={styles.preferenceItem}>
+          {category.items.map((item) => (
+            <View key={item.key} style={styles.preferenceItem}>
               <View style={styles.preferenceIcon}>
                 <Ionicons name={item.icon} size={24} color={COLORS.primary} />
               </View>
@@ -130,19 +166,23 @@ export default function NotificationPreferencesScreen({ navigation }) {
       <View style={styles.footer}>
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={() => {
-            // TODO: Sauvegarder les préférences via API
-            navigation.navigate('SettingsUpdateSuccess', {
-              message: 'Vos préférences de notifications ont été mises à jour.',
-            });
-          }}
+          onPress={handleSavePreferences}
+          disabled={saving || loading}
         >
-          <Text style={styles.saveButtonText}>Enregistrer les préférences</Text>
+          <Text style={styles.saveButtonText}>
+            {saving ? 'Enregistrement...' : 'Enregistrer les préférences'}
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>
   );
 }
+
+NotificationPreferencesScreen.propTypes = {
+  navigation: PropTypes.shape({
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {

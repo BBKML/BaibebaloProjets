@@ -259,6 +259,21 @@ const registerValidators = [
 const verifyOtpValidators = [
   phoneValidator,
   otpValidator,
+  // first_name et last_name sont optionnels lors de la vérification OTP
+  body('first_name')
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Le prénom doit contenir entre 2 et 100 caractères')
+    .matches(/^[a-zA-ZÀ-ÿ\s'-]+$/)
+    .withMessage('Le prénom contient des caractères invalides'),
+  body('last_name')
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ min: 2, max: 100 })
+    .withMessage('Le nom doit contenir entre 2 et 100 caractères')
+    .matches(/^[a-zA-ZÀ-ÿ\s'-]+$/)
+    .withMessage('Le nom contient des caractères invalides'),
   validate,
 ];
 
@@ -302,6 +317,12 @@ const createAddressValidators = [
  * Validators pour la création de commande
  */
 const createOrderValidators = [
+  body().custom((value, { req }) => {
+    if (req.body?.delivery_address_id || req.body?.delivery_address) {
+      return true;
+    }
+    throw new Error('Adresse de livraison requise');
+  }),
   body('restaurant_id')
     .isUUID()
     .withMessage('ID restaurant invalide')
@@ -345,8 +366,23 @@ const createOrderValidators = [
     .isLength({ max: 200 })
     .withMessage('Note spéciale trop longue (max 200 caractères)'),
   body('delivery_address_id')
+    .optional()
     .isUUID()
     .withMessage('ID adresse invalide'),
+  body('delivery_address')
+    .optional()
+    .isObject()
+    .withMessage('Adresse de livraison invalide'),
+  body('delivery_address.latitude')
+    .optional()
+    .isFloat({ min: -90, max: 90 })
+    .withMessage('Latitude invalide')
+    .toFloat(),
+  body('delivery_address.longitude')
+    .optional()
+    .isFloat({ min: -180, max: 180 })
+    .withMessage('Longitude invalide')
+    .toFloat(),
   body('payment_method')
     .isIn(['cash', 'orange_money', 'mtn_money', 'moov_money', 'waves'])
     .withMessage('Mode de paiement invalide'),

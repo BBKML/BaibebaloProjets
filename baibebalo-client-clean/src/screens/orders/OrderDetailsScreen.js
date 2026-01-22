@@ -28,7 +28,8 @@ export default function OrderDetailsScreen({ route, navigation }) {
     try {
       setLoading(true);
       const response = await getOrderDetail(orderId);
-      setOrder(response.data);
+      const orderData = response.data?.order || response.data?.data?.order || response.data;
+      setOrder(orderData);
     } catch (error) {
       console.error('Erreur lors du chargement:', error);
       Alert.alert('Erreur', 'Impossible de charger les détails de la commande');
@@ -37,12 +38,25 @@ export default function OrderDetailsScreen({ route, navigation }) {
     }
   };
 
-  const handleReview = () => {
-    navigation.navigate('OrderReview', { orderId: order.id });
+  const handleReorder = () => {
+    const restaurantId = order.restaurant?.id;
+    if (restaurantId) {
+      navigation.navigate('RestaurantDetail', { restaurantId });
+      return;
+    }
+    Alert.alert('Commande', 'Impossible de relancer cette commande.');
   };
 
-  const handleViewReceipt = () => {
-    navigation.navigate('OrderReceipt', { orderId: order.id });
+  const handleSupport = () => {
+    navigation.navigate('ContactSupport');
+  };
+
+  const paymentLabel = () => {
+    const method = order.payment_method || order.payment?.method;
+    if (method === 'orange_money') return 'Orange Money';
+    if (method === 'mtn_money') return 'MTN Mobile Money';
+    if (method === 'cash') return 'Espèces';
+    return 'Mobile Money';
   };
 
   if (loading || !order) {
@@ -54,7 +68,15 @@ export default function OrderDetailsScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Détails de la commande</Text>
+      </View>
+
+      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
       {/* Status Card */}
       <View style={styles.statusCard}>
         <View style={styles.statusHeader}>
@@ -94,13 +116,19 @@ export default function OrderDetailsScreen({ route, navigation }) {
           </View>
           <View style={styles.addressInfo}>
             <Text style={styles.addressLabel}>
-              {order.delivery_address?.label || 'Adresse'}
+              {order.delivery_address?.label
+                || order.delivery_address?.title
+                || 'Adresse'}
             </Text>
             <Text style={styles.addressText}>
-              {order.delivery_address?.street}
+              {order.delivery_address?.street
+                || order.delivery_address?.address_line
+                || ''}
             </Text>
             <Text style={styles.addressText}>
-              {order.delivery_address?.city}
+              {order.delivery_address?.city
+                || order.delivery_address?.district
+                || ''}
             </Text>
           </View>
         </View>
@@ -114,8 +142,11 @@ export default function OrderDetailsScreen({ route, navigation }) {
             {order.items?.length || 0} Articles
           </Text>
         </View>
-        {order.items?.map((item, index) => (
-          <View key={index} style={styles.itemCard}>
+        {order.items?.map((item) => (
+          <View
+            key={item.id || item.menu_item?.id || `${item.name}-${item.price}`}
+            style={styles.itemCard}
+          >
             {item.menu_item?.image_url && (
               <Image
                 source={{ uri: item.menu_item.image_url }}
@@ -138,56 +169,56 @@ export default function OrderDetailsScreen({ route, navigation }) {
       {/* Order Summary */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Résumé</Text>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Sous-total</Text>
-          <Text style={styles.summaryValue}>
-            {formatCurrency(order.subtotal || 0)}
-          </Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Frais de livraison</Text>
-          <Text style={styles.summaryValue}>
-            {formatCurrency(order.delivery_fee || 0)}
-          </Text>
-        </View>
-        <View style={styles.summaryRow}>
-          <Text style={styles.summaryLabel}>Total</Text>
-          <Text style={[styles.summaryValue, styles.totalValue]}>
-            {formatCurrency(order.total_amount || 0)}
-          </Text>
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Sous-total</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(order.subtotal || 0)}
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Frais de livraison</Text>
+            <Text style={styles.summaryValue}>
+              {(order.delivery_fee || 0) === 0
+                ? 'Gratuit'
+                : formatCurrency(order.delivery_fee || 0)}
+            </Text>
+          </View>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Taxes</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(order.taxes || 0)}
+            </Text>
+          </View>
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalValue}>
+              {formatCurrency(order.total_amount || 0)}
+            </Text>
+          </View>
+          <View style={styles.paymentRow}>
+            <View style={styles.paymentInfo}>
+              <Ionicons name="wallet-outline" size={18} color={COLORS.warning} />
+              <Text style={styles.paymentLabel}>{paymentLabel()}</Text>
+            </View>
+            <Text style={styles.paymentStatus}>Payé</Text>
+          </View>
         </View>
       </View>
 
-      {/* Action Buttons */}
-      <View style={styles.section}>
-        {order.status !== 'delivered' && order.status !== 'cancelled' && (
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('OrderTracking', { orderId: order.id })}
-          >
-            <Ionicons name="location-outline" size={20} color={COLORS.white} />
-            <Text style={styles.actionButtonText}>Suivre la commande</Text>
-          </TouchableOpacity>
-        )}
-
-        {/* Receipt Button */}
-        <TouchableOpacity
-          style={styles.receiptButton}
-          onPress={handleViewReceipt}
-        >
-          <Ionicons name="receipt-outline" size={20} color={COLORS.primary} />
-          <Text style={styles.receiptButtonText}>Voir le reçu</Text>
+      {/* Actions */}
+      <View style={styles.actions}>
+        <TouchableOpacity style={styles.primaryButton} onPress={handleReorder}>
+          <Ionicons name="refresh" size={18} color={COLORS.white} />
+          <Text style={styles.primaryButtonText}>Commander à nouveau</Text>
         </TouchableOpacity>
-
-        {/* Review Button (if delivered) */}
-        {order.status === 'delivered' && !order.reviewed && (
-          <TouchableOpacity style={styles.reviewButton} onPress={handleReview}>
-            <Ionicons name="star-outline" size={20} color={COLORS.white} />
-            <Text style={styles.reviewButtonText}>Évaluer cette commande</Text>
-          </TouchableOpacity>
-        )}
+        <TouchableOpacity style={styles.secondaryButton} onPress={handleSupport}>
+          <Ionicons name="chatbubble-ellipses-outline" size={18} color={COLORS.textSecondary} />
+          <Text style={styles.secondaryButtonText}>Contacter le support</Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
+    </View>
   );
 }
 
@@ -195,6 +226,39 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.background,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
+  },
+  headerTitle: {
+    flex: 1,
+    marginLeft: 12,
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingBottom: 140,
   },
   statusCard: {
     backgroundColor: COLORS.white,
@@ -339,11 +403,17 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.text,
   },
+  summaryCard: {
+    backgroundColor: COLORS.white,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
-    paddingVertical: 8,
   },
   summaryLabel: {
     fontSize: 14,
@@ -354,55 +424,85 @@ const styles = StyleSheet.create({
     fontWeight: '500',
     color: COLORS.text,
   },
+  totalRow: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingTop: 12,
+    marginTop: 4,
+  },
+  totalLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
   totalValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.text,
   },
-  actionButton: {
-    backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
+  paymentRow: {
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    marginBottom: 12,
+    justifyContent: 'space-between',
   },
-  actionButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
+  paymentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  paymentLabel: {
+    fontSize: 13,
+    color: COLORS.text,
     fontWeight: '600',
   },
-  receiptButton: {
+  paymentStatus: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  actions: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 16,
+    paddingBottom: 24,
     backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.primary,
-    padding: 16,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    gap: 12,
+  },
+  primaryButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
     borderRadius: 12,
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    marginBottom: 12,
-  },
-  receiptButtonText: {
-    color: COLORS.primary,
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  reviewButton: {
-    backgroundColor: COLORS.accent,
-    padding: 16,
-    borderRadius: 12,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
     gap: 8,
   },
-  reviewButtonText: {
+  primaryButtonText: {
     color: COLORS.white,
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    backgroundColor: 'transparent',
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    gap: 8,
+  },
+  secondaryButtonText: {
+    color: COLORS.textSecondary,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

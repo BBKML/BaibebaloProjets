@@ -7,17 +7,26 @@ const useCartStore = create((set, get) => ({
   restaurantName: null,
 
   // Actions
-  addItem: (item, restaurantId, restaurantName) => {
+  addItem: (item, restaurantId, restaurantName, options = {}) => {
     const { items, restaurantId: currentRestaurantId } = get();
     
     // Si on ajoute un item d'un autre restaurant, vider le panier
-    if (currentRestaurantId && currentRestaurantId !== restaurantId) {
+    if (currentRestaurantId && currentRestaurantId !== restaurantId && !options.force) {
+      return {
+        requiresConfirm: true,
+        currentRestaurantId,
+        currentRestaurantName: get().restaurantName,
+        nextRestaurantId: restaurantId,
+        nextRestaurantName: restaurantName,
+      };
+    }
+    if (currentRestaurantId && currentRestaurantId !== restaurantId && options.force) {
       set({
         items: [{ ...item, quantity: 1 }],
         restaurantId,
         restaurantName,
       });
-      return;
+      return { replaced: true };
     }
 
     // Vérifier si l'item existe déjà
@@ -30,6 +39,7 @@ const useCartStore = create((set, get) => ({
       const newItems = [...items];
       newItems[existingItemIndex].quantity += 1;
       set({ items: newItems, restaurantId, restaurantName });
+      return { updated: true };
     } else {
       // Ajouter un nouvel item
       set({
@@ -37,6 +47,7 @@ const useCartStore = create((set, get) => ({
         restaurantId,
         restaurantName,
       });
+      return { added: true };
     }
   },
 

@@ -96,16 +96,31 @@ export default function FavoritesScreen({ navigation }) {
     return (
       <View style={styles.container}>
         <View style={styles.emptyState}>
-          <Ionicons name="heart-outline" size={80} color={COLORS.textLight} />
-          <Text style={styles.emptyTitle}>Aucun favori</Text>
+          <View style={styles.emptyGlow} />
+          <View style={styles.emptyCard}>
+            <Ionicons name="heart" size={64} color={COLORS.primary} />
+            <View style={styles.emptyIconsRow}>
+              <Ionicons name="restaurant" size={18} color={COLORS.primary} />
+              <Ionicons name="pizza-outline" size={18} color={COLORS.primary + '99'} />
+              <Ionicons name="fast-food-outline" size={18} color={COLORS.primary + '66'} />
+            </View>
+          </View>
+          <Text style={styles.emptyTitle}>Aucun favori pour le moment</Text>
           <Text style={styles.emptySubtitle}>
-            Ajoutez des restaurants à vos favoris pour les retrouver facilement
+            Ajoutez vos restaurants et plats préférés pour les retrouver ici facilement lors de votre prochaine commande.
           </Text>
           <TouchableOpacity
             style={styles.exploreButton}
-            onPress={() => navigation.navigate('Home')}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
           >
-            <Text style={styles.exploreButtonText}>Explorer les restaurants</Text>
+            <Ionicons name="compass" size={18} color={COLORS.white} />
+            <Text style={styles.exploreButtonText}>Découvrir les restaurants</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.secondaryButton}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+          >
+            <Text style={styles.secondaryButtonText}>Voir les promotions</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -198,30 +213,77 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 32,
   },
+  emptyGlow: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    backgroundColor: COLORS.primary + '14',
+  },
+  emptyCard: {
+    width: 180,
+    height: 180,
+    borderRadius: 24,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
+    gap: 12,
+  },
+  emptyIconsRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
   emptyTitle: {
     fontSize: 24,
     fontWeight: '700',
     color: COLORS.text,
-    marginTop: 24,
-    marginBottom: 8,
+    marginBottom: 12,
+    textAlign: 'center',
   },
   emptySubtitle: {
     fontSize: 16,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: 32,
+    marginBottom: 24,
     lineHeight: 24,
   },
   exploreButton: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
+    paddingVertical: 14,
+    paddingHorizontal: 24,
     borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 10,
+    elevation: 3,
   },
   exploreButtonText: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '700',
+  },
+  secondaryButton: {
+    marginTop: 12,
+    paddingVertical: 10,
+  },
+  secondaryButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
   },
   loadingText: {
     fontSize: 16,

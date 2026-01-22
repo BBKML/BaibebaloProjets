@@ -24,6 +24,29 @@ try {
 }
 
 class NotificationService {
+  getUserTable(userType) {
+    switch (userType) {
+      case 'client':
+      case 'user':
+        return 'users';
+      case 'restaurant':
+        return 'restaurants';
+      case 'delivery':
+      case 'delivery_person':
+        return 'delivery_persons';
+      case 'admin':
+        return 'admins';
+      default:
+        throw new Error('Type d\'utilisateur invalide');
+    }
+  }
+
+  normalizeNotificationUserType(userType) {
+    if (userType === 'client' || userType === 'user') return 'user';
+    if (userType === 'delivery_person' || userType === 'delivery') return 'delivery';
+    return userType;
+  }
+
   /**
    * Envoyer une notification push à un utilisateur
    */
@@ -35,20 +58,8 @@ class NotificationService {
       }
 
       // Récupérer le FCM token de l'utilisateur
-      let table;
-      switch (userType) {
-        case 'client':
-          table = 'users';
-          break;
-        case 'restaurant':
-          table = 'restaurants';
-          break;
-        case 'delivery':
-          table = 'delivery_persons';
-          break;
-        default:
-          throw new Error('Type d\'utilisateur invalide');
-      }
+      const table = this.getUserTable(userType);
+      const notificationUserType = this.normalizeNotificationUserType(userType);
 
       const result = await query(
         `SELECT fcm_token FROM ${table} WHERE id = $1`,
@@ -62,12 +73,14 @@ class NotificationService {
 
       const fcmToken = result.rows[0].fcm_token;
 
+      const messageBody = notification.body || notification.message || '';
+
       // Construire le message
       const message = {
         token: fcmToken,
         notification: {
           title: notification.title,
-          body: notification.body,
+          body: messageBody,
         },
         data: notification.data || {},
         android: {
@@ -95,17 +108,16 @@ class NotificationService {
       // Enregistrer dans la base de données
       await query(
         `INSERT INTO notifications (
-          user_id, user_type, type, title, body, data, sent, sent_at
+          user_id, user_type, type, title, message, data, is_read, sent_via
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+        VALUES ($1, $2, $3, $4, $5, $6, false, 'push')`,
         [
           userId,
-          userType,
+          notificationUserType,
           notification.type || 'general',
           notification.title,
-          notification.body,
+          messageBody,
           JSON.stringify(notification.data || {}),
-          true,
         ]
       );
 
@@ -120,17 +132,16 @@ class NotificationService {
       try {
         await query(
           `INSERT INTO notifications (
-            user_id, user_type, type, title, body, data, sent
+            user_id, user_type, type, title, message, data, is_read, sent_via
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+          VALUES ($1, $2, $3, $4, $5, $6, false, 'push')`,
           [
             userId,
-            userType,
+            this.normalizeNotificationUserType(userType),
             notification.type || 'general',
             notification.title,
-            notification.body,
+            messageBody,
             JSON.stringify(notification.data || {}),
-            false,
           ]
         );
       } catch (dbError) {
@@ -408,20 +419,7 @@ class NotificationService {
    */
   async saveFCMToken(userId, userType, fcmToken) {
     try {
-      let table;
-      switch (userType) {
-        case 'client':
-          table = 'users';
-          break;
-        case 'restaurant':
-          table = 'restaurants';
-          break;
-        case 'delivery':
-          table = 'delivery_persons';
-          break;
-        default:
-          throw new Error('Type d\'utilisateur invalide');
-      }
+      const table = this.getUserTable(userType);
 
       await query(
         `UPDATE ${table} SET fcm_token = $1 WHERE id = $2`,
@@ -443,7 +441,7 @@ class NotificationService {
   async markAsRead(notificationId, userId) {
     try {
       await query(
-        'UPDATE notifications SET read = true WHERE id = $1 AND user_id = $2',
+        'UPDATE notifications SET is_read = true, read_at = NOW() WHERE id = $1 AND user_id = $2',
         [notificationId, userId]
       );
 
@@ -475,7 +473,7 @@ class NotificationService {
       );
 
       const unreadResult = await query(
-        'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND user_type = $2 AND read = false',
+        'SELECT COUNT(*) FROM notifications WHERE user_id = $1 AND user_type = $2 AND is_read = false',
         [userId, userType]
       );
 

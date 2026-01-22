@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
+import { deleteUserAccount } from '../../api/support';
 
 export default function DeleteAccountConfirmationScreen({ navigation }) {
   const { logout } = useAuthStore();
@@ -35,8 +36,7 @@ export default function DeleteAccountConfirmationScreen({ navigation }) {
           onPress: async () => {
             setLoading(true);
             try {
-              // TODO: Implémenter l'appel API pour supprimer le compte
-              await new Promise((resolve) => setTimeout(resolve, 2000));
+              await deleteUserAccount(null, 'DELETE');
               
               await logout();
               

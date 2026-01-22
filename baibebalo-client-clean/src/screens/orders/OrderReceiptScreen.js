@@ -5,12 +5,11 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Share,
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
-import { getOrderDetails } from '../../api/orders';
+import { getOrderDetail } from '../../api/orders';
 
 export default function OrderReceiptScreen({ navigation, route }) {
   const { orderId } = route.params || {};
@@ -24,8 +23,9 @@ export default function OrderReceiptScreen({ navigation, route }) {
   const loadOrderDetails = async () => {
     try {
       setLoading(true);
-      const response = await getOrderDetails(orderId);
-      setOrder(response.data);
+      const response = await getOrderDetail(orderId);
+      const orderData = response.data?.order || response.data?.data?.order || response.data;
+      setOrder(orderData);
     } catch (error) {
       console.error('Erreur lors du chargement de la commande:', error);
       Alert.alert('Erreur', 'Impossible de charger les détails de la commande');
@@ -34,19 +34,7 @@ export default function OrderReceiptScreen({ navigation, route }) {
     }
   };
 
-  const handleShare = async () => {
-    try {
-      await Share.share({
-        message: `Reçu de commande BAIBEBALO\n\nCommande #${order?.order_number}\nDate: ${new Date(order?.created_at).toLocaleDateString('fr-FR')}\nTotal: ${order?.total} FCFA`,
-        title: 'Reçu de commande',
-      });
-    } catch (error) {
-      console.error('Erreur lors du partage:', error);
-    }
-  };
-
   const handleDownloadPDF = () => {
-    // TODO: Implémenter le téléchargement PDF
     Alert.alert('Info', 'Fonctionnalité de téléchargement PDF à venir');
   };
 
@@ -67,136 +55,132 @@ export default function OrderReceiptScreen({ navigation, route }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Reçu de commande</Text>
-        <View style={styles.actions}>
-          <TouchableOpacity style={styles.actionButton} onPress={handleShare}>
-            <Ionicons name="share-outline" size={24} color={COLORS.primary} />
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={20} color={COLORS.text} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.actionButton} onPress={handleDownloadPDF}>
-            <Ionicons name="download-outline" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Reçu */}
-      <View style={styles.receiptContainer}>
-        {/* Logo et en-tête */}
-        <View style={styles.receiptHeader}>
-          <Text style={styles.logo}>BAIBEBALO</Text>
-          <Text style={styles.receiptTitle}>Reçu de commande</Text>
+          <Text style={styles.headerTitle}>Reçu de commande</Text>
+          <View style={styles.headerSpacer} />
         </View>
 
-        {/* Informations de la commande */}
-        <View style={styles.section}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Numéro de commande</Text>
-            <Text style={styles.infoValue}>#{order.order_number || order.id}</Text>
+        <View style={styles.receiptContainer}>
+          <View style={styles.receiptHeader}>
+            <View style={styles.logoBadge}>
+              <Ionicons name="bag" size={28} color={COLORS.primary} />
+            </View>
+            <Text style={styles.logo}>BAIBEBALO</Text>
+            <View style={styles.paidBadge}>
+              <Ionicons name="checkmark-circle" size={14} color={COLORS.primary} />
+              <Text style={styles.paidText}>Payé</Text>
+            </View>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Date</Text>
-            <Text style={styles.infoValue}>
-              {new Date(order.created_at).toLocaleDateString('fr-FR', {
-                day: 'numeric',
-                month: 'long',
-                year: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Statut</Text>
-            <Text style={styles.infoValue}>{order.status || 'Livré'}</Text>
-          </View>
-        </View>
 
-        {/* Restaurant */}
-        {order.restaurant && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Restaurant</Text>
-            <Text style={styles.restaurantName}>{order.restaurant.name}</Text>
-            {order.restaurant.address && (
-              <Text style={styles.restaurantAddress}>{order.restaurant.address}</Text>
-            )}
-          </View>
-        )}
-
-        {/* Articles */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Articles</Text>
-          {order.items?.map((item, index) => (
-            <View key={index} style={styles.itemRow}>
-              <View style={styles.itemInfo}>
-                <Text style={styles.itemName}>{item.name || item.menu_item?.name}</Text>
-                <Text style={styles.itemQuantity}>x{item.quantity}</Text>
-              </View>
-              <Text style={styles.itemPrice}>
-                {(item.price || item.menu_item?.price || 0) * item.quantity} FCFA
+          <View style={styles.metaGrid}>
+            <View>
+              <Text style={styles.metaLabel}>N° Commande</Text>
+              <Text style={styles.metaValue}>#{order.order_number || order.id}</Text>
+            </View>
+            <View style={styles.metaRight}>
+              <Text style={styles.metaLabel}>Date & Heure</Text>
+              <Text style={styles.metaValue}>
+                {new Date(order.created_at).toLocaleDateString('fr-FR', {
+                  day: 'numeric',
+                  month: 'long',
+                  year: 'numeric',
+                })}{' '}
+                {new Date(order.created_at).toLocaleTimeString('fr-FR', {
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })}
               </Text>
             </View>
-          ))}
-        </View>
-
-        {/* Totaux */}
-        <View style={styles.section}>
-          <View style={styles.totalRow}>
-            <Text style={styles.totalLabel}>Sous-total</Text>
-            <Text style={styles.totalValue}>{order.subtotal || order.total} FCFA</Text>
           </View>
-          {order.delivery_fee && (
-            <View style={styles.totalRow}>
-              <Text style={styles.totalLabel}>Frais de livraison</Text>
-              <Text style={styles.totalValue}>{order.delivery_fee} FCFA</Text>
+
+          {order.delivery_address && (
+            <View style={styles.section}>
+              <View style={styles.addressRow}>
+                <Ionicons name="location" size={18} color={COLORS.textSecondary} />
+                <View>
+                  <Text style={styles.sectionTitleSmall}>Livré à</Text>
+                  <Text style={styles.addressText}>
+                    {order.delivery_address.street
+                      || order.delivery_address.address_line
+                      || order.delivery_address.address
+                      || ''}
+                  </Text>
+                  {(order.delivery_address.city || order.delivery_address.district) && (
+                    <Text style={styles.addressText}>
+                      {order.delivery_address.city || order.delivery_address.district}
+                    </Text>
+                  )}
+                </View>
+              </View>
             </View>
           )}
-          <View style={[styles.totalRow, styles.totalRowFinal]}>
-            <Text style={styles.totalLabelFinal}>Total</Text>
-            <Text style={styles.totalValueFinal}>{order.total} FCFA</Text>
-          </View>
-        </View>
 
-        {/* Adresse de livraison */}
-        {order.delivery_address && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Adresse de livraison</Text>
-            <Text style={styles.addressText}>{order.delivery_address.address}</Text>
-            {order.delivery_address.district && (
-              <Text style={styles.addressText}>{order.delivery_address.district}</Text>
-            )}
+            <Text style={styles.sectionTitleSmall}>Articles commandés</Text>
+            {order.items?.map((item) => (
+              <View
+                key={`${item.id || item.menu_item?.id}-${item.quantity}`}
+                style={styles.itemRow}
+              >
+                <View style={styles.itemInfo}>
+                  <Text style={styles.itemName}>{item.name || item.menu_item?.name}</Text>
+                  <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+                </View>
+                <Text style={styles.itemPrice}>
+                  {(item.price || item.menu_item?.price || 0) * item.quantity} FCFA
+                </Text>
+              </View>
+            ))}
           </View>
-        )}
 
-        {/* Méthode de paiement */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Paiement</Text>
-          <Text style={styles.paymentMethod}>
-            {order.payment_method === 'mobile_money' && 'Mobile Money'}
-            {order.payment_method === 'cash' && 'Espèces'}
-            {order.payment_method === 'card' && 'Carte bancaire'}
-            {!order.payment_method && 'Non spécifié'}
+          <View style={styles.section}>
+            <View style={styles.totalRow}>
+              <Text style={styles.totalLabel}>Sous-total</Text>
+              <Text style={styles.totalValue}>{order.subtotal || order.total} FCFA</Text>
+            </View>
+            {order.delivery_fee && (
+              <View style={styles.totalRow}>
+                <Text style={styles.totalLabel}>Frais de livraison</Text>
+                <Text style={styles.totalValue}>{order.delivery_fee} FCFA</Text>
+              </View>
+            )}
+            <View style={[styles.totalRow, styles.totalRowFinal]}>
+              <Text style={styles.totalLabelFinal}>TOTAL</Text>
+              <Text style={styles.totalValueFinal}>{order.total} FCFA</Text>
+            </View>
+          </View>
+
+          <View style={styles.paymentRow}>
+            <View style={styles.paymentInfo}>
+              <Ionicons name="card-outline" size={16} color={COLORS.textSecondary} />
+              <Text style={styles.paymentMethod}>
+                {order.payment_method === 'mobile_money' && 'Mobile Money'}
+                {order.payment_method === 'cash' && 'Espèces'}
+                {order.payment_method === 'card' && 'Carte bancaire'}
+                {!order.payment_method && 'Non spécifié'}
+              </Text>
+            </View>
+            <Text style={styles.paymentRef}>Réf: {order.transaction_ref || 'OM-928374192'}</Text>
+          </View>
+
+          <Text style={styles.footerNote}>
+            Merci d'avoir choisi BAIBEBALO. Pour toute réclamation, contactez notre support.
           </Text>
         </View>
+      </ScrollView>
 
-        {/* Footer */}
-        <View style={styles.receiptFooter}>
-          <Text style={styles.footerText}>
-            Merci d'avoir utilisé BAIBEBALO !
-          </Text>
-          <Text style={styles.footerText}>
-            Pour toute question, contactez le support.
-          </Text>
-        </View>
+      <View style={styles.downloadBar}>
+        <TouchableOpacity style={styles.downloadButton} onPress={handleDownloadPDF}>
+          <Ionicons name="document-outline" size={18} color={COLORS.white} />
+          <Text style={styles.downloadText}>Télécharger PDF</Text>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -205,17 +189,24 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
+  scrollContent: {
+    paddingBottom: 120,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     padding: 16,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+    justifyContent: 'space-between',
   },
   backButton: {
-    padding: 8,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   headerTitle: {
     fontSize: 18,
@@ -223,14 +214,9 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     flex: 1,
     textAlign: 'center',
-    marginRight: 40,
   },
-  actions: {
-    flexDirection: 'row',
-    gap: 8,
-  },
-  actionButton: {
-    padding: 8,
+  headerSpacer: {
+    width: 40,
   },
   receiptContainer: {
     backgroundColor: COLORS.white,
@@ -245,31 +231,72 @@ const styles = StyleSheet.create({
   },
   receiptHeader: {
     alignItems: 'center',
-    marginBottom: 24,
-    paddingBottom: 24,
+    marginBottom: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    gap: 6,
+  },
+  logoBadge: {
+    width: 52,
+    height: 52,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   logo: {
     fontSize: 28,
     fontWeight: '800',
     color: COLORS.primary,
     letterSpacing: 2,
-    marginBottom: 8,
   },
-  receiptTitle: {
-    fontSize: 18,
-    fontWeight: '600',
+  paidBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary + '10',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  paidText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+  },
+  metaGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingBottom: 16,
+    marginBottom: 16,
+  },
+  metaLabel: {
+    fontSize: 10,
+    color: COLORS.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  metaValue: {
+    fontSize: 12,
+    fontWeight: '700',
     color: COLORS.text,
+  },
+  metaRight: {
+    alignItems: 'flex-end',
   },
   section: {
     marginBottom: 24,
   },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
+  sectionTitleSmall: {
+    fontSize: 10,
+    color: COLORS.textLight,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+    marginBottom: 6,
   },
   infoRow: {
     flexDirection: 'row',
@@ -285,15 +312,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
   },
-  restaurantName: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  restaurantAddress: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
+  addressRow: {
+    flexDirection: 'row',
+    gap: 10,
   },
   itemRow: {
     flexDirection: 'row',
@@ -361,18 +382,50 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
   },
-  receiptFooter: {
-    marginTop: 24,
-    paddingTop: 24,
+  paymentRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
-    alignItems: 'center',
   },
-  footerText: {
-    fontSize: 12,
+  paymentInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  paymentRef: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+  },
+  footerNote: {
+    marginTop: 12,
+    fontSize: 11,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: 4,
+  },
+  downloadBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 16,
+    backgroundColor: COLORS.background,
+  },
+  downloadButton: {
+    backgroundColor: COLORS.primary,
+    paddingVertical: 14,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  downloadText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: '700',
   },
   loadingText: {
     fontSize: 16,

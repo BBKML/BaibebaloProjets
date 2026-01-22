@@ -28,7 +28,10 @@ class AuthService {
       );
 
       if (parseInt(recentOTP.rows[0].count) > 0) {
-        throw new Error('Veuillez attendre 1 minute avant de demander un nouveau code');
+        const error = new Error('Veuillez attendre 1 minute avant de demander un nouveau code');
+        error.statusCode = 429;
+        error.code = 'RATE_LIMIT_EXCEEDED';
+        throw error;
       }
 
       const code = this.generateOTP(6);
@@ -67,11 +70,14 @@ class AuthService {
 
       return code;
     } catch (error) {
-      logger.error('Erreur création OTP', { 
-        phone, 
-        type, 
-        error: error.message 
-      });
+      // Ne pas logger les erreurs de rate limiting (déjà gérées dans le contrôleur)
+      if (error.statusCode !== 429 && error.code !== 'RATE_LIMIT_EXCEEDED') {
+        logger.error('Erreur création OTP', { 
+          phone, 
+          type, 
+          error: error.message 
+        });
+      }
       throw error;
     }
   }
@@ -90,7 +96,10 @@ class AuthService {
       );
 
       if (parseInt(recentOTP.rows[0].count) > 0) {
-        throw new Error('Veuillez attendre 1 minute avant de demander un nouveau code');
+        const error = new Error('Veuillez attendre 1 minute avant de demander un nouveau code');
+        error.statusCode = 429;
+        error.code = 'RATE_LIMIT_EXCEEDED';
+        throw error;
       }
 
       const code = this.generateOTP(6);
@@ -141,11 +150,14 @@ class AuthService {
         ...(config.env === 'development' && { code }), // Exposer en dev uniquement
       };
     } catch (error) {
-      logger.error('Erreur création OTP', { 
-        phone, 
-        type, 
-        error: error.message 
-      });
+      // Ne pas logger les erreurs de rate limiting (déjà gérées dans le contrôleur)
+      if (error.statusCode !== 429 && error.code !== 'RATE_LIMIT_EXCEEDED') {
+        logger.error('Erreur création OTP', { 
+          phone, 
+          type, 
+          error: error.message 
+        });
+      }
       throw error;
     }
   }
@@ -155,93 +167,66 @@ class AuthService {
    */
   async verifyOTP(phone, code) {
     try {
-      const result = await query(
+      const otpResult = await query(
         `SELECT * FROM otp_codes
          WHERE phone = $1 
-         AND code = $2 
          AND is_used = false
          AND expires_at > NOW()
          ORDER BY created_at DESC
          LIMIT 1`,
-        [phone, code]
+        [phone]
       );
 
-      // Code invalide ou expiré
-      if (result.rows.length === 0) {
-        // Incrémenter tentatives pour tous les OTP actifs de ce numéro
-        await query(
-          `UPDATE otp_codes 
-           SET attempts = attempts + 1
-           WHERE phone = $1 
-           AND is_used = false 
-           AND expires_at > NOW()`,
-          [phone]
-        );
+      if (otpResult.rows.length === 0) {
+        return {
+          success: false,
+          error: 'Code invalide ou expiré',
+          attemptsRemaining: 0,
+        };
+      }
 
-        // Vérifier si max tentatives atteint (si la colonne existe)
-        let attemptsCheck;
-        try {
-          attemptsCheck = await query(
-            `SELECT * FROM otp_codes
-             WHERE phone = $1 
-             AND is_used = false 
-             AND expires_at > NOW()
-             AND attempts >= max_attempts`,
-            [phone]
-          );
-        } catch (error) {
-          // Si max_attempts n'existe pas, ignorer cette vérification
-          if (error.message.includes('max_attempts')) {
-            attemptsCheck = { rows: [] };
-          } else {
-            throw error;
-          }
-        }
+      const otpRecord = otpResult.rows[0];
+      const maxAttempts = otpRecord.max_attempts || 3;
+      const attempts = otpRecord.attempts || 0;
 
-        if (attemptsCheck.rows.length > 0) {
-          // Invalider tous les OTP
-          await query(
-            `UPDATE otp_codes 
-             SET is_used = true 
-             WHERE phone = $1 AND is_used = false`,
-            [phone]
-          );
+      if (attempts >= maxAttempts) {
+        await query(`UPDATE otp_codes SET is_used = true WHERE id = $1`, [otpRecord.id]);
+        const error = new Error('Nombre maximum de tentatives atteint. Demandez un nouveau code.');
+        error.statusCode = 429;
+        error.code = 'OTP_MAX_ATTEMPTS';
+        error.attemptsRemaining = 0;
+        throw error;
+      }
 
-          logger.warn('Nombre maximum de tentatives OTP atteint', { phone });
-          throw new Error('Nombre maximum de tentatives atteint. Demandez un nouveau code.');
+      if (otpRecord.code !== code) {
+        const nextAttempts = attempts + 1;
+        await query(`UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1`, [otpRecord.id]);
+
+        const remaining = Math.max(0, maxAttempts - nextAttempts);
+        if (remaining === 0) {
+          await query(`UPDATE otp_codes SET is_used = true WHERE id = $1`, [otpRecord.id]);
+          const error = new Error('Nombre maximum de tentatives atteint. Demandez un nouveau code.');
+          error.statusCode = 429;
+          error.code = 'OTP_MAX_ATTEMPTS';
+          error.attemptsRemaining = 0;
+          throw error;
         }
 
         return {
           success: false,
           error: 'Code invalide ou expiré',
+          attemptsRemaining: remaining,
         };
       }
 
-      const otpRecord = result.rows[0];
-
-      // Vérifier le nombre de tentatives (si max_attempts existe)
-      if (otpRecord.max_attempts && otpRecord.attempts >= otpRecord.max_attempts) {
-        await query(
-          `UPDATE otp_codes SET is_used = true WHERE id = $1`,
-          [otpRecord.id]
-        );
-
-        throw new Error('Nombre maximum de tentatives atteint');
-      }
-
-      // Marquer comme utilisé
-      await query(
-        `UPDATE otp_codes 
-         SET is_used = true 
-         WHERE id = $1`,
-        [otpRecord.id]
-      );
+      await query(`UPDATE otp_codes SET is_used = true WHERE id = $1`, [otpRecord.id]);
 
       logger.info('OTP vérifié avec succès', { phone, type: otpRecord.type });
 
       return {
         success: true,
         otpRecord,
+        attemptsRemaining: Math.max(0, maxAttempts - attempts),
       };
     } catch (error) {
       logger.error('Erreur vérification OTP', { 

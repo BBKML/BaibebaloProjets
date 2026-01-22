@@ -1,113 +1,155 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
+  Alert,
+  Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
 export default function ContactSupportScreen({ navigation }) {
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [message, setMessage] = useState('');
+  const supportPhone = '+22500000000';
+  const supportEmail = 'support@baibebalo.ci';
+  const supportWhatsApp = '+22500000000';
 
   const supportOptions = [
     {
       id: 'chat',
-      icon: 'chatbubble-ellipses-outline',
+      icon: 'chatbubble-ellipses',
       title: 'Chat en direct',
-      description: 'Parlez avec notre équipe en temps réel',
+      description: 'Réponse moyenne : 2 mins',
       color: COLORS.primary,
+      badge: 'Disponible',
     },
     {
-      id: 'email',
-      icon: 'mail-outline',
-      title: 'Email',
-      description: 'support@baibebalo.ci',
-      color: COLORS.info,
+      id: 'whatsapp',
+      icon: 'logo-whatsapp',
+      title: 'WhatsApp Business',
+      description: 'Messagerie instantanée',
+      color: '#25D366',
     },
     {
       id: 'phone',
-      icon: 'call-outline',
-      title: 'Téléphone',
-      description: '+225 XX XX XX XX XX',
-      color: COLORS.success,
+      icon: 'call',
+      title: 'Appeler le support',
+      description: '+225 00 00 00 00',
+      color: COLORS.text,
     },
     {
-      id: 'report',
-      icon: 'alert-circle-outline',
-      title: 'Signaler un problème',
-      description: 'Signalez un problème avec votre commande',
-      color: COLORS.warning,
+      id: 'email',
+      icon: 'mail',
+      title: 'Envoyer un Email',
+      description: 'Pour les demandes non-urgentes',
+      color: COLORS.text,
     },
   ];
 
-  const handleSelectOption = (option) => {
-    setSelectedOption(option);
+  const handleSelectOption = async (option) => {
     if (option.id === 'chat') {
       navigation.navigate('LiveChatSupport');
-    } else if (option.id === 'report') {
-      navigation.navigate('ReportProblem');
-    } else if (option.id === 'phone') {
-      // TODO: Implémenter l'appel téléphonique
-      Alert.alert('Appel', 'Fonctionnalité d\'appel à venir');
-    } else if (option.id === 'email') {
-      // TODO: Implémenter l'envoi d'email
-      Alert.alert('Email', 'Fonctionnalité d\'email à venir');
+      return;
+    }
+    if (option.id === 'whatsapp') {
+      const url = `https://wa.me/${supportWhatsApp.replace('+', '')}`;
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('WhatsApp', 'Impossible d\'ouvrir WhatsApp sur cet appareil.');
+      }
+      return;
+    }
+    if (option.id === 'phone') {
+      const url = `tel:${supportPhone}`;
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Appel', 'Impossible de lancer l\'appel.');
+      }
+      return;
+    }
+    if (option.id === 'email') {
+      const url = `mailto:${supportEmail}`;
+      const canOpen = await Linking.canOpenURL(url);
+      if (canOpen) {
+        await Linking.openURL(url);
+      } else {
+        Alert.alert('Email', 'Impossible d\'ouvrir le client email.');
+      }
     }
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Contactez-nous</Text>
-        <Text style={styles.headerSubtitle}>
-          Choisissez votre méthode de contact préférée
-        </Text>
-      </View>
-
-      <View style={styles.optionsContainer}>
-        {supportOptions.map((option) => (
-          <TouchableOpacity
-            key={option.id}
-            style={styles.optionCard}
-            onPress={() => handleSelectOption(option)}
-          >
-            <View style={[styles.optionIcon, { backgroundColor: option.color + '20' }]}>
-              <Ionicons name={option.icon} size={32} color={option.color} />
-            </View>
-            <View style={styles.optionInfo}>
-              <Text style={styles.optionTitle}>{option.title}</Text>
-              <Text style={styles.optionDescription}>{option.description}</Text>
-            </View>
-            <Ionicons
-              name="chevron-forward"
-              size={20}
-              color={COLORS.textSecondary}
-            />
-          </TouchableOpacity>
-        ))}
-      </View>
-
-      <View style={styles.quickMessageSection}>
-        <Text style={styles.sectionTitle}>Message rapide</Text>
-        <TextInput
-          style={styles.messageInput}
-          placeholder="Décrivez votre problème..."
-          placeholderTextColor={COLORS.textLight}
-          value={message}
-          onChangeText={setMessage}
-          multiline
-          numberOfLines={4}
-        />
-        <TouchableOpacity style={styles.sendButton}>
-          <Text style={styles.sendButtonText}>Envoyer</Text>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>Contactez-nous</Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="information" size={18} color={COLORS.text} />
         </TouchableOpacity>
       </View>
-    </ScrollView>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.header}>
+          <View style={styles.openBadge}>
+            <Ionicons name="time" size={12} color={COLORS.primary} />
+            <Text style={styles.openBadgeText}>Ouvert: 08:00 - 20:00</Text>
+          </View>
+          <Text style={styles.headerTitle}>Comment pouvons-nous vous aider aujourd'hui ?</Text>
+          <Text style={styles.headerSubtitle}>
+            Nos conseillers BAIBEBALO sont prêts à vous répondre en temps réel.
+          </Text>
+        </View>
+
+        <View style={styles.optionsContainer}>
+          {supportOptions.map((option) => (
+            <TouchableOpacity
+              key={option.id}
+              style={styles.optionCard}
+              onPress={() => handleSelectOption(option)}
+            >
+              <View style={[styles.optionIcon, { backgroundColor: option.color + '15' }]}>
+                <Ionicons name={option.icon} size={26} color={option.color} />
+              </View>
+              <View style={styles.optionInfo}>
+                <View style={styles.optionHeader}>
+                  <Text style={styles.optionTitle}>{option.title}</Text>
+                  {option.badge && (
+                    <View style={styles.statusBadge}>
+                      <View style={styles.statusDot} />
+                      <Text style={styles.statusBadgeText}>{option.badge}</Text>
+                    </View>
+                  )}
+                </View>
+                <Text style={styles.optionDescription}>{option.description}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <View style={styles.helpCenterCard}>
+          <Text style={styles.helpCenterTitle}>Centre d'aide BAIBEBALO</Text>
+          <Text style={styles.helpCenterText}>
+            Trouvez des réponses rapides aux questions fréquentes.
+          </Text>
+          <TouchableOpacity
+            style={styles.helpCenterButton}
+            onPress={() => navigation.navigate('HelpCenter')}
+          >
+            <Text style={styles.helpCenterButtonText}>Consulter la FAQ</Text>
+            <Ionicons name="open-outline" size={14} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
@@ -116,88 +158,152 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    padding: 24,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
-  headerTitle: {
-    fontSize: 28,
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topBarTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
+    paddingBottom: 40,
+  },
+  header: {
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 20,
+  },
+  openBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary + '12',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 999,
+    marginBottom: 12,
+  },
+  openBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+  },
+  headerTitle: {
+    fontSize: 22,
+    fontWeight: '800',
+    color: COLORS.text,
+    textAlign: 'center',
     marginBottom: 8,
   },
   headerSubtitle: {
-    fontSize: 16,
+    fontSize: 13,
     color: COLORS.textSecondary,
+    textAlign: 'center',
   },
   optionsContainer: {
-    padding: 16,
     gap: 12,
   },
   optionCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
-    gap: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   optionIcon: {
     width: 56,
     height: 56,
-    borderRadius: 28,
+    borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
   },
   optionInfo: {
     flex: 1,
   },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   optionTitle: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 15,
+    fontWeight: '700',
     color: COLORS.text,
     marginBottom: 4,
   },
   optionDescription: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.textSecondary,
   },
-  quickMessageSection: {
-    padding: 16,
-    marginTop: 8,
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary + '12',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  messageInput: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
-    color: COLORS.text,
-    minHeight: 120,
-    textAlignVertical: 'top',
-    marginBottom: 12,
-  },
-  sendButton: {
+  statusDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
     backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
+  },
+  statusBadgeText: {
+    fontSize: 9,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+  },
+  helpCenterCard: {
+    marginTop: 24,
+    backgroundColor: COLORS.primary + '08',
+    borderRadius: 18,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '15',
     alignItems: 'center',
   },
-  sendButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
+  helpCenterTitle: {
+    fontSize: 14,
     fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  helpCenterText: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginBottom: 12,
+  },
+  helpCenterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  helpCenterButtonText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
 });
