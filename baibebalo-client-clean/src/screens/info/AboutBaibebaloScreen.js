@@ -19,72 +19,63 @@ export default function AboutBaibebaloScreen({ navigation }) {
 
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <View style={styles.logoContainer}>
-          <Text style={styles.logo}>BAIBEBALO</Text>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>À propos</Text>
+        <View style={styles.topBarSpacer} />
+      </View>
+
+      <View style={styles.brandSection}>
+        <View style={styles.logoBadge}>
+          <Ionicons name="bicycle" size={36} color={COLORS.white} />
         </View>
-        <Text style={styles.tagline}>
-          Vos plats préférés livrés chez vous
+        <Text style={styles.logo}>BAIBEBALO</Text>
+        <Text style={styles.versionText}>Version 1.0.0</Text>
+      </View>
+
+      <View style={styles.missionCard}>
+        <Text style={styles.missionTitle}>Notre mission</Text>
+        <Text style={styles.missionText}>
+          BAIBEBALO est votre plateforme tout‑en‑un pour la livraison et les services
+          locaux, pensée pour le marché ivoirien. Nous connectons les meilleurs
+          services à votre porte.
         </Text>
       </View>
 
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>À propos</Text>
-        <Text style={styles.sectionText}>
-          BAIBEBALO est une plateforme de livraison de repas qui connecte
-          les clients aux meilleurs restaurants de Côte d'Ivoire. Notre mission
-          est de rendre la nourriture de qualité accessible à tous, rapidement
-          et facilement.
-        </Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Version</Text>
-        <Text style={styles.versionText}>1.0.0</Text>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Contact</Text>
+        <Text style={styles.sectionTitle}>Connectez‑vous avec nous</Text>
         <TouchableOpacity
           style={styles.contactItem}
-          onPress={() => handleOpenLink('mailto:support@baibebalo.ci')}
+          onPress={() => handleOpenLink('https://baibebalo.ci')}
         >
-          <Ionicons name="mail-outline" size={24} color={COLORS.primary} />
-          <Text style={styles.contactText}>support@baibebalo.ci</Text>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          <View style={styles.contactIcon}>
+            <Ionicons name="globe-outline" size={20} color={COLORS.primary} />
+          </View>
+          <Text style={styles.contactText}>Site officiel</Text>
+          <Ionicons name="open-outline" size={18} color={COLORS.textSecondary} />
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.contactItem}
-          onPress={() => handleOpenLink('tel:+225XXXXXXXXX')}
+          onPress={() => handleOpenLink('https://facebook.com/baibebalo')}
         >
-          <Ionicons name="call-outline" size={24} color={COLORS.primary} />
-          <Text style={styles.contactText}>+225 XX XX XX XX XX</Text>
-          <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          <View style={styles.contactIcon}>
+            <Ionicons name="logo-facebook" size={20} color={COLORS.primary} />
+          </View>
+          <Text style={styles.contactText}>Facebook</Text>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
         </TouchableOpacity>
-      </View>
-
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Suivez-nous</Text>
-        <View style={styles.socialContainer}>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => handleOpenLink('https://facebook.com/baibebalo')}
-          >
-            <Ionicons name="logo-facebook" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => handleOpenLink('https://instagram.com/baibebalo')}
-          >
-            <Ionicons name="logo-instagram" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.socialButton}
-            onPress={() => handleOpenLink('https://twitter.com/baibebalo')}
-          >
-            <Ionicons name="logo-twitter" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-        </View>
+        <TouchableOpacity
+          style={styles.contactItem}
+          onPress={() => handleOpenLink('https://instagram.com/baibebalo')}
+        >
+          <View style={styles.contactIcon}>
+            <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
+          </View>
+          <Text style={styles.contactText}>Instagram</Text>
+          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+        </TouchableOpacity>
       </View>
 
       <View style={styles.footer}>
@@ -101,44 +92,82 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    padding: 32,
-    backgroundColor: COLORS.primary,
+  topBar: {
+    flexDirection: 'row',
     alignItems: 'center',
+    padding: 16,
   },
-  logoContainer: {
-    marginBottom: 16,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  logo: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: COLORS.white,
-    letterSpacing: 2,
-  },
-  tagline: {
-    fontSize: 16,
-    color: COLORS.white + 'CC',
+  topBarTitle: {
+    flex: 1,
     textAlign: 'center',
-  },
-  section: {
-    padding: 24,
-    backgroundColor: COLORS.white,
-    marginTop: 8,
-  },
-  sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
+  },
+  topBarSpacer: {
+    width: 40,
+  },
+  brandSection: {
+    alignItems: 'center',
+    paddingVertical: 24,
+  },
+  logoBadge: {
+    width: 90,
+    height: 90,
+    borderRadius: 18,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
     marginBottom: 12,
   },
-  sectionText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    lineHeight: 22,
+  logo: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.text,
   },
   versionText: {
-    fontSize: 16,
+    fontSize: 12,
     color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  missionCard: {
+    marginHorizontal: 16,
+    backgroundColor: COLORS.primary + '10',
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 16,
+  },
+  missionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+    marginBottom: 8,
+  },
+  missionText: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 22,
+  },
+  section: {
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  sectionTitle: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    marginBottom: 12,
   },
   contactItem: {
     flexDirection: 'row',
@@ -148,22 +177,18 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
+  contactIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   contactText: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 14,
     color: COLORS.text,
-  },
-  socialContainer: {
-    flexDirection: 'row',
-    gap: 16,
-  },
-  socialButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: COLORS.primary + '20',
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   footer: {
     padding: 24,

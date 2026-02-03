@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Driver Rankings - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .podium-shadow {
+            box-shadow: 0 4px 20px -2px rgba(25, 230, 107, 0.15);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark overflow-x-hidden pb-24">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-10 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-slate-200 dark:border-slate-800">
+<div class="text-slate-900 dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h2 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Classements</h2>
+</div>
+<!-- SegmentedButtons -->
+<div class="flex px-4 py-3">
+<div class="flex h-11 flex-1 items-center justify-center rounded-xl bg-slate-200/50 dark:bg-slate-800/50 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Quotidien</span>
+<input class="invisible w-0" name="time-filter" type="radio" value="Quotidien"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Hebdomadaire</span>
+<input checked="" class="invisible w-0" name="time-filter" type="radio" value="Hebdomadaire"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-slate-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-slate-500 dark:text-slate-400 text-sm font-semibold transition-all">
+<span class="truncate">Mensuel</span>
+<input class="invisible w-0" name="time-filter" type="radio" value="Mensuel"/>
+</label>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="flex items-center justify-between px-4 pt-4 pb-2">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Courses de la semaine</h3>
+<span class="text-primary text-xs font-bold uppercase tracking-wider">Top 100</span>
+</div>
+<!-- Podium Section (Custom visualization) -->
+<div class="flex items-end justify-center gap-3 px-4 py-6 @container">
+<!-- 2nd Place: Vous -->
+<div class="flex flex-col items-center flex-1">
+<div class="relative mb-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-16 w-16 border-4 border-primary/40" data-alt="User profile picture placeholder" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCF6Fp5pRQosYa74j07QXNIx_RIi6sURj2q1L8x4IONwye0WCxVJyDqiwDYYouLUg7htWFBX_T8VdZh-0l-30sGlWhmlNVDUrz3WZ3cNv9pl7bZT-s_3ivJBY6YCTqPLLryEZoxS5sj-KoAPJtb_m7Bb_EOSoqe8vhg_4mDdedOfj8r1-SNb_HYFaSiilRW6PuBWav8v4XTuMfxj51EH7uoAsp8NNsFvKL9jh6ygEiDETftAIMnL7z7jxjF_hcT_dPljWgIG4VWdPnG");'>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-slate-300 text-slate-900 rounded-full h-6 w-6 flex items-center justify-center text-[10px] font-bold border-2 border-background-light">2</div>
+</div>
+<div class="bg-primary/10 dark:bg-primary/20 p-3 rounded-t-xl w-full flex flex-col items-center h-24 justify-end border-x border-t border-primary/20">
+<p class="text-slate-900 dark:text-white text-sm font-bold text-center">Vous</p>
+<p class="text-primary text-xs font-medium">138 courses</p>
+</div>
+</div>
+<!-- 1st Place: Bakary D. -->
+<div class="flex flex-col items-center flex-1">
+<div class="relative mb-3 scale-110">
+<div class="absolute -top-6 left-1/2 -translate-x-1/2 text-yellow-400">
+<span class="material-symbols-outlined text-3xl" style="font-variation-settings: 'FILL' 1">emoji_events</span>
+</div>
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-20 w-20 border-4 border-yellow-400 shadow-lg" data-alt="Bakary D profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD0t2fQshG35kamOMxSqhQ9tE_nukkQ5yA5I_L2RbTMb5kB2U629TrxY1Cjn0XPNSBDyC2a8Y_mEHZ6MDO31RQbWFWyu86Q4Ck76-z7HsCawJETpHMWWg3nbvRTreB1MgzLsmnHMMKEVXFEldj4hmP5P8eL_kfO2jDVIs0j6vWuvO2CjTotKonQ0kK7smZrfw0DSijGY3WMESc01SBruigTsmuaOnROLW6aXp39mj_1aCayNeVlu5aENZbnchdBvADlG4kopA57RS08");'>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-yellow-400 text-white rounded-full h-7 w-7 flex items-center justify-center text-xs font-bold border-2 border-background-light">1</div>
+</div>
+<div class="bg-white dark:bg-slate-800 p-3 rounded-t-xl w-full flex flex-col items-center h-32 justify-end shadow-md border-x border-t border-slate-100 dark:border-slate-700">
+<p class="text-slate-900 dark:text-white text-sm font-bold text-center">Bakary D.</p>
+<p class="text-primary text-xs font-medium">142 courses</p>
+</div>
+</div>
+<!-- 3rd Place: Amadou S. -->
+<div class="flex flex-col items-center flex-1">
+<div class="relative mb-2">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-16 w-16 border-4 border-orange-400/40" data-alt="Amadou S profile picture" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCf9U7aSyrfZkri7C5zjXV62kgxtjGt2pbWO6K4GtAVMyH_YMskE9bT5EePfvRAAwzYfymv9Lyxmsd9F6cLNNDnWivzZED6lDg0HEkB0AEi2TPlROsThBr_oRUTI_W-U5HAu2pr_TJRDtxA5NyXAPf00q_5n0G_LExY603tlZRNUI9jet6l122od99_D8ugx8RPN2FJLhDRgoXpgf7e0WD26BaWu0FLHZ2efY_XOVLWXbDWe1jBxjNby018vQsK6-qXFBF1BG7Mu-_W");'>
+</div>
+<div class="absolute -bottom-1 -right-1 bg-orange-400/80 text-white rounded-full h-6 w-6 flex items-center justify-center text-[10px] font-bold border-2 border-background-light">3</div>
+</div>
+<div class="bg-slate-100 dark:bg-slate-800/40 p-3 rounded-t-xl w-full flex flex-col items-center h-20 justify-end border-x border-t border-slate-200 dark:border-slate-700">
+<p class="text-slate-900 dark:text-white text-sm font-bold text-center">Amadou S.</p>
+<p class="text-primary text-xs font-medium">125 courses</p>
+</div>
+</div>
+</div>
+<!-- ProfileStats Summary -->
+<div class="flex flex-wrap gap-3 px-4 py-3">
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-1 rounded-xl border border-primary/20 bg-primary/5 p-4 items-center text-center">
+<p class="text-slate-900 dark:text-white tracking-tight text-2xl font-black leading-tight">2ème</p>
+<div class="flex items-center gap-2">
+<p class="text-primary text-xs font-bold uppercase">Votre Position</p>
+</div>
+</div>
+<div class="flex min-w-[111px] flex-1 basis-[fit-content] flex-col gap-1 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-800/50 p-4 items-center text-center">
+<p class="text-slate-900 dark:text-white tracking-tight text-2xl font-black leading-tight">138</p>
+<div class="flex items-center gap-2">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-bold uppercase">Courses</p>
+</div>
+</div>
+</div>
+<!-- Leaderboard List -->
+<div class="px-4 space-y-2 mt-4">
+<!-- Rank 4 -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+<span class="text-slate-400 font-bold w-6 text-center">4</span>
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-center bg-cover" data-alt="Driver rank 4" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCYY_zUBCUCO_Y2Ex9Tcytcj7oos8xhatJOFg2xkh4cJW0D7DMgCgE0oiDsPw2PYCV5mxJcY8xs8IoC2bUg4eVtVzDL4Aueq51m6t1RQIjoEH9w-DksUy2IR-PMHaYrPvnyx9MQea9PvAbQ86L91CeXJgUuM3-QA847zBw9ix-Ub0KVdMPyDQqvOQE8zWUFSqpgpvWBr7nV-8M-5DQ_g-_A26AAMb-BeypboD5sg6bJ0g1zRYD1G1a5Bw-5zafINa8Vz0UYeKepiIW0')"></div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white font-bold text-sm">Oumar K.</p>
+<p class="text-slate-500 text-xs">112 courses</p>
+</div>
+<div class="text-slate-400">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+</div>
+</div>
+<!-- Rank 5 -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+<span class="text-slate-400 font-bold w-6 text-center">5</span>
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-center bg-cover" data-alt="Driver rank 5" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCrtc7H7ZdHsl3LNfXjja30Mb_yi-Js6wUp_OK7wO-s861WBfAfEK9Mw-YILHE0jcld3snVci_o9WaOIxnMNkqMlUuHmTu_g8A0Q8TWvRKng9mFKXv5CDlMm5fTnjzNctm1bnUbMqonOIJP4AuY_QIjKCfm1iy6xdDJTiG91Gqt3HsOoSHrYKrFEoU3gS2zywTy8ppEFzCpi3rQFFGCfKu_Q7R5L-_Ey9HYikm8qsBHu_qVVtU-1tNcQ5zhsnWMwKX69VkxgAt48r7K')"></div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white font-bold text-sm">Jean-Luc B.</p>
+<p class="text-slate-500 text-xs">108 courses</p>
+</div>
+<div class="text-red-400">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+</div>
+</div>
+<!-- Rank 6 -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl border border-slate-100 dark:border-slate-700">
+<span class="text-slate-400 font-bold w-6 text-center">6</span>
+<div class="h-10 w-10 rounded-full bg-slate-200 dark:bg-slate-700 bg-center bg-cover" data-alt="Driver rank 6" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC0wvXI3cdhSjTDIoB5jP4p_SjgIEbrSnVHGtsSBLr8pQNfvWi5g53HsQOMROT6St9ovEx0MlzmjiscMDTghkFmG9hbWv5-gPsY5QhjSQY_z710my-i7rzRL7Bt8sr9JBzZ6M1uzWCraFW6wGmC8suwt5OkFgZ6QJoROVowHyF_yxeDRYV-pX4HYNQjTfscSCKedZCAfhgLjpRIUBgl66kMwd5ZCgkBEMQoCArlNBB6I263rkJg3f3q9AhsjboPnEKUxihXmdyyOvcW')"></div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white font-bold text-sm">Moussa T.</p>
+<p class="text-slate-500 text-xs">95 courses</p>
+</div>
+<div class="text-slate-400">
+<span class="material-symbols-outlined text-sm">remove</span>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation (iOS Style) -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 flex items-center justify-around py-3 px-6 safe-area-bottom">
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">leaderboard</span>
+<span class="text-[10px] font-bold">Classement</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-[10px] font-medium">Missions</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</button>
+</div>
+</div>
+</body></html>

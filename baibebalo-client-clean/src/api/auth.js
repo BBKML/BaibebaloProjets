@@ -20,19 +20,34 @@ export const sendOTP = async (phoneNumber) => {
     headers: response.headers,
   });
   
+  // Afficher le code OTP en mode dev pour faciliter les tests
+  if (response.data?.data?.debug_otp) {
+    console.log('══════════════════════════════════════════════════════════════');
+    console.log('🔐 CODE OTP (DEV):', response.data.data.debug_otp);
+    console.log('══════════════════════════════════════════════════════════════');
+  }
+  
   return response.data;
 };
 
 /**
  * Vérifier le code OTP
  */
-export const verifyOTP = async (phoneNumber, code, firstName, lastName) => {
-  const response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, {
+export const verifyOTP = async (phoneNumber, code, firstName = null, lastName = null) => {
+  const payload = {
     phone: phoneNumber, // Le backend attend 'phone' et non 'phoneNumber'
     code,
-    first_name: firstName,
-    last_name: lastName,
-  });
+  };
+  
+  // Ajouter first_name et last_name seulement s'ils sont fournis
+  if (firstName) {
+    payload.first_name = firstName;
+  }
+  if (lastName) {
+    payload.last_name = lastName;
+  }
+  
+  const response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, payload);
   return response.data;
 };
 

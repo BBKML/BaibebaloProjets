@@ -207,13 +207,52 @@ class MapsService {
    */
   getSimpleRoute(lat1, lon1, lat2, lon2) {
     const distance = this.calculateDistance(lat1, lon1, lat2, lon2);
-    // Estimation: ~3 minutes par km en ville (moto/vélo)
-    const duration = Math.round(distance * 3);
+    // Estimation du temps de trajet: vitesse moyenne 15 km/h en ville (moto)
+    // (Distance / 15) × 60 = minutes
+    const duration = Math.round((distance / 15) * 60);
     
     return {
       distance,
       duration,
       geometry: null, // Pas de géométrie avec calcul simple
+    };
+  }
+
+  /**
+   * Calculer le temps de livraison estimé complet
+   * Formule: Temps préparation + Temps trajet + Marge de sécurité
+   * 
+   * Temps trajet = (Distance en km ÷ 15) × 60 = minutes
+   * Vitesse moyenne en ville: 15 km/h (moto)
+   * Marge de sécurité: 5 minutes
+   * 
+   * @param {number} distance - Distance en km
+   * @param {number} preparationTime - Temps de préparation en minutes (défaut: 20)
+   * @returns {Object} { min: number, max: number, estimated: number }
+   */
+  calculateEstimatedDeliveryTime(distance, preparationTime = 20) {
+    const avgSpeedKmH = 15; // Vitesse moyenne moto en ville
+    const safetyMargin = 5; // Marge de sécurité en minutes
+    
+    // Temps de trajet = (Distance / 15) × 60
+    const travelTime = Math.round((distance / avgSpeedKmH) * 60);
+    
+    // Temps total = Préparation + Trajet + Marge
+    const estimatedTime = preparationTime + travelTime + safetyMargin;
+    
+    // Fourchette: -5 min / +5 min autour de l'estimation
+    const minTime = Math.max(estimatedTime - 5, preparationTime + 5);
+    const maxTime = estimatedTime + 5;
+    
+    return {
+      min: minTime,
+      max: maxTime,
+      estimated: estimatedTime,
+      breakdown: {
+        preparation: preparationTime,
+        travel: travelTime,
+        margin: safetyMargin,
+      },
     };
   }
 
@@ -234,17 +273,58 @@ class MapsService {
 
   /**
    * Calculer les frais de livraison basés sur la distance
-   * Selon le cahier des charges: 200 FCFA/km, minimum 500 FCFA
+   * Grille tarifaire:
+   * - Distance < 2 km :    300 FCFA (livraison très proche)
+   * - Distance 2-3 km :    500 FCFA (livraison proche)
+   * - Distance 3-5 km :    700 FCFA (livraison moyenne)
+   * - Distance 5-8 km :   1000 FCFA (livraison longue)
+   * - Distance > 8 km :   1500 FCFA (livraison très longue)
    * 
    * @param {number} distance - Distance en km
    * @returns {number} Frais en FCFA
    */
   calculateDeliveryFee(distance) {
-    const pricePerKm = config.business?.deliveryPricePerKm || 200; // FCFA/km
-    const minPrice = config.business?.minDeliveryPrice || 500; // FCFA minimum
+    // Grille tarifaire par paliers de distance
+    if (distance < 2) {
+      return 300;  // Livraison très proche
+    } else if (distance < 3) {
+      return 500;  // Livraison proche
+    } else if (distance < 5) {
+      return 700;  // Livraison moyenne
+    } else if (distance < 8) {
+      return 1000; // Livraison longue
+    } else {
+      return 1500; // Livraison très longue
+    }
+  }
+  
+  /**
+   * Obtenir la description du tarif de livraison
+   * @param {number} distance - Distance en km
+   * @returns {Object} { fee, label, description }
+   */
+  getDeliveryFeeDetails(distance) {
+    const fee = this.calculateDeliveryFee(distance);
+    let label, description;
     
-    const calculatedPrice = Math.round(distance * pricePerKm);
-    return Math.max(calculatedPrice, minPrice);
+    if (distance < 2) {
+      label = 'Très proche';
+      description = 'Livraison très proche (< 2 km)';
+    } else if (distance < 3) {
+      label = 'Proche';
+      description = 'Livraison proche (2-3 km)';
+    } else if (distance < 5) {
+      label = 'Moyenne';
+      description = 'Livraison moyenne (3-5 km)';
+    } else if (distance < 8) {
+      label = 'Longue';
+      description = 'Livraison longue (5-8 km)';
+    } else {
+      label = 'Très longue';
+      description = 'Livraison très longue (> 8 km)';
+    }
+    
+    return { fee, label, description, distance_km: Math.round(distance * 10) / 10 };
   }
 
   /**

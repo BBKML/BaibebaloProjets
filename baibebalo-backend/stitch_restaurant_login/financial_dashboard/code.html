@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Financial Dashboard - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1c110d] dark:text-[#f8f6f5]">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-gray-200 dark:border-gray-800">
+<div class="flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-2xl">chevron_left</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Dashboard BAIBEBALO</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-primary/10 text-primary">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+</div>
+<!-- Main Content Container -->
+<div class="max-w-md mx-auto pb-24">
+<!-- Primary Balance Hero Card -->
+<div class="p-4">
+<div class="relative overflow-hidden flex flex-col items-stretch justify-start rounded-xl shadow-lg bg-primary text-white p-6">
+<!-- Abstract background pattern -->
+<div class="absolute top-0 right-0 -mr-10 -mt-10 size-40 bg-white/10 rounded-full blur-2xl"></div>
+<div class="absolute bottom-0 left-0 -ml-10 -mb-10 size-32 bg-black/10 rounded-full blur-xl"></div>
+<div class="relative z-10">
+<p class="text-white/80 text-sm font-medium uppercase tracking-wider mb-1">Solde Disponible</p>
+<p class="text-4xl font-bold leading-tight tracking-tight mb-6">2.450,00 €</p>
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-white text-primary text-base font-bold transition-transform active:scale-95">
+<span class="material-symbols-outlined mr-2">account_balance_wallet</span>
+<span class="truncate">Demander un retrait</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Section: Key Metrics -->
+<div class="px-4 py-2">
+<h3 class="text-base font-bold mb-3">Performance mensuelle</h3>
+<div class="flex gap-3 overflow-x-auto pb-2 no-scrollbar">
+<!-- Stat Card 1 -->
+<div class="flex min-w-[140px] flex-1 flex-col gap-2 rounded-xl p-4 border border-[#e9d5ce] bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-tighter">CA Mensuel</p>
+<p class="text-xl font-bold leading-tight">12.300 €</p>
+<div class="flex items-center text-[#07880b] text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+<span>+12.5%</span>
+</div>
+</div>
+<!-- Stat Card 2 -->
+<div class="flex min-w-[140px] flex-1 flex-col gap-2 rounded-xl p-4 border border-[#e9d5ce] bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-tighter">Commissions</p>
+<p class="text-xl font-bold leading-tight">1.230 €</p>
+<div class="flex items-center text-[#e70c08] text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">trending_down</span>
+<span>-5%</span>
+</div>
+</div>
+<!-- Stat Card 3 -->
+<div class="flex min-w-[140px] flex-1 flex-col gap-2 rounded-xl p-4 border border-[#e9d5ce] bg-white dark:bg-gray-900 dark:border-gray-800 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-tighter">Retraits</p>
+<p class="text-xl font-bold leading-tight">5.000 €</p>
+<div class="flex items-center text-gray-400 text-xs font-semibold">
+<span class="material-symbols-outlined text-sm">history</span>
+<span>Stable</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Recent Activity Section Header -->
+<div class="flex items-center justify-between px-4 pt-6 pb-2">
+<h3 class="text-lg font-bold leading-tight tracking-[-0.015em]">Activités récentes</h3>
+<button class="text-primary text-sm font-medium">Voir tout</button>
+</div>
+<!-- List Items -->
+<div class="bg-white dark:bg-gray-900 mx-4 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-base font-medium leading-normal line-clamp-1">Vente #8902 - Burger XL</p>
+<p class="text-gray-500 text-xs font-normal leading-normal">Aujourd'hui, 14:30</p>
+</div>
+</div>
+<div class="shrink-0">
+<p class="text-[#07880b] text-base font-bold leading-normal">+45,00 €</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="text-[#1c110d] dark:text-[#f8f6f5] flex items-center justify-center rounded-lg bg-gray-100 dark:bg-gray-800 shrink-0 size-10">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-base font-medium leading-normal line-clamp-1">Retrait vers compte pro</p>
+<p class="text-gray-500 text-xs font-normal leading-normal">Hier, 09:15</p>
+</div>
+</div>
+<div class="shrink-0">
+<p class="text-base font-bold leading-normal">-1.500,00 €</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-10">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-base font-medium leading-normal line-clamp-1">Vente #8895 - Formule Midi</p>
+<p class="text-gray-500 text-xs font-normal leading-normal">Hier, 12:45</p>
+</div>
+</div>
+<div class="shrink-0">
+<p class="text-[#07880b] text-base font-bold leading-normal">+18,50 €</p>
+</div>
+</div>
+</div>
+<!-- Summary Banner / Card -->
+<div class="p-4 mt-4">
+<div class="bg-primary/5 dark:bg-primary/10 rounded-xl p-4 border border-primary/20 flex items-start gap-4">
+<span class="material-symbols-outlined text-primary">info</span>
+<div>
+<p class="text-sm font-semibold text-primary">Information Retrait</p>
+<p class="text-xs text-primary/80 leading-relaxed mt-1">
+                        Les retraits demandés avant 12h sont traités le jour même. Le délai bancaire est généralement de 24 à 48h.
+                    </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Tab Bar (iOS Style) -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-background-dark/90 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="text-[10px] font-medium">Menu</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">analytics</span>
+<span class="text-[10px] font-medium">Finances</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Réglages</span>
+</button>
+</div>
+</body></html>

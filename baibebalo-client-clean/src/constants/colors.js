@@ -1,8 +1,8 @@
 // Couleurs du design system BAIBEBALO
 export const COLORS = {
   // Couleurs principales
-  primary: '#22c38e',
-  primaryDark: '#18a075',
+  primary: '#FF6B35',
+  primaryDark: '#E55A2B',
   accent: '#ff6b6b',
   
   // Couleurs de fond

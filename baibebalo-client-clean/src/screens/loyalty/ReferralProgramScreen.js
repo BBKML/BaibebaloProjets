@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,12 +12,41 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import * as Clipboard from 'expo-clipboard';
+import { getReferrals } from '../../api/users';
+
+const REWARD_PER_COMPLETED = 500;
 
 export default function ReferralProgramScreen({ navigation }) {
   const { user } = useAuthStore();
-  const [referralCode] = useState(user?.referral_code || 'BAIBE1234');
-  const [earnings] = useState(0);
-  const [referrals] = useState(0);
+  const [referralCode, setReferralCode] = useState(user?.referral_code || '');
+  const [earnings, setEarnings] = useState(0);
+  const [referrals, setReferrals] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        setLoading(true);
+        const response = await getReferrals();
+        const data = response?.data || response;
+        if (cancelled) return;
+        const code = data?.referral_code || user?.referral_code || '';
+        const list = Array.isArray(data?.referrals) ? data.referrals : [];
+        const completed = list.filter((r) => r.status === 'completed').length;
+        setReferralCode(code || '—');
+        setReferrals(list.length);
+        setEarnings(completed * REWARD_PER_COMPLETED);
+      } catch (e) {
+        if (!cancelled) {
+          setReferralCode(user?.referral_code || '—');
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [user?.referral_code]);
 
   const handleShareCode = async () => {
     try {
@@ -69,9 +98,13 @@ export default function ReferralProgramScreen({ navigation }) {
         <View style={styles.codeCard}>
           <Text style={styles.codeLabel}>Votre code unique</Text>
           <View style={styles.codeBox}>
-            <Text style={styles.codeText}>{referralCode}</Text>
+            <Text style={styles.codeText}>{loading ? '…' : (referralCode || '—')}</Text>
           </View>
-          <TouchableOpacity style={styles.copyButton} onPress={handleCopyCode}>
+          <TouchableOpacity
+            style={[styles.copyButton, loading && { opacity: 0.6 }]}
+            onPress={handleCopyCode}
+            disabled={loading}
+          >
             <Ionicons name="copy-outline" size={18} color={COLORS.white} />
             <Text style={styles.copyButtonText}>Copier le code</Text>
           </TouchableOpacity>
@@ -95,11 +128,11 @@ export default function ReferralProgramScreen({ navigation }) {
 
         <View style={styles.statsRow}>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{referrals}</Text>
+            <Text style={styles.statValue}>{loading ? '…' : referrals}</Text>
             <Text style={styles.statLabel}>Amis invités</Text>
           </View>
           <View style={styles.statCard}>
-            <Text style={styles.statValue}>{earnings} FCFA</Text>
+            <Text style={styles.statValue}>{loading ? '…' : `${earnings} FCFA`}</Text>
             <Text style={styles.statLabel}>Bonus cumulés</Text>
           </View>
         </View>

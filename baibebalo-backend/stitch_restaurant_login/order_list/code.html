@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Gestion des Commandes</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#1d110c] dark:text-[#fcf9f8] min-h-screen">
+<!-- Top Navigation Bar (iOS Style) -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 ios-blur border-b border-[#ead5cd] dark:border-[#3d2a24]">
+<div class="flex items-center justify-between px-4 py-3">
+<div class="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer">
+<span class="material-symbols-outlined text-2xl">menu</span>
+</div>
+<h1 class="text-lg font-bold tracking-tight">Commandes</h1>
+<div class="flex size-10 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer relative">
+<span class="material-symbols-outlined text-2xl">notifications</span>
+<span class="absolute top-2 right-2 size-2 bg-primary rounded-full"></span>
+</div>
+</div>
+<!-- Segmented Tabs -->
+<div class="px-4 overflow-x-auto no-scrollbar">
+<div class="flex gap-6 min-w-max">
+<a class="flex flex-col items-center border-b-[3px] border-primary pb-2 pt-1" href="#">
+<p class="text-sm font-bold text-primary">Nouvelles</p>
+<span class="mt-0.5 text-[10px] font-bold px-1.5 py-0.5 bg-primary/20 rounded-full">3</span>
+</a>
+<a class="flex flex-col items-center border-b-[3px] border-transparent pb-2 pt-1 text-[#a15d45] dark:text-[#cbb0a6]" href="#">
+<p class="text-sm font-bold">En cours</p>
+</a>
+<a class="flex flex-col items-center border-b-[3px] border-transparent pb-2 pt-1 text-[#a15d45] dark:text-[#cbb0a6]" href="#">
+<p class="text-sm font-bold">Complétées</p>
+</a>
+<a class="flex flex-col items-center border-b-[3px] border-transparent pb-2 pt-1 text-[#a15d45] dark:text-[#cbb0a6]" href="#">
+<p class="text-sm font-bold">Toutes</p>
+</a>
+</div>
+</div>
+</header>
+<main class="p-4 space-y-4 max-w-md mx-auto">
+<!-- Urgent Order Card 1 -->
+<div class="flex flex-col rounded-xl shadow-sm bg-white dark:bg-[#2d1e19] border border-[#ead5cd] dark:border-[#3d2a24] overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold text-primary uppercase tracking-wider">#8921 • Priorité Haute</span>
+<div class="flex items-center gap-1 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 px-2 py-1 rounded-lg text-xs font-bold">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span>04:59</span>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0" data-alt="Gourmet burger with fries on wooden plate" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCub8fA_KBEsfnrSTykFDYQRGK_3Lk_o_LCjvZTiEpAjGTKT-zrzk9e6e2E27ngq5fqrnQAOPSG_QBN46y7H1X3329UX7iybZ4nYw2CTdAS1-zNTL2T8fLWl74u5TjFXPA7p3mPsLU8UEPiR6OfV-tcS6mz7EbZ8PBeNdtZqI_9Hw3bAnPPH97d3R3f7SkqqnbofcGc_M0fxXoKbB0R9Dsn_78Z6xHjPuxccyQLPF4H-ikRqv_lWPFThEhiZMv-ts4FQpI6_23CFKnZ");'></div>
+<div class="flex-1">
+<p class="text-lg font-bold leading-tight">Jean Dupont</p>
+<p class="text-sm text-[#a15d45] dark:text-[#cbb0a6]">Il y a 2 min • 3 articles</p>
+<p class="text-base font-bold mt-1 text-primary">45,50 €</p>
+</div>
+</div>
+<div class="mt-4 flex gap-3">
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-10 bg-primary text-white text-sm font-bold transition-transform active:scale-95">
+                        Accepter
+                    </button>
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-10 bg-[#f4eae6] dark:bg-[#3d2a24] text-[#1d110c] dark:text-[#fcf9f8] text-sm font-bold transition-transform active:scale-95">
+                        Refuser
+                    </button>
+</div>
+<button class="w-full mt-2 py-2 text-sm font-medium text-[#a15d45] dark:text-[#cbb0a6] flex items-center justify-center gap-1">
+                    Voir les détails <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Order Card 2 -->
+<div class="flex flex-col rounded-xl shadow-sm bg-white dark:bg-[#2d1e19] border border-[#ead5cd] dark:border-[#3d2a24] overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold text-[#a15d45] dark:text-[#cbb0a6] uppercase tracking-wider">#8920 • Nouveau</span>
+<div class="flex items-center gap-1 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 px-2 py-1 rounded-lg text-xs font-bold">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span>02:15</span>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0" data-alt="Fresh salad bowl with vegetables and protein" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA6HMPvpCOVejkI2DBVOQdBT2SV4O9VmZPWcPya-bMWwur5aFck-7m_-GKubY90__1pntch0C8PCV4TiykmPO02i_VAeknwxwCjzexQ2J-c7-_vG2s8RJ-4XoAMDMBDSOmcM0wpIRwheRXqFhVconoUC1FUpqMw3nKUJdRsB062-iSp1LQnG7xJmJlGYf3KWPdiFoqG7vVFDKn1nNja0-1tbQUI5CPxQmDwzY-OQzIOhD6ijtm3If2X4PS8yWPfDDW_0kBkAb4k4Eac");'></div>
+<div class="flex-1">
+<p class="text-lg font-bold leading-tight">Marie Lefebvre</p>
+<p class="text-sm text-[#a15d45] dark:text-[#cbb0a6]">Il y a 5 min • 1 article</p>
+<p class="text-base font-bold mt-1 text-primary">22,00 €</p>
+</div>
+</div>
+<div class="mt-4 flex gap-3">
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-10 bg-primary text-white text-sm font-bold transition-transform active:scale-95">
+                        Accepter
+                    </button>
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-10 bg-[#f4eae6] dark:bg-[#3d2a24] text-[#1d110c] dark:text-[#fcf9f8] text-sm font-bold transition-transform active:scale-95">
+                        Refuser
+                    </button>
+</div>
+<button class="w-full mt-2 py-2 text-sm font-medium text-[#a15d45] dark:text-[#cbb0a6] flex items-center justify-center gap-1">
+                    Voir les détails <span class="material-symbols-outlined text-sm">expand_more</span>
+</button>
+</div>
+</div>
+<!-- Order Card 3 (Simplified/Pending) -->
+<div class="flex flex-col rounded-xl shadow-sm bg-white dark:bg-[#2d1e19] border border-[#ead5cd] dark:border-[#3d2a24] overflow-hidden opacity-90">
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<span class="text-xs font-bold text-[#a15d45] dark:text-[#cbb0a6] uppercase tracking-wider">#8919 • Nouveau</span>
+<div class="flex items-center gap-1 bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 px-2 py-1 rounded-lg text-xs font-bold">
+<span class="material-symbols-outlined text-sm">timer</span>
+<span>08:45</span>
+</div>
+</div>
+<div class="flex gap-4">
+<div class="size-16 rounded-lg bg-cover bg-center shrink-0" data-alt="Delicious pepperoni pizza on a tray" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD2Z4Wgp7eYhLFDS3qgzYtAgJ0KArLF5CjGbNflzwG2hs5S9l2Udmr_VB6HjnQOKbsmL24-fZnvC1e16oW_3Tl7tVIeSkzY2GT2o2CIv8hw3rS_oYj_RpJ2J-fVwFh-YgbgJZnR7X7UF504TZt_nApnkmxz9Of1rdr2N9Q5-dQwEUbrcZVnuMhJRYYi49TVDX9vVXHR9otPMcL4OwjaGDaMfAFD_rEW5wvDUuRlPMz93-_507E4lFoTRRWBjsPyWywcNnF5e9BC39Lc");'></div>
+<div class="flex-1">
+<p class="text-lg font-bold leading-tight text-[#1d110c] dark:text-[#fcf9f8]">Marc Bernard</p>
+<p class="text-sm text-[#a15d45] dark:text-[#cbb0a6]">Il y a 8 min • 2 articles</p>
+<p class="text-base font-bold mt-1 text-primary">31,20 €</p>
+</div>
+</div>
+<div class="mt-4 flex gap-3">
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-10 bg-primary text-white text-sm font-bold transition-transform active:scale-95">
+                        Accepter
+                    </button>
+<button class="flex-1 cursor-pointer items-center justify-center rounded-lg h-10 bg-[#f4eae6] dark:bg-[#3d2a24] text-[#1d110c] dark:text-[#fcf9f8] text-sm font-bold transition-transform active:scale-95">
+                        Refuser
+                    </button>
+</div>
+</div>
+</div>
+</main>
+<!-- Navigation Tab Bar (iOS Style) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-light/90 dark:bg-background-dark/90 ios-blur border-t border-[#ead5cd] dark:border-[#3d2a24] pb-6 pt-2">
+<div class="flex justify-around items-center px-6">
+<div class="flex flex-col items-center gap-0.5 text-primary">
+<span class="material-symbols-outlined text-[28px] font-variation-fill">receipt_long</span>
+<span class="text-[10px] font-bold">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-0.5 text-[#a15d45] dark:text-[#cbb0a6]">
+<span class="material-symbols-outlined text-[28px]">restaurant_menu</span>
+<span class="text-[10px] font-medium">Menu</span>
+</div>
+<div class="flex flex-col items-center gap-0.5 text-[#a15d45] dark:text-[#cbb0a6]">
+<span class="material-symbols-outlined text-[28px]">query_stats</span>
+<span class="text-[10px] font-medium">Stats</span>
+</div>
+<div class="flex flex-col items-center gap-0.5 text-[#a15d45] dark:text-[#cbb0a6]">
+<span class="material-symbols-outlined text-[28px]">settings</span>
+<span class="text-[10px] font-medium">Réglages</span>
+</div>
+</div>
+</nav>
+<!-- Bottom spacing for nav bar -->
+<div class="h-24"></div>
+</body></html>

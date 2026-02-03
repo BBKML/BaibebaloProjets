@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Nouvelle Commande - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .ios-blur {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1c110d] dark:text-white antialiased">
+<!-- Background App State (Simulated underneath the overlay) -->
+<div class="relative flex h-screen w-full flex-col overflow-hidden opacity-40">
+<div class="p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+<span class="text-xl font-bold">BAIBEBALO Admin</span>
+<span class="material-symbols-outlined">menu</span>
+</div>
+<div class="flex-1 p-4 space-y-4">
+<div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+<div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+<div class="h-24 bg-gray-200 dark:bg-gray-800 rounded-lg"></div>
+</div>
+</div>
+<!-- Full Screen Overlay -->
+<div class="fixed inset-0 z-50 flex flex-col items-center justify-end bg-[#141414]/70 ios-blur">
+<!-- Main Notification Container -->
+<div class="w-full max-w-md bg-background-light dark:bg-background-dark rounded-t-3xl shadow-2xl p-6 flex flex-col items-center pb-10">
+<!-- BottomSheetHandle Style -->
+<div class="flex h-1.5 w-12 rounded-full bg-gray-300 dark:bg-gray-600 mb-8"></div>
+<!-- Animated Bell Icon (Visual Representation) -->
+<div class="relative mb-6">
+<div class="absolute inset-0 bg-primary/20 rounded-full scale-150 animate-ping"></div>
+<div class="relative bg-primary text-white p-6 rounded-full shadow-lg">
+<span class="material-symbols-outlined !text-5xl" style="font-variation-settings: 'FILL' 1">notifications_active</span>
+</div>
+</div>
+<!-- Headline Text Component -->
+<h1 class="text-[#1c110d] dark:text-white tracking-tight text-[32px] font-bold leading-tight text-center pb-1">Nouvelle Commande !</h1>
+<p class="text-primary font-medium text-lg mb-6">En attente de confirmation</p>
+<!-- Order Details Card Component -->
+<div class="w-full bg-white dark:bg-[#2d1e18] rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden mb-6">
+<div class="flex items-center gap-4 p-5 border-b border-gray-50 dark:border-gray-800">
+<div class="h-16 w-16 bg-center bg-no-repeat bg-cover rounded-xl" data-alt="Photo profile client ou logo restaurant" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCqizi9bt_pqyv3XulSqbKjadS3SXgxHiP7_Wj_zsWoFdIwHUjP33aoME4ST7UhQISUgc05099Gok-giwjCx07EMrUMH24GiSISbHSNzltX7wn801pJWljZS3rB56Lh8MZ7--0BI5o0ZHQAgcKdORkgeRsoFEeVi50PVwDaBcb8_e7vNONv8bNcLTIsH2w0OtPD6PX--1rA8ZdiUvVjoe1M2Xd8DuHVMxE38M8ANo38F6aTpsr9jm7jJfLKcBhIi8Q567Wdo-a0NwgL");'></div>
+<div class="flex-1">
+<p class="text-sm text-gray-500 dark:text-gray-400 font-medium">NUMÉRO DE COMMANDE</p>
+<p class="text-xl font-bold">#8821</p>
+</div>
+</div>
+<div class="p-5 flex flex-col gap-4">
+<div class="flex justify-between items-center">
+<div>
+<p class="text-sm text-gray-500 dark:text-gray-400">CLIENT</p>
+<p class="text-lg font-semibold">Jean Dupont</p>
+</div>
+<div class="text-right">
+<p class="text-sm text-gray-500 dark:text-gray-400">MONTANT</p>
+<p class="text-2xl font-bold text-primary">45,00 €</p>
+</div>
+</div>
+<div class="flex items-center gap-2 py-2 px-3 bg-primary/10 rounded-lg text-primary text-sm font-medium">
+<span class="material-symbols-outlined text-sm">shopping_bag</span>
+                        3 articles • Livraison standard
+                    </div>
+</div>
+</div>
+<!-- Countdown Timer Component -->
+<div class="flex flex-col items-center gap-2 mb-8 w-full">
+<p class="text-sm text-gray-500 dark:text-gray-400 uppercase tracking-widest font-bold">Répondre dans</p>
+<div class="flex items-center gap-3">
+<div class="flex flex-col items-center">
+<span class="text-4xl font-black tabular-nums">01:59</span>
+</div>
+</div>
+<!-- Mini Progress Bar -->
+<div class="w-2/3 h-1.5 bg-gray-200 dark:bg-gray-800 rounded-full mt-2 overflow-hidden">
+<div class="h-full bg-primary w-3/4 rounded-full"></div>
+</div>
+</div>
+<!-- Action Button -->
+<div class="w-full space-y-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-5 rounded-2xl text-lg shadow-lg shadow-primary/30 transition-all flex items-center justify-center gap-2">
+<span class="truncate uppercase tracking-wide">Voir la commande</span>
+<span class="material-symbols-outlined">arrow_forward_ios</span>
+</button>
+<button class="w-full bg-transparent text-gray-500 dark:text-gray-400 font-medium py-3 rounded-xl text-base">
+                    Ignorer pour l'instant
+                </button>
+</div>
+</div>
+</div>
+</body></html>

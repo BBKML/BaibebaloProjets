@@ -126,7 +126,7 @@ export default function OrderHistoryScreen({ navigation }) {
         </Text>
       </View>
       <Image
-        source={{ uri: item.restaurant?.image_url || 'https://via.placeholder.com/64' }}
+        source={{ uri: item.restaurant?.banner || item.restaurant?.logo || item.restaurant?.image_url || 'https://via.placeholder.com/64' }}
         style={styles.orderImage}
       />
       <View style={styles.orderFooter}>

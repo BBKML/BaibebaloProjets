@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Validation en attente - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#ff6933",
+              "background-light": "#f8f6f5",
+              "background-dark": "#23140f",
+            },
+            fontFamily: {
+              "display": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#1d110c] dark:text-[#f8f6f5] transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden max-w-[430px] mx-auto bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- TopAppBar Component -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#1d110c] dark:text-[#f8f6f5] flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1d110c] dark:text-[#f8f6f5] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">BAIBEBALO</h2>
+</header>
+<main class="flex-1 flex flex-col items-center justify-center px-6 py-10">
+<!-- EmptyState Component / Main Illustration Section -->
+<div class="flex flex-col items-center gap-8 w-full max-w-sm">
+<!-- Large Hourglass Icon Container -->
+<div class="relative flex items-center justify-center w-32 h-32 rounded-full bg-primary/10 dark:bg-primary/20">
+<span class="material-symbols-outlined text-primary text-6xl">hourglass_empty</span>
+<div class="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-full border-4 border-background-light dark:border-background-dark"></div>
+</div>
+<div class="flex flex-col items-center gap-4 text-center">
+<h1 class="text-[#1d110c] dark:text-white text-2xl font-bold leading-tight tracking-tight px-2">
+                        Votre demande est en cours d'examen
+                    </h1>
+<p class="text-[#5e4136] dark:text-[#c4b5b0] text-base font-normal leading-relaxed">
+                        Nos équipes vérifient vos informations. Ce processus prend généralement entre <span class="font-semibold text-primary">24 et 48 heures</span>. 
+                        Vous recevrez une notification dès que votre compte sera activé.
+                    </p>
+</div>
+<!-- Placeholder for Visual Balance -->
+<div class="w-full bg-center bg-no-repeat aspect-[16/9] bg-cover rounded-xl border border-[#e8dfdb] dark:border-[#3d2c26] bg-[#f4eae6] dark:bg-[#32201a] mt-4" data-alt="Abstract minimalist pattern representing processing and security" style="background-image: linear-gradient(135deg, rgba(255,105,51,0.05) 0%, rgba(255,105,51,0.15) 100%);">
+<div class="flex items-center justify-center h-full opacity-30">
+<span class="material-symbols-outlined text-primary text-4xl">verified_user</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Actions Section -->
+<footer class="flex flex-col gap-2 p-4 pb-8">
+<!-- SingleButton Component (Disabled State) -->
+<div class="flex px-0 py-2">
+<button class="flex min-w-[84px] max-w-[480px] cursor-not-allowed items-center justify-center overflow-hidden rounded-xl h-14 px-5 flex-1 bg-[#e8dfdb] dark:bg-[#3d2c26] text-[#a18c84] dark:text-[#6b5850] text-base font-bold leading-normal tracking-[0.015em] transition-all" disabled="">
+<span class="truncate">Retour à l'accueil</span>
+</button>
+</div>
+<!-- MetaText Component -->
+<div class="flex flex-col items-center">
+<p class="text-primary text-sm font-medium leading-normal py-2 px-4 text-center flex items-center gap-2 cursor-pointer hover:underline">
+<span class="material-symbols-outlined text-lg">support_agent</span>
+                    Des questions ? Contacter le support
+                </p>
+<div class="mt-4 w-32 h-1 bg-[#1d110c]/10 dark:bg-[#f8f6f5]/10 rounded-full mx-auto"></div>
+</div>
+</footer>
+</div>
+</body></html>

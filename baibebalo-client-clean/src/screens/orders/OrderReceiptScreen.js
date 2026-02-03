@@ -8,10 +8,12 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { getOrderDetail } from '../../api/orders';
 
 export default function OrderReceiptScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { orderId } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -190,7 +192,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   scrollContent: {
-    paddingBottom: 120,
+    paddingBottom: 140, // Espace pour les boutons + safe area
   },
   header: {
     flexDirection: 'row',

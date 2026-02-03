@@ -3,10 +3,17 @@ import toast from 'react-hot-toast';
 
 // Configuration de base Axios
 // En développement, utiliser l'URL complète pour éviter les problèmes de proxy
+// VITE_API_URL = base complète (ex: http://192.168.1.4:5000/api/v1)
+// VITE_BACKEND_URL = origine backend sans /api/v1 (ex: http://192.168.1.4:5000)
 const getBaseURL = () => {
+  if (import.meta.env.VITE_API_URL) {
+    return import.meta.env.VITE_API_URL.replace(/\/+$/, '');
+  }
   if (import.meta.env.DEV) {
-    // Utiliser l'URL complète en développement (contourne le proxy)
-    // Le backend peut être sur 3000 ou 5000 selon la config
+    const backendUrl = import.meta.env.VITE_BACKEND_URL;
+    if (backendUrl) {
+      return (backendUrl.replace(/\/+$/, '') + '/api/v1');
+    }
     const backendPort = import.meta.env.VITE_BACKEND_PORT || '5000';
     return `http://localhost:${backendPort}/api/v1`;
   }
@@ -96,7 +103,7 @@ apiClient.interceptors.response.use(
         const refreshToken = localStorage.getItem('refreshToken');
         if (refreshToken) {
           const refreshURL = import.meta.env.DEV 
-            ? 'http://localhost:3000/api/v1/auth/refresh-token'
+            ? getBaseURL() + '/auth/refresh-token'
             : '/api/v1/auth/refresh-token';
           const response = await axios.post(refreshURL, {
             refreshToken,

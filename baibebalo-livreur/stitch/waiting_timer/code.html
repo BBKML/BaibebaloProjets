@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Waiting Timer - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@400&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom pulse effect to match description without JS */
+        .pulse-ring {
+            position: absolute;
+            border-radius: 50%;
+            border: 2px solid #19e66b;
+            opacity: 0.1;
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white transition-colors duration-300">
+<div class="relative flex h-screen max-w-md mx-auto flex-col overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
+                Problème de livraison
+            </h2>
+</div>
+<!-- Progress Indicator -->
+<div class="w-full bg-gray-200 dark:bg-gray-800 h-1">
+<div class="bg-primary h-1 w-[70%]" style="width: 73%;"></div>
+</div>
+<main class="flex-1 flex flex-col items-center justify-center px-6">
+<!-- Pulse Background & Timer Container -->
+<div class="relative flex items-center justify-center w-64 h-64 mb-8">
+<!-- Visual "Pulse" Rings (Static Representation) -->
+<div class="absolute inset-0 rounded-full border-4 border-primary/5 scale-110"></div>
+<div class="absolute inset-0 rounded-full border-4 border-primary/10 scale-125"></div>
+<div class="absolute inset-0 rounded-full border-4 border-primary/20 scale-150 opacity-20"></div>
+<!-- Timer Display -->
+<div class="relative z-10 flex gap-4 items-center">
+<div class="flex flex-col items-center">
+<div class="flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/10 dark:bg-primary/20 backdrop-blur-sm border border-primary/20">
+<p class="text-primary text-5xl font-extrabold tracking-tight">07</p>
+</div>
+<p class="mt-2 text-[#4e976b] dark:text-primary text-xs font-semibold uppercase tracking-widest">Minutes</p>
+</div>
+<div class="text-primary text-4xl font-bold pb-6">:</div>
+<div class="flex flex-col items-center">
+<div class="flex h-24 w-24 items-center justify-center rounded-2xl bg-primary/10 dark:bg-primary/20 backdrop-blur-sm border border-primary/20">
+<p class="text-primary text-5xl font-extrabold tracking-tight">23</p>
+</div>
+<p class="mt-2 text-[#4e976b] dark:text-primary text-xs font-semibold uppercase tracking-widest">Secondes</p>
+</div>
+</div>
+</div>
+<!-- HeadlineText -->
+<div class="max-w-xs mx-auto mb-12">
+<h3 class="text-[#0e1b13] dark:text-white tracking-tight text-xl font-bold leading-snug text-center">
+                    Veuillez rester sur place pendant que nous essayons de contacter le client
+                </h3>
+<p class="text-gray-500 dark:text-gray-400 text-sm text-center mt-4 px-4">
+                    Le protocole de sécurité nécessite une attente de 10 minutes avant de pouvoir valider l'impossibilité de remise.
+                </p>
+</div>
+</main>
+<!-- Footer Actions -->
+<div class="px-4 pb-10 pt-4 flex flex-col gap-4 bg-background-light dark:bg-background-dark">
+<!-- SingleButton (Primary) -->
+<div class="flex">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 flex-1 bg-primary text-[#0e1b13] gap-3 shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined font-bold">phone_in_talk</span>
+<span class="truncate text-base font-bold leading-normal tracking-tight">Rappeler le client</span>
+</button>
+</div>
+<!-- MetaText (Secondary Link) -->
+<div class="flex flex-col items-center">
+<a class="flex items-center gap-2 text-[#4e976b] dark:text-primary text-sm font-semibold leading-normal py-2 hover:opacity-80 underline underline-offset-4" href="#">
+<span class="material-symbols-outlined text-sm">edit_note</span>
+                    Signaler un changement
+                </a>
+</div>
+<!-- Bottom Safe Area Indicator (iOS Style) -->
+<div class="h-2 w-32 bg-gray-300 dark:bg-gray-700 rounded-full mx-auto mt-4 opacity-50"></div>
+</div>
+</div>
+<!-- Background Pattern Decoration -->
+<div class="fixed inset-0 -z-10 pointer-events-none overflow-hidden">
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-full opacity-[0.03] dark:opacity-[0.05]">
+<svg class="w-full h-full" viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+<circle cx="50" cy="50" fill="none" r="40" stroke="currentColor" stroke-width="0.5"></circle>
+<circle cx="50" cy="50" fill="none" r="30" stroke="currentColor" stroke-width="0.5"></circle>
+<circle cx="50" cy="50" fill="none" r="20" stroke="currentColor" stroke-width="0.5"></circle>
+</svg>
+</div>
+</div>
+</body></html>

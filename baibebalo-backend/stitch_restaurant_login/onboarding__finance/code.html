@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1d110c] dark:text-white transition-colors duration-200">
+<div class="flex flex-col min-h-screen max-w-[430px] mx-auto bg-background-light dark:bg-background-dark shadow-xl">
+<!-- TopAppBar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#1d110c] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Onboarding</h2>
+</header>
+<!-- ProgressBar -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#1d110c] dark:text-white text-base font-semibold leading-normal">Informations Financières</p>
+<p class="text-[#1d110c] dark:text-white/70 text-sm font-normal leading-normal">5/6</p>
+</div>
+<div class="rounded-full bg-[#ead5cd] dark:bg-white/10 overflow-hidden h-2">
+<div class="h-full bg-primary" style="width: 83.33%;"></div>
+</div>
+</div>
+<!-- Main Content Scroll Area -->
+<main class="flex-1 overflow-y-auto px-4 pb-10">
+<!-- HeadlineText -->
+<div class="pt-2">
+<h3 class="text-[#1d110c] dark:text-white tracking-light text-2xl font-bold leading-tight pb-2">Paramètres de paiement</h3>
+<p class="text-sm text-[#a15d45] dark:text-white/60 mb-4">Configurez comment vous souhaitez recevoir vos revenus.</p>
+</div>
+<!-- SectionHeader: Provider Selection -->
+<h3 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-3 pt-4">Fournisseur Mobile Money</h3>
+<!-- SegmentedButtons -->
+<div class="flex py-3">
+<div class="flex h-12 flex-1 items-center justify-center rounded-xl bg-[#f4eae6] dark:bg-white/5 p-1.5">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-[0_2px_4px_rgba(0,0,0,0.1)] has-[:checked]:text-primary dark:has-[:checked]:text-white text-[#a15d45] dark:text-white/40 text-sm font-semibold transition-all">
+<span class="truncate">Orange</span>
+<input checked="" class="invisible w-0" name="provider" type="radio" value="Orange"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-[0_2px_4px_rgba(0,0,0,0.1)] has-[:checked]:text-primary dark:has-[:checked]:text-white text-[#a15d45] dark:text-white/40 text-sm font-semibold transition-all">
+<span class="truncate">MTN</span>
+<input class="invisible w-0" name="provider" type="radio" value="MTN"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-primary has-[:checked]:shadow-[0_2px_4px_rgba(0,0,0,0.1)] has-[:checked]:text-primary dark:has-[:checked]:text-white text-[#a15d45] dark:text-white/40 text-sm font-semibold transition-all">
+<span class="truncate">Moov</span>
+<input class="invisible w-0" name="provider" type="radio" value="Moov"/>
+</label>
+</div>
+</div>
+<!-- Input Fields Section -->
+<div class="space-y-4 mt-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-medium text-[#1d110c] dark:text-white px-1">Nom du titulaire du compte</label>
+<input class="w-full px-4 py-3 rounded-xl border-none bg-white dark:bg-white/5 shadow-sm focus:ring-2 focus:ring-primary text-[#1d110c] dark:text-white" placeholder="Ex: Jean Dupont" type="text"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-sm font-medium text-[#1d110c] dark:text-white px-1">Numéro de téléphone lié</label>
+<input class="w-full px-4 py-3 rounded-xl border-none bg-white dark:bg-white/5 shadow-sm focus:ring-2 focus:ring-primary text-[#1d110c] dark:text-white" placeholder="00 00 00 00 00" type="tel"/>
+</div>
+</div>
+<!-- Info Card: Commission and Frequency -->
+<div class="mt-8 p-4 rounded-xl bg-primary/10 dark:bg-primary/20 border border-primary/20">
+<div class="flex items-center gap-2 mb-3">
+<span class="material-symbols-outlined text-primary scale-90">info</span>
+<h4 class="font-bold text-[#1d110c] dark:text-white">Détails du partenariat</h4>
+</div>
+<div class="space-y-3">
+<div class="flex justify-between items-center border-b border-primary/10 pb-2">
+<span class="text-sm text-[#a15d45] dark:text-white/70">Taux de commission</span>
+<span class="font-bold text-primary">15 - 20%</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-sm text-[#a15d45] dark:text-white/70">Fréquence de paiement</span>
+<span class="font-bold text-[#1d110c] dark:text-white">Hebdomadaire</span>
+</div>
+</div>
+</div>
+<!-- Checkbox Terms -->
+<div class="flex items-start gap-3 mt-8 px-1">
+<div class="relative flex items-center h-5">
+<input class="w-5 h-5 rounded border-2 border-primary text-primary focus:ring-primary cursor-pointer transition-all" id="terms" type="checkbox"/>
+</div>
+<label class="text-sm text-[#1d110c] dark:text-white leading-snug cursor-pointer" for="terms">
+                    J'accepte les <span class="text-primary font-medium">conditions d'utilisation</span> de BAIBEBALO et je confirme que les informations fournies sont exactes.
+                </label>
+</div>
+</main>
+<!-- Fixed Footer CTA -->
+<footer class="p-4 bg-background-light dark:bg-background-dark border-t border-black/5 dark:border-white/5">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+                Suivant
+            </button>
+</footer>
+</div>
+</body></html>

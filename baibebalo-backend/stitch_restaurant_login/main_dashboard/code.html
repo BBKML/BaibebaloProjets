@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Restaurant Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#f56e3d",
+              "background-light": "#f8f6f5",
+              "background-dark": "#221510",
+            },
+            fontFamily: {
+              "display": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: "Work Sans", sans-serif;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-slate-100 min-h-screen pb-24">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="flex flex-col">
+<h2 class="text-primary text-xl font-bold leading-tight tracking-tight uppercase">BAIBEBALO</h2>
+<p class="text-xs text-slate-500 font-medium">Centre de gestion</p>
+</div>
+<div class="flex items-center gap-2 bg-white dark:bg-slate-800 px-3 py-1.5 rounded-full shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+<p class="text-primary text-sm font-bold tracking-wide">OUVERT</p>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto">
+<!-- Key Stats Section -->
+<div class="flex overflow-x-auto gap-3 p-4 custom-scrollbar">
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">CA du jour</p>
+<p class="text-slate-900 dark:text-white text-xl font-bold">450,50€</p>
+<div class="flex items-center gap-1 text-green-500 text-[10px] font-bold">
+<span class="material-symbols-outlined text-xs">trending_up</span> +12%
+                </div>
+</div>
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Commandes</p>
+<p class="text-slate-900 dark:text-white text-xl font-bold">24</p>
+<div class="flex items-center gap-1 text-primary text-[10px] font-bold">
+<span class="material-symbols-outlined text-xs">pending_actions</span> 3 en cours
+                </div>
+</div>
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-slate-800 shadow-sm border border-slate-100 dark:border-slate-700">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium uppercase tracking-wider">Note</p>
+<p class="text-slate-900 dark:text-white text-xl font-bold">4.8</p>
+<div class="flex items-center gap-0.5 text-yellow-500 text-[10px]">
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs fill-1">star</span>
+<span class="material-symbols-outlined text-xs">star_half</span>
+</div>
+</div>
+</div>
+<!-- New Orders Section -->
+<div class="px-4 py-2">
+<div class="flex items-center justify-between mb-3">
+<div class="flex items-center gap-2">
+<h2 class="text-slate-900 dark:text-white text-lg font-bold">Nouvelles commandes</h2>
+<span class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full">1</span>
+</div>
+<button class="text-primary text-sm font-semibold">Tout voir</button>
+</div>
+<!-- Active Order Card -->
+<div class="relative overflow-hidden flex items-stretch justify-between gap-4 rounded-xl bg-white dark:bg-slate-800 p-4 shadow-md border-l-4 border-primary">
+<div class="flex flex-[2_2_0px] flex-col gap-3">
+<div class="flex flex-col gap-0.5">
+<div class="flex items-center gap-2">
+<span class="text-primary text-xs font-bold uppercase">Urgent</span>
+<span class="text-slate-400 dark:text-slate-500 text-xs">• Il y a 2 min</span>
+</div>
+<p class="text-slate-900 dark:text-white text-lg font-bold leading-tight">Commande #F-892</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">2x Poke Bowl • 1x Mochi • 34.00€</p>
+</div>
+<!-- Countdown Timer -->
+<div class="flex gap-2">
+<div class="flex flex-col items-center bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-lg">
+<p class="text-primary text-sm font-bold leading-none">04</p>
+<p class="text-primary text-[8px] font-medium uppercase">min</p>
+</div>
+<div class="flex flex-col items-center bg-primary/10 dark:bg-primary/20 px-3 py-1 rounded-lg">
+<p class="text-primary text-sm font-bold leading-none">55</p>
+<p class="text-primary text-[8px] font-medium uppercase">sec</p>
+</div>
+<button class="ml-auto flex items-center justify-center rounded-lg h-10 px-6 bg-primary text-white text-sm font-bold shadow-lg shadow-primary/30 active:scale-95 transition-transform">
+                            Accepter
+                        </button>
+</div>
+</div>
+</div>
+</div>
+<!-- Performance Chart Placeholder -->
+<div class="p-4 mt-2">
+<div class="bg-white dark:bg-slate-800 rounded-xl p-5 shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="flex items-center justify-between mb-6">
+<div>
+<h3 class="text-slate-900 dark:text-white text-base font-bold">Performance</h3>
+<p class="text-slate-500 dark:text-slate-400 text-xs">7 derniers jours</p>
+</div>
+<span class="material-symbols-outlined text-slate-400">insights</span>
+</div>
+<!-- Mock Chart Area -->
+<div class="h-32 w-full flex items-end justify-between gap-2 px-1">
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-t-sm h-[40%]"></div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-t-sm h-[65%]"></div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-t-sm h-[50%]"></div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-t-sm h-[85%]"></div>
+<div class="w-full bg-primary rounded-t-sm h-[70%]"></div>
+<div class="w-full bg-slate-100 dark:bg-slate-700 rounded-t-sm h-[60%]"></div>
+<div class="w-full bg-slate-200 dark:bg-slate-600 rounded-t-sm h-[95%]"></div>
+</div>
+<div class="flex justify-between mt-2 px-1">
+<span class="text-[10px] text-slate-400 font-medium uppercase">Lun</span>
+<span class="text-[10px] text-slate-400 font-medium uppercase">Mar</span>
+<span class="text-[10px] text-slate-400 font-medium uppercase">Mer</span>
+<span class="text-[10px] text-slate-400 font-medium uppercase">Jeu</span>
+<span class="text-[10px] text-primary font-bold uppercase">Ven</span>
+<span class="text-[10px] text-slate-400 font-medium uppercase">Sam</span>
+<span class="text-[10px] text-slate-400 font-medium uppercase">Dim</span>
+</div>
+</div>
+</div>
+<!-- Top 5 Dishes -->
+<div class="px-4 pb-8">
+<h3 class="text-slate-900 dark:text-white text-lg font-bold mb-4">Top 5 plats</h3>
+<div class="space-y-3">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Poke bowl with fresh salmon and avocado" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCtlQVY2jGh3IQowdG8aH8-WADkAF2jc3A5NvkP4dHMBd5IyRfKg7skAOsf7-GPJ9CrC8779R3TUYZZZMZvLPfE6YA4-5nnrKqlNHhRk1m0ESyYdvJEzo1Jd_LBkhr9UKffpSqHqbdaepD8IIR67-2gl-DUAv2EaYURm51cw6X0jVV32nmilPBIju7MSIEQeq2ujQ8htxfv-4X5n733UYYEx0FzUKz3nVLutn5qI1WNXloyWrZVZVIshK0VldSiLBwnuML9ie8UytMT');"></div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white text-sm font-bold">Poke Bowl Saumon</p>
+<p class="text-slate-500 text-xs">124 ventes cette semaine</p>
+</div>
+<div class="text-primary font-bold text-sm">#1</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Beef ramen bowl with soft boiled egg" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuC5hMMaXRkpi09K3hLwdhNVQpPKKavngnhBhTBldWqXw_IOX_WuDLrNhuxtGoGrqYQK42fcTZcI2dwM0DB8-sdgssUnWeVZggbxXZzE6V5p6Q03tllrX0WzBiYVgzqtZ6j-bVYaFGJNRUNO5jPEPGQ74ETU_2i1FSf2DYwed5Svrv4KswYyVUk7M5KRTFjcWLjibQ36gdgPRNBnqBmEQJTg8sh16wsXBOT6YlLJRgzVOlMtHyN8XuOTBwSeZM1Qlte3Vxg1LTIy0aRt');"></div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white text-sm font-bold">Ramen Shoyu Boeuf</p>
+<p class="text-slate-500 text-xs">98 ventes cette semaine</p>
+</div>
+<div class="text-primary font-bold text-sm">#2</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-4 bg-white dark:bg-slate-800 p-3 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+<div class="w-12 h-12 rounded-lg bg-center bg-cover flex-shrink-0" data-alt="Box of colorful mochis" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBQpeNeVS4PtyJHaau0gviTi0MfW_CNdqj_jAyDTWGMySFpZ_JXLubPbGrfInzuKoaarA8F6wHCsyFyzZXMMU7-9g2hf94_17S2oAJC7FijM2AWFVT30MlJx0DFeYxF667lOFcwDDgnYXFTGVpWkOF-mUPSKP1GNovcHLQLe_7LwfYeDQ9NHLqIsJnHJAl8KSRzm48fmE3uFzkZn-04nH7xuGOxq1TNtQ-7KVrYnotHCsFO2qaf73FBct0FaPa8j0lfz7ucW0AXY9My');"></div>
+<div class="flex-1">
+<p class="text-slate-900 dark:text-white text-sm font-bold">Mochi Glacé (Mix)</p>
+<p class="text-slate-500 text-xs">85 ventes cette semaine</p>
+</div>
+<div class="text-primary font-bold text-sm">#3</div>
+</div>
+</div>
+</div>
+</main>
+<!-- iOS Style Tab Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-t border-slate-200 dark:border-slate-800 pb-6 pt-2 px-6">
+<div class="max-w-md mx-auto flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill-1">dashboard</span>
+<span class="text-[10px] font-bold">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined">receipt_long</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="text-[10px] font-medium">Menu</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 dark:text-slate-500">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Réglages</span>
+</button>
+</div>
+</nav>
+</body></html>

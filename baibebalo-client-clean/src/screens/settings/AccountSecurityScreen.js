@@ -6,16 +6,18 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Switch,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
 export default function AccountSecurityScreen({ navigation }) {
+  const [biometryEnabled, setBiometryEnabled] = useState(true);
   const securityOptions = [
     {
       icon: 'lock-closed-outline',
-      label: 'Changer le mot de passe',
-      description: 'Mettez à jour votre mot de passe',
+      label: 'Changer le code PIN',
+      description: 'Requis pour vos paiements mobile money',
       onPress: () => {
         Alert.alert('Info', 'Fonctionnalité à venir');
       },
@@ -37,17 +39,9 @@ export default function AccountSecurityScreen({ navigation }) {
       },
     },
     {
-      icon: 'finger-print-outline',
-      label: 'Authentification à deux facteurs',
-      description: 'Ajouter une couche de sécurité supplémentaire',
-      onPress: () => {
-        Alert.alert('Info', 'Fonctionnalité à venir');
-      },
-    },
-    {
-      icon: 'shield-checkmark-outline',
-      label: 'Sessions actives',
-      description: 'Gérer vos appareils connectés',
+      icon: 'devices-outline',
+      label: 'Gérer les appareils',
+      description: 'Voir et déconnecter vos sessions actives',
       onPress: () => {
         Alert.alert('Info', 'Fonctionnalité à venir');
       },
@@ -60,29 +54,21 @@ export default function AccountSecurityScreen({ navigation }) {
     },
   ];
 
-  const safetyTips = [
-    'Ne partagez jamais votre mot de passe',
-    'Utilisez un mot de passe fort et unique',
-    'Activez l\'authentification à deux facteurs',
-    'Déconnectez-vous des appareils publics',
-    'Signalez toute activité suspecte',
-  ];
-
   return (
     <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Sécurité du compte</Text>
-        <Text style={styles.headerSubtitle}>
-          Gérez la sécurité de votre compte BAIBEBALO
-        </Text>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>Sécurité du compte</Text>
+        <View style={styles.topBarSpacer} />
       </View>
 
-      {/* Options de sécurité */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Paramètres de sécurité</Text>
-        {securityOptions.map((option, index) => (
+        <Text style={styles.sectionTitle}>Authentification</Text>
+        {securityOptions.map((option) => (
           <TouchableOpacity
-            key={index}
+            key={option.label}
             style={styles.optionCard}
             onPress={option.onPress}
           >
@@ -100,22 +86,34 @@ export default function AccountSecurityScreen({ navigation }) {
             />
           </TouchableOpacity>
         ))}
+        <View style={styles.optionCard}>
+          <View style={styles.optionIcon}>
+            <Ionicons name="finger-print-outline" size={24} color={COLORS.primary} />
+          </View>
+          <View style={styles.optionContent}>
+            <Text style={styles.optionLabel}>Activer la biométrie</Text>
+            <Text style={styles.optionDescription}>
+              Utilisez FaceID ou votre empreinte pour vous connecter
+            </Text>
+          </View>
+          <Switch
+            value={biometryEnabled}
+            onValueChange={setBiometryEnabled}
+            trackColor={{ false: COLORS.border, true: COLORS.primary }}
+            thumbColor={COLORS.white}
+          />
+        </View>
       </View>
 
-      {/* Conseils de sécurité */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Conseils de sécurité</Text>
+        <Text style={styles.sectionTitle}>Conseil de sécurité</Text>
         <View style={styles.tipsContainer}>
-          {safetyTips.map((tip, index) => (
-            <View key={index} style={styles.tipItem}>
-              <Ionicons
-                name="checkmark-circle"
-                size={20}
-                color={COLORS.success}
-              />
-              <Text style={styles.tipText}>{tip}</Text>
-            </View>
-          ))}
+          <View style={styles.tipItem}>
+            <Ionicons name="shield-checkmark" size={20} color={COLORS.primary} />
+            <Text style={styles.tipText}>
+              BAIBEBALO ne vous demandera jamais votre code PIN par SMS ou par téléphone.
+            </Text>
+          </View>
         </View>
       </View>
 
@@ -154,20 +152,32 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    padding: 24,
+    display: 'none',
+  },
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  headerTitle: {
-    fontSize: 28,
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  topBarTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 8,
   },
-  headerSubtitle: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
+  topBarSpacer: {
+    width: 40,
   },
   section: {
     marginTop: 8,

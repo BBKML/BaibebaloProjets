@@ -25,6 +25,7 @@ import CommissionSettings from './pages/CommissionSettings';
 import DeliveryZones from './pages/DeliveryZones';
 import PromoCodes from './pages/PromoCodes';
 import NotificationTemplates from './pages/NotificationTemplates';
+import SendNotification from './pages/SendNotification';
 import PromotionalBanners from './pages/PromotionalBanners';
 import BadgesRewards from './pages/BadgesRewards';
 import FinancialDashboard from './pages/FinancialDashboard';
@@ -61,6 +62,8 @@ import PendingRestaurantPayments from './pages/PendingRestaurantPayments';
 import AccountSettings from './pages/AccountSettings';
 import ResetPassword from './pages/ResetPassword';
 import ForgotPassword from './pages/ForgotPassword';
+import RestaurantDetails from './pages/RestaurantDetails';
+import DriverDetails from './pages/DriverDetails';
 
 // Créer le client React Query
 const queryClient = new QueryClient({
@@ -131,6 +134,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Restaurants />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/restaurants/:id"
+            element={
+              <ProtectedRoute>
+                <RestaurantDetails />
               </ProtectedRoute>
             }
           />
@@ -271,6 +282,14 @@ function App() {
             }
           />
           <Route
+            path="/notifications/send"
+            element={
+              <ProtectedRoute>
+                <SendNotification />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/settings/banners"
             element={
               <ProtectedRoute>
@@ -395,6 +414,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <Drivers />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/drivers/:id"
+            element={
+              <ProtectedRoute>
+                <DriverDetails />
               </ProtectedRoute>
             }
           />

@@ -142,8 +142,8 @@ router.post(
       .withMessage('Titre requis'),
     body('address_line')
       .trim()
-      .isLength({ min: 5 })
-      .withMessage('Adresse complète requise'),
+      .isLength({ min: 2 })
+      .withMessage('Adresse requise (min 2 caractères)'),
     body('district')
       .optional()
       .trim(),
@@ -151,11 +151,21 @@ router.post(
       .optional()
       .trim(),
     body('latitude')
-      .isFloat({ min: -90, max: 90 })
-      .withMessage('Latitude invalide'),
+      .optional({ values: 'null' })
+      .custom((value) => {
+        if (value === null || value === undefined || value === '') return true;
+        const lat = parseFloat(value);
+        if (isNaN(lat) || lat < -90 || lat > 90) throw new Error('Latitude invalide');
+        return true;
+      }),
     body('longitude')
-      .isFloat({ min: -180, max: 180 })
-      .withMessage('Longitude invalide'),
+      .optional({ values: 'null' })
+      .custom((value) => {
+        if (value === null || value === undefined || value === '') return true;
+        const lng = parseFloat(value);
+        if (isNaN(lng) || lng < -180 || lng > 180) throw new Error('Longitude invalide');
+        return true;
+      }),
     body('is_default')
       .optional()
       .isBoolean(),
@@ -253,6 +263,13 @@ router.delete('/me/favorites/:restaurantId', userController.removeFavorite);
  * @access  Private (Client)
  */
 router.get('/me/loyalty', userController.getLoyaltyPoints);
+
+/**
+ * @route   GET /api/v1/users/me/loyalty/transactions
+ * @desc    Obtenir l'historique des transactions de fidélité
+ * @access  Private (Client)
+ */
+router.get('/me/loyalty/transactions', userController.getLoyaltyTransactions);
 
 /**
  * @route   GET /api/v1/users/me/referrals

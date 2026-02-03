@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Transaction History - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#fa6c38",
+              "background-light": "#f8f6f5",
+              "background-dark": "#23150f",
+            },
+            fontFamily: {
+              "display": ["Work Sans"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+      body {
+        font-family: 'Work Sans', sans-serif;
+      }
+      .custom-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c110d] dark:text-white min-h-screen">
+<div class="max-w-[480px] mx-auto min-h-screen flex flex-col bg-background-light dark:bg-background-dark relative shadow-xl">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-[#1c110d] dark:text-white flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">Transaction History</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-transparent text-[#1c110d] dark:text-white gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</div>
+</header>
+<!-- Stats Section -->
+<div class="px-4 py-2">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-primary text-white shadow-lg">
+<p class="text-white/80 text-sm font-medium leading-normal uppercase tracking-wider">Available Balance</p>
+<div class="flex items-end justify-between">
+<p class="text-white tracking-tight text-3xl font-bold leading-tight font-display">$12,842.50</p>
+<div class="bg-white/20 p-2 rounded-lg backdrop-blur-sm">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Filters / Chips -->
+<div class="flex gap-3 p-4 overflow-x-auto custom-scrollbar">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary px-5 text-white shadow-sm">
+<p class="text-sm font-semibold leading-normal">All</p>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#32231e] px-4 text-[#1c110d] dark:text-white border border-gray-100 dark:border-gray-800">
+<p class="text-sm font-medium leading-normal">Credits</p>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#32231e] px-4 text-[#1c110d] dark:text-white border border-gray-100 dark:border-gray-800">
+<p class="text-sm font-medium leading-normal">Debits</p>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#32231e] px-4 text-[#1c110d] dark:text-white border border-gray-100 dark:border-gray-800">
+<span class="material-symbols-outlined text-[18px]">calendar_today</span>
+<p class="text-sm font-medium leading-normal">Oct 2023</p>
+</button>
+</div>
+<!-- Section 1: Today -->
+<div class="px-4 pt-4">
+<h3 class="text-[#1c110d] dark:text-white text-sm font-bold uppercase tracking-widest opacity-60 font-display">Today, Oct 27</h3>
+</div>
+<div class="flex flex-col mt-2 px-2">
+<!-- ListItem: Credit -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1e18] px-4 min-h-[72px] py-3 justify-between rounded-xl mb-2 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="text-green-600 dark:text-green-400 flex items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Order #8821 - Payout</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">12:30 PM • Store Sale</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-green-600 dark:text-green-400 text-base font-bold leading-normal">+$45.00</p>
+</div>
+</div>
+<!-- ListItem: Debit -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1e18] px-4 min-h-[72px] py-3 justify-between rounded-xl mb-2 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="text-red-600 dark:text-red-400 flex items-center justify-center rounded-xl bg-red-50 dark:bg-red-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">account_balance</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Bank Withdrawal</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">10:15 AM • Weekly Payout</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-red-600 dark:text-red-400 text-base font-bold leading-normal">-$1,200.00</p>
+</div>
+</div>
+</div>
+<!-- Section 2: Yesterday -->
+<div class="px-4 pt-6">
+<h3 class="text-[#1c110d] dark:text-white text-sm font-bold uppercase tracking-widest opacity-60 font-display">Yesterday, Oct 26</h3>
+</div>
+<div class="flex flex-col mt-2 px-2">
+<!-- ListItem: Credit -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1e18] px-4 min-h-[72px] py-3 justify-between rounded-xl mb-2 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="text-green-600 dark:text-green-400 flex items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Order #8819 - Payout</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">08:45 PM • Online App</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-green-600 dark:text-green-400 text-base font-bold leading-normal">+$112.50</p>
+</div>
+</div>
+<!-- ListItem: Commission (Debit) -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1e18] px-4 min-h-[72px] py-3 justify-between rounded-xl mb-2 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">percent</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">BAIBEBALO Commission</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">06:00 PM • Service Fee</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-red-600 dark:text-red-400 text-base font-bold leading-normal">-$15.40</p>
+</div>
+</div>
+<!-- ListItem: Credit -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1e18] px-4 min-h-[72px] py-3 justify-between rounded-xl mb-2 shadow-sm">
+<div class="flex items-center gap-4">
+<div class="text-green-600 dark:text-green-400 flex items-center justify-center rounded-xl bg-green-50 dark:bg-green-900/20 shrink-0 size-12">
+<span class="material-symbols-outlined">shopping_cart</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Order #8815 - Payout</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal leading-normal">02:20 PM • Walk-in Sale</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-green-600 dark:text-green-400 text-base font-bold leading-normal">+$240.00</p>
+</div>
+</div>
+</div>
+<!-- Footer Button -->
+<div class="p-6 mb-8">
+<button class="w-full flex h-12 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-[#32231e] border border-gray-200 dark:border-gray-800 text-[#1c110d] dark:text-white font-semibold">
+<span>View More</span>
+<span class="material-symbols-outlined">expand_more</span>
+</button>
+</div>
+<!-- IOS Bottom Indicator Bar -->
+<div class="flex justify-center pb-2">
+<div class="w-32 h-1 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+</div>
+</div>
+</body></html>

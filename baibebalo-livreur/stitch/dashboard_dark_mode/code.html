@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO Driver Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec5b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#111827",
+                        "card-dark": "#1F2937",
+                        "charcoal": "#111827",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .glow-green {
+            box-shadow: 0 0 15px rgba(19, 236, 91, 0.3);
+        }
+        .glow-blue {
+            box-shadow: 0 0 10px rgba(59, 130, 246, 0.8);
+        }
+        .pulse-red {
+            animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: .6; transform: scale(1.1); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-[430px] mx-auto overflow-x-hidden pb-24">
+<!-- TopAppBar / Profile Section -->
+<div class="flex items-center bg-background-dark p-4 pb-2 justify-between sticky top-0 z-20">
+<div class="flex size-12 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="Close up portrait of a smiling delivery driver" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDmvRGTF55HfZydE1nh7pjvTS9VfDBOy34cI4rvN0mvvbopSCuD0YBTNhiIUMppZdEHKlItzx8Kkj90ObGR5OnIIlvifbR2Nv4M8yUgpP2IT9e3fdDszERZI1STyzeOb6xBACXE3lte4NxW1qxbWarugVjX_igNPKqYZwWxzsj4N_oLghMD6cvgA0zz0L6cO8Btg7tutlF2sPeaGe-y3RDAGm8IqDfZjNj09F0JyJRsCOFBG_QWgztBKINc3yhCaY5frjKp8Oqbm9Ju");'>
+</div>
+</div>
+<div class="flex-1 ml-3">
+<p class="text-gray-400 text-xs font-medium">Bon retour,</p>
+<h2 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Jean!</h2>
+</div>
+<div class="flex w-12 items-center justify-end">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-card-dark text-white hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined">notifications</span>
+</button>
+</div>
+</div>
+<!-- Availability Toggle / SingleButton -->
+<div class="flex px-4 py-6 justify-center">
+<button class="flex min-w-[240px] w-full max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-14 px-5 bg-primary text-background-dark text-lg font-bold leading-normal tracking-[0.015em] glow-green active:scale-95 transition-transform">
+<span class="material-symbols-outlined mr-2">radio_button_checked</span>
+<span class="truncate uppercase">Disponible</span>
+</button>
+</div>
+<!-- Stats Grid -->
+<div class="flex flex-wrap gap-3 p-4">
+<div class="flex min-w-[110px] flex-1 flex-col gap-1 rounded-xl p-4 bg-card-dark">
+<p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Gains</p>
+<p class="text-white tracking-tight text-xl font-bold leading-tight">€142.50</p>
+<p class="text-primary text-xs font-medium flex items-center">
+<span class="material-symbols-outlined text-sm mr-1">trending_up</span>+15%
+                </p>
+</div>
+<div class="flex min-w-[110px] flex-1 flex-col gap-1 rounded-xl p-4 bg-card-dark border border-gray-800">
+<p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Courses</p>
+<p class="text-white tracking-tight text-xl font-bold leading-tight">12</p>
+<p class="text-gray-500 text-xs font-medium">Aujourd'hui</p>
+</div>
+<div class="flex min-w-[110px] flex-1 flex-col gap-1 rounded-xl p-4 bg-card-dark border border-gray-800">
+<p class="text-gray-400 text-xs font-medium uppercase tracking-wider">Note</p>
+<p class="text-white tracking-tight text-xl font-bold leading-tight">4.9</p>
+<p class="text-yellow-400 text-xs font-medium flex items-center">
+<span class="material-symbols-outlined text-sm mr-1 fill-1">star</span>Excellent
+                </p>
+</div>
+</div>
+<!-- ProgressBar / Daily Goal -->
+<div class="flex flex-col gap-3 p-4 mx-4 mb-4 rounded-xl bg-card-dark border border-gray-800">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-white text-base font-semibold leading-normal">Objectif quotidien</p>
+<p class="text-primary text-sm font-bold leading-normal">75%</p>
+</div>
+<div class="h-3 rounded-full bg-gray-700 overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 75%;"></div>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-gray-400 text-xs font-normal">€142.50 / €200.00</p>
+<p class="text-gray-500 text-xs font-normal">3 courses restantes</p>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="flex items-center justify-between px-4 pb-2 pt-4">
+<h3 class="text-white text-lg font-bold leading-tight tracking-[-0.015em]">Zones de forte demande</h3>
+<span class="text-primary text-xs font-bold uppercase cursor-pointer">Voir tout</span>
+</div>
+<!-- Dark Mode Mini-Map -->
+<div class="px-4 py-2">
+<div class="relative h-64 w-full rounded-xl overflow-hidden bg-gray-800 border border-gray-700 shadow-2xl">
+<!-- Mock Map Background -->
+<div class="absolute inset-0 opacity-40 grayscale contrast-125" data-alt="Dark stylized city map with glowing streets" data-location="Paris, France" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCVKOTbYnzdwZEcTEj6FUBGzrgXiawIj2RIwkLn4uYTuBCa94BZxkVUSeie6X14rTGM3YWdllDt5Rgt3KDEAS_Ef4biKGn-oIubXfgTxgtE2UyuMI6NlMzSxSzt8M4XkZIJshFZjcztj0woHlaF15NDPrQlK0x6RYw1q4jHlJoNrTwGKz2InPzq1FqqdwM7tDPd_tX48tXzffLakR-Sp7fWRii7nq5di9QiwiyJwfz0mfBnR5wyxsm-UIgc0ITwvbcPjgy3amUEWvbA'); background-size: cover; background-position: center;">
+</div>
+<!-- Heatmap pulses -->
+<div class="absolute top-1/4 left-1/3 size-16 bg-red-600/30 rounded-full blur-xl pulse-red"></div>
+<div class="absolute top-1/2 right-1/4 size-24 bg-red-600/20 rounded-full blur-2xl pulse-red"></div>
+<!-- Current location dot -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+<div class="relative flex items-center justify-center">
+<div class="absolute size-8 bg-blue-500/30 rounded-full animate-ping"></div>
+<div class="size-4 bg-blue-500 border-2 border-white rounded-full glow-blue z-10"></div>
+</div>
+</div>
+<!-- Controls Overlay -->
+<div class="absolute bottom-4 right-4 flex flex-col gap-2">
+<button class="size-10 bg-background-dark/80 backdrop-blur rounded-lg flex items-center justify-center border border-gray-700 shadow-lg">
+<span class="material-symbols-outlined text-white">my_location</span>
+</button>
+<button class="size-10 bg-background-dark/80 backdrop-blur rounded-lg flex items-center justify-center border border-gray-700 shadow-lg">
+<span class="material-symbols-outlined text-white">layers</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 h-20 bg-background-dark/90 backdrop-blur-md border-t border-gray-800 flex items-center justify-around px-6 z-30 max-w-[430px] mx-auto">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined scale-110">dashboard</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-500">
+<span class="material-symbols-outlined">map</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Carte</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-500">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Courses</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-500">
+<span class="material-symbols-outlined">wallet</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Revenus</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-500">
+<span class="material-symbols-outlined">support_agent</span>
+<span class="text-[10px] font-medium uppercase tracking-tight">Support</span>
+</div>
+</nav>
+<!-- Emergency Floating Button -->
+<button class="fixed bottom-24 right-4 size-14 bg-red-600 rounded-full flex items-center justify-center shadow-xl z-20 max-w-[430px]">
+<span class="material-symbols-outlined text-white text-3xl">emergency</span>
+</button>
+</div>
+</body></html>

@@ -39,25 +39,32 @@ export default function CategoryResultsScreen({ navigation, route }) {
       style={styles.restaurantCard}
       onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.id })}
     >
-      <Image
-        source={{ uri: item.image_url || 'https://via.placeholder.com/300' }}
-        style={styles.restaurantImage}
-      />
-      <View style={styles.restaurantInfo}>
-        <Text style={styles.restaurantName}>{item.name}</Text>
-        <Text style={styles.restaurantCategory}>{item.category || category?.name}</Text>
-        <View style={styles.restaurantMeta}>
-          <View style={styles.ratingContainer}>
-            <Ionicons name="star" size={14} color={COLORS.warning} />
-            <Text style={styles.rating}>{item.rating || '4.5'}</Text>
+      <View style={styles.restaurantImageWrapper}>
+        <Image
+          source={{ uri: item.banner || item.logo || item.image_url || 'https://via.placeholder.com/300' }}
+          style={styles.restaurantImage}
+        />
+        <View style={styles.badgeRow}>
+          <View style={styles.ratingBadge}>
+            <Ionicons name="star" size={12} color={COLORS.warning} />
+            <Text style={styles.ratingText}>{item.rating || '4.5'}</Text>
           </View>
-          <Text style={styles.separator}>•</Text>
-          <Text style={styles.deliveryTime}>
-            {item.estimated_delivery_time || '30-45'} min
-          </Text>
-          <Text style={styles.separator}>•</Text>
-          <Text style={styles.distance}>{item.distance || '2.5 km'}</Text>
+          <View style={styles.timeBadge}>
+            <Ionicons name="time-outline" size={12} color={COLORS.white} />
+            <Text style={styles.timeText}>{item.estimated_delivery_time || '30-45'} min</Text>
+          </View>
         </View>
+      </View>
+      <View style={styles.restaurantInfo}>
+        <View style={styles.restaurantHeader}>
+          <Text style={styles.restaurantName}>{item.name}</Text>
+          <TouchableOpacity style={styles.favoriteButton}>
+            <Ionicons name="heart" size={18} color={COLORS.primary} />
+          </TouchableOpacity>
+        </View>
+        <Text style={styles.restaurantCategory}>
+          {item.category || category?.name} • {item.distance || '2.5 km'}
+        </Text>
       </View>
     </TouchableOpacity>
   );
@@ -72,23 +79,34 @@ export default function CategoryResultsScreen({ navigation, route }) {
 
   return (
     <View style={styles.container}>
-      {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={20} color={COLORS.text} />
         </TouchableOpacity>
-        <View style={styles.headerContent}>
-          <Text style={styles.headerTitle}>{category?.name || 'Catégorie'}</Text>
-          <Text style={styles.headerSubtitle}>
-            {restaurants.length} restaurant{restaurants.length > 1 ? 's' : ''}
-          </Text>
-        </View>
+        <Text style={styles.headerTitle}>{category?.name || 'Catégorie'}</Text>
+        <TouchableOpacity style={styles.searchButton}>
+          <Ionicons name="search" size={20} color={COLORS.text} />
+        </TouchableOpacity>
       </View>
 
-      {/* Liste des restaurants */}
+      <View style={styles.infoRow}>
+        <Text style={styles.infoTag}>Spécialités Ivoiriennes</Text>
+        <Text style={styles.infoCount}>
+          {restaurants.length} RESTAURANTS
+        </Text>
+      </View>
+
+      <View style={styles.filtersRow}>
+        <TouchableOpacity style={styles.filterButton}>
+          <Text style={styles.filterText}>Pertinence</Text>
+          <Ionicons name="chevron-down" size={14} color={COLORS.primary} />
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.filterButton}>
+          <Ionicons name="options" size={14} color={COLORS.textSecondary} />
+          <Text style={styles.filterText}>Filtres</Text>
+        </TouchableOpacity>
+      </View>
+
       {restaurants.length > 0 ? (
         <FlatList
           data={restaurants}
@@ -117,90 +135,162 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    padding: 16,
-    backgroundColor: COLORS.white,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: COLORS.background,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
-    gap: 12,
   },
   backButton: {
-    padding: 8,
-  },
-  headerContent: {
-    flex: 1,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   headerTitle: {
+    flex: 1,
+    textAlign: 'center',
     fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
   },
-  headerSubtitle: {
-    fontSize: 14,
+  searchButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  infoRow: {
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 4,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  infoTag: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  infoCount: {
+    fontSize: 10,
+    fontWeight: '700',
     color: COLORS.textSecondary,
+    backgroundColor: COLORS.primary + '10',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 10,
+  },
+  filtersRow: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  filterText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.text,
   },
   listContent: {
     padding: 16,
   },
   restaurantCard: {
-    flexDirection: 'row',
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    marginBottom: 12,
+    borderRadius: 16,
+    marginBottom: 16,
     overflow: 'hidden',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  restaurantImageWrapper: {
+    position: 'relative',
   },
   restaurantImage: {
-    width: 120,
-    height: 120,
+    width: '100%',
+    height: 180,
     backgroundColor: COLORS.border,
   },
+  badgeRow: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
+    gap: 8,
+  },
+  ratingBadge: {
+    backgroundColor: COLORS.white,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  ratingText: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  timeBadge: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 10,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  timeText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.white,
+  },
   restaurantInfo: {
-    flex: 1,
     padding: 12,
+  },
+  restaurantHeader: {
+    flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
   },
   restaurantName: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 4,
+  },
+  favoriteButton: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary + '10',
   },
   restaurantCategory: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  restaurantMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  ratingContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  rating: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  separator: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginHorizontal: 4,
-  },
-  deliveryTime: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  distance: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
   },
   emptyState: {

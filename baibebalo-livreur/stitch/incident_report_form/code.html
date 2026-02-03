@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Incident Report Form - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            -webkit-tap-highlight-color: transparent;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white min-h-screen">
+<!-- Top Navigation Bar (iOS Style) -->
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#d0e7d9] dark:border-white/10">
+<div class="flex items-center justify-between h-14 px-4">
+<button class="flex items-center justify-center p-2 text-[#4e976b] hover:bg-black/5 rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</button>
+<h1 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">
+                Rapport d'incident complet
+            </h1>
+</div>
+</header>
+<main class="max-w-[480px] mx-auto pb-10">
+<!-- Form Header Description -->
+<div class="px-4 py-6">
+<p class="text-sm text-[#4e976b] font-medium uppercase tracking-wider mb-1">Portail Livreur</p>
+<h2 class="text-2xl font-bold leading-tight">Détails de l'incident</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm mt-1">Veuillez remplir ce formulaire avec précision pour un traitement rapide par l'administration.</p>
+</div>
+<form class="space-y-4">
+<!-- Type d'incident Selection -->
+<div class="px-4">
+<label class="flex flex-col w-full">
+<p class="text-[#0e1b13] dark:text-white text-base font-medium leading-normal pb-2">Type d'incident</p>
+<div class="relative">
+<select class="form-select flex w-full min-w-0 flex-1 appearance-none rounded-lg text-[#0e1b13] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#d0e7d9] dark:border-white/10 bg-white dark:bg-background-dark/50 h-14 p-[15px] text-base font-normal leading-normal">
+<option disabled="" selected="" value="">Sélectionner le type</option>
+<option value="accident">Accident de la route</option>
+<option value="mechanical">Problème mécanique</option>
+<option value="delay">Retard de livraison important</option>
+<option value="package">Colis endommagé</option>
+<option value="safety">Incident de sécurité</option>
+</select>
+<span class="material-symbols-outlined absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-[#4e976b]">unfold_more</span>
+</div>
+</label>
+</div>
+<!-- Lieu (Auto-rempli) -->
+<div class="px-4">
+<label class="flex flex-col w-full">
+<p class="text-[#0e1b13] dark:text-white text-base font-medium leading-normal pb-2">Lieu (auto-rempli)</p>
+<div class="flex w-full flex-1 items-stretch rounded-lg shadow-sm">
+<input class="form-input flex w-full min-w-0 flex-1 rounded-l-lg text-[#0e1b13] dark:text-white focus:outline-0 focus:ring-0 border border-[#d0e7d9] dark:border-white/10 bg-slate-50 dark:bg-white/5 h-14 p-[15px] pr-2 text-base font-normal leading-normal" readonly="" value="128 Rue de la République, Paris"/>
+<div class="text-[#4e976b] flex border border-[#d0e7d9] dark:border-white/10 border-l-0 bg-slate-50 dark:bg-white/5 items-center justify-center pr-[15px] rounded-r-lg">
+<span class="material-symbols-outlined">map</span>
+</div>
+</div>
+</label>
+</div>
+<!-- Heure -->
+<div class="px-4">
+<label class="flex flex-col w-full">
+<p class="text-[#0e1b13] dark:text-white text-base font-medium leading-normal pb-2">Heure</p>
+<div class="relative">
+<input class="form-input flex w-full min-w-0 flex-1 rounded-lg text-[#0e1b13] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#d0e7d9] dark:border-white/10 bg-white dark:bg-background-dark/50 h-14 p-[15px] text-base font-normal leading-normal" type="time" value="14:30"/>
+</div>
+</label>
+</div>
+<!-- Description détaillée -->
+<div class="px-4">
+<label class="flex flex-col w-full">
+<p class="text-[#0e1b13] dark:text-white text-base font-medium leading-normal pb-2">Description détaillée</p>
+<textarea class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#0e1b13] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#d0e7d9] dark:border-white/10 bg-white dark:bg-background-dark/50 min-h-36 placeholder:text-slate-400 p-[15px] text-base font-normal leading-normal" placeholder="Veuillez décrire l'incident en détail..."></textarea>
+</label>
+</div>
+<!-- Photos Upload Section -->
+<div class="px-4 py-2">
+<p class="text-[#0e1b13] dark:text-white text-base font-medium leading-normal pb-3">Preuves photographiques (max 5)</p>
+<div class="flex gap-3 overflow-x-auto pb-2">
+<button class="shrink-0 size-24 border-2 border-dashed border-[#d0e7d9] dark:border-white/20 rounded-xl flex flex-col items-center justify-center text-[#4e976b] bg-white dark:bg-white/5 hover:border-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-3xl">add_a_photo</span>
+<span class="text-[10px] font-bold mt-1 uppercase">Ajouter</span>
+</button>
+<!-- Mock Thumbnail 1 -->
+<div class="shrink-0 size-24 rounded-xl bg-cover bg-center border border-[#d0e7d9] dark:border-white/10 relative overflow-hidden group" data-alt="Photo showing a vehicle bumper scrape" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAbNCkKVAuhO-kjSBm-aFpEw-8gHtVx4MCW10xocl_1zv_k-A8eRbV3NsO2NbzUFAl3E5bK2Wii9DacW4o38RQlQHCjxFVUbH9T6zatzcb3Z6M8SpSYLejEnMbTYTH7JokMhvTsMGhAiiFpct6uJI3pova76VWwPYke5dYIhmn3uiP-2ulJtniwZo64TMiejTLTUTnkZ5HxyLs2IOEaM4t5oSGE6F-gCyyykYSv-K7kg6pyDymIIo3Xdua332wkTCfYqPBV71zPZsGx')">
+<button class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+<!-- Mock Thumbnail 2 -->
+<div class="shrink-0 size-24 rounded-xl bg-cover bg-center border border-[#d0e7d9] dark:border-white/10 relative overflow-hidden group" data-alt="Photo of a damaged package box on a delivery scooter" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDuGh_6HRm4apLYY-RS0PiAH-R-JYcghZvD3Hvq16tgXp9QmLHgPJgj9pSSYY1EeWHBS__MQgqUSH3YqiwqiggcB7KOI7z3yB5q_hdLlMC7ykNo5T-atHGs9jw_nRavT7hio8IDYcZMwE_Oc2DXS90ALQCgrc3LtKBCyTwvahEkuPg96_KIXSl9h_bG4T7p-3ECuvXc-59ClJLYyQMAAreDrP-Vy1LjNclGJgePC5ssMRrpk6ki89ljtZ8XgMGDcyo3PhsnrxUwxslx')">
+<button class="absolute top-1 right-1 bg-black/50 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-sm">close</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Warning Banner -->
+<div class="px-4">
+<div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/50 rounded-xl p-4 flex gap-3">
+<span class="material-symbols-outlined text-amber-600 dark:text-amber-500 shrink-0">warning</span>
+<p class="text-xs leading-relaxed text-amber-800 dark:text-amber-200">
+<span class="font-bold">Attention :</span> Ce rapport sera examiné par l'administration. Toute fausse déclaration ou omission délibérée peut entraîner des sanctions disciplinaires immédiates.
+                    </p>
+</div>
+</div>
+<!-- Action Button -->
+<div class="px-4 pt-4 pb-8">
+<button class="w-full bg-primary hover:bg-[#15c55c] text-[#112117] font-bold text-base h-14 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 transition-transform active:scale-[0.98]" type="submit">
+<span class="material-symbols-outlined">send</span>
+                    ENVOYER LE RAPPORT
+                </button>
+</div>
+</form>
+</main>
+<!-- Map Preview Placeholder (Contextual UI) -->
+<div class="hidden lg:block fixed bottom-4 right-4 max-w-xs bg-white dark:bg-background-dark border border-[#d0e7d9] dark:border-white/10 rounded-2xl p-3 shadow-2xl">
+<div class="rounded-xl h-40 w-full mb-3 bg-slate-200 overflow-hidden relative">
+<img class="w-full h-full object-cover grayscale contrast-125" data-alt="Map view showing Paris city streets" data-location="Paris" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD6gTtfmCPCGsehVMtpBu-T0JKnor5z-k32hb2Uiu2LRrcedp0sA9OvhnbVKR86WdM_f4qTWADvrHXRStGpIO3XQHDzLe04yFF_m6XepDpg22N0ad3SovUJIeRtFINdWXehiN_Kq7KBhIzivibr1Y4c-HuS_X6gio99YFMPU_02c9M90ziNysd2kmldGdtp5Y0rj5GQPiB4O0T3Yue4zKLYsDxNfweN7CEkvaASrz6YGxTb0TQeDjPtfcPUuiWgSTosV_Y0cK2eJMB"/>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-red-500 text-4xl" style="font-variation-settings: 'FILL' 1">location_on</span>
+</div>
+</div>
+<p class="text-[10px] text-slate-400 font-bold uppercase tracking-tighter">Localisation confirmée par GPS</p>
+</div>
+</body></html>

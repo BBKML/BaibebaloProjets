@@ -6,9 +6,11 @@
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
+    "dev:clean": "powershell -Command \"Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force }\" && nodemon index.js",
     "migrate": "node src/database/migrate.js",
     "migrate:reset": "node src/database/migrate.js --reset",
     "migrate:seed": "node src/database/seed.js",
+    "seed:restaurants": "node seed-5-restaurants.js",
     "admin:create": "node src/scripts/create-admin.js",
     "admin:test": "node src/scripts/test-admin-login.js",
     "test": "jest --coverage",
@@ -62,7 +64,7 @@
     "sharp": "^0.33.1",
     "socket.io": "^4.6.0",
     "speakeasy": "^2.0.0",
-    "twilio": "^4.19.0",
+    "twilio": "^4.23.0",
     "uuid": "^9.0.1",
     "winston": "^3.11.0"
   },

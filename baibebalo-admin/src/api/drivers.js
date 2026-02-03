@@ -56,6 +56,12 @@ const driversAPI = {
     const response = await apiClient.put(`/admin/delivery-persons/${id}/suspend`, { reason });
     return response.data;
   },
+
+  // Demander des informations complémentaires
+  requestInfo: async (id, message) => {
+    const response = await apiClient.post(`/admin/delivery-persons/${id}/request-info`, { message });
+    return response.data;
+  },
 };
 
 export default driversAPI;

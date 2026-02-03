@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import { MapContainer, TileLayer, Marker, Popup, Circle, useMap } from 'react-leaflet';
 import L from 'leaflet';
@@ -33,6 +34,7 @@ function MapController({ center, zoom }) {
 }
 
 const GeographicHeatmap = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState('24h');
   const [orderType, setOrderType] = useState('all');
   const [mapCenter, setMapCenter] = useState(KORHOGO_CENTER);
@@ -156,6 +158,15 @@ const GeographicHeatmap = () => {
         {/* Sidebar - Data & Filters */}
         <aside className="w-80 lg:w-96 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 overflow-y-auto custom-scrollbar">
           <div className="p-6 space-y-6">
+            {/* Bouton retour */}
+            <button
+              onClick={() => navigate(-1)}
+              className="flex items-center gap-2 text-slate-600 dark:text-slate-400 hover:text-primary dark:hover:text-primary transition-colors"
+            >
+              <span className="material-symbols-outlined">arrow_back</span>
+              <span className="text-sm font-medium">Retour</span>
+            </button>
+            
             <div>
               <div className="flex items-center gap-2 mb-1">
                 <span className="text-primary text-xs font-bold uppercase tracking-widest">Phase 5</span>

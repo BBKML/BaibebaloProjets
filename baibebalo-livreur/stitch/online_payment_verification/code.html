@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec5b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d1b12] dark:text-white min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#0d1b12] dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined cursor-pointer">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0d1b12] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Confirmation de paiement</h2>
+</header>
+<main class="flex-1 flex flex-col items-center px-6 pt-8 pb-12 max-w-md mx-auto w-full">
+<!-- Large Success Icon -->
+<div class="mb-6 flex items-center justify-center size-24 bg-primary/20 rounded-full">
+<span class="material-symbols-outlined text-primary text-6xl">check_circle</span>
+</div>
+<!-- Headline Status -->
+<h1 class="text-[#0d1b12] dark:text-white tracking-light text-[28px] font-extrabold leading-tight text-center pb-2">
+            Paiement déjà effectué
+        </h1>
+<p class="text-[#4c9a66] dark:text-primary/80 text-center font-medium mb-8">
+            La commande a été réglée en ligne.
+        </p>
+<!-- Transaction Details Card -->
+<div class="w-full bg-white dark:bg-[#1a2e21] rounded-xl shadow-sm border border-black/5 dark:border-white/5 overflow-hidden mb-6">
+<!-- Amount Section -->
+<div class="p-6 bg-primary/5 dark:bg-primary/10 flex flex-col items-center border-b border-black/5 dark:border-white/5">
+<p class="text-[#4c9a66] dark:text-primary/70 text-sm font-semibold uppercase tracking-wider mb-1">Montant réglé</p>
+<p class="text-[#0d1b12] dark:text-white tracking-tighter text-4xl font-extrabold">5 450 FCFA</p>
+</div>
+<!-- Payment Method Section -->
+<div class="flex items-center gap-4 px-6 py-5">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/20 shrink-0 size-12">
+<span class="material-symbols-outlined text-2xl">account_balance_wallet</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0d1b12] dark:text-white text-base font-bold leading-normal">Orange Money</p>
+<p class="text-[#4c9a66] dark:text-primary/70 text-sm font-medium leading-normal">Mode de paiement utilisé</p>
+</div>
+</div>
+</div>
+<!-- Instructional Alert -->
+<div class="w-full p-4 bg-primary/10 dark:bg-primary/5 border-2 border-dashed border-primary/30 rounded-xl mb-8">
+<div class="flex items-start gap-3">
+<span class="material-symbols-outlined text-primary mt-0.5">info</span>
+<p class="text-[#0d1b12] dark:text-white text-base font-semibold leading-tight">
+                    Aucune transaction nécessaire auprès du client.
+                </p>
+</div>
+</div>
+<!-- Spacer for push-down layout if needed on larger screens -->
+<div class="flex-grow"></div>
+<!-- Visual Confirmation Image/Art -->
+<div class="w-full @container mb-8">
+<div class="w-full h-32 overflow-hidden rounded-xl bg-primary/10 relative">
+<div class="absolute inset-0 opacity-20 bg-center bg-no-repeat bg-cover" data-alt="Abstract green geometric pattern symbolizing security and success" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDWVWTyeRd912zeZcKR4QlgPHrceFjg9hmMl_PbyVHc0QfeLeQGnxLSTYB4FVYtuY8BHv2y85hjXIzY8dCwqkI5yZIEidiFq-qpK1FYftapAe_9yA9-LK9bFhIcQgiNKEFtmAgkEaN55tF4c9i8wL0PbMO71_ekzJoyFe7pb60blAZsGrvnWfZ2FlnNmjiKXDEqp6xpJJ4rxg7nYAT1BKd9n6pqqV1Y7hmfWJN4cH-4ktfUBbEv0o1S6tR6PEAt57UJEFsaQHPgFBu7");'>
+</div>
+<div class="absolute inset-0 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary/40 text-7xl">verified_user</span>
+</div>
+</div>
+</div>
+<!-- Action Button -->
+<button class="w-full bg-primary hover:brightness-105 active:scale-[0.98] transition-all text-[#102216] text-lg font-extrabold h-16 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+            CONTINUER
+            <span class="material-symbols-outlined font-bold">arrow_forward</span>
+</button>
+<!-- Safe Area Spacer for iOS -->
+<div class="h-6"></div>
+</main>
+</body></html>

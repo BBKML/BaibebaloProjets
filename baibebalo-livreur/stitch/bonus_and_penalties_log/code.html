@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bonus and Penalties Log</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#195de6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .safe-area-bottom {
+            padding-bottom: env(safe-area-inset-bottom);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e121b] dark:text-white antialiased">
+<div class="relative flex min-h-screen w-full flex-col max-w-[480px] mx-auto bg-background-light dark:bg-background-dark overflow-x-hidden border-x border-gray-200 dark:border-gray-800">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-primary flex size-10 items-center justify-center rounded-full hover:bg-primary/10 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Earnings Log</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center rounded-lg h-10 w-10 bg-transparent text-primary">
+<span class="material-symbols-outlined">calendar_month</span>
+</button>
+</div>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto">
+<!-- Net Stats Card -->
+<div class="p-4">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-primary text-white shadow-lg shadow-primary/20">
+<p class="text-white/80 text-sm font-medium uppercase tracking-wider">Net Adjustment (Oct)</p>
+<div class="flex items-baseline gap-2">
+<p class="tracking-tight text-3xl font-bold leading-tight">+4,500 F</p>
+<span class="text-white/90 text-sm font-medium bg-white/20 px-2 py-0.5 rounded-full">+8.2%</span>
+</div>
+<div class="mt-4 grid grid-cols-2 gap-4 border-t border-white/20 pt-4">
+<div>
+<p class="text-white/60 text-xs uppercase">Total Bonuses</p>
+<p class="text-lg font-semibold">+6,200 F</p>
+</div>
+<div>
+<p class="text-white/60 text-xs uppercase">Total Penalties</p>
+<p class="text-lg font-semibold">-1,700 F</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Segmented Control Filters -->
+<div class="px-4 py-2">
+<div class="flex h-11 items-center justify-center rounded-xl bg-gray-200/50 dark:bg-gray-800 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm text-gray-500 dark:text-gray-400 has-[:checked]:text-primary font-semibold text-sm transition-all">
+<span class="truncate">All</span>
+<input checked="" class="invisible w-0" name="filter" type="radio" value="All"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm text-gray-500 dark:text-gray-400 has-[:checked]:text-primary font-semibold text-sm transition-all">
+<span class="truncate">Bonuses</span>
+<input class="invisible w-0" name="filter" type="radio" value="Bonuses"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm text-gray-500 dark:text-gray-400 has-[:checked]:text-primary font-semibold text-sm transition-all">
+<span class="truncate">Penalties</span>
+<input class="invisible w-0" name="filter" type="radio" value="Penalties"/>
+</label>
+</div>
+</div>
+<!-- Recent Activity List -->
+<h3 class="text-gray-500 dark:text-gray-400 text-sm font-bold uppercase tracking-widest px-4 pb-2 pt-6">Recent Activity</h3>
+<div class="flex flex-col">
+<!-- List Item 1: Bonus -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-900/50 px-4 min-h-[80px] py-3 border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+<div class="text-emerald-600 dark:text-emerald-400 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30 shrink-0 size-12">
+<span class="material-symbols-outlined">trending_up</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-[#0e121b] dark:text-white text-base font-semibold leading-tight line-clamp-1">Bonus Week-end</p>
+<p class="text-emerald-600 dark:text-emerald-400 text-base font-bold leading-normal">+5,000 F</p>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal mt-1">Oct 14, 2023 • Completed 15+ deliveries</p>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</div>
+</div>
+<!-- List Item 2: Penalty -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-900/50 px-4 min-h-[80px] py-3 border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+<div class="text-rose-600 dark:text-rose-400 flex items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/30 shrink-0 size-12">
+<span class="material-symbols-outlined">schedule</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-[#0e121b] dark:text-white text-base font-semibold leading-tight line-clamp-1">Retard excessif</p>
+<p class="text-rose-600 dark:text-rose-400 text-base font-bold leading-normal">-500 F</p>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal mt-1">Oct 12, 2023 • Order #BAIB-9821 Delay</p>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</div>
+</div>
+<!-- List Item 3: Bonus -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-900/50 px-4 min-h-[80px] py-3 border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+<div class="text-emerald-600 dark:text-emerald-400 flex items-center justify-center rounded-xl bg-emerald-100 dark:bg-emerald-900/30 shrink-0 size-12">
+<span class="material-symbols-outlined">thumb_up</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-[#0e121b] dark:text-white text-base font-semibold leading-tight line-clamp-1">Customer Tip (In-app)</p>
+<p class="text-emerald-600 dark:text-emerald-400 text-base font-bold leading-normal">+1,200 F</p>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal mt-1">Oct 11, 2023 • Excellent service rating</p>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</div>
+</div>
+<!-- List Item 4: Penalty -->
+<div class="flex items-center gap-4 bg-white dark:bg-gray-900/50 px-4 min-h-[80px] py-3 border-b border-gray-100 dark:border-gray-800 transition-colors hover:bg-gray-50 dark:hover:bg-gray-800/50">
+<div class="text-rose-600 dark:text-rose-400 flex items-center justify-center rounded-xl bg-rose-100 dark:bg-rose-900/30 shrink-0 size-12">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<div class="flex justify-between items-start">
+<p class="text-[#0e121b] dark:text-white text-base font-semibold leading-tight line-clamp-1">Missing Item Penalty</p>
+<p class="text-rose-600 dark:text-rose-400 text-base font-bold leading-normal">-1,000 F</p>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-normal mt-1">Oct 10, 2023 • Order #BAIB-9755 Incomplete</p>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</div>
+</div>
+<!-- Bottom Spacer for Tab Bar -->
+<div class="h-24"></div>
+</div>
+</main>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-white/90 dark:bg-gray-950/90 backdrop-blur-xl border-t border-gray-200 dark:border-gray-800 px-6 safe-area-bottom">
+<div class="flex h-16 items-center justify-between">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium">Home</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">directions_bike</span>
+<span class="text-[10px] font-medium">Orders</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-2xl font-bold">account_balance_wallet</span>
+<span class="text-[10px] font-bold">Earnings</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">account_circle</span>
+<span class="text-[10px] font-medium">Profile</span>
+</div>
+</div>
+</nav>
+</div>
+</body></html>

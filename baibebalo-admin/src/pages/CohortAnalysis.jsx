@@ -1,9 +1,11 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../components/layout/Layout';
 import { exportToCSV } from '../utils/export';
 
 const CohortAnalysis = () => {
+  const navigate = useNavigate();
   const [cohortType, setCohortType] = useState('registration');
   const [segment, setSegment] = useState('all');
 
@@ -63,14 +65,23 @@ const CohortAnalysis = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
-          <div className="space-y-2">
-            <h1 className="text-white text-4xl font-black leading-tight tracking-tighter">
-              Rétention Client
-            </h1>
-            <p className="text-slate-400 text-sm max-w-xl font-medium">
-              Visualisez l'évolution de la fidélité de vos clients mois après mois à l'aide de notre graphique
-              matriciel de cohorte.
-            </p>
+          <div className="flex items-start gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-slate-800 rounded-lg transition-colors mt-1"
+              title="Retour"
+            >
+              <span className="material-symbols-outlined text-slate-400">arrow_back</span>
+            </button>
+            <div className="space-y-2">
+              <h1 className="text-white text-4xl font-black leading-tight tracking-tighter">
+                Rétention Client
+              </h1>
+              <p className="text-slate-400 text-sm max-w-xl font-medium">
+                Visualisez l'évolution de la fidélité de vos clients mois après mois à l'aide de notre graphique
+                matriciel de cohorte.
+              </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-lg text-xs font-bold transition-all border border-slate-700">

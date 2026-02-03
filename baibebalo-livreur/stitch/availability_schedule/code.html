@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Availability Schedule - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>.custom-checkbox-grid:checked {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuBp1994hlnP5ERPiCofod0Q2677F4gWNAytIujgen265P7T87H-ZlPpjOf1riE1mTmu2gD89VQafu3DtxsfXR60xbBJkXTV1SUeBHPqLhVSfGXldPZGmFZZXxxxaOUOkAjUeY73L66tR9wiOIF5T9OMSd0hAYciWQBCxLynzJKF2q-p-KqymtdGT8plnAew567d_jEY3e9doi20v2KQ3YKYZBf_d9M-dC2oyosBKDmfA32Dl-5c3vPh4ogFKz-GyiwG_7d8xtjXkUhu)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-10 bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<button class="text-[#0e1b13] dark:text-white p-1 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h2 class="text-lg font-bold leading-tight flex-1 text-center pr-8">Vos disponibilités</h2>
+</div>
+</header>
+<main class="flex-1 max-w-md mx-auto w-full px-4 py-6">
+<!-- Progress Indicator -->
+<div class="flex w-full flex-row items-center justify-center gap-3 pb-6">
+<div class="h-2 w-2 rounded-full bg-primary/20"></div>
+<div class="h-2 w-2 rounded-full bg-primary/20"></div>
+<div class="h-2 w-2 rounded-full bg-primary/20"></div>
+<div class="h-2 w-2 rounded-full bg-primary/20"></div>
+<div class="h-2 w-8 rounded-full bg-primary"></div>
+</div>
+<!-- Headline -->
+<div class="mb-6">
+<h3 class="text-2xl font-bold leading-tight">Étape 5: Définissez vos horaires</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-2">Sélectionnez les créneaux où vous souhaitez livrer avec BAIBEBALO.</p>
+</div>
+<!-- Grid Header (Columns) -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 mb-2 sticky top-[72px] bg-background-light dark:bg-background-dark py-2 z-[5]">
+<div class="flex items-center justify-center"></div>
+<div class="text-center">
+<p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Matin</p>
+<p class="text-[10px] text-gray-400">8h-12h</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">A-Midi</p>
+<p class="text-[10px] text-gray-400">12h-18h</p>
+</div>
+<div class="text-center">
+<p class="text-[10px] font-bold uppercase tracking-wider text-gray-500">Soir</p>
+<p class="text-[10px] text-gray-400">18h-22h</p>
+</div>
+</div>
+<!-- Availability Grid Rows -->
+<div class="space-y-3 mb-8">
+<!-- Day Row: Lundi -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Lundi</div>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white scale-75 peer-checked:scale-100 transition-transform">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white scale-75 peer-checked:scale-100 transition-transform">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white scale-75 peer-checked:scale-100 transition-transform">check_circle</span>
+</div>
+</label>
+</div>
+<!-- Day Row: Mardi -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Mardi</div>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+</div>
+<!-- Day Row: Mercredi -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Mercredi</div>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+</div>
+<!-- Day Row: Jeudi -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Jeudi</div>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+</div>
+<!-- Day Row: Vendredi -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Vendredi</div>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input checked="" class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+</div>
+<!-- Day Row: Samedi -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Samedi</div>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+</div>
+<!-- Day Row: Dimanche -->
+<div class="grid grid-cols-[100px_1fr_1fr_1fr] gap-2 items-center">
+<div class="text-sm font-semibold">Dimanche</div>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+<label class="relative block h-12">
+<input class="peer sr-only" type="checkbox"/>
+<div class="w-full h-full bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg flex items-center justify-center peer-checked:bg-primary peer-checked:border-primary transition-all">
+<span class="material-symbols-outlined text-transparent peer-checked:text-white">check_circle</span>
+</div>
+</label>
+</div>
+</div>
+<!-- Flexibility Option -->
+<div class="bg-primary/5 dark:bg-primary/10 rounded-xl p-4 border border-primary/20 mb-8">
+<label class="flex items-center gap-4 cursor-pointer">
+<div class="flex-1">
+<p class="text-base font-bold leading-normal">Je suis flexible</p>
+<p class="text-xs text-gray-500">Accepter des livraisons en dehors de ces créneaux</p>
+</div>
+<input class="h-6 w-6 rounded-full border-primary border-2 bg-transparent text-primary checked:bg-primary focus:ring-0 focus:ring-offset-0 focus:border-primary transition-colors cursor-pointer custom-checkbox-grid" type="checkbox"/>
+</label>
+</div>
+</main>
+<!-- Bottom Action Area -->
+<footer class="p-4 max-w-md mx-auto w-full sticky bottom-0 bg-background-light dark:bg-background-dark border-t border-gray-100 dark:border-gray-800">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95">
+            TERMINER L'INSCRIPTION
+        </button>
+</footer>
+</body></html>

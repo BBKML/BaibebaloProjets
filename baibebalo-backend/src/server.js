@@ -23,6 +23,8 @@ const orderRoutes = require('./routes/order.routes');
 const deliveryRoutes = require('./routes/delivery.routes');
 const adminRoutes = require('./routes/admin.routes');
 const webhookRoutes = require('./routes/webhook.routes');
+const notificationRoutes = require('./routes/notification.routes');
+const adsRoutes = require('./routes/ads.routes');
 
 // Initialiser les cron jobs
 require('./jobs/cron');
@@ -153,6 +155,8 @@ app.use(`${apiPrefix}/orders`, orderRoutes);
 app.use(`${apiPrefix}/delivery`, deliveryRoutes);
 app.use(`${apiPrefix}/admin`, adminRoutes);
 app.use(`${apiPrefix}/webhooks`, webhookRoutes);
+app.use(`${apiPrefix}/notifications`, notificationRoutes);
+app.use(`${apiPrefix}/ads`, adsRoutes);
 
 // Route 404
 app.use(notFound);
@@ -210,7 +214,181 @@ io.use(async (socket, next) => {
   }
 });
 
-// Gestion WebSocket pour les mises à jour en temps réel
+// Namespace pour les partenaires (restaurants) - pas besoin d'auth admin
+const partnersNamespace = io.of('/partners');
+
+partnersNamespace.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    
+    if (!token) {
+      logger.warn(`Connexion WebSocket partenaire sans token: ${socket.id}`);
+      return next(new Error('Token manquant'));
+    }
+
+    const { verifyAccessToken } = require('./middlewares/auth');
+    const decoded = verifyAccessToken(token);
+
+    // Accepter restaurant ou delivery
+    if (decoded.type !== 'restaurant' && decoded.type !== 'delivery') {
+      return next(new Error('Accès réservé aux partenaires'));
+    }
+
+    socket.userId = decoded.id;
+    socket.userType = decoded.type;
+    
+    logger.info(`WebSocket partenaire authentifié: ${socket.id}, type: ${decoded.type}, id: ${decoded.id}`);
+    next();
+  } catch (error) {
+    logger.error(`Erreur auth WebSocket partenaire: ${socket.id}`, error);
+    next(new Error('Authentification échouée'));
+  }
+});
+
+partnersNamespace.on('connection', (socket) => {
+  logger.info(`Partenaire connecté: ${socket.id}, type: ${socket.userType}, id: ${socket.userId}`);
+  
+  // Rejoindre automatiquement la room du partenaire
+  socket.join(`${socket.userType}_${socket.userId}`);
+  
+  // === HANDLERS COMMUNS ===
+  
+  // Rejoindre un ticket de support pour recevoir les messages en temps réel
+  socket.on('join_support_ticket', (ticketId) => {
+    socket.join(`support_ticket_${ticketId}`);
+    logger.debug(`Partenaire ${socket.userId} a rejoint support_ticket_${ticketId}`);
+  });
+  
+  // Quitter un ticket de support
+  socket.on('leave_support_ticket', (ticketId) => {
+    socket.leave(`support_ticket_${ticketId}`);
+    logger.debug(`Partenaire ${socket.userId} a quitté support_ticket_${ticketId}`);
+  });
+
+  // === HANDLERS LIVREURS ===
+  
+  // Rejoindre la room d'une commande
+  socket.on('join_order', (data) => {
+    const orderId = data?.order_id || data;
+    socket.join(`order_${orderId}`);
+    logger.debug(`Livreur ${socket.userId} a rejoint order_${orderId}`);
+  });
+
+  // Quitter la room d'une commande
+  socket.on('leave_order', (data) => {
+    const orderId = data?.order_id || data;
+    socket.leave(`order_${orderId}`);
+    logger.debug(`Livreur ${socket.userId} a quitté order_${orderId}`);
+  });
+
+  // Mettre à jour le statut de disponibilité
+  socket.on('update_availability', async (data) => {
+    if (socket.userType !== 'delivery') return;
+    
+    try {
+      const { query } = require('./database/db');
+      const newStatus = data.available ? 'available' : 'offline';
+      
+      await query(
+        `UPDATE delivery_persons SET delivery_status = $1 WHERE id = $2`,
+        [newStatus, socket.userId]
+      );
+      
+      logger.debug(`Livreur ${socket.userId} disponibilité: ${newStatus}`);
+      
+      // Confirmer au livreur
+      socket.emit('availability_updated', { status: newStatus });
+
+      // Notifier les admins du changement de statut
+      io.to('admin_dashboard').emit('delivery_status_changed', {
+        delivery_person_id: socket.userId,
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Erreur update_availability:', error);
+    }
+  });
+
+  // Mise à jour de la position GPS du livreur
+  socket.on('location_update', async (data) => {
+    if (socket.userType !== 'delivery') return;
+    
+    try {
+      const { latitude, longitude, order_id } = data;
+      
+      // Sauvegarder la position
+      const { query } = require('./database/db');
+      await query(
+        `UPDATE delivery_persons SET current_latitude = $1, current_longitude = $2, last_location_update = NOW() WHERE id = $3`,
+        [latitude, longitude, socket.userId]
+      );
+      
+      // Si une commande est en cours, notifier le client
+      if (order_id) {
+        io.to(`order_${order_id}`).emit('delivery_location_updated', {
+          order_id,
+          latitude,
+          longitude,
+          delivery_person_id: socket.userId,
+          timestamp: new Date().toISOString(),
+        });
+      }
+
+      // Notifier les admins qui suivent tous les livreurs
+      io.to('all_deliveries_tracking').emit('delivery_location', {
+        delivery_person_id: socket.userId,
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString(),
+      });
+
+      // Notifier les admins qui suivent ce livreur spécifiquement
+      io.to(`track_delivery_${socket.userId}`).emit('delivery_location', {
+        delivery_person_id: socket.userId,
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (error) {
+      logger.error('Erreur location_update:', error);
+    }
+  });
+  
+  socket.on('disconnect', () => {
+    logger.info(`Partenaire déconnecté: ${socket.id}`);
+    
+    // Si c'est un livreur, le marquer comme hors ligne
+    if (socket.userType === 'delivery') {
+      const { query } = require('./database/db');
+      query(
+        `UPDATE delivery_persons SET delivery_status = 'offline' WHERE id = $1`,
+        [socket.userId]
+      ).catch(err => logger.error('Erreur mise à jour statut livreur:', err));
+
+      // Notifier les admins du changement de statut
+      io.to('admin_dashboard').emit('delivery_status_changed', {
+        delivery_person_id: socket.userId,
+        status: 'offline',
+        timestamp: new Date().toISOString(),
+      });
+    }
+
+    // Si c'est un restaurant, notifier les admins
+    if (socket.userType === 'restaurant') {
+      io.to('admin_dashboard').emit('restaurant_status_changed', {
+        restaurant_id: socket.userId,
+        status: 'offline',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+});
+
+// Rendre le namespace partenaires accessible
+app.set('partnersIo', partnersNamespace);
+
+// Gestion WebSocket pour les mises à jour en temps réel (admins)
 io.on('connection', (socket) => {
   logger.info(`Nouvelle connexion Socket.IO authentifiée: ${socket.id}, admin: ${socket.adminId}`);
 
@@ -235,6 +413,54 @@ io.on('connection', (socket) => {
   socket.on('join_delivery', (deliveryPersonId) => {
     socket.join(`delivery_${deliveryPersonId}`);
     logger.debug(`Socket ${socket.id} a rejoint delivery_${deliveryPersonId}`);
+  });
+
+  // Admin: suivre un livreur spécifique
+  socket.on('track_delivery', (data) => {
+    if (!socket.adminId) return;
+    const deliveryPersonId = data?.delivery_person_id || data;
+    socket.join(`track_delivery_${deliveryPersonId}`);
+    logger.debug(`Admin ${socket.adminId} suit le livreur ${deliveryPersonId}`);
+  });
+
+  // Admin: arrêter de suivre un livreur
+  socket.on('untrack_delivery', (data) => {
+    if (!socket.adminId) return;
+    const deliveryPersonId = data?.delivery_person_id || data;
+    socket.leave(`track_delivery_${deliveryPersonId}`);
+    logger.debug(`Admin ${socket.adminId} arrête de suivre le livreur ${deliveryPersonId}`);
+  });
+
+  // Admin: suivre tous les livreurs actifs
+  socket.on('track_all_deliveries', async () => {
+    if (!socket.adminId) return;
+    socket.join('all_deliveries_tracking');
+    logger.debug(`Admin ${socket.adminId} suit tous les livreurs`);
+    
+    // Envoyer immédiatement les positions actuelles de tous les livreurs
+    try {
+      const { query } = require('./database/db');
+      const result = await query(`
+        SELECT id, first_name, last_name, current_latitude, current_longitude, 
+               delivery_status, last_location_update
+        FROM delivery_persons 
+        WHERE delivery_status IN ('available', 'on_delivery')
+          AND current_latitude IS NOT NULL
+      `);
+      
+      socket.emit('all_delivery_locations', {
+        locations: result.rows.map(dp => ({
+          id: dp.id,
+          name: `${dp.first_name} ${dp.last_name || ''}`.trim(),
+          latitude: dp.current_latitude,
+          longitude: dp.current_longitude,
+          status: dp.delivery_status,
+          last_update: dp.last_location_update,
+        })),
+      });
+    } catch (error) {
+      logger.error('Erreur track_all_deliveries:', error);
+    }
   });
 
   // Livreur met à jour sa position

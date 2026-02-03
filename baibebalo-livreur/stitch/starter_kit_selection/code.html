@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Starter Kit Selection - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .checkbox-custom {
+            --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27white%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e1b13] dark:text-white min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 flex items-center bg-background-light dark:bg-background-dark p-4 border-b border-gray-200 dark:border-gray-800 justify-between">
+<div class="text-[#0e1b13] dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Starter Kit</h2>
+</header>
+<main class="flex-1 overflow-y-auto pb-40">
+<!-- HeadlineText -->
+<div class="px-4 pt-6 pb-2">
+<h3 class="text-[#0e1b13] dark:text-white tracking-light text-2xl font-bold leading-tight">Équipement optionnel</h3>
+</div>
+<!-- BodyText -->
+<div class="px-4 pb-6">
+<p class="text-[#0e1b13] dark:text-gray-300 text-base font-normal leading-normal">
+                Sélectionnez les articles que vous souhaitez ajouter à votre pack de démarrage pour commencer vos livraisons.
+            </p>
+</div>
+<!-- ListItem 1 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a2e22] mx-4 mb-3 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 justify-between checkbox-custom">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-16" data-alt="BAIBEBALO insulated delivery bag for food" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBG8mdqrrqFgFZG-HUBl7tVx8qHXEjvQiWx0e0cEOq4XLJAfdbp-VtOhe0XzcKAUC_eeghwu3WTzbOvT25pv42TBKaT6xXscDOJLK1JNiEMXwichxdsodx1uYONn3V7aOTsqg_sGbMci21AGf7PkIjkx7LZaGDORZdFGJSJcffTG34P0BqcLGMKmczYP67GSeyoWkqZswkJ4OXCUDjwZiPMFJoPbpSqMCvtOdnSIonoyZmQ5RVVrjNdGo17s4MRjUDSLIJ0GSv4i08B");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold leading-normal line-clamp-1">Sac isotherme BAIBEBALO</p>
+<p class="text-primary text-sm font-medium leading-normal">15,000 FCFA</p>
+</div>
+</div>
+<div class="shrink-0">
+<div class="flex size-8 items-center justify-center">
+<input checked="" class="h-6 w-6 rounded-md border-gray-300 dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all cursor-pointer" type="checkbox"/>
+</div>
+</div>
+</div>
+<!-- ListItem 2 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a2e22] mx-4 mb-3 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 justify-between checkbox-custom">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-16" data-alt="High visibility safety vest for drivers" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDGbgxhafvSgDZxTpI7aykLAMfzvcXDglmNJYS00FL0tk5QM0MxaYPs_jdnqG9YxD3Q1YQ7ABlvJWmD62veDPpnyZNkQ773GPePaSyWTFcsk0k62DIBtSG9YZkFOPVN0SDJr_WgvkYdonyCyC_XaoB_-GTjSuQAeoCVa94iGjBtTEExAyFqPzloaVF8z1mEEac-6cfITCvJxO3CuLVZ4hZ4FpopHoFyxT2cvWU2lZ7dbvUmGSqPrkHK0BJpXg_d1SxoUMbA345NiPac");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold leading-normal line-clamp-1">Gilet réfléchissant</p>
+<p class="text-primary text-sm font-medium leading-normal">5,000 FCFA</p>
+</div>
+</div>
+<div class="shrink-0">
+<div class="flex size-8 items-center justify-center">
+<input class="h-6 w-6 rounded-md border-gray-300 dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all cursor-pointer" type="checkbox"/>
+</div>
+</div>
+</div>
+<!-- ListItem 3 -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a2e22] mx-4 mb-6 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800 justify-between checkbox-custom">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg size-16" data-alt="Universal smartphone holder for motorcycle or bike" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAzoEczEdcDwH1_ez1enUZ6somcPB3GcyaYd8d4aLtWbu_EzE4lLAV3WSmSjUhi8RHuLyUDu3K6cIRZsHc_tE-qUS6OfGY46cPPh4-LMR5AjjoOwEPDs3TidYK8jC9BVPcMSS1DxUXikcRXfycPPBluaaObou2RSG7nGoZfk8KntSnsp8zn4f0MJfWmhwH1y0rkWzAvjruDx8QA_enCfM9anuT1q98RCNPTjrjgIa-2_3g9uk4sOG01_ZNvvZV0ltrgfAgSj1lpC4VN");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold leading-normal line-clamp-1">Support téléphone</p>
+<p class="text-primary text-sm font-medium leading-normal">3,000 FCFA</p>
+</div>
+</div>
+<div class="shrink-0">
+<div class="flex size-8 items-center justify-center">
+<input class="h-6 w-6 rounded-md border-gray-300 dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary checked:bg-[image:--checkbox-tick-svg] focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all cursor-pointer" type="checkbox"/>
+</div>
+</div>
+</div>
+<!-- Payment Method Section -->
+<div class="px-4 mt-4">
+<h4 class="text-[#0e1b13] dark:text-white text-sm font-bold uppercase tracking-wider mb-3">Mode de paiement</h4>
+<div class="space-y-2">
+<label class="flex items-center justify-between p-4 bg-white dark:bg-[#1a2e22] border border-gray-100 dark:border-gray-800 rounded-xl cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">payments</span>
+<span class="text-base font-medium">Payer maintenant</span>
+</div>
+<input checked="" class="w-5 h-5 text-primary border-gray-300 focus:ring-primary dark:bg-gray-800 dark:border-gray-600" name="payment" type="radio"/>
+</label>
+<label class="flex items-center justify-between p-4 bg-white dark:bg-[#1a2e22] border border-gray-100 dark:border-gray-800 rounded-xl cursor-pointer">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400 dark:text-gray-500">account_balance_wallet</span>
+<div class="flex flex-col">
+<span class="text-base font-medium">Déduction sur gains</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">Prélevé sur vos premières courses</span>
+</div>
+</div>
+<input class="w-5 h-5 text-primary border-gray-300 focus:ring-primary dark:bg-gray-800 dark:border-gray-600" name="payment" type="radio"/>
+</label>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<footer class="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#112117] p-4 border-t border-gray-200 dark:border-gray-800 shadow-[0_-4px_10px_rgba(0,0,0,0.05)]">
+<div class="max-w-md mx-auto">
+<div class="flex justify-between items-center mb-4 px-2">
+<span class="text-gray-500 dark:text-gray-400 font-medium">Total à payer</span>
+<span class="text-2xl font-bold text-primary">15,000 FCFA</span>
+</div>
+<button class="w-full bg-primary hover:bg-opacity-90 text-white font-bold py-4 rounded-xl text-lg tracking-wide shadow-lg active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                CONTINUER
+                <span class="material-symbols-outlined">chevron_right</span>
+</button>
+<div class="h-2 mt-2 w-32 bg-gray-300 dark:bg-gray-700 mx-auto rounded-full"></div> <!-- iOS indicator mimic -->
+</div>
+</footer>
+</body></html>

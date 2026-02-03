@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Plus Jakarta Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Plus Jakarta Sans", sans-serif;
+        }
+        .grayscale-filter {
+            filter: grayscale(100%);
+            opacity: 0.6;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#0e1b13] dark:text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark shadow-2xl overflow-x-hidden pb-24">
+<!-- Top App Bar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 sticky top-0 z-10">
+<div class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined cursor-pointer">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Mes Trophées</h2>
+</div>
+<!-- Headline Text -->
+<div class="px-4 pt-5">
+<h3 class="text-[#0e1b13] dark:text-white tracking-light text-2xl font-bold leading-tight">Prochain Badge</h3>
+</div>
+<!-- Progress Section Card -->
+<div class="p-4">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-sm bg-white dark:bg-[#1a2e21] border border-gray-100 dark:border-gray-800 overflow-hidden">
+<div class="w-full h-32 bg-gradient-to-br from-primary/20 to-primary/40 flex items-center justify-center relative overflow-hidden">
+<div class="absolute inset-0 opacity-20" style="background-image: radial-gradient(circle at 2px 2px, #19e66b 1px, transparent 0); background-size: 20px 20px;"></div>
+<span class="material-symbols-outlined text-primary text-6xl" style="font-variation-settings: 'FILL' 1">stars</span>
+</div>
+<div class="flex w-full flex-col items-stretch justify-center gap-1 py-4 px-4">
+<p class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Livreur d'Élite</p>
+<p class="text-[#4e976b] text-sm font-medium leading-normal">Encore 15 livraisons pour le bonus de +5000 FCFA</p>
+<!-- Progress Bar Component -->
+<div class="flex flex-col gap-2 mt-3">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#0e1b13] dark:text-white text-xs font-semibold uppercase tracking-wider">Progression</p>
+<p class="text-[#0e1b13] dark:text-white text-sm font-bold leading-normal">85/100</p>
+</div>
+<div class="h-2.5 w-full rounded-full bg-[#d0e7d9] dark:bg-gray-700">
+<div class="h-2.5 rounded-full bg-primary" style="width: 85%;"></div>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section Header -->
+<div class="px-4 pb-2 pt-4 flex justify-between items-end">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Mes Badges</h3>
+<span class="text-primary text-sm font-bold">2/4 Obtenus</span>
+</div>
+<!-- Badge Grid -->
+<div class="grid grid-cols-2 gap-4 p-4">
+<!-- Badge 1: Earned -->
+<div class="bg-white dark:bg-[#1a2e21] p-4 rounded-xl flex flex-col items-center text-center shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="size-20 rounded-full bg-primary/10 flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-primary text-4xl" style="font-variation-settings: 'FILL' 1">workspace_premium</span>
+</div>
+<p class="text-[#0e1b13] dark:text-white font-bold text-sm">Pionnier</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">Inscrit en 2023</p>
+<div class="mt-3 px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase">Débloqué</div>
+</div>
+<!-- Badge 2: Earned -->
+<div class="bg-white dark:bg-[#1a2e21] p-4 rounded-xl flex flex-col items-center text-center shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="size-20 rounded-full bg-yellow-100 flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-yellow-500 text-4xl" style="font-variation-settings: 'FILL' 1">grade</span>
+</div>
+<p class="text-[#0e1b13] dark:text-white font-bold text-sm">Note Parfaite</p>
+<p class="text-gray-500 dark:text-gray-400 text-xs mt-1">4.9/5 de moyenne</p>
+<div class="mt-3 px-3 py-1 bg-primary text-white text-[10px] font-bold rounded-full uppercase">Débloqué</div>
+</div>
+<!-- Badge 3: Locked -->
+<div class="bg-white dark:bg-[#1a2e21] p-4 rounded-xl flex flex-col items-center text-center shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+<div class="size-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3 grayscale-filter">
+<span class="material-symbols-outlined text-gray-400 text-4xl">speed</span>
+</div>
+<p class="text-gray-400 font-bold text-sm">Expert Vitesse</p>
+<p class="text-gray-400 text-xs mt-1">50 liv. &lt; 20 min</p>
+<div class="mt-3 flex items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Verrouillé</span>
+</div>
+</div>
+<!-- Badge 4: Locked -->
+<div class="bg-white dark:bg-[#1a2e21] p-4 rounded-xl flex flex-col items-center text-center shadow-sm border border-gray-100 dark:border-gray-800 relative overflow-hidden">
+<div class="size-20 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center mb-3 grayscale-filter">
+<span class="material-symbols-outlined text-gray-400 text-4xl">emoji_events</span>
+</div>
+<p class="text-gray-400 font-bold text-sm">100 Livraisons</p>
+<p class="text-gray-400 text-xs mt-1">Atteindre le centenaire</p>
+<div class="mt-3 flex items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-sm">lock</span>
+<span class="text-[10px] font-bold uppercase tracking-tight">Verrouillé</span>
+</div>
+</div>
+</div>
+<!-- Reward Modal Example (Overlay style) -->
+<div class="fixed inset-x-0 bottom-0 z-50 p-4 transition-transform translate-y-0 max-w-[430px] mx-auto">
+<div class="bg-white dark:bg-background-dark rounded-t-3xl shadow-[0_-10px_30px_rgba(0,0,0,0.1)] p-6 border-t dark:border-gray-800">
+<div class="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto mb-6"></div>
+<div class="flex flex-col items-center text-center">
+<div class="size-20 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary text-5xl" style="font-variation-settings: 'FILL' 1">card_giftcard</span>
+</div>
+<h4 class="text-xl font-bold mb-2">Félicitations !</h4>
+<p class="text-gray-600 dark:text-gray-300 mb-6 px-4">
+                        En atteignant le statut de <span class="text-primary font-bold">Livreur d'Élite</span>, vous débloquerez un bonus exceptionnel de <span class="font-bold">5000 FCFA</span> sur votre prochain versement.
+                    </p>
+<button class="w-full bg-primary hover:bg-primary/90 text-[#0e1b13] font-bold py-4 rounded-xl transition-colors">
+                        Fermer le détails
+                    </button>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<div class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center max-w-[430px] mx-auto">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">delivery_dining</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">trophy</span>
+<span class="text-[10px] font-medium">Récompenses</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+</div>
+</body></html>

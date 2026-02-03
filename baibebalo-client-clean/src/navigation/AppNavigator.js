@@ -1,10 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
+import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../store/authStore';
 import useCartStore from '../store/cartStore';
+import { useNotifications, useBackgroundNotifications } from '../hooks/useNotifications';
 
 // Écrans d'authentification
 import SplashScreen from '../screens/auth/SplashScreen';
@@ -23,6 +26,7 @@ import OrderHistoryScreen from '../screens/orders/OrderHistoryScreen';
 import OrderConfirmationScreen from '../screens/orders/OrderConfirmationScreen';
 import OrderDetailsScreen from '../screens/orders/OrderDetailsScreen';
 import OrderReviewScreen from '../screens/orders/OrderReviewScreen';
+import OrderChatScreen from '../screens/orders/OrderChatScreen';
 import ProfileScreen from '../screens/profile/ProfileScreen';
 import EditProfileScreen from '../screens/profile/EditProfileScreen';
 import ManageAddressesScreen from '../screens/addresses/ManageAddressesScreen';
@@ -60,6 +64,7 @@ import LocationAccessPermissionScreen from '../screens/location/LocationAccessPe
 import OrderReceiptScreen from '../screens/orders/OrderReceiptScreen';
 import MyClaimsTrackingScreen from '../screens/support/MyClaimsTrackingScreen';
 import ClaimTicketDetailsScreen from '../screens/support/ClaimTicketDetailsScreen';
+import NotificationsScreen from '../screens/notifications/NotificationsScreen';
 import DeleteAccountConfirmationScreen from '../screens/profile/DeleteAccountConfirmationScreen';
 import ReferralHistoryScreen from '../screens/loyalty/ReferralHistoryScreen';
 import ItemOutOfStockScreen from '../screens/errors/ItemOutOfStockScreen';
@@ -81,19 +86,43 @@ const Tab = createBottomTabNavigator();
 function MainTabs() {
   const { getItemCount } = useCartStore();
   const cartItemCount = getItemCount();
+  const insets = useSafeAreaInsets();
+
+  // Calculer la hauteur et padding dynamiquement
+  const tabBarHeight = 60 + insets.bottom;
+  const tabBarPaddingBottom = insets.bottom > 0 ? insets.bottom : 10;
+
+  console.log('📱 Safe Area Bottom:', insets.bottom);
+  console.log('📏 Tab Bar Height:', tabBarHeight);
 
   return (
     <Tab.Navigator
+      initialRouteName="Home"
       screenOptions={{
         headerShown: false,
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
         tabBarStyle: {
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
-          paddingBottom: 5,
-          paddingTop: 5,
-          height: 60,
+          paddingBottom: tabBarPaddingBottom,
+          paddingTop: 8,
+          height: tabBarHeight,
+          backgroundColor: COLORS.white,
+          elevation: 8,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.1,
+          shadowRadius: 3,
+        },
+        tabBarLabelStyle: {
+          fontSize: 11,
+          fontWeight: '600',
+          marginBottom: 2,
         },
       }}
     >
@@ -158,11 +187,23 @@ function MainTabs() {
   );
 }
 
+// Composant wrapper pour les notifications (doit être à l'intérieur du NavigationContainer)
+function NotificationWrapper({ isAuthenticated }) {
+  // Configurer les notifications en arrière-plan
+  useBackgroundNotifications();
+  
+  // Activer les notifications push si l'utilisateur est authentifié
+  useNotifications(isAuthenticated);
+  
+  return null; // Ce composant ne rend rien
+}
+
 // Navigateur principal
 export default function AppNavigator() {
   const { isAuthenticated, isLoading, loadAuth, user } = useAuthStore();
   const navigationRef = useRef(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  
   const logNavState = (label) => {
     const route = navigationRef.current?.getCurrentRoute?.();
     console.log('🧭 AppNavigator - Navigation state:', {
@@ -201,66 +242,31 @@ export default function AppNavigator() {
     console.log('🔄 AppNavigator re-render:', { isAuthenticated, isLoading, user: user?.id });
   }, [isAuthenticated, isLoading, user]);
 
-  // Navigation automatique quand l'authentification change
-  const prevAuthenticatedRef = useRef(isAuthenticated);
-  const isNavigatingRef = useRef(false); // Flag pour éviter les navigations multiples
-  
+  // Réinitialiser la navigation vers Home quand l'app démarre avec un utilisateur authentifié
   useEffect(() => {
-    // Ne naviguer que si on passe de non-authentifié à authentifié
-    // ET seulement si on n'est pas déjà en train de naviguer (pour éviter les conflits)
-    const wasAuthenticated = prevAuthenticatedRef.current;
-    prevAuthenticatedRef.current = isAuthenticated;
-    
-    // Ignorer si on est déjà en train de naviguer ou si isLoading change (pas d'authentification)
-    // IMPORTANT: Ne pas bloquer si on est sur PhoneEntry (navigation explicite vers OTP en cours)
-    const currentRoute = navigationRef.current?.getCurrentRoute?.();
-    const isOnPhoneEntry = currentRoute?.name === 'PhoneEntry';
-    
-    if (isNavigatingRef.current || (isLoading && !isOnPhoneEntry)) {
-      return;
+    if (isAuthenticated && !isBootstrapping && navigationRef.current) {
+      // Petit délai pour laisser la navigation se configurer
+      const timer = setTimeout(() => {
+        const currentRoute = navigationRef.current?.getCurrentRoute?.();
+        console.log('🔄 Current route after auth:', currentRoute?.name);
+        
+        // Si on est sur MainTabs mais pas sur Home, naviguer vers Home
+        if (currentRoute?.name === 'Profile' || currentRoute?.name === 'Cart' || 
+            currentRoute?.name === 'Orders' || currentRoute?.name === 'Search') {
+          console.log('🏠 Resetting to Home tab');
+          navigationRef.current?.reset({
+            index: 0,
+            routes: [{ name: 'MainTabs', state: { routes: [{ name: 'Home' }] } }],
+          });
+        }
+      }, 100);
+      return () => clearTimeout(timer);
     }
-    
-    if (navigationRef.current && isAuthenticated && !wasAuthenticated) {
-      isNavigatingRef.current = true;
-      
-      // Vérifier si l'utilisateur a un profil complet
-      // Le backend peut utiliser full_name ou first_name/last_name
-      const hasFullName = user?.full_name && user.full_name.trim().length > 0;
-      const hasFirstLastName = user?.first_name && user?.last_name;
-      const hasProfile = hasFullName || hasFirstLastName;
-      
-      console.log('📱 AppNavigator - Vérification profil:', { 
-        hasFullName, 
-        hasFirstLastName, 
-        hasProfile,
-        user: user ? { id: user.id, full_name: user.full_name, first_name: user.first_name, last_name: user.last_name } : null
-      });
-      
-      // Utiliser requestAnimationFrame pour s'assurer que le DOM est prêt
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          if (hasProfile) {
-            console.log('✅ AppNavigator - Navigation automatique vers MainTabs (profil complet)');
-            navigationRef.current?.reset({
-              index: 0,
-              routes: [{ name: 'MainTabs' }],
-            });
-          } else {
-            console.log('✅ AppNavigator - Navigation automatique vers ProfileCreation (profil incomplet)');
-            navigationRef.current?.reset({
-              index: 0,
-              routes: [{ name: 'ProfileCreation' }],
-            });
-          }
-          
-          // Réinitialiser le flag après un délai
-          setTimeout(() => {
-            isNavigatingRef.current = false;
-          }, 500);
-        });
-      });
-    }
-  }, [isAuthenticated, isLoading, user]);
+  }, [isAuthenticated, isBootstrapping]);
+
+  // 🚫 SUPPRESSION DE LA NAVIGATION AUTOMATIQUE
+  // La navigation est maintenant gérée par OTPVerificationScreen
+  // et ProfileCreationScreen directement
 
   if (isBootstrapping) {
     return <SplashScreen />;
@@ -268,22 +274,30 @@ export default function AppNavigator() {
 
   // Déterminer la route initiale
   const getInitialRoute = () => {
+    console.log('🏠 getInitialRoute called:', { isAuthenticated, user: user?.id, full_name: user?.full_name, isNewUser: user?.isNewUser });
     if (isAuthenticated) {
-      // Le backend peut utiliser full_name ou first_name/last_name
       const hasFullName = user?.full_name && user.full_name.trim().length > 0;
       const hasFirstLastName = user?.first_name && user?.last_name;
       const hasProfile = hasFullName || hasFirstLastName;
-      return hasProfile ? 'MainTabs' : 'ProfileCreation';
+      // Compte existant (session rechargée) : aller à l'accueil même si getMyProfile a échoué (réseau)
+      const isExistingAccount = user?.id && user?.isNewUser !== true;
+      const route = hasProfile || isExistingAccount ? 'MainTabs' : 'ProfileCreation';
+      console.log('🏠 Route déterminée:', route, { hasProfile, isExistingAccount });
+      return route;
     }
-    return 'PhoneEntry';
+    // 🔥 CORRECTION : Commencer par OnboardingWelcome pour les nouveaux utilisateurs
+    return 'OnboardingWelcome';
   };
 
   return (
-    <NavigationContainer
-      ref={navigationRef}
-      onReady={() => logNavState('ready')}
-      onStateChange={() => logNavState('state_change')}
-    >
+    <SafeAreaProvider>
+      <NavigationContainer
+        ref={navigationRef}
+        onReady={() => logNavState('ready')}
+        onStateChange={() => logNavState('state_change')}
+      >
+      {/* Wrapper pour les notifications - doit être à l'intérieur du NavigationContainer */}
+      <NotificationWrapper isAuthenticated={isAuthenticated} />
       <Stack.Navigator 
         screenOptions={{ 
           headerShown: false,
@@ -291,24 +305,20 @@ export default function AppNavigator() {
         }}
         initialRouteName={getInitialRoute()}
       >
-        <Stack.Screen 
-          name="ProfileCreation" 
-          component={ProfileCreationScreen}
-          options={{ headerShown: true, title: 'Création du profil' }}
-        />
-        {/* 🔥 GROUPE D'ÉCRANS D'AUTHENTIFICATION - TOUJOURS DISPONIBLES ENSEMBLE */}
+        {/* 🔐 GROUPE AUTHENTIFICATION & ONBOARDING (Non authentifié) */}
         {!isAuthenticated && (
-          <Stack.Group>
+          <Stack.Group screenOptions={{ gestureEnabled: false }}>
+            {/* 🔥 1. Écran de bienvenue (première étape) */}
             <Stack.Screen 
               name="OnboardingWelcome" 
               component={OnboardingWelcomeScreen}
-              options={{ gestureEnabled: false }}
             />
+            {/* 🔥 2. Entrée du numéro de téléphone */}
             <Stack.Screen 
               name="PhoneEntry" 
               component={PhoneEntryScreen}
-              options={{ gestureEnabled: false }}
             />
+            {/* 🔥 3. Vérification OTP */}
             <Stack.Screen 
               name="OTPVerification" 
               component={OTPVerificationScreen}
@@ -317,283 +327,351 @@ export default function AppNavigator() {
           </Stack.Group>
         )}
         
-        {/* 🔥 ÉCRANS PRINCIPAUX - Accessibles après authentification */}
+        {/* 🔥 ÉCRANS AUTHENTIFIÉS */}
         {isAuthenticated && (
           <>
+            {/* 🔥 4. Création de profil (après OTP pour nouveaux utilisateurs) */}
+            <Stack.Screen 
+              name="ProfileCreation" 
+              component={ProfileCreationScreen}
+              options={{ 
+                headerShown: false,
+                gestureEnabled: false  // Empêcher le retour arrière
+              }}
+            />
+
+            {/* 🏠 ÉCRAN PRINCIPAL */}
             <Stack.Screen name="MainTabs" component={MainTabs} />
-            <Stack.Screen
-              name="RestaurantDetail"
-              component={RestaurantDetailScreen}
-              options={{ headerShown: true, title: 'Restaurant' }}
-            />
-            <Stack.Screen
-              name="ShoppingCart"
-              component={ShoppingCartScreen}
-              options={{ headerShown: true, title: 'Panier' }}
-            />
-            <Stack.Screen
-              name="Checkout"
-              component={CheckoutScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OrderTracking"
-              component={OrderTrackingScreen}
-              options={{ headerShown: true, title: 'Suivi de commande' }}
-            />
-            <Stack.Screen
-              name="OrderConfirmation"
-              component={OrderConfirmationScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OrderDetails"
-              component={OrderDetailsScreen}
-              options={{ headerShown: true, title: 'Détails de la commande' }}
-            />
-            <Stack.Screen
-              name="OrderReview"
-              component={OrderReviewScreen}
-              options={{ headerShown: true, title: 'Évaluer la commande' }}
-            />
-            <Stack.Screen
-              name="EditProfile"
-              component={EditProfileScreen}
-              options={{ headerShown: true, title: 'Modifier le profil' }}
-            />
-            <Stack.Screen
-              name="ManageAddresses"
-              component={ManageAddressesScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="AddAddress"
-              component={AddAddressScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="AddressSelection"
-              component={AddressSelectionScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="PaymentMethod"
-              component={PaymentMethodScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="Search"
-              component={SearchScreen}
-              options={{ headerShown: true, title: 'Recherche' }}
-            />
-            <Stack.Screen
-              name="Favorites"
-              component={FavoritesScreen}
-              options={{ headerShown: true, title: 'Mes favoris' }}
-            />
-            <Stack.Screen
-              name="CustomizeDish"
-              component={CustomizeDishScreen}
-              options={{ headerShown: true, title: 'Personnaliser' }}
-            />
-            <Stack.Screen
-              name="Settings"
-              component={SettingsScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="HelpCenter"
-              component={HelpCenterScreen}
-              options={{ headerShown: true, title: 'Centre d\'aide' }}
-            />
-            <Stack.Screen
-              name="ContactSupport"
-              component={ContactSupportScreen}
-              options={{ headerShown: true, title: 'Support' }}
-            />
-            <Stack.Screen
-              name="LoyaltyDashboard"
-              component={LoyaltyDashboardScreen}
-              options={{ headerShown: true, title: 'Fidélité & Récompenses' }}
-            />
-            <Stack.Screen
-              name="DishInformation"
-              component={DishInformationScreen}
-              options={{ headerShown: true, title: 'Détails du plat' }}
-            />
-            <Stack.Screen
-              name="CategoryResults"
-              component={CategoryResultsScreen}
-              options={{ headerShown: true }}
-            />
-            <Stack.Screen
-              name="NotificationPreferences"
-              component={NotificationPreferencesScreen}
-              options={{ headerShown: true, title: 'Préférences de notifications' }}
-            />
-            <Stack.Screen
-              name="LanguageSettings"
-              component={LanguageSettingsScreen}
-              options={{ headerShown: true, title: 'Langue' }}
-            />
-            <Stack.Screen
-              name="AccountSecurity"
-              component={AccountSecurityScreen}
-              options={{ headerShown: true, title: 'Sécurité du compte' }}
-            />
-            <Stack.Screen
-              name="ReferralProgram"
-              component={ReferralProgramScreen}
-              options={{ headerShown: true, title: 'Programme de parrainage' }}
-            />
-            <Stack.Screen
-              name="PointsHistory"
-              component={PointsHistoryScreen}
-              options={{ headerShown: true, title: 'Historique des points' }}
-            />
-            <Stack.Screen
-              name="LiveChatSupport"
-              component={LiveChatSupportScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="ReportProblem"
-              component={ReportProblemScreen}
-              options={{ headerShown: true, title: 'Signaler un problème' }}
-            />
-            <Stack.Screen
-              name="TrackingDriverAssigned"
-              component={TrackingDriverAssignedScreen}
-              options={{ headerShown: true, title: 'Suivi de commande' }}
-            />
-            <Stack.Screen
-              name="TrackingPreparing"
-              component={TrackingPreparingScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="TrackingOutForDelivery"
-              component={TrackingOutForDeliveryScreen}
-              options={{ headerShown: true, title: 'En route' }}
-            />
-            <Stack.Screen
-              name="DeliveryArrival"
-              component={DeliveryArrivalScreen}
-              options={{ headerShown: true, title: 'Livraison' }}
-            />
-            <Stack.Screen
-              name="NetworkError"
-              component={NetworkErrorScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="ServerError"
-              component={ServerErrorScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="EmptyCart"
-              component={EmptyCartScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="AboutBaibebalo"
-              component={AboutBaibebaloScreen}
-              options={{ headerShown: true, title: 'À propos' }}
-            />
-            <Stack.Screen
-              name="PrivacyPolicy"
-              component={PrivacyPolicyScreen}
-              options={{ headerShown: true, title: 'Politique de confidentialité' }}
-            />
-            <Stack.Screen
-              name="DataStorage"
-              component={DataStorageScreen}
-              options={{ headerShown: true, title: 'Données et stockage' }}
-            />
-            <Stack.Screen
-              name="MapLocationSelector"
-              component={MapLocationSelectorScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="LocationAccessPermission"
-              component={LocationAccessPermissionScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="OrderReceipt"
-              component={OrderReceiptScreen}
-              options={{ headerShown: true, title: 'Reçu de commande' }}
-            />
-            <Stack.Screen
-              name="MyClaimsTracking"
-              component={MyClaimsTrackingScreen}
-              options={{ headerShown: true, title: 'Mes réclamations' }}
-            />
-            <Stack.Screen
-              name="ClaimTicketDetails"
-              component={ClaimTicketDetailsScreen}
-              options={{ headerShown: true, title: 'Détails du ticket' }}
-            />
-            <Stack.Screen
-              name="DeleteAccountConfirmation"
-              component={DeleteAccountConfirmationScreen}
-              options={{ headerShown: true, title: 'Supprimer le compte' }}
-            />
-            <Stack.Screen
-              name="ReferralHistory"
-              component={ReferralHistoryScreen}
-              options={{ headerShown: true, title: 'Historique parrainage' }}
-            />
-            <Stack.Screen
-              name="ItemOutOfStock"
-              component={ItemOutOfStockScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="EmptyOrderHistory"
-              component={EmptyOrderHistoryScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="SupportFeedbackSuccess"
-              component={SupportFeedbackSuccessScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="AppMaintenance"
-              component={AppMaintenanceScreen}
-              options={{ headerShown: false, gestureEnabled: false }}
-            />
-            <Stack.Screen
-              name="UpdateRequired"
-              component={UpdateRequiredScreen}
-              options={{ headerShown: false, gestureEnabled: false }}
-            />
-            <Stack.Screen
-              name="SettingsUpdateSuccess"
-              component={SettingsUpdateSuccessScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="RestaurantClosed"
-              component={RestaurantClosedScreen}
-              options={{ headerShown: false }}
-            />
-            <Stack.Screen
-              name="SafetySecurityTips"
-              component={SafetySecurityTipsScreen}
-              options={{ headerShown: true, title: 'Conseils de sécurité' }}
-            />
-            <Stack.Screen
-              name="ManagePaymentMethods"
-              component={ManagePaymentMethodsScreen}
-              options={{ headerShown: false }}
-            />
+
+            {/* 🍽️ GROUPE RESTAURANT & PLATS */}
+            <Stack.Group>
+              <Stack.Screen
+                name="RestaurantDetail"
+                component={RestaurantDetailScreen}
+                options={{ headerShown: true, title: 'Restaurant' }}
+              />
+              <Stack.Screen
+                name="DishInformation"
+                component={DishInformationScreen}
+                options={{ headerShown: true, title: 'Détails du plat' }}
+              />
+              <Stack.Screen
+                name="CustomizeDish"
+                component={CustomizeDishScreen}
+                options={{ headerShown: true, title: 'Personnaliser' }}
+              />
+              <Stack.Screen
+                name="RestaurantClosed"
+                component={RestaurantClosedScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 🛒 GROUPE PANIER & CHECKOUT */}
+            <Stack.Group>
+              <Stack.Screen
+                name="Checkout"
+                component={CheckoutScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="AddressSelection"
+                component={AddressSelectionScreen}
+                options={{ headerShown: true, title: 'Choisir une adresse' }}
+              />
+              <Stack.Screen
+                name="PaymentMethod"
+                component={PaymentMethodScreen}
+                options={{ headerShown: true, title: 'Méthode de paiement' }}
+              />
+            </Stack.Group>
+
+            {/* 📦 GROUPE COMMANDES */}
+            <Stack.Group>
+              <Stack.Screen
+                name="OrderTracking"
+                component={OrderTrackingScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="OrderChat"
+                component={OrderChatScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="OrderConfirmation"
+                component={OrderConfirmationScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="OrderDetails"
+                component={OrderDetailsScreen}
+                options={{ headerShown: true, title: 'Détails de la commande' }}
+              />
+              <Stack.Screen
+                name="OrderReview"
+                component={OrderReviewScreen}
+                options={{ headerShown: true, title: 'Évaluer la commande' }}
+              />
+              <Stack.Screen
+                name="OrderReceipt"
+                component={OrderReceiptScreen}
+                options={{ headerShown: true, title: 'Reçu' }}
+              />
+              <Stack.Screen
+                name="TrackingPreparing"
+                component={TrackingPreparingScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="TrackingDriverAssigned"
+                component={TrackingDriverAssignedScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="TrackingOutForDelivery"
+                component={TrackingOutForDeliveryScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="DeliveryArrival"
+                component={DeliveryArrivalScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 👤 GROUPE PROFIL */}
+            <Stack.Group>
+              <Stack.Screen
+                name="EditProfile"
+                component={EditProfileScreen}
+                options={{ headerShown: true, title: 'Modifier le profil' }}
+              />
+              <Stack.Screen
+                name="DeleteAccountConfirmation"
+                component={DeleteAccountConfirmationScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 📍 GROUPE ADRESSES */}
+            <Stack.Group>
+              <Stack.Screen
+                name="ManageAddresses"
+                component={ManageAddressesScreen}
+                options={{ headerShown: true, title: 'Mes adresses' }}
+              />
+              <Stack.Screen
+                name="AddAddress"
+                component={AddAddressScreen}
+                options={{ headerShown: true, title: 'Ajouter une adresse' }}
+              />
+              <Stack.Screen
+                name="MapLocationSelector"
+                component={MapLocationSelectorScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="LocationAccessPermission"
+                component={LocationAccessPermissionScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 💳 GROUPE PAIEMENTS */}
+            <Stack.Group>
+              <Stack.Screen
+                name="ManagePaymentMethods"
+                component={ManagePaymentMethodsScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 🔍 GROUPE RECHERCHE */}
+            <Stack.Group>
+              <Stack.Screen
+                name="CategoryResults"
+                component={CategoryResultsScreen}
+                options={{ headerShown: true }}
+              />
+            </Stack.Group>
+
+            {/* ⭐ GROUPE FAVORIS */}
+            <Stack.Group>
+              <Stack.Screen
+                name="Favorites"
+                component={FavoritesScreen}
+                options={{ headerShown: true, title: 'Mes favoris' }}
+              />
+            </Stack.Group>
+
+            {/* ⚙️ GROUPE PARAMÈTRES */}
+            <Stack.Group>
+              <Stack.Screen
+                name="Settings"
+                component={SettingsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="NotificationPreferences"
+                component={NotificationPreferencesScreen}
+                options={{ headerShown: true, title: 'Préférences de notifications' }}
+              />
+              <Stack.Screen
+                name="LanguageSettings"
+                component={LanguageSettingsScreen}
+                options={{ headerShown: true, title: 'Langue' }}
+              />
+              <Stack.Screen
+                name="AccountSecurity"
+                component={AccountSecurityScreen}
+                options={{ headerShown: true, title: 'Sécurité du compte' }}
+              />
+              <Stack.Screen
+                name="SafetySecurityTips"
+                component={SafetySecurityTipsScreen}
+                options={{ headerShown: true, title: 'Conseils de sécurité' }}
+              />
+              <Stack.Screen
+                name="DataStorage"
+                component={DataStorageScreen}
+                options={{ headerShown: true, title: 'Données et stockage' }}
+              />
+              <Stack.Screen
+                name="SettingsUpdateSuccess"
+                component={SettingsUpdateSuccessScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 🎁 GROUPE FIDÉLITÉ & RÉCOMPENSES */}
+            <Stack.Group>
+              <Stack.Screen
+                name="LoyaltyDashboard"
+                component={LoyaltyDashboardScreen}
+                options={{ headerShown: true, title: 'Fidélité & Récompenses' }}
+              />
+              <Stack.Screen
+                name="PointsHistory"
+                component={PointsHistoryScreen}
+                options={{ headerShown: true, title: 'Historique des points' }}
+              />
+              <Stack.Screen
+                name="ReferralProgram"
+                component={ReferralProgramScreen}
+                options={{ headerShown: true, title: 'Programme de parrainage' }}
+              />
+              <Stack.Screen
+                name="ReferralHistory"
+                component={ReferralHistoryScreen}
+                options={{ headerShown: true, title: 'Historique parrainage' }}
+              />
+            </Stack.Group>
+
+            {/* 🆘 GROUPE SUPPORT & AIDE */}
+            <Stack.Group>
+              <Stack.Screen
+                name="HelpCenter"
+                component={HelpCenterScreen}
+                options={{ headerShown: true, title: 'Centre d\'aide' }}
+              />
+              <Stack.Screen
+                name="ContactSupport"
+                component={ContactSupportScreen}
+                options={{ headerShown: true, title: 'Support' }}
+              />
+              <Stack.Screen
+                name="LiveChatSupport"
+                component={LiveChatSupportScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ReportProblem"
+                component={ReportProblemScreen}
+                options={{ headerShown: true, title: 'Signaler un problème' }}
+              />
+              <Stack.Screen
+                name="MyClaimsTracking"
+                component={MyClaimsTrackingScreen}
+                options={{ headerShown: true, title: 'Mes réclamations' }}
+              />
+              <Stack.Screen
+                name="Notifications"
+                component={NotificationsScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ClaimTicketDetails"
+                component={ClaimTicketDetailsScreen}
+                options={{ headerShown: true, title: 'Détails du ticket' }}
+              />
+              <Stack.Screen
+                name="SupportFeedbackSuccess"
+                component={SupportFeedbackSuccessScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* ℹ️ GROUPE INFORMATIONS */}
+            <Stack.Group>
+              <Stack.Screen
+                name="AboutBaibebalo"
+                component={AboutBaibebaloScreen}
+                options={{ headerShown: true, title: 'À propos' }}
+              />
+              <Stack.Screen
+                name="PrivacyPolicy"
+                component={PrivacyPolicyScreen}
+                options={{ headerShown: true, title: 'Politique de confidentialité' }}
+              />
+            </Stack.Group>
+
+            {/* ⚠️ GROUPE ERREURS */}
+            <Stack.Group>
+              <Stack.Screen
+                name="NetworkError"
+                component={NetworkErrorScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ServerError"
+                component={ServerErrorScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="EmptyCart"
+                component={EmptyCartScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="ItemOutOfStock"
+                component={ItemOutOfStockScreen}
+                options={{ headerShown: false }}
+              />
+              <Stack.Screen
+                name="EmptyOrderHistory"
+                component={EmptyOrderHistoryScreen}
+                options={{ headerShown: false }}
+              />
+            </Stack.Group>
+
+            {/* 🔧 GROUPE SYSTÈME */}
+            <Stack.Group>
+              <Stack.Screen
+                name="AppMaintenance"
+                component={AppMaintenanceScreen}
+                options={{ headerShown: false, gestureEnabled: false }}
+              />
+              <Stack.Screen
+                name="UpdateRequired"
+                component={UpdateRequiredScreen}
+                options={{ headerShown: false, gestureEnabled: false }}
+              />
+            </Stack.Group>
           </>
         )}
       </Stack.Navigator>
     </NavigationContainer>
+    </SafeAreaProvider>
   );
 }

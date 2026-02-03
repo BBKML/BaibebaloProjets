@@ -321,9 +321,17 @@ class SMSService {
 
   /**
    * Envoyer un OTP
+   * 
+   * ✅ C'est la SEULE fonction qui envoie réellement des SMS
+   * Les SMS sont réservés uniquement aux OTP pour l'authentification
+   * Toutes les autres notifications utilisent les Push Notifications (gratuites)
+   * 
+   * Économie estimée: ~70 000 FCFA/mois
    */
   async sendOTP(phone, code, expiryMinutes = 5) {
     const message = `Votre code BAIBEBALO est: ${code}. Valide ${expiryMinutes} minutes. Ne le partagez jamais.`;
+    
+    logger.info('📱 Envoi SMS OTP (seul usage autorisé)', { phone: phone.slice(-4) });
     
     return await this.send(phone, message, {
       maxRetries: 2 // Moins de retries pour OTP (urgent)
@@ -331,43 +339,95 @@ class SMSService {
   }
 
   /**
+   * Vérifier si les SMS doivent être utilisés pour ce type de notification
+   * 
+   * @returns {boolean} true si SMS autorisé, false sinon
+   */
+  shouldUseSMS(notificationType) {
+    // Seul l'OTP est autorisé par SMS
+    const smsAllowedTypes = ['otp', 'otp_verification', 'password_reset'];
+    return smsAllowedTypes.includes(notificationType);
+  }
+
+  /**
    * Envoyer une notification de commande
+   * 
+   * ⚠️ OPTIMISATION SMS: Cette méthode ne fait plus rien !
+   * Les notifications de commande doivent utiliser les Push Notifications (gratuites)
+   * via le service notification.service.js
+   * 
+   * SMS = UNIQUEMENT pour les OTP (authentification)
+   * Push = Toutes les autres notifications (commandes, promotions, etc.)
+   * 
+   * @deprecated Utilisez le service de notifications push à la place
    */
   async sendOrderNotification(phone, orderNumber, status) {
-    const messages = {
-      accepted: `✅ Commande ${orderNumber} acceptée par le restaurant.`,
-      preparing: `👨‍🍳 Commande ${orderNumber} en préparation.`,
-      ready: `📦 Commande ${orderNumber} prête, livreur en route.`,
-      delivering: `🚴 Commande ${orderNumber} en cours de livraison.`,
-      delivered: `🎉 Commande ${orderNumber} livrée. Bon appétit !`,
-      cancelled: `❌ Commande ${orderNumber} annulée.`,
-    };
-
-    const message = messages[status] || `Mise à jour commande ${orderNumber}`;
+    // ⚠️ NE PLUS ENVOYER DE SMS POUR LES NOTIFICATIONS DE COMMANDE
+    // Utiliser les notifications push (gratuites) à la place
+    logger.info('SMS notification ignorée (utilisez push)', { 
+      phone, 
+      orderNumber, 
+      status,
+      recommendation: 'Utilisez notificationService.sendPushNotification() à la place'
+    });
     
-    return await this.send(phone, message);
+    // Retourner un succès factice pour ne pas casser le code existant
+    return { 
+      success: true, 
+      provider: 'skipped',
+      messageId: `skipped_${Date.now()}`,
+      note: 'SMS remplacé par notification push'
+    };
   }
 
   /**
    * Envoyer notification au restaurant
+   * 
+   * ⚠️ OPTIMISATION SMS: Cette méthode ne fait plus rien !
+   * Utilisez les notifications push à la place.
+   * 
+   * @deprecated Utilisez le service de notifications push à la place
    */
   async sendRestaurantNotification(phone, orderNumber, total) {
-    const message = `🔔 Nouvelle commande ${orderNumber} - ${total} FCFA. Acceptez rapidement !`;
-    
-    return await this.send(phone, message, {
-      maxRetries: 2 // Urgent
+    // ⚠️ NE PLUS ENVOYER DE SMS - UTILISER PUSH
+    logger.info('SMS restaurant ignoré (utilisez push)', { 
+      phone, 
+      orderNumber, 
+      total,
+      recommendation: 'Utilisez WebSocket ou Firebase Push à la place'
     });
+    
+    return { 
+      success: true, 
+      provider: 'skipped',
+      messageId: `skipped_${Date.now()}`,
+      note: 'SMS remplacé par notification push/websocket'
+    };
   }
 
   /**
    * Envoyer notification au livreur
+   * 
+   * ⚠️ OPTIMISATION SMS: Cette méthode ne fait plus rien !
+   * Utilisez les notifications push à la place.
+   * 
+   * @deprecated Utilisez le service de notifications push à la place
    */
   async sendDeliveryNotification(phone, orderNumber, restaurant, earnings) {
-    const message = `🚴 Nouvelle livraison ${orderNumber} - ${restaurant}. Gains: ${earnings} FCFA. Acceptez vite !`;
-    
-    return await this.send(phone, message, {
-      maxRetries: 2 // Urgent
+    // ⚠️ NE PLUS ENVOYER DE SMS - UTILISER PUSH
+    logger.info('SMS livreur ignoré (utilisez push)', { 
+      phone, 
+      orderNumber, 
+      restaurant,
+      recommendation: 'Utilisez WebSocket ou Firebase Push à la place'
     });
+    
+    return { 
+      success: true, 
+      provider: 'skipped',
+      messageId: `skipped_${Date.now()}`,
+      note: 'SMS remplacé par notification push/websocket'
+    };
   }
 
   /**

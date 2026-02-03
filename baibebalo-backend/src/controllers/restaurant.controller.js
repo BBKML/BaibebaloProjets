@@ -1,5 +1,7 @@
 const { query } = require('../database/db');
 const logger = require('../utils/logger');
+const config = require('../config');
+const { uploadService } = require('../services/upload.service');
 
 /**
  * Obtenir la liste des restaurants avec géolocalisation
@@ -191,19 +193,23 @@ exports.getRestaurants = async (req, res) => {
           AND p.valid_from <= NOW()
           AND p.valid_until >= NOW()
         ) as has_free_delivery,
-        (r.mobile_money_provider IS NOT NULL) as accepts_mobile_money
+        (r.mobile_money_provider IS NOT NULL) as accepts_mobile_money,
+        -- Statut sponsorisé (actif si is_sponsored = true ET sponsor_expires_at >= NOW())
+        CASE WHEN r.is_sponsored = true AND r.sponsor_expires_at >= NOW() THEN true ELSE false END as is_sponsored,
+        COALESCE(r.sponsor_priority, 0) as sponsor_priority
       FROM restaurants r
       WHERE ${whereClauses.join(' AND ')}
     `;
 
+    // Tri: Les restaurants sponsorisés apparaissent en premier, puis tri normal
     if (sort === 'distance' && hasCoords) {
-      queryText += ' ORDER BY distance_km ASC';
+      queryText += ' ORDER BY (CASE WHEN r.is_sponsored = true AND r.sponsor_expires_at >= NOW() THEN 0 ELSE 1 END), r.sponsor_priority DESC, distance_km ASC';
     } else if (sort === 'rating') {
-      queryText += ' ORDER BY r.average_rating DESC, r.total_reviews DESC';
+      queryText += ' ORDER BY (CASE WHEN r.is_sponsored = true AND r.sponsor_expires_at >= NOW() THEN 0 ELSE 1 END), r.sponsor_priority DESC, r.average_rating DESC, r.total_reviews DESC';
     } else if (sort === 'popularity') {
-      queryText += ' ORDER BY r.total_orders DESC';
+      queryText += ' ORDER BY (CASE WHEN r.is_sponsored = true AND r.sponsor_expires_at >= NOW() THEN 0 ELSE 1 END), r.sponsor_priority DESC, r.total_orders DESC';
     } else {
-      queryText += ' ORDER BY r.created_at DESC';
+      queryText += ' ORDER BY (CASE WHEN r.is_sponsored = true AND r.sponsor_expires_at >= NOW() THEN 0 ELSE 1 END), r.sponsor_priority DESC, r.created_at DESC';
     }
 
     queryText += ` LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
@@ -220,6 +226,7 @@ exports.getRestaurants = async (req, res) => {
 
     let restaurants = result.rows.map((restaurant) => ({
       ...restaurant,
+      image_url: restaurant.banner || restaurant.logo || null,
       estimated_delivery_time:
         hasCoords && restaurant.distance_km !== null
           ? Math.ceil(15 + restaurant.distance_km * 3)
@@ -264,6 +271,190 @@ exports.getRestaurants = async (req, res) => {
 };
 
 /**
+ * Obtenir les promotions actives pour les clients
+ */
+exports.getActivePromotions = async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT 
+        p.id,
+        p.code,
+        p.type,
+        p.value,
+        p.min_order_amount,
+        p.max_discount,
+        p.valid_from,
+        p.valid_until,
+        r.id as restaurant_id,
+        r.name as restaurant_name,
+        r.logo as restaurant_logo,
+        r.banner as restaurant_banner
+       FROM promotions p
+       LEFT JOIN restaurants r ON p.restaurant_id = r.id
+       WHERE p.is_active = true
+         AND p.valid_from <= NOW()
+         AND p.valid_until >= NOW()
+         AND (p.applicable_to = 'all' OR p.applicable_to = 'new_users')
+       ORDER BY p.created_at DESC
+       LIMIT 10`
+    );
+
+    const promotions = result.rows.map((p) => ({
+      id: p.id,
+      code: p.code,
+      type: p.type,
+      value: parseFloat(p.value),
+      min_order_amount: parseFloat(p.min_order_amount || 0),
+      max_discount: p.max_discount ? parseFloat(p.max_discount) : null,
+      title: p.type === 'percentage' 
+        ? `-${p.value}% de réduction`
+        : p.type === 'fixed_amount'
+        ? `-${p.value} FCFA`
+        : p.type === 'free_delivery'
+        ? 'Livraison gratuite'
+        : 'Promotion spéciale',
+      subtitle: p.restaurant_name 
+        ? `Chez ${p.restaurant_name}`
+        : 'Sur toutes vos commandes',
+      restaurant: p.restaurant_id ? {
+        id: p.restaurant_id,
+        name: p.restaurant_name,
+        logo: p.restaurant_logo,
+        banner: p.restaurant_banner,
+      } : null,
+      valid_until: p.valid_until,
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        promotions,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getActivePromotions:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'FETCH_ERROR',
+        message: 'Erreur lors de la récupération des promotions',
+      },
+    });
+  }
+};
+
+/**
+ * Obtenir les catégories de restaurants disponibles
+ */
+exports.getCategories = async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT DISTINCT 
+        r.category,
+        COUNT(*) as restaurant_count
+       FROM restaurants r
+       WHERE r.status = 'active'
+       GROUP BY r.category
+       ORDER BY restaurant_count DESC, r.category ASC`
+    );
+
+    // Mapping des catégories avec icônes fiables (Flaticon CDN)
+    const categoryImages = {
+      'Restaurant': 'https://cdn-icons-png.flaticon.com/128/3448/3448609.png',
+      'Restaurants': 'https://cdn-icons-png.flaticon.com/128/3448/3448609.png',
+      'Fast-food': 'https://cdn-icons-png.flaticon.com/128/3595/3595458.png',
+      'Fast-Food': 'https://cdn-icons-png.flaticon.com/128/3595/3595458.png',
+      'Fast Food': 'https://cdn-icons-png.flaticon.com/128/3595/3595458.png',
+      'Pizza': 'https://cdn-icons-png.flaticon.com/128/3595/3595455.png',
+      'Grillades': 'https://cdn-icons-png.flaticon.com/128/1046/1046751.png',
+      'Maquis': 'https://cdn-icons-png.flaticon.com/128/2082/2082063.png',
+      'Bar-restaurant': 'https://cdn-icons-png.flaticon.com/128/931/931949.png',
+      'Boulangerie': 'https://cdn-icons-png.flaticon.com/128/3081/3081967.png',
+      'Café': 'https://cdn-icons-png.flaticon.com/128/924/924514.png',
+      'Plats légers': 'https://cdn-icons-png.flaticon.com/128/2515/2515183.png',
+      'Épicerie': 'https://cdn-icons-png.flaticon.com/128/2331/2331970.png',
+      'Pharmacie': 'https://cdn-icons-png.flaticon.com/128/2913/2913461.png',
+      'Africain': 'https://cdn-icons-png.flaticon.com/128/2082/2082063.png',
+      'Européen': 'https://cdn-icons-png.flaticon.com/128/3448/3448609.png',
+      'Asiatique': 'https://cdn-icons-png.flaticon.com/128/2276/2276931.png',
+      'Livraison colis': 'https://cdn-icons-png.flaticon.com/128/2830/2830312.png',
+    };
+
+    const categories = result.rows.map((row) => ({
+      id: row.category.toLowerCase().replace(/\s+/g, '_'),
+      label: row.category,
+      image: categoryImages[row.category] || 'https://cdn-icons-png.flaticon.com/128/3448/3448609.png',
+      restaurant_count: parseInt(row.restaurant_count),
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        categories,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getCategories:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'FETCH_ERROR',
+        message: 'Erreur lors de la récupération des catégories',
+      },
+    });
+  }
+};
+
+/**
+ * Obtenir les recherches populaires (plats les plus commandés)
+ */
+exports.getPopularSearches = async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+    
+    // Récupérer les noms de plats les plus commandés depuis order_items
+    const result = await query(
+      `SELECT 
+        COALESCE(oi.menu_item_snapshot->>'name', mi.name) as name,
+        COUNT(*) as order_count
+       FROM order_items oi
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       LEFT JOIN orders o ON oi.order_id = o.id
+       WHERE o.status IN ('delivered', 'completed')
+         AND COALESCE(oi.menu_item_snapshot->>'name', mi.name) IS NOT NULL
+       GROUP BY COALESCE(oi.menu_item_snapshot->>'name', mi.name)
+       ORDER BY order_count DESC
+       LIMIT $1`,
+      [parseInt(limit)]
+    );
+
+    const popularSearches = result.rows.map((row) => row.name).filter(Boolean);
+
+    // Si pas assez de résultats, ajouter des valeurs par défaut
+    const defaultSearches = ['Pizza', 'Burger', 'Choucouya', 'Alloco', 'Boissons'];
+    const finalSearches = popularSearches.length > 0 
+      ? [...popularSearches, ...defaultSearches.filter(s => !popularSearches.includes(s))].slice(0, parseInt(limit))
+      : defaultSearches.slice(0, parseInt(limit));
+
+    res.json({
+      success: true,
+      data: {
+        searches: finalSearches,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getPopularSearches:', error);
+    // En cas d'erreur, retourner des valeurs par défaut
+    res.json({
+      success: true,
+      data: {
+        searches: ['Pizza', 'Burger', 'Choucouya', 'Alloco', 'Boissons'],
+      },
+    });
+  }
+};
+
+/**
  * Obtenir les détails d'un restaurant
  */
 exports.getRestaurantById = async (req, res) => {
@@ -301,6 +492,9 @@ exports.getRestaurantById = async (req, res) => {
     }
     
     const restaurant = result.rows[0];
+    
+    // Ajouter image_url comme fallback pour la compatibilité
+    restaurant.image_url = restaurant.banner || restaurant.logo || null;
     
     // Vérifier si c'est un favori
     if (req.user?.id) {
@@ -381,10 +575,32 @@ exports.getRestaurantMenu = async (req, res) => {
       [id]
     );
     
+    // Formater les items avec image_url et prix effectif
+    const now = new Date();
+    const formattedItems = itemsResult.rows.map(item => {
+      // Vérifier si la promotion est active (dans la période si définie)
+      const isPromotionActive = item.is_promotional && 
+        item.promotional_price &&
+        (!item.promotion_start || new Date(item.promotion_start) <= now) &&
+        (!item.promotion_end || new Date(item.promotion_end) >= now);
+      
+      return {
+        ...item,
+        image_url: item.photo || item.photos?.[0] || null,
+        // Prix effectif = prix promo si actif, sinon prix normal
+        effective_price: isPromotionActive ? parseFloat(item.promotional_price) : parseFloat(item.price),
+        original_price: parseFloat(item.price),
+        is_promotion_active: isPromotionActive,
+        savings: isPromotionActive ? parseFloat(item.price) - parseFloat(item.promotional_price) : 0,
+        savings_percent: isPromotionActive ? 
+          Math.round((1 - parseFloat(item.promotional_price) / parseFloat(item.price)) * 100) : 0,
+      };
+    });
+    
     // Organiser les items par catégorie
     const categories = categoriesResult.rows.map(cat => ({
       ...cat,
-      items: itemsResult.rows.filter(item => item.category_id === cat.id),
+      items: formattedItems.filter(item => item.category_id === cat.id),
     }));
     
     res.json({
@@ -392,7 +608,7 @@ exports.getRestaurantMenu = async (req, res) => {
       data: {
         restaurant: restaurantResult.rows[0],
         categories,
-        total_items: itemsResult.rows.length,
+        total_items: formattedItems.length,
       },
     });
   } catch (error) {
@@ -403,6 +619,239 @@ exports.getRestaurantMenu = async (req, res) => {
         code: 'FETCH_ERROR',
         message: 'Erreur lors de la récupération du menu',
       },
+    });
+  }
+};
+
+/**
+ * Obtenir des suggestions intelligentes de plats complémentaires
+ * Basé sur:
+ * 1. Items fréquemment achetés ensemble (analyse des paniers)
+ * 2. Items populaires du restaurant
+ * 3. Complémentarité (plat → boisson, etc.)
+ */
+exports.getSuggestedItems = async (req, res) => {
+  try {
+    const { id } = req.params; // restaurant_id
+    const { cart_item_ids, limit = 5 } = req.query;
+    const userId = req.user?.id;
+    
+    // Parser les IDs du panier
+    let cartItemIds = [];
+    if (cart_item_ids) {
+      cartItemIds = Array.isArray(cart_item_ids) ? cart_item_ids : cart_item_ids.split(',');
+    }
+    
+    // 1. Items fréquemment achetés ensemble avec les items du panier
+    let frequentlyBoughtTogether = [];
+    if (cartItemIds.length > 0) {
+      const fbtResult = await query(`
+        WITH cart_orders AS (
+          -- Trouver les commandes qui contiennent les items du panier
+          SELECT DISTINCT oi.order_id
+          FROM order_items oi
+          JOIN orders o ON oi.order_id = o.id
+          WHERE oi.menu_item_id = ANY($1::uuid[])
+          AND o.status = 'delivered'
+          AND o.restaurant_id = $2
+        )
+        SELECT 
+          mi.id,
+          mi.name,
+          mi.price,
+          mi.photo,
+          mi.promotional_price,
+          mi.is_promotional,
+          COUNT(*) as frequency,
+          mc.name as category_name
+        FROM order_items oi
+        JOIN cart_orders co ON oi.order_id = co.order_id
+        JOIN menu_items mi ON oi.menu_item_id = mi.id
+        LEFT JOIN menu_categories mc ON mi.category_id = mc.id
+        WHERE mi.id != ALL($1::uuid[])  -- Exclure les items déjà dans le panier
+        AND mi.is_available = true
+        GROUP BY mi.id, mi.name, mi.price, mi.photo, mi.promotional_price, mi.is_promotional, mc.name
+        ORDER BY frequency DESC
+        LIMIT $3
+      `, [cartItemIds, id, parseInt(limit)]);
+      
+      frequentlyBoughtTogether = fbtResult.rows;
+    }
+    
+    // 2. Items populaires du restaurant (si pas assez de suggestions)
+    let popularItems = [];
+    if (frequentlyBoughtTogether.length < parseInt(limit)) {
+      const remaining = parseInt(limit) - frequentlyBoughtTogether.length;
+      const excludeIds = [...cartItemIds, ...frequentlyBoughtTogether.map(i => i.id)];
+      
+      const popularResult = await query(`
+        SELECT 
+          mi.id,
+          mi.name,
+          mi.price,
+          mi.photo,
+          mi.promotional_price,
+          mi.is_promotional,
+          mi.total_sold,
+          mc.name as category_name
+        FROM menu_items mi
+        LEFT JOIN menu_categories mc ON mi.category_id = mc.id
+        WHERE mi.restaurant_id = $1
+        AND mi.is_available = true
+        AND (array_length($2::uuid[], 1) IS NULL OR mi.id != ALL($2::uuid[]))
+        ORDER BY mi.total_sold DESC, mi.created_at DESC
+        LIMIT $3
+      `, [id, excludeIds.length > 0 ? excludeIds : null, remaining]);
+      
+      popularItems = popularResult.rows;
+    }
+    
+    // 3. Suggestions de complémentarité (si panier contient plat mais pas boisson)
+    let complementaryItems = [];
+    if (cartItemIds.length > 0) {
+      // Vérifier les catégories des items dans le panier
+      const cartCategoriesResult = await query(`
+        SELECT DISTINCT mc.name as category_name
+        FROM menu_items mi
+        JOIN menu_categories mc ON mi.category_id = mc.id
+        WHERE mi.id = ANY($1::uuid[])
+      `, [cartItemIds]);
+      
+      const cartCategories = cartCategoriesResult.rows.map(r => r.category_name?.toLowerCase() || '');
+      const drinkCategories = ['boissons', 'drinks', 'beverages', 'sodas', 'jus'];
+      const foodCategories = ['plats', 'plat principal', 'entrées', 'grillades', 'poissons', 'viandes'];
+      
+      const hasDrink = cartCategories.some(cat => drinkCategories.some(d => cat.includes(d)));
+      const hasFood = cartCategories.some(cat => foodCategories.some(f => cat.includes(f)));
+      
+      // Si pas de boisson, suggérer des boissons
+      if (hasFood && !hasDrink) {
+        const drinksResult = await query(`
+          SELECT 
+            mi.id,
+            mi.name,
+            mi.price,
+            mi.photo,
+            mi.promotional_price,
+            mi.is_promotional,
+            'Complétez avec une boisson' as suggestion_reason,
+            mc.name as category_name
+          FROM menu_items mi
+          JOIN menu_categories mc ON mi.category_id = mc.id
+          WHERE mi.restaurant_id = $1
+          AND mi.is_available = true
+          AND LOWER(mc.name) SIMILAR TO '%(boisson|drink|soda|jus|beverage)%'
+          ORDER BY mi.total_sold DESC
+          LIMIT 3
+        `, [id]);
+        complementaryItems = drinksResult.rows;
+      }
+      
+      // Si pas de dessert, suggérer des desserts
+      const dessertCategories = ['desserts', 'dessert', 'sucré', 'pâtisseries'];
+      const hasDessert = cartCategories.some(cat => dessertCategories.some(d => cat.includes(d)));
+      
+      if (hasFood && !hasDessert && complementaryItems.length < 2) {
+        const dessertsResult = await query(`
+          SELECT 
+            mi.id,
+            mi.name,
+            mi.price,
+            mi.photo,
+            mi.promotional_price,
+            mi.is_promotional,
+            'Terminez avec un dessert' as suggestion_reason,
+            mc.name as category_name
+          FROM menu_items mi
+          JOIN menu_categories mc ON mi.category_id = mc.id
+          WHERE mi.restaurant_id = $1
+          AND mi.is_available = true
+          AND LOWER(mc.name) SIMILAR TO '%(dessert|sucré|pâtisserie)%'
+          ORDER BY mi.total_sold DESC
+          LIMIT 2
+        `, [id]);
+        complementaryItems = [...complementaryItems, ...dessertsResult.rows];
+      }
+    }
+    
+    // 4. Suggestions personnalisées basées sur l'historique de l'utilisateur
+    let personalizedSuggestions = [];
+    if (userId) {
+      const personalizedResult = await query(`
+        SELECT 
+          mi.id,
+          mi.name,
+          mi.price,
+          mi.photo,
+          mi.promotional_price,
+          mi.is_promotional,
+          COUNT(*) as times_ordered,
+          'Vous aimez ce plat' as suggestion_reason,
+          mc.name as category_name
+        FROM order_items oi
+        JOIN orders o ON oi.order_id = o.id
+        JOIN menu_items mi ON oi.menu_item_id = mi.id
+        LEFT JOIN menu_categories mc ON mi.category_id = mc.id
+        WHERE o.user_id = $1
+        AND o.restaurant_id = $2
+        AND o.status = 'delivered'
+        AND mi.is_available = true
+        AND (array_length($3::uuid[], 1) IS NULL OR mi.id != ALL($3::uuid[]))
+        GROUP BY mi.id, mi.name, mi.price, mi.photo, mi.promotional_price, mi.is_promotional, mc.name
+        ORDER BY times_ordered DESC
+        LIMIT 3
+      `, [userId, id, cartItemIds.length > 0 ? cartItemIds : null]);
+      
+      personalizedSuggestions = personalizedResult.rows;
+    }
+    
+    // Combiner toutes les suggestions (sans doublons)
+    const allSuggestions = [];
+    const seenIds = new Set(cartItemIds);
+    
+    const addSuggestions = (items, reason) => {
+      for (const item of items) {
+        if (!seenIds.has(item.id) && allSuggestions.length < parseInt(limit)) {
+          seenIds.add(item.id);
+          allSuggestions.push({
+            ...item,
+            suggestion_reason: item.suggestion_reason || reason,
+            effective_price: item.is_promotional && item.promotional_price 
+              ? parseFloat(item.promotional_price) 
+              : parseFloat(item.price),
+          });
+        }
+      }
+    };
+    
+    // Priorité: complémentaire > fréquemment achetés > personnalisé > populaire
+    addSuggestions(complementaryItems, 'Complément idéal');
+    addSuggestions(frequentlyBoughtTogether, 'Souvent commandé avec');
+    addSuggestions(personalizedSuggestions, 'Basé sur vos commandes');
+    addSuggestions(popularItems, 'Populaire');
+    
+    // Informations sur le seuil de livraison gratuite
+    const config = require('../config');
+    const freeDeliveryThreshold = config.business.freeDeliveryThreshold || 5000;
+    const bundleDiscountPercent = config.business.bundleDiscountPercent || 5;
+    
+    res.json({
+      success: true,
+      data: {
+        suggestions: allSuggestions,
+        tips: {
+          free_delivery_threshold: freeDeliveryThreshold,
+          bundle_discount_percent: bundleDiscountPercent,
+          bundle_message: `Ajoutez une boisson pour -${bundleDiscountPercent}% sur votre commande`,
+          free_delivery_message: `Livraison gratuite à partir de ${freeDeliveryThreshold} FCFA`,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getSuggestedItems:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des suggestions' },
     });
   }
 };
@@ -498,22 +947,24 @@ exports.registerRestaurant = async (req, res) => {
       password,
       address,
       district,
+      landmark,
       latitude,
       longitude,
       opening_hours,
       delivery_radius,
       mobile_money_number,
       mobile_money_provider,
-      documents,
+      account_holder_name,
+      bank_rib,
     } = req.body;
     
     // Vérifier si email existe déjà
-    const existingResult = await query(
+    const existingEmailResult = await query(
       'SELECT id FROM restaurants WHERE email = $1',
       [email]
     );
     
-    if (existingResult.rows.length > 0) {
+    if (existingEmailResult.rows.length > 0) {
       return res.status(400).json({
         success: false,
         error: {
@@ -523,10 +974,26 @@ exports.registerRestaurant = async (req, res) => {
       });
     }
     
+    // Vérifier si téléphone existe déjà
+    const existingPhoneResult = await query(
+      'SELECT id FROM restaurants WHERE phone = $1',
+      [phone]
+    );
+    
+    if (existingPhoneResult.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'PHONE_EXISTS',
+          message: 'Un restaurant avec ce numéro de téléphone existe déjà',
+        },
+      });
+    }
+    
     // Hasher le mot de passe
     const bcrypt = require('bcrypt');
-    const config = require('../config');
-    const password_hash = await bcrypt.hash(password, config.security.bcryptRounds);
+    const BCRYPT_ROUNDS = 10; // Valeur standard
+    const password_hash = await bcrypt.hash(password, BCRYPT_ROUNDS);
     
     // Générer un slug
     const slug = name.toLowerCase()
@@ -535,29 +1002,134 @@ exports.registerRestaurant = async (req, res) => {
       .replace(/--+/g, '-')
       .trim() + '-' + Date.now();
     
+    // Traiter les fichiers uploadés
+    // uploadService est déjà importé en haut du fichier
+    let logoUrl = null;
+    let bannerUrl = null;
+    let idCardFrontUrl = null;
+    let idCardBackUrl = null;
+    const documents = {};
+    const photos = [];
+    
+    if (req.files) {
+      // Déterminer le provider d'upload
+      const uploadProvider = config.upload?.provider || 'local';
+      const baseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      // Fonction helper pour upload
+      const uploadFile = async (file, folder) => {
+        try {
+          if (uploadProvider === 's3' && uploadService.uploadToS3) {
+            return await uploadService.uploadToS3(file, folder);
+          } else if (uploadProvider === 'cloudinary' && uploadService.uploadToCloudinary) {
+            return await uploadService.uploadToCloudinary(file, folder);
+          } else {
+            return await uploadService.uploadToLocal(file, folder, { baseUrl });
+          }
+        } catch (uploadError) {
+          logger.warn(`Erreur upload ${uploadProvider}, fallback local:`, uploadError.message);
+          return await uploadService.uploadToLocal(file, folder, { baseUrl });
+        }
+      };
+      
+      // Logo
+      if (req.files.logo && req.files.logo[0]) {
+        const logoResult = await uploadFile(req.files.logo[0], 'restaurant-logos');
+        logoUrl = logoResult.url;
+      }
+      
+      // Bannière
+      if (req.files.banner && req.files.banner[0]) {
+        const bannerResult = await uploadFile(req.files.banner[0], 'restaurant-banners');
+        bannerUrl = bannerResult.url;
+      }
+      
+      // Carte d'identité recto/verso
+      if (req.files.id_card_front && req.files.id_card_front[0]) {
+        const idFrontResult = await uploadFile(req.files.id_card_front[0], 'restaurant-documents');
+        idCardFrontUrl = idFrontResult.url;
+      }
+      
+      if (req.files.id_card_back && req.files.id_card_back[0]) {
+        const idBackResult = await uploadFile(req.files.id_card_back[0], 'restaurant-documents');
+        idCardBackUrl = idBackResult.url;
+      }
+      
+      // Documents
+      const documentFields = ['document_rccm', 'document_id', 'document_facade', 'document_menu', 'document_hygiene'];
+      for (const field of documentFields) {
+        if (req.files[field] && req.files[field][0]) {
+          const docResult = await uploadFile(req.files[field][0], 'restaurant-documents');
+          documents[field.replace('document_', '')] = docResult.url;
+        }
+      }
+      
+      // Photos du restaurant
+      if (req.files.photos) {
+        for (const photo of req.files.photos) {
+          const photoResult = await uploadFile(photo, 'restaurant-photos');
+          photos.push(photoResult.url);
+        }
+      }
+      
+      // Photos de plats
+      if (req.files.dish_photos) {
+        for (const photo of req.files.dish_photos) {
+          const photoResult = await uploadFile(photo, 'restaurant-dish-photos');
+          photos.push(photoResult.url);
+        }
+      }
+    }
+    
+    // Parser opening_hours si c'est une chaîne JSON
+    let parsedOpeningHours = opening_hours;
+    if (typeof opening_hours === 'string') {
+      try {
+        parsedOpeningHours = JSON.parse(opening_hours);
+      } catch (e) {
+        parsedOpeningHours = {};
+      }
+    }
+    
     const result = await query(
       `INSERT INTO restaurants (
         name, slug, category, cuisine_type, description,
-        phone, email, password_hash, address, district,
+        phone, email, password_hash, address, district, landmark,
         latitude, longitude, opening_hours, delivery_radius,
-        mobile_money_number, mobile_money_provider, documents,
-        status
+        mobile_money_number, mobile_money_provider, account_holder_name, bank_rib,
+        documents, logo, banner, photos, id_card_front, id_card_back, status
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-      RETURNING id, name, email, status`,
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
+      RETURNING id, name, email, phone, status`,
       [
-        name, slug, category, cuisine_type, description,
-        phone, email, password_hash, address, district,
-        latitude, longitude, JSON.stringify(opening_hours), delivery_radius || 10,
-        mobile_money_number, mobile_money_provider, JSON.stringify(documents || {}),
+        name, slug, category, cuisine_type || null, description,
+        phone, email, password_hash, address, district, landmark || null,
+        parseFloat(latitude) || null, parseFloat(longitude) || null, 
+        JSON.stringify(parsedOpeningHours || {}), parseInt(delivery_radius) || 5,
+        mobile_money_number, mobile_money_provider, account_holder_name || null, bank_rib || null,
+        JSON.stringify(documents), logoUrl, bannerUrl, 
+        photos.length > 0 ? photos : null, // PostgreSQL array format
+        idCardFrontUrl, idCardBackUrl,
         'pending'
       ]
     );
     
-    logger.info(`Nouveau restaurant inscrit: ${result.rows[0].id}`);
+    logger.info(`Nouveau restaurant inscrit: ${result.rows[0].id} - ${result.rows[0].name}`);
     
-    // TODO: Envoyer email de confirmation
-    // TODO: Notifier admin pour validation
+    // Notifier l'admin via Socket.IO si disponible
+    try {
+      const io = req.app.get('io');
+      if (io) {
+        io.to('admin_dashboard').emit('new_restaurant_registration', {
+          restaurant_id: result.rows[0].id,
+          name: result.rows[0].name,
+          email: result.rows[0].email,
+          phone: result.rows[0].phone,
+        });
+      }
+    } catch (socketError) {
+      logger.warn('Impossible de notifier l\'admin:', socketError.message);
+    }
     
     res.status(201).json({
       success: true,
@@ -572,7 +1144,7 @@ exports.registerRestaurant = async (req, res) => {
       success: false,
       error: {
         code: 'REGISTRATION_ERROR',
-        message: 'Erreur lors de l\'inscription',
+        message: 'Erreur lors de l\'inscription: ' + error.message,
       },
     });
   }
@@ -659,21 +1231,14 @@ exports.updateRestaurant = async (req, res) => {
  */
 exports.createMenuCategory = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { name, icon, display_order } = req.body;
-    
-    if (req.user.id !== id) {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Accès interdit' },
-      });
-    }
+    const restaurantId = req.user.id;
+    const { name, description, display_order } = req.body;
     
     const result = await query(
-      `INSERT INTO menu_categories (restaurant_id, name, icon, display_order)
+      `INSERT INTO menu_categories (restaurant_id, name, description, display_order)
        VALUES ($1, $2, $3, $4)
        RETURNING *`,
-      [id, name, icon, display_order || 0]
+      [restaurantId, name, description || null, display_order || 0]
     );
     
     res.status(201).json({
@@ -691,41 +1256,95 @@ exports.createMenuCategory = async (req, res) => {
 };
 
 /**
- * Créer un item de menu
+ * Créer un item de menu (avec support upload photo)
  */
 exports.createMenuItem = async (req, res) => {
   try {
-    const { id } = req.params;
+    const restaurantId = req.user.id;
     const {
-      category_id, name, description, photo, price,
-      options, preparation_time, tags, stock_quantity
+      category_id, name, description, price,
+      options, preparation_time, tags, stock_quantity, is_available
     } = req.body;
     
-    if (req.user.id !== id) {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Accès interdit' },
+    // Vérifier que la catégorie appartient au restaurant
+    if (category_id) {
+      const categoryCheck = await query(
+        'SELECT id FROM menu_categories WHERE id = $1 AND restaurant_id = $2',
+        [category_id, restaurantId]
+      );
+      if (categoryCheck.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'CATEGORY_NOT_FOUND', message: 'Catégorie non trouvée' },
+        });
+      }
+    }
+    
+    // Gérer l'upload de la photo si présente
+    let photoUrl = req.body.photo || null;
+    if (req.file) {
+      logger.debug('📸 Upload photo article détecté:', {
+        filename: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
       });
+      
+      const uploadProvider = config.upload?.provider || 'local';
+      const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      try {
+        let uploadResult;
+        if (uploadProvider === 's3') {
+          uploadResult = await uploadService.uploadToS3(req.file, 'menu-items');
+        } else if (uploadProvider === 'cloudinary') {
+          uploadResult = await uploadService.uploadToCloudinary(req.file, 'menu-items');
+        } else {
+          uploadResult = await uploadService.uploadToLocal(req.file, 'menu-items', { baseUrl: requestBaseUrl });
+        }
+        photoUrl = uploadResult.url;
+        logger.info('✅ Photo article uploadée:', photoUrl);
+      } catch (uploadError) {
+        logger.error('❌ Erreur upload photo article:', uploadError);
+        // Continuer sans photo si l'upload échoue
+      }
+    }
+    
+    // Parser les tags si c'est une chaîne JSON
+    let parsedTags = tags || [];
+    if (typeof tags === 'string') {
+      try {
+        parsedTags = JSON.parse(tags);
+      } catch (e) {
+        parsedTags = [];
+      }
     }
     
     const result = await query(
       `INSERT INTO menu_items (
         restaurant_id, category_id, name, description, photo,
-        price, options, preparation_time, tags, stock_quantity
+        price, options, preparation_time, tags, stock_quantity, is_available
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
       RETURNING *`,
       [
-        id, category_id, name, description, photo,
-        price, JSON.stringify(options || {}), preparation_time,
-        tags || [], stock_quantity
+        restaurantId, 
+        category_id || null, 
+        name, 
+        description || null, 
+        photoUrl,
+        parseFloat(price), 
+        JSON.stringify(options || {}), 
+        parseInt(preparation_time) || 20,
+        parsedTags, 
+        stock_quantity ? parseInt(stock_quantity) : null,
+        is_available !== 'false' && is_available !== false
       ]
     );
     
     res.status(201).json({
       success: true,
       message: 'Article créé avec succès',
-      data: { item: result.rows[0] },
+      data: { item: result.rows[0], menu_item: result.rows[0] },
     });
   } catch (error) {
     logger.error('Erreur createMenuItem:', error);
@@ -737,34 +1356,105 @@ exports.createMenuItem = async (req, res) => {
 };
 
 /**
- * Mettre à jour un item de menu
+ * Mettre à jour un item de menu (avec support upload photo)
  */
 exports.updateMenuItem = async (req, res) => {
   try {
-    const { id, itemId } = req.params;
-    
-    if (req.user.id !== id) {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Accès interdit' },
-      });
-    }
+    const restaurantId = req.user.id;
+    const { itemId } = req.params;
     
     const allowedFields = [
-      'name', 'description', 'photo', 'price', 'options',
-      'preparation_time', 'is_available', 'stock_quantity', 'tags'
+      'name', 'description', 'photo', 'price', 'options', 'customization_options',
+      'preparation_time', 'is_available', 'stock_quantity', 'tags', 'category_id',
+      // Champs de promotion sur plat individuel
+      'is_promotional', 'discount_type', 'discount_value', 'promotion_start', 'promotion_end', 'promotion_description'
     ];
     
     const updates = [];
     const values = [];
     let paramIndex = 1;
     
+    // Gérer l'upload de la photo si présente
+    if (req.file) {
+      logger.debug('📸 Upload nouvelle photo article:', {
+        filename: req.file.originalname,
+        mimetype: req.file.mimetype,
+        size: req.file.size,
+      });
+      
+      const uploadProvider = config.upload?.provider || 'local';
+      const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+      
+      try {
+        let uploadResult;
+        if (uploadProvider === 's3') {
+          uploadResult = await uploadService.uploadToS3(req.file, 'menu-items');
+        } else if (uploadProvider === 'cloudinary') {
+          uploadResult = await uploadService.uploadToCloudinary(req.file, 'menu-items');
+        } else {
+          uploadResult = await uploadService.uploadToLocal(req.file, 'menu-items', { baseUrl: requestBaseUrl });
+        }
+        updates.push(`photo = $${paramIndex++}`);
+        values.push(uploadResult.url);
+        logger.info('✅ Photo article mise à jour:', uploadResult.url);
+      } catch (uploadError) {
+        logger.error('❌ Erreur upload photo article:', uploadError);
+      }
+    }
+    
+    // Gérer les autres champs
     Object.keys(req.body).forEach(key => {
-      if (allowedFields.includes(key)) {
-        updates.push(`${key} = $${paramIndex++}`);
-        values.push(req.body[key]);
+      if (allowedFields.includes(key) && key !== 'photo') { // photo géré ci-dessus
+        const value = req.body[key];
+        // Ignorer les valeurs vides/null pour ne pas écraser
+        if (value === '' || value === null || value === undefined || value === 'null' || value === 'undefined') {
+          return;
+        }
+        if (key === 'options' || key === 'customization_options') {
+          updates.push(`${key} = $${paramIndex++}`);
+          // Pour JSONB, on doit passer un objet ou un string JSON valide
+          values.push(typeof value === 'string' ? value : JSON.stringify(value));
+        } else if (key === 'tags' && typeof value === 'string') {
+          updates.push(`${key} = $${paramIndex++}`);
+          try {
+            values.push(JSON.parse(value));
+          } catch (e) {
+            values.push([]);
+          }
+        } else if (key === 'price') {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(parseFloat(value));
+        } else if (key === 'preparation_time' || key === 'stock_quantity') {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(value ? parseInt(value) : null);
+        } else if (key === 'is_available' || key === 'is_promotional') {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(value === true || value === 'true');
+        } else if (key === 'discount_value') {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(value ? parseFloat(value) : null);
+        } else if (key === 'promotion_start' || key === 'promotion_end') {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(value ? new Date(value) : null);
+        } else {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(value);
+        }
       }
     });
+    
+    // Calculer le prix promotionnel si les champs de promotion sont définis
+    // Note: Le trigger PostgreSQL fera ce calcul automatiquement, mais on le fait aussi ici pour la réponse immédiate
+    const isPromotional = req.body.is_promotional === true || req.body.is_promotional === 'true';
+    const discountType = req.body.discount_type;
+    const discountValue = req.body.discount_value ? parseFloat(req.body.discount_value) : null;
+    const price = req.body.price ? parseFloat(req.body.price) : null;
+    
+    if (isPromotional && discountValue && discountType) {
+      // Si le prix n'est pas dans la requête, on doit le récupérer de la DB
+      // Le trigger PostgreSQL calculera le prix promotionnel automatiquement
+      logger.info(`Promotion activée: type=${discountType}, value=${discountValue}`);
+    }
     
     if (updates.length === 0) {
       return res.status(400).json({
@@ -774,7 +1464,7 @@ exports.updateMenuItem = async (req, res) => {
     }
     
     updates.push(`updated_at = NOW()`);
-    values.push(itemId, id);
+    values.push(itemId, restaurantId);
     
     const result = await query(
       `UPDATE menu_items 
@@ -794,7 +1484,7 @@ exports.updateMenuItem = async (req, res) => {
     res.json({
       success: true,
       message: 'Article mis à jour avec succès',
-      data: { item: result.rows[0] },
+      data: { item: result.rows[0], menu_item: result.rows[0] },
     });
   } catch (error) {
     logger.error('Erreur updateMenuItem:', error);
@@ -807,34 +1497,64 @@ exports.updateMenuItem = async (req, res) => {
 
 /**
  * Supprimer un item de menu
+ * Si l'article est référencé dans des commandes, il sera désactivé au lieu d'être supprimé
  */
 exports.deleteMenuItem = async (req, res) => {
   try {
-    const { id, itemId } = req.params;
+    const restaurantId = req.user.id;
+    const { itemId } = req.params;
     
-    if (req.user.id !== id) {
-      return res.status(403).json({
-        success: false,
-        error: { code: 'FORBIDDEN', message: 'Accès interdit' },
+    // D'abord, essayer de supprimer l'article
+    try {
+      const result = await query(
+        'DELETE FROM menu_items WHERE id = $1 AND restaurant_id = $2 RETURNING id',
+        [itemId, restaurantId]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'ITEM_NOT_FOUND', message: 'Article non trouvé' },
+        });
+      }
+      
+      return res.json({
+        success: true,
+        message: 'Article supprimé avec succès',
       });
+    } catch (deleteError) {
+      // Si erreur de contrainte de clé étrangère (article référencé dans des commandes)
+      if (deleteError.code === '23503') {
+        logger.info('Article référencé dans des commandes, désactivation au lieu de suppression:', itemId);
+        
+        // Désactiver l'article au lieu de le supprimer (soft delete)
+        const softDeleteResult = await query(
+          `UPDATE menu_items 
+           SET is_available = false, 
+               name = name || ' [SUPPRIMÉ]',
+               updated_at = NOW()
+           WHERE id = $1 AND restaurant_id = $2 
+           RETURNING id`,
+          [itemId, restaurantId]
+        );
+        
+        if (softDeleteResult.rows.length === 0) {
+          return res.status(404).json({
+            success: false,
+            error: { code: 'ITEM_NOT_FOUND', message: 'Article non trouvé' },
+          });
+        }
+        
+        return res.json({
+          success: true,
+          message: 'Article désactivé avec succès (historique des commandes préservé)',
+          softDeleted: true,
+        });
+      }
+      
+      // Relancer l'erreur si ce n'est pas une erreur de contrainte
+      throw deleteError;
     }
-    
-    const result = await query(
-      'DELETE FROM menu_items WHERE id = $1 AND restaurant_id = $2 RETURNING id',
-      [itemId, id]
-    );
-    
-    if (result.rows.length === 0) {
-      return res.status(404).json({
-        success: false,
-        error: { code: 'ITEM_NOT_FOUND', message: 'Article non trouvé' },
-      });
-    }
-    
-    res.json({
-      success: true,
-      message: 'Article supprimé avec succès',
-    });
   } catch (error) {
     logger.error('Erreur deleteMenuItem:', error);
     res.status(500).json({
@@ -849,9 +1569,18 @@ exports.deleteMenuItem = async (req, res) => {
  */
 exports.getMyProfile = async (req, res) => {
   try {
+    const restaurantId = req.user.id;
+    
     const result = await query(
-      'SELECT * FROM restaurants WHERE id = $1',
-      [req.user.restaurant_id || req.user.id]
+      `SELECT id, name, slug, category, cuisine_type, description, 
+              phone, email, address, district, latitude, longitude,
+              opening_hours, delivery_radius, is_open, commission_rate,
+              mobile_money_number, mobile_money_provider, account_holder_name, bank_rib,
+              logo, banner, photos,
+              status, average_rating, total_reviews, total_orders, total_revenue,
+              balance, created_at, updated_at
+       FROM restaurants WHERE id = $1`,
+      [restaurantId]
     );
 
     if (result.rows.length === 0) {
@@ -879,16 +1608,296 @@ exports.getMyProfile = async (req, res) => {
  */
 exports.updateMyProfile = async (req, res) => {
   try {
-    // TODO: Implémenter la mise à jour
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { uploadService } = require('../services/upload.service');
+    const config = require('../config');
+    const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+    
+    // Log pour déboguer
+    logger.debug('updateMyProfile - Fichiers reçus:', {
+      hasFiles: !!req.files,
+      filesKeys: req.files ? Object.keys(req.files) : [],
+      bodyKeys: Object.keys(req.body),
+      logoInFiles: !!(req.files && req.files.logo),
+      bannerInFiles: !!(req.files && req.files.banner),
+      photosInFiles: !!(req.files && req.files.photos),
+      logoFileCount: req.files?.logo ? req.files.logo.length : 0,
+      bannerFileCount: req.files?.banner ? req.files.banner.length : 0,
+      photosFileCount: req.files?.photos ? req.files.photos.length : 0,
+      contentType: req.headers['content-type'],
+      bodyLogo: req.body.logo ? (typeof req.body.logo === 'string' ? 'string URL' : 'object') : 'none',
+      bodyBanner: req.body.banner ? (typeof req.body.banner === 'string' ? 'string URL' : 'object') : 'none',
+      bodyPhotos: req.body.photos ? (Array.isArray(req.body.photos) ? `array[${req.body.photos.length}]` : typeof req.body.photos) : 'none',
+      existingPhotos: req.body.existingPhotos ? (typeof req.body.existingPhotos === 'string' ? 'JSON string' : 'array') : 'none',
+    });
+    
+    const normalizeLocalUrl = (url) => {
+      if (!url) return url;
+      try {
+        const parsed = new URL(url);
+        if (['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+          return `${requestBaseUrl}${parsed.pathname}`;
+        }
+      } catch (error) {
+        if (url.startsWith('/')) {
+          return `${requestBaseUrl}${url}`;
+        }
+      }
+      return url;
+    };
+    
+    const allowedFields = [
+      'name', 'description', 'phone', 'email', 'address', 'district',
+      'latitude', 'longitude', 'delivery_radius', 'cuisine_type',
+      'mobile_money_number', 'mobile_money_provider', 'opening_hours',
+      'account_holder_name', 'bank_rib',
+      'logo', 'banner', 'photos'
+    ];
+    
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    // Gérer l'upload du logo
+    if (req.files && req.files.logo && req.files.logo.length > 0) {
+      logger.debug('📷 Upload logo détecté:', {
+        filename: req.files.logo[0].originalname,
+        mimetype: req.files.logo[0].mimetype,
+        size: req.files.logo[0].size,
+        hasBuffer: !!req.files.logo[0].buffer,
+        bufferLength: req.files.logo[0].buffer?.length,
+      });
+      const uploadProvider = config.upload?.provider || 'local';
+      let uploadResult;
+      
+      if (uploadProvider === 's3') {
+        try {
+          uploadResult = await uploadService.uploadToS3(req.files.logo[0], 'restaurant-logos');
+        } catch (error) {
+          logger.error('Erreur upload S3 (logo), tentative Cloudinary:', error);
+          if (config.upload?.cloudinary?.cloudName) {
+            uploadResult = await uploadService.uploadToCloudinary(req.files.logo[0], 'restaurant-logos');
+          } else {
+            throw error;
+          }
+        }
+      } else if (uploadProvider === 'cloudinary') {
+        uploadResult = await uploadService.uploadToCloudinary(req.files.logo[0], 'restaurant-logos');
+      } else {
+        uploadResult = await uploadService.uploadToLocal(
+          req.files.logo[0],
+          'restaurant-logos',
+          { baseUrl: requestBaseUrl }
+        );
+      }
+      
+      const logoUrl = normalizeLocalUrl(uploadResult.url);
+      updates.push(`logo = $${paramIndex++}`);
+      values.push(logoUrl);
+    } else if (req.body.logo !== undefined && req.body.logo !== null && req.body.logo !== '') {
+      // Si c'est une URL string (image existante), la garder
+      updates.push(`logo = $${paramIndex++}`);
+      values.push(req.body.logo);
+    }
+    
+    // Gérer l'upload de la bannière
+    if (req.files && req.files.banner && req.files.banner.length > 0) {
+      const uploadProvider = config.upload?.provider || 'local';
+      let uploadResult;
+      
+      if (uploadProvider === 's3') {
+        try {
+          uploadResult = await uploadService.uploadToS3(req.files.banner[0], 'restaurant-banners');
+        } catch (error) {
+          logger.error('Erreur upload S3 (banner), tentative Cloudinary:', error);
+          if (config.upload?.cloudinary?.cloudName) {
+            uploadResult = await uploadService.uploadToCloudinary(req.files.banner[0], 'restaurant-banners');
+          } else {
+            throw error;
+          }
+        }
+      } else if (uploadProvider === 'cloudinary') {
+        uploadResult = await uploadService.uploadToCloudinary(req.files.banner[0], 'restaurant-banners');
+      } else {
+        uploadResult = await uploadService.uploadToLocal(
+          req.files.banner[0],
+          'restaurant-banners',
+          { baseUrl: requestBaseUrl }
+        );
+      }
+      
+      const bannerUrl = normalizeLocalUrl(uploadResult.url);
+      updates.push(`banner = $${paramIndex++}`);
+      values.push(bannerUrl);
+    } else if (req.body.banner !== undefined && req.body.banner !== null && req.body.banner !== '') {
+      updates.push(`banner = $${paramIndex++}`);
+      values.push(req.body.banner);
+    }
+    
+    // Gérer l'upload des photos
+    if (req.files && req.files.photos && Array.isArray(req.files.photos)) {
+      logger.debug('📸 Upload photos détecté:', {
+        count: req.files.photos.length,
+        photos: req.files.photos.map((p, i) => ({
+          index: i,
+          filename: p.originalname,
+          mimetype: p.mimetype,
+          size: p.size,
+          hasBuffer: !!p.buffer,
+          bufferLength: p.buffer?.length,
+        })),
+      });
+      const uploadProvider = config.upload?.provider || 'local';
+      const photoUrls = [];
+      
+      for (const photoFile of req.files.photos) {
+        let uploadResult;
+        
+        if (uploadProvider === 's3') {
+          try {
+            uploadResult = await uploadService.uploadToS3(photoFile, 'restaurant-photos');
+          } catch (error) {
+            logger.error('Erreur upload S3 (photo), tentative Cloudinary:', error);
+            if (config.upload?.cloudinary?.cloudName) {
+              uploadResult = await uploadService.uploadToCloudinary(photoFile, 'restaurant-photos');
+            } else {
+              throw error;
+            }
+          }
+        } else if (uploadProvider === 'cloudinary') {
+          uploadResult = await uploadService.uploadToCloudinary(photoFile, 'restaurant-photos');
+        } else {
+          uploadResult = await uploadService.uploadToLocal(
+            photoFile,
+            'restaurant-photos',
+            { baseUrl: requestBaseUrl }
+          );
+        }
+        
+        photoUrls.push(normalizeLocalUrl(uploadResult.url));
+      }
+      
+      // Récupérer les photos existantes
+      const existingRestaurant = await query('SELECT photos FROM restaurants WHERE id = $1', [restaurantId]);
+      const existingPhotos = existingRestaurant.rows[0]?.photos || [];
+      // Si photos est un JSON string, le parser
+      let parsedExistingPhotos = [];
+      if (typeof existingPhotos === 'string') {
+        try {
+          parsedExistingPhotos = JSON.parse(existingPhotos);
+        } catch (e) {
+          parsedExistingPhotos = [];
+        }
+      } else if (Array.isArray(existingPhotos)) {
+        parsedExistingPhotos = existingPhotos;
+      }
+      
+      // Ajouter les photos existantes depuis req.body.existingPhotos si fourni
+      if (req.body.existingPhotos) {
+        let existingFromBody = [];
+        if (typeof req.body.existingPhotos === 'string') {
+          try {
+            existingFromBody = JSON.parse(req.body.existingPhotos);
+          } catch (e) {
+            existingFromBody = [];
+          }
+        } else if (Array.isArray(req.body.existingPhotos)) {
+          existingFromBody = req.body.existingPhotos;
+        }
+        // Fusionner avec les nouvelles photos uploadées
+        const allPhotos = [...existingFromBody, ...photoUrls];
+        updates.push(`photos = $${paramIndex++}`);
+        values.push(JSON.stringify(allPhotos));
+      } else {
+        // Sinon, ajouter aux existantes
+        const allPhotos = [...parsedExistingPhotos, ...photoUrls];
+        updates.push(`photos = $${paramIndex++}`);
+        values.push(JSON.stringify(allPhotos));
+      }
+    } else if (req.body.photos !== undefined) {
+      // Si c'est un tableau d'URLs (photos existantes), les garder
+      let photosArray = [];
+      if (Array.isArray(req.body.photos)) {
+        // Extraire les URIs si ce sont des objets avec uri
+        photosArray = req.body.photos.map(photo => 
+          typeof photo === 'string' ? photo : (photo.uri || photo)
+        );
+      } else if (typeof req.body.photos === 'string') {
+        // Si c'est une string JSON, essayer de la parser
+        try {
+          photosArray = JSON.parse(req.body.photos);
+        } catch (e) {
+          photosArray = [req.body.photos];
+        }
+      }
+      updates.push(`photos = $${paramIndex++}`);
+      values.push(JSON.stringify(photosArray));
+    }
+    
+    // Gérer les autres champs
+    // IMPORTANT: Ignorer les valeurs null/vides/undefined pour ne pas écraser les valeurs existantes
+    // et éviter les violations de contraintes NOT NULL
+    Object.keys(req.body).forEach(key => {
+      if (allowedFields.includes(key) && !['logo', 'banner', 'photos'].includes(key)) {
+        const value = req.body[key];
+        // IGNORER les valeurs vides/null/undefined - ne pas les inclure dans la mise à jour
+        // Cela préserve les valeurs existantes en base de données
+        if (value === '' || value === null || value === undefined || value === 'null' || value === 'undefined') {
+          // Ne rien faire - ignorer ce champ pour préserver la valeur existante
+          return;
+        } else if (key === 'opening_hours') {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(JSON.stringify(value));
+        } else {
+          updates.push(`${key} = $${paramIndex++}`);
+          values.push(value);
+        }
+      }
+    });
+    
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'NO_UPDATES', message: 'Aucune mise à jour fournie' },
+      });
+    }
+    
+    updates.push(`updated_at = NOW()`);
+    values.push(restaurantId);
+    
+    const result = await query(
+      `UPDATE restaurants 
+       SET ${updates.join(', ')}
+       WHERE id = $${paramIndex}
+       RETURNING id, name, email, phone, address, district, latitude, longitude, 
+                  delivery_radius, cuisine_type, description, is_open, status,
+                  mobile_money_number, mobile_money_provider, opening_hours,
+                  logo, banner, photos, average_rating, total_reviews`,
+      values
+    );
+    
+    res.json({
+      success: true,
+      message: 'Profil mis à jour avec succès',
+      data: { restaurant: result.rows[0] },
     });
   } catch (error) {
-    logger.error('Erreur updateMyProfile:', error);
+    logger.error('Erreur updateMyProfile:', {
+      message: error.message,
+      stack: error.stack,
+      name: error.name,
+      code: error.code,
+      hasFiles: !!req.files,
+      filesKeys: req.files ? Object.keys(req.files) : [],
+      bodyKeys: Object.keys(req.body || {}),
+    });
     res.status(500).json({
       success: false,
-      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' },
+      error: { 
+        code: 'UPDATE_ERROR', 
+        message: error.message || 'Erreur lors de la mise à jour',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
+      },
     });
   }
 };
@@ -898,10 +1907,35 @@ exports.updateMyProfile = async (req, res) => {
  */
 exports.toggleOpenStatus = async (req, res) => {
   try {
-    // TODO: Implémenter le toggle
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { is_open } = req.body;
+    
+    if (typeof is_open !== 'boolean') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_VALUE', message: 'is_open doit être un booléen' },
+      });
+    }
+    
+    const result = await query(
+      `UPDATE restaurants 
+       SET is_open = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING id, name, is_open`,
+      [is_open, restaurantId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+      });
+    }
+    
+    res.json({
+      success: true,
+      message: `Restaurant ${is_open ? 'ouvert' : 'fermé'}`,
+      data: { restaurant: result.rows[0] },
     });
   } catch (error) {
     logger.error('Erreur toggleOpenStatus:', error);
@@ -917,10 +1951,20 @@ exports.toggleOpenStatus = async (req, res) => {
  */
 exports.getMyCategories = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    
+    const result = await query(
+      `SELECT * FROM menu_categories 
+       WHERE restaurant_id = $1
+       ORDER BY display_order ASC, name ASC`,
+      [restaurantId]
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        categories: result.rows,
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyCategories:', error);
@@ -936,10 +1980,61 @@ exports.getMyCategories = async (req, res) => {
  */
 exports.updateMenuCategory = async (req, res) => {
   try {
-    // TODO: Implémenter la mise à jour
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { categoryId } = req.params;
+    const { name, description, display_order } = req.body;
+    
+    // Vérifier que la catégorie appartient au restaurant
+    const categoryCheck = await query(
+      'SELECT id FROM menu_categories WHERE id = $1 AND restaurant_id = $2',
+      [categoryId, restaurantId]
+    );
+    
+    if (categoryCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'CATEGORY_NOT_FOUND', message: 'Catégorie non trouvée' },
+      });
+    }
+    
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+    
+    if (name !== undefined) {
+      updates.push(`name = $${paramIndex++}`);
+      values.push(name);
+    }
+    if (description !== undefined) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description);
+    }
+    if (display_order !== undefined) {
+      updates.push(`display_order = $${paramIndex++}`);
+      values.push(display_order);
+    }
+    
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'NO_UPDATES', message: 'Aucune mise à jour fournie' },
+      });
+    }
+    
+    values.push(categoryId, restaurantId);
+    
+    const result = await query(
+      `UPDATE menu_categories 
+       SET ${updates.join(', ')}
+       WHERE id = $${paramIndex} AND restaurant_id = $${paramIndex + 1}
+       RETURNING *`,
+      values
+    );
+    
+    res.json({
+      success: true,
+      message: 'Catégorie mise à jour avec succès',
+      data: { category: result.rows[0] },
     });
   } catch (error) {
     logger.error('Erreur updateMenuCategory:', error);
@@ -955,10 +2050,46 @@ exports.updateMenuCategory = async (req, res) => {
  */
 exports.deleteMenuCategory = async (req, res) => {
   try {
-    // TODO: Implémenter la suppression
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { categoryId } = req.params;
+    
+    // Vérifier que la catégorie appartient au restaurant
+    const categoryCheck = await query(
+      'SELECT id FROM menu_categories WHERE id = $1 AND restaurant_id = $2',
+      [categoryId, restaurantId]
+    );
+    
+    if (categoryCheck.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'CATEGORY_NOT_FOUND', message: 'Catégorie non trouvée' },
+      });
+    }
+    
+    // Vérifier qu'il n'y a pas d'items dans la catégorie
+    const itemsCheck = await query(
+      'SELECT COUNT(*) as count FROM menu_items WHERE category_id = $1',
+      [categoryId]
+    );
+    
+    if (parseInt(itemsCheck.rows[0].count) > 0) {
+      return res.status(400).json({
+        success: false,
+        error: { 
+          code: 'CATEGORY_NOT_EMPTY', 
+          message: 'Impossible de supprimer une catégorie contenant des articles' 
+        },
+      });
+    }
+    
+    await query(
+      'DELETE FROM menu_categories WHERE id = $1 AND restaurant_id = $2',
+      [categoryId, restaurantId]
+    );
+    
+    res.json({
+      success: true,
+      message: 'Catégorie supprimée avec succès',
     });
   } catch (error) {
     logger.error('Erreur deleteMenuCategory:', error);
@@ -974,10 +2105,21 @@ exports.deleteMenuCategory = async (req, res) => {
  */
 exports.getMyMenu = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    
+    // Récupérer tous les items du menu (tous, pas seulement disponibles)
+    const itemsResult = await query(
+      `SELECT * FROM menu_items 
+       WHERE restaurant_id = $1
+       ORDER BY category_id, name ASC`,
+      [restaurantId]
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        menu: itemsResult.rows,
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyMenu:', error);
@@ -993,10 +2135,40 @@ exports.getMyMenu = async (req, res) => {
  */
 exports.toggleItemAvailability = async (req, res) => {
   try {
-    // TODO: Implémenter le toggle
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { itemId } = req.params;
+    
+    // Vérifier que l'article appartient au restaurant
+    const itemResult = await query(
+      'SELECT * FROM menu_items WHERE id = $1 AND restaurant_id = $2',
+      [itemId, restaurantId]
+    );
+    
+    if (itemResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ITEM_NOT_FOUND', message: 'Article non trouvé' },
+      });
+    }
+    
+    const item = itemResult.rows[0];
+    const newAvailability = !item.is_available;
+    
+    await query(
+      'UPDATE menu_items SET is_available = $1, updated_at = NOW() WHERE id = $2',
+      [newAvailability, itemId]
+    );
+    
+    res.json({
+      success: true,
+      message: `Article ${newAvailability ? 'activé' : 'désactivé'}`,
+      data: {
+        item: {
+          id: item.id,
+          name: item.name,
+          is_available: newAvailability,
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur toggleItemAvailability:', error);
@@ -1008,14 +2180,285 @@ exports.toggleItemAvailability = async (req, res) => {
 };
 
 /**
+ * Activer/désactiver une promotion sur un plat
+ * 
+ * Types de réduction:
+ * - percentage: Prix promo = Prix × (1 - pourcentage/100)
+ *   Exemple: 3000 FCFA avec -20% = 3000 × 0.80 = 2400 FCFA
+ * 
+ * - fixed_amount: Prix promo = Prix - montant fixe
+ *   Exemple: 1500 FCFA avec -300 FCFA = 1200 FCFA
+ */
+exports.setItemPromotion = async (req, res) => {
+  try {
+    const restaurantId = req.user.id;
+    const { itemId } = req.params;
+    const { 
+      is_promotional,
+      discount_type, // 'percentage' ou 'fixed_amount'
+      discount_value,
+      promotion_start,
+      promotion_end,
+      promotion_description 
+    } = req.body;
+    
+    // Vérifier que l'article appartient au restaurant
+    const itemResult = await query(
+      'SELECT * FROM menu_items WHERE id = $1 AND restaurant_id = $2',
+      [itemId, restaurantId]
+    );
+    
+    if (itemResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ITEM_NOT_FOUND', message: 'Article non trouvé' },
+      });
+    }
+    
+    const item = itemResult.rows[0];
+    const enablePromotion = is_promotional === true || is_promotional === 'true';
+    
+    if (enablePromotion) {
+      // Validation des champs requis pour activer une promotion
+      if (!discount_type || !['percentage', 'fixed_amount'].includes(discount_type)) {
+        return res.status(400).json({
+          success: false,
+          error: { 
+            code: 'INVALID_DISCOUNT_TYPE', 
+            message: 'Type de réduction invalide. Utilisez "percentage" ou "fixed_amount"' 
+          },
+        });
+      }
+      
+      if (!discount_value || parseFloat(discount_value) <= 0) {
+        return res.status(400).json({
+          success: false,
+          error: { 
+            code: 'INVALID_DISCOUNT_VALUE', 
+            message: 'La valeur de réduction doit être supérieure à 0' 
+          },
+        });
+      }
+      
+      // Vérifier que la réduction n'est pas supérieure au prix
+      const discountVal = parseFloat(discount_value);
+      if (discount_type === 'percentage' && discountVal >= 100) {
+        return res.status(400).json({
+          success: false,
+          error: { 
+            code: 'INVALID_PERCENTAGE', 
+            message: 'Le pourcentage de réduction doit être inférieur à 100%' 
+          },
+        });
+      }
+      
+      if (discount_type === 'fixed_amount' && discountVal >= parseFloat(item.price)) {
+        return res.status(400).json({
+          success: false,
+          error: { 
+            code: 'INVALID_FIXED_AMOUNT', 
+            message: 'Le montant de réduction doit être inférieur au prix du plat' 
+          },
+        });
+      }
+      
+      // Calculer le prix promotionnel
+      let promotionalPrice;
+      if (discount_type === 'percentage') {
+        promotionalPrice = parseFloat(item.price) * (1 - discountVal / 100);
+      } else {
+        promotionalPrice = parseFloat(item.price) - discountVal;
+      }
+      promotionalPrice = Math.round(promotionalPrice * 100) / 100; // Arrondir à 2 décimales
+      
+      // Mettre à jour l'article avec la promotion
+      const result = await query(
+        `UPDATE menu_items SET 
+          is_promotional = true,
+          discount_type = $1,
+          discount_value = $2,
+          promotional_price = $3,
+          promotion_start = $4,
+          promotion_end = $5,
+          promotion_description = $6,
+          updated_at = NOW()
+         WHERE id = $7
+         RETURNING *`,
+        [
+          discount_type,
+          discountVal,
+          promotionalPrice,
+          promotion_start ? new Date(promotion_start) : null,
+          promotion_end ? new Date(promotion_end) : null,
+          promotion_description || null,
+          itemId
+        ]
+      );
+      
+      logger.info(`Promotion activée sur ${item.name}: ${discount_type} ${discountVal} => ${promotionalPrice} FCFA`);
+      
+      res.json({
+        success: true,
+        message: 'Promotion activée',
+        data: {
+          item: {
+            ...result.rows[0],
+            original_price: item.price,
+            savings: parseFloat(item.price) - promotionalPrice,
+            savings_percent: discount_type === 'percentage' ? discountVal : 
+              Math.round((1 - promotionalPrice / parseFloat(item.price)) * 100),
+          },
+        },
+      });
+      
+    } else {
+      // Désactiver la promotion
+      const result = await query(
+        `UPDATE menu_items SET 
+          is_promotional = false,
+          discount_type = NULL,
+          discount_value = NULL,
+          promotional_price = NULL,
+          promotion_start = NULL,
+          promotion_end = NULL,
+          promotion_description = NULL,
+          updated_at = NOW()
+         WHERE id = $1
+         RETURNING *`,
+        [itemId]
+      );
+      
+      logger.info(`Promotion désactivée sur ${item.name}`);
+      
+      res.json({
+        success: true,
+        message: 'Promotion désactivée',
+        data: {
+          item: result.rows[0],
+        },
+      });
+    }
+    
+  } catch (error) {
+    logger.error('Erreur setItemPromotion:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'PROMOTION_ERROR', message: 'Erreur lors de la mise à jour de la promotion' },
+    });
+  }
+};
+
+/**
+ * Obtenir tous les plats en promotion du restaurant
+ */
+exports.getPromotionalItems = async (req, res) => {
+  try {
+    const restaurantId = req.user.id;
+    
+    const result = await query(
+      `SELECT m.*, c.name as category_name
+       FROM menu_items m
+       LEFT JOIN menu_categories c ON m.category_id = c.id
+       WHERE m.restaurant_id = $1 
+         AND m.is_promotional = true
+         AND (m.promotion_end IS NULL OR m.promotion_end > NOW())
+       ORDER BY m.updated_at DESC`,
+      [restaurantId]
+    );
+    
+    // Calculer les économies pour chaque plat
+    const items = result.rows.map(item => ({
+      ...item,
+      original_price: item.price,
+      current_price: item.promotional_price || item.price,
+      savings: item.promotional_price ? parseFloat(item.price) - parseFloat(item.promotional_price) : 0,
+      savings_percent: item.promotional_price ? 
+        Math.round((1 - parseFloat(item.promotional_price) / parseFloat(item.price)) * 100) : 0,
+    }));
+    
+    res.json({
+      success: true,
+      data: {
+        items,
+        total: items.length,
+      },
+    });
+    
+  } catch (error) {
+    logger.error('Erreur getPromotionalItems:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
  * Obtenir les commandes du restaurant
  */
 exports.getMyOrders = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { status, page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    let queryText = `
+      SELECT o.*, 
+             u.first_name || ' ' || u.last_name as customer_name,
+             u.phone as customer_phone,
+             (SELECT COUNT(*) FROM order_items WHERE order_id = o.id) as items_count,
+             (SELECT COALESCE(oi.menu_item_snapshot->>'photo', oi.menu_item_snapshot->>'image_url', mi.photo)
+              FROM order_items oi 
+              LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+              WHERE oi.order_id = o.id 
+              LIMIT 1) as first_item_image
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.restaurant_id = $1
+    `;
+    const values = [restaurantId];
+    
+    if (status) {
+      queryText += ` AND o.status = $2`;
+      values.push(status);
+    }
+    
+    queryText += ` ORDER BY o.placed_at DESC, o.created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+    values.push(parseInt(limit), offset);
+    
+    const result = await query(queryText, values);
+    
+    // Compter le total
+    let countQuery = 'SELECT COUNT(*) FROM orders WHERE restaurant_id = $1';
+    const countValues = [restaurantId];
+    if (status) {
+      countQuery += ' AND status = $2';
+      countValues.push(status);
+    }
+    const countResult = await query(countQuery, countValues);
+    const total = parseInt(countResult.rows[0].count);
+    
+    // Formater les commandes pour l'application
+    const orders = result.rows.map(order => ({
+      ...order,
+      orderNumber: order.order_number,
+      customerName: order.customer_name || 'Client',
+      itemsCount: parseInt(order.items_count) || 0,
+      createdAt: order.placed_at || order.created_at,
+      firstItemImage: order.first_item_image || null,
+    }));
+    
+    res.json({
+      success: true,
+      data: {
+        orders,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total,
+          pages: Math.ceil(total / limit),
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyOrders:', error);
@@ -1031,10 +2474,103 @@ exports.getMyOrders = async (req, res) => {
  */
 exports.getMyOrderById = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { orderId } = req.params;
+    
+    const result = await query(
+      `SELECT o.*, 
+              COALESCE(o.commission_rate, r.commission_rate) as commission_rate,
+              u.first_name || ' ' || u.last_name as customer_name,
+              u.phone as customer_phone
+       FROM orders o
+       LEFT JOIN restaurants r ON o.restaurant_id = r.id
+       LEFT JOIN users u ON o.user_id = u.id
+       WHERE o.id = $1 AND o.restaurant_id = $2`,
+      [orderId, restaurantId]
+    );
+    
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
+      });
+    }
+    
+    // Récupérer les items de la commande
+    const itemsResult = await query(
+      `SELECT oi.*, 
+              COALESCE(oi.menu_item_snapshot->>'name', mi.name) as item_name,
+              COALESCE(oi.menu_item_snapshot->>'photo', mi.photo) as item_photo
+       FROM order_items oi
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       WHERE oi.order_id = $1`,
+      [orderId]
+    );
+    
+    const order = result.rows[0];
+    
+    // Formater les items avec les noms corrects
+    const formattedItems = itemsResult.rows.map(item => ({
+      ...item,
+      name: item.item_name || item.menu_item_snapshot?.name || 'Article',
+      price: item.unit_price,
+    }));
+    order.items = formattedItems;
+    
+    // Formater l'adresse de livraison
+    let deliveryAddress = '';
+    let deliveryLatitude = null;
+    let deliveryLongitude = null;
+    let deliveryLandmark = '';
+    
+    if (order.delivery_address) {
+      const deliveryAddr = typeof order.delivery_address === 'string' 
+        ? JSON.parse(order.delivery_address) 
+        : order.delivery_address;
+      
+      deliveryAddress = [
+        deliveryAddr.address_line,
+        deliveryAddr.district,
+        deliveryAddr.city
+      ].filter(Boolean).join(', ') || deliveryAddr.street || '';
+      
+      deliveryLatitude = parseFloat(deliveryAddr.latitude) || null;
+      deliveryLongitude = parseFloat(deliveryAddr.longitude) || null;
+      deliveryLandmark = deliveryAddr.landmark || '';
+    }
+    
+    // Calculer le revenu net (total - commission)
+    const commissionRate = parseFloat(order.commission_rate) || 0;
+    const subtotal = parseFloat(order.subtotal) || 0; // Prix des articles uniquement
+    const total = parseFloat(order.total) || 0;
+    // Commission calculée sur le subtotal (prix articles), pas sur le total
+    const commission = parseFloat(order.commission) || (subtotal * commissionRate / 100);
+    // Le restaurant reçoit: subtotal - commission (pas les frais de livraison/service)
+    const netRevenue = subtotal - commission;
+    
+    // Formater les données pour le frontend
+    const formattedOrder = {
+      ...order,
+      customerName: order.customer_name || 'Client',
+      customerPhone: order.customer_phone || '',
+      deliveryAddress: deliveryAddress,
+      deliveryLatitude: deliveryLatitude,
+      deliveryLongitude: deliveryLongitude,
+      deliveryLandmark: deliveryLandmark,
+      subtotal: parseFloat(order.subtotal) || 0,
+      deliveryFee: parseFloat(order.delivery_fee) || 0,
+      commission: commission,
+      commissionRate: commissionRate,
+      netRevenue: netRevenue,
+      total: total,
+      items: formattedItems,
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        order: formattedOrder,
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyOrderById:', error);
@@ -1050,10 +2586,210 @@ exports.getMyOrderById = async (req, res) => {
  */
 exports.getMyStatistics = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { period = 'today' } = req.query;
+    
+    let dateFilter = '';
+    let dateFilterSubquery = '';
+    let daysCount = 7;
+    const values = [restaurantId];
+    
+    if (period === 'today') {
+      dateFilter = "AND DATE(o.placed_at) = CURRENT_DATE";
+      dateFilterSubquery = "AND DATE(placed_at) = CURRENT_DATE";
+      daysCount = 1;
+    } else if (period === 'week') {
+      dateFilter = "AND o.placed_at >= CURRENT_DATE - INTERVAL '7 days'";
+      dateFilterSubquery = "AND placed_at >= CURRENT_DATE - INTERVAL '7 days'";
+      daysCount = 7;
+    } else if (period === 'month') {
+      dateFilter = "AND o.placed_at >= CURRENT_DATE - INTERVAL '30 days'";
+      dateFilterSubquery = "AND placed_at >= CURRENT_DATE - INTERVAL '30 days'";
+      daysCount = 30;
+    }
+    
+    // Statistiques générales - Utiliser des sous-requêtes pour éviter la syntaxe FILTER
+    const statsResult = await query(
+      `SELECT 
+        (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND DATE(placed_at) = CURRENT_DATE) as today_orders,
+        COALESCE((SELECT SUM(subtotal) FROM orders WHERE restaurant_id = r.id AND DATE(placed_at) = CURRENT_DATE AND status = 'delivered'), 0) as today_revenue,
+        (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND (status = 'new' OR status = 'pending')) as pending_orders,
+        (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND status = 'delivered' ${dateFilterSubquery}) as delivered_orders,
+        (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND (status = 'cancelled' OR status = 'refused') ${dateFilterSubquery}) as cancelled_orders,
+        COALESCE((SELECT AVG(EXTRACT(EPOCH FROM (ready_at - accepted_at)) / 60) FROM orders WHERE restaurant_id = r.id AND ready_at IS NOT NULL AND accepted_at IS NOT NULL ${dateFilterSubquery}), 0) as average_preparation_time,
+        r.average_rating,
+        r.total_reviews
+       FROM restaurants r
+       WHERE r.id = $1`,
+      values
+    );
+    
+    const stats = statsResult.rows[0] || {
+      today_orders: 0,
+      today_revenue: 0,
+      pending_orders: 0,
+      delivered_orders: 0,
+      cancelled_orders: 0,
+      average_preparation_time: 0,
+      average_rating: 0,
+      total_reviews: 0,
+    };
+    
+    // Revenus par jour (7 ou 30 derniers jours) - utilise subtotal (prix articles seulement)
+    const revenueByDayResult = await query(
+      `SELECT 
+        DATE(o.placed_at) as date,
+        COALESCE(SUM(o.subtotal), 0) as revenue,
+        COUNT(*) as orders_count
+       FROM orders o
+       WHERE o.restaurant_id = $1 AND o.status = 'delivered' ${dateFilter}
+       GROUP BY DATE(o.placed_at)
+       ORDER BY DATE(o.placed_at) DESC
+       LIMIT $2`,
+      [restaurantId, daysCount]
+    );
+    
+    // Heures de pointe (commandes par heure sur la période)
+    const peakHoursResult = await query(
+      `SELECT 
+        EXTRACT(HOUR FROM o.placed_at) as hour,
+        COUNT(*) as orders_count
+       FROM orders o
+       WHERE o.restaurant_id = $1 ${dateFilter}
+       GROUP BY EXTRACT(HOUR FROM o.placed_at)
+       ORDER BY EXTRACT(HOUR FROM o.placed_at)`,
+      values
+    );
+    
+    // Acceptées vs Refusées vs Total
+    // Taux d'acceptation = Commandes acceptées / Toutes commandes reçues × 100
+    const acceptedRefusedResult = await query(
+      `SELECT 
+        COUNT(*) FILTER (WHERE o.status IN ('accepted', 'preparing', 'ready', 'delivering', 'delivered')) as accepted,
+        COUNT(*) FILTER (WHERE o.status = 'refused') as refused,
+        COUNT(*) FILTER (WHERE o.status = 'cancelled') as cancelled,
+        COUNT(*) as total_received
+       FROM orders o
+       WHERE o.restaurant_id = $1 ${dateFilter}`,
+      values
+    );
+    
+    // Top plats vendus
+    const topDishesResult = await query(
+      `SELECT 
+        COALESCE(oi.menu_item_snapshot->>'name', mi.name) as dish_name,
+        COUNT(*) as sales_count,
+        COALESCE(SUM(oi.subtotal), 0) as revenue
+       FROM order_items oi
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       LEFT JOIN orders o ON oi.order_id = o.id
+       WHERE o.restaurant_id = $1 ${dateFilter}
+         AND o.status = 'delivered'
+       GROUP BY COALESCE(oi.menu_item_snapshot->>'name', mi.name)
+       ORDER BY sales_count DESC
+       LIMIT 5`,
+      values
+    );
+    
+    // Préparer les données pour les graphiques
+    const revenueByDay = revenueByDayResult.rows.map(row => ({
+      date: row.date instanceof Date ? row.date.toISOString().split('T')[0] : String(row.date).split('T')[0],
+      revenue: Number.parseFloat(row.revenue || 0),
+      orders_count: Number.parseInt(row.orders_count || 0),
+    })).reverse(); // Du plus ancien au plus récent
+    
+    // Remplir les jours manquants avec 0
+    const revenueData = [];
+    const ordersData = [];
+    const dayLabels = [];
+    const today = new Date();
+    const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    
+    for (let i = daysCount - 1; i >= 0; i--) {
+      const date = new Date(today);
+      date.setDate(date.getDate() - i);
+      const dateStr = date.toISOString().split('T')[0];
+      const dayData = revenueByDay.find(d => d.date === dateStr);
+      revenueData.push(dayData?.revenue || 0);
+      ordersData.push(dayData?.orders_count || 0);
+      dayLabels.push(days[date.getDay()]);
+    }
+    
+    // Heures de pointe (24 heures)
+    const peakHoursData = Array.from({ length: 24 }, (_, hour) => {
+      const hourData = peakHoursResult.rows.find(h => Number.parseInt(h.hour) === hour);
+      return Number.parseInt(hourData?.orders_count || 0);
+    });
+    
+    const acceptedRefused = acceptedRefusedResult.rows[0] || { accepted: 0, refused: 0, cancelled: 0, total_received: 0 };
+    // Taux d'acceptation = Commandes acceptées / Toutes commandes reçues × 100
+    const totalOrdersForRatio = Number.parseInt(acceptedRefused.total_received) || 0;
+    
+    res.json({
+      success: true,
+      data: {
+        statistics: {
+          today_orders: Number.parseInt(stats.today_orders) || 0,
+          today_revenue: Number.parseFloat(stats.today_revenue) || 0,
+          pending_orders: Number.parseInt(stats.pending_orders) || 0,
+          delivered_orders: Number.parseInt(stats.delivered_orders) || 0,
+          cancelled_orders: Number.parseInt(stats.cancelled_orders) || 0,
+          average_rating: Number.parseFloat(stats.average_rating) || 0,
+          total_reviews: Number.parseInt(stats.total_reviews) || 0,
+          average_preparation_time: Math.round(Number.parseFloat(stats.average_preparation_time) || 0),
+          // Données pour graphiques
+          revenue_evolution: {
+            labels: dayLabels,
+            datasets: [{ data: revenueData }],
+          },
+          orders_per_day: {
+            labels: dayLabels,
+            datasets: [{ data: ordersData }],
+          },
+          peak_hours: {
+            labels: Array.from({ length: 24 }, (_, i) => i.toString()),
+            datasets: [{ data: peakHoursData }],
+          },
+          accepted_vs_refused: [
+            { 
+              name: 'Acceptées', 
+              population: Number.parseInt(acceptedRefused.accepted) || 0, 
+              color: '#10B981',
+            },
+            { 
+              name: 'Refusées', 
+              population: Number.parseInt(acceptedRefused.refused) || 0, 
+              color: '#EF4444',
+            },
+            { 
+              name: 'Annulées', 
+              population: Number.parseInt(acceptedRefused.cancelled) || 0, 
+              color: '#F59E0B',
+            },
+          ],
+          // Taux d'acceptation global = (Acceptées / Total reçues) × 100
+          acceptance_rate: totalOrdersForRatio > 0 
+            ? Math.round((Number.parseInt(acceptedRefused.accepted) / totalOrdersForRatio) * 100)
+            : 0,
+          total_orders_received: totalOrdersForRatio,
+          top_dishes: topDishesResult.rows.map((dish, index) => ({
+            name: dish.dish_name || 'Plat',
+            sales: Number.parseInt(dish.sales_count) || 0,
+            revenue: Number.parseFloat(dish.revenue) || 0,
+          })),
+          daily_stats: revenueByDay.map(day => {
+            const dateObj = new Date(day.date);
+            return {
+              date: dateObj.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' }),
+              orders: day.orders_count || 0,
+              revenue: day.revenue || 0,
+              acceptanceRate: totalOrdersForRatio > 0 
+                ? Math.round((Number.parseInt(acceptedRefused.accepted) / totalOrdersForRatio) * 100)
+                : 0,
+            };
+          }),
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyStatistics:', error);
@@ -1069,10 +2805,59 @@ exports.getMyStatistics = async (req, res) => {
  */
 exports.getMyEarnings = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { start_date, end_date } = req.query;
+    
+    let dateFilter = '';
+    const values = [restaurantId];
+    
+    if (start_date && end_date) {
+      dateFilter = "AND o.placed_at BETWEEN $2 AND $3";
+      values.push(new Date(start_date), new Date(end_date));
+    } else if (start_date) {
+      dateFilter = "AND o.placed_at >= $2";
+      values.push(new Date(start_date));
+    } else if (end_date) {
+      dateFilter = "AND o.placed_at <= $2";
+      values.push(new Date(end_date));
+    }
+    
+    // Récupérer les gains (revenus articles moins commission plateforme)
+    // Le restaurant reçoit: subtotal (prix articles) - commission
+    // Il ne reçoit PAS les frais de livraison (vont au livreur) ni frais de service (vont à la plateforme)
+    const earningsResult = await query(
+      `SELECT 
+        COUNT(*) as total_orders,
+        COALESCE(SUM(o.subtotal), 0) as total_revenue,
+        COALESCE(SUM(o.subtotal * r.commission_rate / 100), 0) as total_commission,
+        COALESCE(SUM(o.subtotal * (1 - r.commission_rate / 100)), 0) as net_earnings,
+        r.balance
+       FROM restaurants r
+       LEFT JOIN orders o ON o.restaurant_id = r.id AND o.status = 'delivered' ${dateFilter}
+       WHERE r.id = $1
+       GROUP BY r.id, r.balance`,
+      values
+    );
+    
+    const earnings = earningsResult.rows[0] || {
+      total_orders: 0,
+      total_revenue: 0,
+      total_commission: 0,
+      net_earnings: 0,
+      balance: 0,
+    };
+    
+    res.json({
+      success: true,
+      data: {
+        earnings: {
+          total_orders: parseInt(earnings.total_orders) || 0,
+          total_revenue: parseFloat(earnings.total_revenue) || 0,
+          total_commission: parseFloat(earnings.total_commission) || 0,
+          net_earnings: parseFloat(earnings.net_earnings) || 0,
+          balance: parseFloat(earnings.balance) || 0,
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyEarnings:', error);
@@ -1088,16 +2873,78 @@ exports.getMyEarnings = async (req, res) => {
  */
 exports.getMyReviews = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+
+    // Récupérer les avis (commandes avec une note)
+    const result = await query(`
+      SELECT 
+        o.id,
+        o.order_number,
+        o.restaurant_rating as rating,
+        o.restaurant_review as comment,
+        o.delivered_at as created_at,
+        u.first_name as customer_name,
+        u.profile_picture as customer_avatar
+      FROM orders o
+      LEFT JOIN users u ON o.user_id = u.id
+      WHERE o.restaurant_id = $1 
+        AND o.restaurant_rating IS NOT NULL
+      ORDER BY o.delivered_at DESC
+      LIMIT $2 OFFSET $3
+    `, [restaurantId, limit, offset]);
+
+    // Compter le total
+    const countResult = await query(`
+      SELECT COUNT(*) FROM orders 
+      WHERE restaurant_id = $1 AND restaurant_rating IS NOT NULL
+    `, [restaurantId]);
+
+    // Calculer les statistiques
+    const statsResult = await query(`
+      SELECT 
+        COALESCE(AVG(restaurant_rating), 0) as avg_rating,
+        COUNT(*) as total_reviews,
+        COUNT(*) FILTER (WHERE restaurant_rating = 5) as five_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 4) as four_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 3) as three_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 2) as two_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 1) as one_star
+      FROM orders 
+      WHERE restaurant_id = $1 AND restaurant_rating IS NOT NULL
+    `, [restaurantId]);
+
+    const stats = statsResult.rows[0];
+
+    res.json({
+      success: true,
+      data: {
+        reviews: result.rows,
+        statistics: {
+          avg_rating: parseFloat(stats.avg_rating) || 0,
+          total_reviews: parseInt(stats.total_reviews) || 0,
+          distribution: {
+            5: parseInt(stats.five_star) || 0,
+            4: parseInt(stats.four_star) || 0,
+            3: parseInt(stats.three_star) || 0,
+            2: parseInt(stats.two_star) || 0,
+            1: parseInt(stats.one_star) || 0,
+          },
+        },
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: parseInt(countResult.rows[0].count),
+          pages: Math.ceil(parseInt(countResult.rows[0].count) / limit),
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyReviews:', error);
     res.status(500).json({
       success: false,
-      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des avis' },
     });
   }
 };
@@ -1107,16 +2954,86 @@ exports.getMyReviews = async (req, res) => {
  */
 exports.requestPayout = async (req, res) => {
   try {
-    // TODO: Implémenter la demande
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const { amount, payment_method, account_number, account_name } = req.body;
+    const restaurantId = req.user.id;
+
+    // Validation
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_AMOUNT', message: 'Le montant doit être supérieur à 0' },
+      });
+    }
+
+    const MIN_PAYOUT = 10000; // 10,000 FCFA minimum
+    if (amount < MIN_PAYOUT) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'AMOUNT_TOO_LOW', message: `Le montant minimum de retrait est de ${MIN_PAYOUT} FCFA` },
+      });
+    }
+
+    if (!payment_method || !account_number) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_FIELDS', message: 'Méthode de paiement et numéro de compte requis' },
+      });
+    }
+
+    // Vérifier le solde disponible
+    const balanceResult = await query(`
+      SELECT 
+        COALESCE(SUM(CASE WHEN to_user_id = $1 THEN amount ELSE 0 END), 0) as credits,
+        COALESCE(SUM(CASE WHEN from_user_id = $1 THEN amount ELSE 0 END), 0) as debits
+      FROM transactions
+      WHERE (to_user_id = $1 OR from_user_id = $1)
+        AND status = 'completed'
+    `, [restaurantId]);
+
+    const balance = parseFloat(balanceResult.rows[0].credits) - parseFloat(balanceResult.rows[0].debits);
+
+    // Vérifier les demandes en cours
+    const pendingResult = await query(`
+      SELECT COALESCE(SUM(amount), 0) as pending_amount
+      FROM payout_requests
+      WHERE user_id = $1 AND user_type = 'restaurant' AND status IN ('pending', 'processing')
+    `, [restaurantId]);
+
+    const pendingAmount = parseFloat(pendingResult.rows[0].pending_amount);
+    const availableBalance = balance - pendingAmount;
+
+    if (amount > availableBalance) {
+      return res.status(400).json({
+        success: false,
+        error: { 
+          code: 'INSUFFICIENT_BALANCE', 
+          message: `Solde insuffisant. Disponible: ${availableBalance.toFixed(0)} FCFA` 
+        },
+      });
+    }
+
+    // Créer la demande de payout
+    const result = await query(`
+      INSERT INTO payout_requests (
+        user_type, user_id, amount, payment_method, account_number, account_name, status
+      ) VALUES ($1, $2, $3, $4, $5, $6, 'pending')
+      RETURNING *
+    `, ['restaurant', restaurantId, amount, payment_method, account_number, account_name || null]);
+
+    logger.info(`Demande de payout créée pour restaurant ${restaurantId}: ${amount} FCFA`);
+
+    res.status(201).json({
+      success: true,
+      data: {
+        payout: result.rows[0],
+        message: 'Votre demande de retrait a été enregistrée. Elle sera traitée dans un délai de 24-48h.',
+      },
     });
   } catch (error) {
     logger.error('Erreur requestPayout:', error);
     res.status(500).json({
       success: false,
-      error: { code: 'CREATE_ERROR', message: 'Erreur lors de la demande' },
+      error: { code: 'CREATE_ERROR', message: 'Erreur lors de la demande de retrait' },
     });
   }
 };
@@ -1126,16 +3043,77 @@ exports.requestPayout = async (req, res) => {
  */
 exports.getMyPayoutRequests = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { page = 1, limit = 20, status } = req.query;
+    const offset = (page - 1) * limit;
+
+    let whereClause = 'WHERE user_id = $1 AND user_type = $2';
+    const params = [restaurantId, 'restaurant'];
+
+    if (status) {
+      whereClause += ` AND status = $${params.length + 1}`;
+      params.push(status);
+    }
+
+    // Obtenir les demandes
+    const result = await query(`
+      SELECT 
+        pr.*,
+        a.first_name as processed_by_name
+      FROM payout_requests pr
+      LEFT JOIN admins a ON pr.processed_by = a.id
+      ${whereClause}
+      ORDER BY pr.created_at DESC
+      LIMIT $${params.length + 1} OFFSET $${params.length + 2}
+    `, [...params, limit, offset]);
+
+    // Compter le total
+    const countResult = await query(`
+      SELECT COUNT(*) FROM payout_requests ${whereClause}
+    `, params);
+
+    // Calculer le solde disponible
+    const balanceResult = await query(`
+      SELECT 
+        COALESCE(SUM(CASE WHEN to_user_id = $1 THEN amount ELSE 0 END), 0) as credits,
+        COALESCE(SUM(CASE WHEN from_user_id = $1 THEN amount ELSE 0 END), 0) as debits
+      FROM transactions
+      WHERE (to_user_id = $1 OR from_user_id = $1)
+        AND status = 'completed'
+    `, [restaurantId]);
+
+    const pendingResult = await query(`
+      SELECT COALESCE(SUM(amount), 0) as pending_amount
+      FROM payout_requests
+      WHERE user_id = $1 AND user_type = 'restaurant' AND status IN ('pending', 'processing')
+    `, [restaurantId]);
+
+    const totalBalance = parseFloat(balanceResult.rows[0].credits) - parseFloat(balanceResult.rows[0].debits);
+    const pendingAmount = parseFloat(pendingResult.rows[0].pending_amount);
+    const availableBalance = totalBalance - pendingAmount;
+
+    res.json({
+      success: true,
+      data: {
+        payouts: result.rows,
+        balance: {
+          total: totalBalance,
+          pending: pendingAmount,
+          available: availableBalance,
+        },
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: parseInt(countResult.rows[0].count),
+          pages: Math.ceil(parseInt(countResult.rows[0].count) / limit),
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyPayoutRequests:', error);
     res.status(500).json({
       success: false,
-      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des demandes' },
     });
   }
 };
@@ -1426,6 +3404,320 @@ exports.exportRestaurantData = async (req, res) => {
         code: 'EXPORT_ERROR',
         message: 'Erreur lors de l\'export des données',
       },
+    });
+  }
+};
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * SUPPORT & TICKETS
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * Créer un ticket de support (signaler un problème)
+ */
+exports.createSupportTicket = async (req, res) => {
+  try {
+    const restaurantId = req.user.id;
+    const { type, description, email } = req.body;
+    
+    // Récupérer les infos du restaurant
+    const restaurantResult = await query(
+      'SELECT name, email, phone FROM restaurants WHERE id = $1',
+      [restaurantId]
+    );
+    
+    if (restaurantResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+      });
+    }
+    
+    const restaurant = restaurantResult.rows[0];
+    
+    // Mapper le type de problème vers une catégorie (valeurs valides: order, payment, delivery, account, technical, other)
+    const categoryMap = {
+      'orders': 'order',
+      'payments': 'payment',
+      'app': 'technical',
+      'account': 'account',
+      'other': 'other',
+    };
+    
+    // Mapper la priorité selon le type
+    const priorityMap = {
+      'orders': 'high',
+      'payments': 'high',
+      'app': 'medium',
+      'account': 'medium',
+      'other': 'low',
+    };
+    
+    // Construire la description avec l'email de contact si fourni
+    const fullDescription = email 
+      ? `${description}\n\n---\nEmail de contact: ${email}`
+      : `${description}\n\n---\nEmail restaurant: ${restaurant.email}`;
+    
+    // Générer le ticket_number en utilisant la fonction SQL
+    const ticketNumResult = await query(`SELECT generate_ticket_number() as ticket_number`);
+    const ticketNumber = ticketNumResult.rows[0].ticket_number;
+    
+    // Créer le ticket avec le ticket_number généré
+    const result = await query(
+      `INSERT INTO support_tickets (
+        ticket_number, user_type, user_id, category, subject, description, 
+        priority, status
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, 'open')
+      RETURNING *`,
+      [
+        ticketNumber,
+        'restaurant',
+        restaurantId,
+        categoryMap[type] || 'other',
+        `[${type.toUpperCase()}] Problème signalé par ${restaurant.name}`,
+        fullDescription,
+        priorityMap[type] || 'medium',
+      ]
+    );
+    
+    const ticket = result.rows[0];
+    
+    logger.info('Ticket de support créé par restaurant:', {
+      ticketId: ticket.id,
+      ticketNumber: ticket.ticket_number,
+      restaurantId,
+      restaurantName: restaurant.name,
+      type,
+    });
+    
+    res.status(201).json({
+      success: true,
+      message: 'Votre problème a été signalé avec succès',
+      data: {
+        ticket: {
+          id: ticket.id,
+          ticket_number: ticket.ticket_number,
+          status: ticket.status,
+          created_at: ticket.created_at,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur createSupportTicket:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'CREATE_ERROR', message: 'Erreur lors de la création du ticket' },
+    });
+  }
+};
+
+/**
+ * Lister les tickets de support du restaurant
+ */
+exports.getMySupportTickets = async (req, res) => {
+  try {
+    const restaurantId = req.user.id;
+    const { page = 1, limit = 20 } = req.query;
+    const offset = (page - 1) * limit;
+    
+    const result = await query(
+      `SELECT * FROM support_tickets 
+       WHERE user_type = 'restaurant' AND user_id = $1
+       ORDER BY created_at DESC
+       LIMIT $2 OFFSET $3`,
+      [restaurantId, limit, offset]
+    );
+    
+    const countResult = await query(
+      `SELECT COUNT(*) as total FROM support_tickets 
+       WHERE user_type = 'restaurant' AND user_id = $1`,
+      [restaurantId]
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        tickets: result.rows,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: parseInt(countResult.rows[0].total),
+          totalPages: Math.ceil(countResult.rows[0].total / limit),
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getMySupportTickets:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des tickets' },
+    });
+  }
+};
+
+/**
+ * Détails d'un ticket de support
+ */
+exports.getSupportTicketDetails = async (req, res) => {
+  try {
+    const restaurantId = req.user.id;
+    const { ticketId } = req.params;
+    
+    // Récupérer le ticket
+    const ticketResult = await query(
+      `SELECT * FROM support_tickets 
+       WHERE id = $1 AND user_type = 'restaurant' AND user_id = $2`,
+      [ticketId, restaurantId]
+    );
+    
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TICKET_NOT_FOUND', message: 'Ticket non trouvé' },
+      });
+    }
+    
+    // Vérifier si la colonne is_internal existe
+    const hasIsInternal = await query(`
+      SELECT EXISTS (
+        SELECT 1 FROM information_schema.columns 
+        WHERE table_name = 'ticket_messages' 
+        AND column_name = 'is_internal'
+      ) as exists
+    `);
+    
+    // Récupérer les messages du ticket (exclure les messages internes si la colonne existe)
+    let messagesQuery;
+    if (hasIsInternal.rows[0].exists) {
+      messagesQuery = `
+        SELECT id, ticket_id, sender_type, sender_id, message, created_at 
+        FROM ticket_messages 
+        WHERE ticket_id = $1 AND (is_internal = false OR is_internal IS NULL)
+        ORDER BY created_at ASC
+      `;
+    } else {
+      messagesQuery = `
+        SELECT id, ticket_id, sender_type, sender_id, message, created_at 
+        FROM ticket_messages 
+        WHERE ticket_id = $1
+        ORDER BY created_at ASC
+      `;
+    }
+    
+    const messagesResult = await query(messagesQuery, [ticketId]);
+    
+    logger.info('Récupération ticket details:', {
+      ticketId,
+      restaurantId,
+      ticketFound: true,
+      messagesCount: messagesResult.rows.length,
+      messages: messagesResult.rows.map(m => ({
+        id: m.id,
+        sender_type: m.sender_type,
+        messagePreview: m.message?.substring(0, 50),
+      })),
+    });
+    
+    res.json({
+      success: true,
+      data: {
+        ticket: ticketResult.rows[0],
+        messages: messagesResult.rows,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getSupportTicketDetails:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération du ticket' },
+    });
+  }
+};
+
+/**
+ * Ajouter un message à un ticket existant (style WhatsApp)
+ */
+exports.addMessageToTicket = async (req, res) => {
+  try {
+    const restaurantId = req.user.id;
+    const { ticketId } = req.params;
+    const { message } = req.body;
+    
+    // Vérifier que le ticket appartient au restaurant
+    const ticketResult = await query(
+      `SELECT * FROM support_tickets 
+       WHERE id = $1 AND user_type = 'restaurant' AND user_id = $2`,
+      [ticketId, restaurantId]
+    );
+    
+    if (ticketResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TICKET_NOT_FOUND', message: 'Ticket non trouvé' },
+      });
+    }
+    
+    const ticket = ticketResult.rows[0];
+    
+    // Vérifier que le ticket n'est pas fermé
+    if (ticket.status === 'closed' || ticket.status === 'resolved') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'TICKET_CLOSED', message: 'Ce ticket est fermé. Créez un nouveau ticket.' },
+      });
+    }
+    
+    // Ajouter le message
+    const messageResult = await query(
+      `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message)
+       VALUES ($1, 'restaurant', $2, $3)
+       RETURNING *`,
+      [ticketId, restaurantId, message.trim()]
+    );
+    
+    // Mettre à jour le ticket (remettre en attente si nécessaire)
+    await query(
+      `UPDATE support_tickets 
+       SET updated_at = NOW(), 
+           status = CASE WHEN status = 'in_progress' THEN 'waiting_customer' ELSE status END
+       WHERE id = $1`,
+      [ticketId]
+    );
+    
+    logger.info('Message ajouté au ticket par restaurant:', {
+      ticketId,
+      restaurantId,
+      messageId: messageResult.rows[0].id,
+    });
+    
+    // Émettre une notification Socket.IO pour l'admin
+    const io = req.app.get('io');
+    if (io) {
+      io.to('admin_dashboard').emit('new_support_message', {
+        ticket_id: ticketId,
+        ticket_number: ticket.ticket_number,
+        message: messageResult.rows[0],
+        sender_type: 'restaurant',
+        restaurant_name: ticket.subject.replace(/\[.*\] Problème signalé par /, ''),
+      });
+      logger.debug('Notification Socket.IO envoyée aux admins pour nouveau message support');
+    }
+    
+    res.status(201).json({
+      success: true,
+      message: 'Message envoyé',
+      data: {
+        message: messageResult.rows[0],
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur addMessageToTicket:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'SEND_ERROR', message: 'Erreur lors de l\'envoi du message' },
     });
   }
 };

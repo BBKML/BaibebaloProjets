@@ -3,7 +3,7 @@ import {
   View,
   Text,
   StyleSheet,
-  FlatList,
+  ScrollView,
   TouchableOpacity,
   RefreshControl,
 } from 'react-native';
@@ -15,6 +15,7 @@ export default function MyClaimsTrackingScreen({ navigation }) {
   const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [tab, setTab] = useState('active');
 
   useEffect(() => {
     loadClaims();
@@ -41,63 +42,61 @@ export default function MyClaimsTrackingScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  const getStatusColor = (status) => {
+  const normalizeStatus = (status) => {
     switch (status) {
+      case 'open':
+        return 'en_cours';
+      case 'in_progress':
+        return 'en_cours';
+      case 'waiting_customer':
+        return 'en_attente';
+      case 'resolved':
+        return 'resolu';
+      case 'closed':
+        return 'ferme';
+      default:
+        return status;
+    }
+  };
+
+  const getStatusColor = (status) => {
+    const normalized = normalizeStatus(status);
+    switch (normalized) {
       case 'en_cours':
         return COLORS.warning;
       case 'resolu':
         return COLORS.success;
       case 'ferme':
         return COLORS.textSecondary;
+      case 'en_attente':
+        return COLORS.info;
       default:
         return COLORS.info;
     }
   };
 
   const getStatusLabel = (status) => {
-    switch (status) {
+    const normalized = normalizeStatus(status);
+    switch (normalized) {
       case 'en_cours':
         return 'En cours';
       case 'resolu':
         return 'Résolu';
       case 'ferme':
         return 'Fermé';
+      case 'en_attente':
+        return 'En attente';
       default:
         return status;
     }
   };
 
-  const renderClaim = ({ item }) => (
-    <TouchableOpacity
-      style={styles.claimCard}
-      onPress={() => navigation.navigate('ClaimTicketDetails', { ticketId: item.id || item.ticket_id })}
-    >
-      <View style={styles.claimHeader}>
-        <View style={styles.claimInfo}>
-          <Text style={styles.ticketNumber}>{item.ticket_number}</Text>
-          <Text style={styles.claimSubject}>{item.subject}</Text>
-        </View>
-        <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) + '20' }]}>
-          <Text style={[styles.statusText, { color: getStatusColor(item.status) }]}>
-            {getStatusLabel(item.status)}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.claimFooter}>
-        <View style={styles.claimMeta}>
-          <Ionicons name="receipt-outline" size={16} color={COLORS.textSecondary} />
-          <Text style={styles.claimMetaText}>Commande #{item.order_id}</Text>
-        </View>
-        <Text style={styles.claimDate}>
-          {new Date(item.created_at).toLocaleDateString('fr-FR', {
-            day: 'numeric',
-            month: 'short',
-            year: 'numeric',
-          })}
-        </Text>
-      </View>
-    </TouchableOpacity>
-  );
+  const activeClaims = claims.filter((item) => {
+    const status = normalizeStatus(item.status);
+    return status === 'en_cours' || status === 'en_attente';
+  });
+  const resolvedClaims = claims.filter((item) => normalizeStatus(item.status) === 'resolu');
+  const displayedClaims = tab === 'active' ? activeClaims : resolvedClaims;
 
   if (loading) {
     return (
@@ -109,31 +108,91 @@ export default function MyClaimsTrackingScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {claims.length > 0 ? (
-        <FlatList
-          data={claims}
-          renderItem={renderClaim}
-          keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={styles.listContent}
-          refreshControl={
-            <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-          }
-        />
-      ) : (
-        <View style={styles.emptyState}>
-          <Ionicons name="document-text-outline" size={80} color={COLORS.textLight} />
-          <Text style={styles.emptyTitle}>Aucune réclamation</Text>
-          <Text style={styles.emptySubtitle}>
-            Vous n'avez pas encore de réclamations enregistrées
-          </Text>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>Mes Réclamations</Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="search" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+      </View>
+
+      <View style={styles.tabs}>
+        <TouchableOpacity
+          style={[styles.tabButton, tab === 'active' && styles.tabButtonActive]}
+          onPress={() => setTab('active')}
+        >
+          <Text style={[styles.tabText, tab === 'active' && styles.tabTextActive]}>En cours</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.tabButton, tab === 'history' && styles.tabButtonActive]}
+          onPress={() => setTab('history')}
+        >
+          <Text style={[styles.tabText, tab === 'history' && styles.tabTextActive]}>Historique</Text>
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView
+        contentContainerStyle={styles.scrollContent}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <View style={styles.newTicketCard}>
+          <View>
+            <Text style={styles.newTicketTitle}>Un problème ?</Text>
+            <Text style={styles.newTicketSubtitle}>Signalez-le nous en quelques secondes.</Text>
+          </View>
           <TouchableOpacity
-            style={styles.reportButton}
+            style={styles.newTicketButton}
             onPress={() => navigation.navigate('ReportProblem')}
           >
-            <Text style={styles.reportButtonText}>Signaler un problème</Text>
+            <Text style={styles.newTicketButtonText}>Nouveau ticket</Text>
           </TouchableOpacity>
         </View>
-      )}
+
+        {displayedClaims.length > 0 ? (
+          <View style={styles.claimsList}>
+            {displayedClaims.map((item) => (
+              <TouchableOpacity
+                key={item.id || item.ticket_id}
+                style={styles.claimCard}
+                onPress={() => navigation.navigate('ClaimTicketDetails', { ticketId: item.id || item.ticket_id })}
+              >
+                <View style={styles.claimIcon}>
+                  <Ionicons name="receipt-outline" size={18} color={COLORS.primary} />
+                </View>
+                <View style={styles.claimInfo}>
+                  <View style={styles.claimHeader}>
+                    <Text style={styles.ticketNumber}>{item.ticket_number || '#TICKET-000'}</Text>
+                    <View style={[styles.statusBadge, { backgroundColor: getStatusColor(item.status) }]}>
+                      <Text style={styles.statusText}>{getStatusLabel(item.status)}</Text>
+                    </View>
+                  </View>
+                  <Text style={styles.claimSubject} numberOfLines={1}>
+                    {item.subject}
+                  </Text>
+                  <Text style={styles.claimMeta}>
+                    {new Date(item.created_at).toLocaleDateString('fr-FR', {
+                      day: 'numeric',
+                      month: 'short',
+                      year: 'numeric',
+                    })}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
+              </TouchableOpacity>
+            ))}
+          </View>
+        ) : (
+          <View style={styles.emptyState}>
+            <Ionicons name="document-text-outline" size={64} color={COLORS.textLight} />
+            <Text style={styles.emptyTitle}>Aucune réclamation</Text>
+            <Text style={styles.emptySubtitle}>
+              Tout semble en ordre ! Vos tickets apparaîtront ici.
+            </Text>
+          </View>
+        )}
+      </ScrollView>
     </View>
   );
 }
@@ -143,65 +202,140 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  listContent: {
-    padding: 16,
-  },
-  claimCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  claimHeader: {
+  topBar: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 12,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
   },
-  claimInfo: {
-    flex: 1,
-    marginRight: 12,
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  ticketNumber: {
-    fontSize: 12,
-    fontWeight: '600',
+  topBarTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  tabs: {
+    flexDirection: 'row',
+    gap: 16,
+    paddingHorizontal: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  tabButton: {
+    paddingVertical: 10,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
+  },
+  tabButtonActive: {
+    borderBottomColor: COLORS.primary,
+  },
+  tabText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+  },
+  tabTextActive: {
+    color: COLORS.primary,
+  },
+  scrollContent: {
+    padding: 16,
+    paddingBottom: 32,
+  },
+  newTicketCard: {
+    backgroundColor: COLORS.primary + '12',
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '20',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 16,
+  },
+  newTicketTitle: {
+    fontSize: 14,
+    fontWeight: '700',
     color: COLORS.primary,
     marginBottom: 4,
   },
-  claimSubject: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
+  newTicketSubtitle: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+  },
+  newTicketButton: {
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderRadius: 10,
+  },
+  newTicketButtonText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  claimsList: {
+    gap: 12,
+  },
+  claimCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  claimIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  claimInfo: {
+    flex: 1,
+  },
+  claimHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+    marginBottom: 6,
+  },
+  ticketNumber: {
+    fontSize: 12,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 999,
   },
   statusText: {
-    fontSize: 12,
-    fontWeight: '600',
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.white,
+    textTransform: 'uppercase',
   },
-  claimFooter: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+  claimSubject: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
   },
   claimMeta: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  claimMetaText: {
-    fontSize: 12,
+    fontSize: 11,
     color: COLORS.textSecondary,
   },
   claimDate: {
@@ -215,29 +349,17 @@ const styles = StyleSheet.create({
     padding: 32,
   },
   emptyTitle: {
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: '700',
     color: COLORS.text,
-    marginTop: 24,
+    marginTop: 16,
     marginBottom: 8,
   },
   emptySubtitle: {
-    fontSize: 16,
+    fontSize: 13,
     color: COLORS.textSecondary,
     textAlign: 'center',
-    marginBottom: 32,
     lineHeight: 24,
-  },
-  reportButton: {
-    backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-  },
-  reportButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '700',
   },
   loadingText: {
     fontSize: 16,

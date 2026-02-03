@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import { restaurantsAPI } from '../api/restaurants';
 import TableSkeleton from '../components/common/TableSkeleton';
+import { getImageUrl } from '../utils/url';
 import toast from 'react-hot-toast';
 
 const ValidateRestaurant = () => {
@@ -41,6 +42,18 @@ const ValidateRestaurant = () => {
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || 'Erreur lors du rejet');
+    },
+  });
+
+  const requestCorrectionsMutation = useMutation({
+    mutationFn: (message) => restaurantsAPI.requestCorrections(id, message),
+    onSuccess: () => {
+      toast.success('Demande de corrections envoyée');
+      setRejectionReason('');
+      queryClient.invalidateQueries(['restaurant', id]);
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.message || 'Erreur lors de l\'envoi');
     },
   });
 
@@ -101,9 +114,9 @@ const ValidateRestaurant = () => {
 
   const handleRequestCorrections = () => {
     if (rejectionReason.trim()) {
-      // Logique pour demander des corrections (à implémenter dans l'API)
-      toast.success('Demande de corrections envoyée');
-      setRejectionReason('');
+      if (globalThis.confirm('Envoyer une demande de corrections au restaurant ?')) {
+        requestCorrectionsMutation.mutate(rejectionReason);
+      }
     } else {
       toast.error('Veuillez indiquer les corrections demandées');
     }
@@ -136,10 +149,47 @@ const ValidateRestaurant = () => {
 
         {/* Restaurant Info Card */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-8">
+          {/* Images du restaurant */}
           <div className="mb-6">
-            <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
-              {restaurant.name || 'N/A'}
-            </h2>
+            {/* Banner */}
+            {restaurant.banner && (
+              <div className="mb-4 rounded-xl overflow-hidden">
+                <img 
+                  src={getImageUrl(restaurant.banner)} 
+                  alt={`Banner de ${restaurant.name}`}
+                  className="w-full h-48 object-cover"
+                  onError={(e) => e.target.style.display = 'none'}
+                />
+              </div>
+            )}
+            
+            <div className="flex items-center gap-4">
+              {/* Logo */}
+              {restaurant.logo ? (
+                <img 
+                  src={getImageUrl(restaurant.logo)} 
+                  alt={`Logo de ${restaurant.name}`}
+                  className="w-20 h-20 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700"
+                  onError={(e) => {
+                    e.target.style.display = 'none';
+                    e.target.nextSibling.style.display = 'flex';
+                  }}
+                />
+              ) : null}
+              <div 
+                className="w-20 h-20 rounded-xl bg-slate-200 dark:bg-slate-700 flex items-center justify-center"
+                style={{ display: restaurant.logo ? 'none' : 'flex' }}
+              >
+                <span className="material-symbols-outlined text-3xl text-slate-400">restaurant</span>
+              </div>
+              
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-white">
+                  {restaurant.name || 'N/A'}
+                </h2>
+                <p className="text-sm text-slate-500 mt-1">{restaurant.category || 'Restaurant'}</p>
+              </div>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -150,60 +200,147 @@ const ValidateRestaurant = () => {
               </h3>
               <div className="space-y-4">
                 {/* RCCM */}
-                <div className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary">description</span>
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-primary">description</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">RCCM</p>
+                      <p className="text-xs text-slate-500">Registre du Commerce</p>
+                    </div>
+                    {restaurant.documents?.rccm ? (
+                      <a 
+                        href={restaurant.documents.rccm} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/70"
+                      >
+                        <span className="material-symbols-outlined">visibility</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs text-red-500">Manquant</span>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">RCCM</p>
-                    <p className="text-xs text-slate-500">Registre du Commerce</p>
-                  </div>
-                  {restaurant.documents?.rccm ? (
-                    <button className="text-primary hover:text-primary/70">
-                      <span className="material-symbols-outlined">visibility</span>
-                    </button>
-                  ) : (
-                    <span className="text-xs text-red-500">Manquant</span>
+                  {restaurant.documents?.rccm && (
+                    <div className="mt-3">
+                      <img 
+                        src={restaurant.documents.rccm} 
+                        alt="Document RCCM" 
+                        className="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    </div>
                   )}
                 </div>
 
-                {/* CNI du Gérant */}
-                <div className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined">badge</span>
+                {/* CNI Recto */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined">badge</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">CNI Recto</p>
+                      <p className="text-xs text-slate-500">Carte d'identité (face avant)</p>
+                    </div>
+                    {(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni) ? (
+                      <a 
+                        href={getImageUrl(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/70"
+                      >
+                        <span className="material-symbols-outlined">visibility</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs text-red-500">Manquant</span>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">CNI du Gérant</p>
-                    <p className="text-xs text-slate-500">Carte d'identité</p>
+                  {(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni) && (
+                    <div className="mt-3">
+                      <img 
+                        src={getImageUrl(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni)} 
+                        alt="CNI Recto" 
+                        className="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    </div>
+                  )}
+                </div>
+
+                {/* CNI Verso */}
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined">badge</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">CNI Verso</p>
+                      <p className="text-xs text-slate-500">Carte d'identité (face arrière)</p>
+                    </div>
+                    {restaurant.id_card_back ? (
+                      <a 
+                        href={getImageUrl(restaurant.id_card_back)} 
+                        target="_blank" 
+                        rel="noopener noreferrer"
+                        className="text-primary hover:text-primary/70"
+                      >
+                        <span className="material-symbols-outlined">visibility</span>
+                      </a>
+                    ) : (
+                      <span className="text-xs text-red-500">Manquant</span>
+                    )}
                   </div>
-                  {restaurant.documents?.cni ? (
-                    <button className="text-primary hover:text-primary/70">
-                      <span className="material-symbols-outlined">visibility</span>
-                    </button>
-                  ) : (
-                    <span className="text-xs text-red-500">Manquant</span>
+                  {restaurant.id_card_back && (
+                    <div className="mt-3">
+                      <img 
+                        src={getImageUrl(restaurant.id_card_back)} 
+                        alt="CNI Verso" 
+                        className="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700"
+                        onError={(e) => e.target.style.display = 'none'}
+                      />
+                    </div>
                   )}
                 </div>
 
                 {/* Photos du Restaurant */}
-                <div className="flex items-center gap-4 p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
-                  <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <span className="material-symbols-outlined text-primary">photo_camera</span>
+                <div className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800/50 transition-colors">
+                  <div className="flex items-center gap-4 mb-3">
+                    <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <span className="material-symbols-outlined text-primary">photo_camera</span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-semibold text-slate-900 dark:text-white">Photos du Restaurant</p>
+                      <p className="text-xs text-slate-500">
+                        {restaurant.photos?.length || 0} photo{restaurant.photos?.length !== 1 ? 's' : ''}
+                      </p>
+                    </div>
+                    {restaurant.photos && restaurant.photos.length > 0 ? (
+                      <span className="text-xs text-emerald-500 font-semibold">OK</span>
+                    ) : (
+                      <span className="text-xs text-red-500">Manquant</span>
+                    )}
                   </div>
-                  <div className="flex-1">
-                    <p className="text-sm font-semibold text-slate-900 dark:text-white">Photos du Restaurant</p>
-                    <p className="text-xs text-slate-500">
-                      {restaurant.photos?.length || 0} photo{restaurant.photos?.length !== 1 ? 's' : ''}
-                    </p>
-                  </div>
-                  {restaurant.photos && restaurant.photos.length > 0 ? (
-                    <button className="text-primary hover:text-primary/70">
-                      <span className="material-symbols-outlined">visibility</span>
-                    </button>
-                  ) : (
-                    <span className="text-xs text-red-500">Manquant</span>
-                  )
-                  }
+                  {restaurant.photos && restaurant.photos.length > 0 && (
+                    <div className="grid grid-cols-3 gap-2">
+                      {restaurant.photos.map((photo, index) => (
+                        <a 
+                          key={index} 
+                          href={photo} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                        >
+                          <img 
+                            src={photo} 
+                            alt={`Photo ${index + 1}`} 
+                            className="w-full h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700 hover:opacity-80 transition-opacity"
+                            onError={(e) => e.target.style.display = 'none'}
+                          />
+                        </a>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -227,7 +364,9 @@ const ValidateRestaurant = () => {
                     Adresse
                   </p>
                   <p className="text-sm font-semibold text-slate-900 dark:text-white">
-                    {restaurant.address || 'N/A'}
+                    {typeof restaurant.address === 'object' 
+                      ? (restaurant.address?.address_line || restaurant.address?.street || `${restaurant.address?.district || ''} ${restaurant.address?.city || ''}`.trim() || 'N/A')
+                      : (restaurant.address || 'N/A')}
                   </p>
                 </div>
                 <div>
@@ -289,18 +428,6 @@ const ValidateRestaurant = () => {
               className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary text-sm min-h-[100px]"
             />
           </div>
-            <div className="mt-4 p-4 bg-slate-50 dark:bg-slate-800 rounded-lg">
-              <label className="block text-sm font-semibold text-slate-900 dark:text-white mb-2">
-                Raison {rejectMutation.isLoading ? 'du rejet' : 'des corrections'}
-              </label>
-              <textarea
-                value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
-                placeholder="Indiquez la raison..."
-                className="w-full px-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:ring-2 focus:ring-primary text-sm min-h-[100px]"
-              />
-            </div>
-          )}
         </div>
       </div>
     </Layout>

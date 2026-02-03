@@ -1,5 +1,5 @@
 const express = require('express');
-const { query } = require('express-validator');
+const { query, body } = require('express-validator');
 const { authenticate, authorize, requireAdminPermission } = require('../middlewares/auth');
 const { paginationValidator, uuidValidator, validate } = require('../middlewares/validators');
 const adminController = require('../controllers/admin.controller');
@@ -43,6 +43,13 @@ router.get('/users/:id',
   adminController.getUserById
 );
 
+// Statistiques détaillées d'un restaurant
+router.get('/restaurants/:id/statistics', 
+  requireAdminPermission('view_restaurants'),
+  uuidValidator('id', 'Restaurant ID'),
+  adminController.getRestaurantStatistics
+);
+
 // Suspendre/activer un utilisateur
 router.put('/users/:id/suspend', 
   requireAdminPermission('manage_users'),
@@ -82,6 +89,15 @@ router.get('/restaurants/:id',
   adminController.getRestaurantById
 );
 
+// Mettre à jour la commission d'un restaurant
+router.put('/restaurants/:id/commission', 
+  requireAdminPermission('approve_restaurants'),
+  uuidValidator('id', 'Restaurant ID'),
+  body('commission_rate').isFloat({ min: 0, max: 100 }).toFloat().withMessage('La commission doit être entre 0 et 100'),
+  validate,
+  adminController.updateRestaurantCommission
+);
+
 // Approuver un restaurant
 router.put('/restaurants/:id/approve', 
   requireAdminPermission('approve_restaurants'),
@@ -115,6 +131,20 @@ router.put('/restaurants/:id/reactivate',
   requireAdminPermission('approve_restaurants'),
   uuidValidator('id', 'Restaurant ID'),
   adminController.reactivateRestaurant
+);
+
+// Supprimer un restaurant
+router.delete('/restaurants/:id', 
+  requireAdminPermission('approve_restaurants'),
+  uuidValidator('id', 'Restaurant ID'),
+  adminController.deleteRestaurant
+);
+
+// Demander des corrections à un restaurant
+router.post('/restaurants/:id/request-corrections', 
+  requireAdminPermission('approve_restaurants'),
+  uuidValidator('id', 'Restaurant ID'),
+  adminController.requestRestaurantCorrections
 );
 
 /**
@@ -176,6 +206,13 @@ router.put('/delivery-persons/:id/suspend',
   requireAdminPermission('approve_deliveries'),
   uuidValidator('id', 'Delivery Person ID'),
   adminController.suspendDeliveryPerson
+);
+
+// Demander des informations complémentaires à un livreur
+router.post('/delivery-persons/:id/request-info', 
+  requireAdminPermission('approve_deliveries'),
+  uuidValidator('id', 'Delivery Person ID'),
+  adminController.requestDeliveryPersonInfo
 );
 
 // Classement des livreurs
@@ -310,6 +347,23 @@ router.put('/finances/payouts/:id/reject',
   adminController.rejectPayout
 );
 
+// Remises espèces (livreurs remettent l'argent à l'agence ou dépôt sur compte)
+router.get('/finances/cash-remittances',
+  requireAdminPermission('view_finances'),
+  paginationValidator,
+  adminController.getCashRemittances
+);
+router.put('/finances/cash-remittances/:id/confirm',
+  requireAdminPermission('process_payouts'),
+  uuidValidator('id', 'Remise ID'),
+  adminController.confirmCashRemittance
+);
+router.put('/finances/cash-remittances/:id/reject',
+  requireAdminPermission('process_payouts'),
+  uuidValidator('id', 'Remise ID'),
+  adminController.rejectCashRemittance
+);
+
 // Commission settings
 router.get('/finances/commission-settings', 
   requireAdminPermission('view_finances'),
@@ -376,6 +430,30 @@ router.put('/promotions/:id/toggle',
 
 /**
  * ═══════════════════════════════════════════════════════════
+ * NOTIFICATIONS PUSH
+ * ═══════════════════════════════════════════════════════════
+ */
+
+// Envoyer une notification à un utilisateur
+router.post('/notifications/send', 
+  requireAdminPermission('manage_users'),
+  adminController.sendNotification
+);
+
+// Envoyer une notification à plusieurs utilisateurs
+router.post('/notifications/broadcast', 
+  requireAdminPermission('manage_users'),
+  adminController.broadcastNotification
+);
+
+// Envoyer une notification promotionnelle à tous les clients
+router.post('/notifications/promotional', 
+  requireAdminPermission('approve_restaurants'),
+  adminController.sendPromotionalNotification
+);
+
+/**
+ * ═══════════════════════════════════════════════════════════
  * ANALYTICS & RAPPORTS
  * ═══════════════════════════════════════════════════════════
  */
@@ -413,6 +491,11 @@ router.get('/analytics/restaurants',
 router.get('/analytics/deliveries', 
   requireAdminPermission('view_deliveries'),
   adminController.getDeliveriesReport
+);
+
+// Statistiques globales des notes (restaurants et livreurs)
+router.get('/analytics/ratings', 
+  adminController.getGlobalRatings
 );
 
 /**

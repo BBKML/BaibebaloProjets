@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { io } from 'socket.io-client';
 import { dashboardAPI } from '../api/dashboard';
 import Layout from '../components/layout/Layout';
 import KPICard from '../components/dashboard/KPICard';
@@ -15,11 +14,15 @@ import SalesGoalChart from '../components/charts/SalesGoalChart';
 import RealTimeOrdersStream from '../components/dashboard/RealTimeOrdersStream';
 import GeographicMap from '../components/dashboard/GeographicMap';
 import { formatCurrency, formatDateShort } from '../utils/format';
+import socketService from '../services/socketService';
+import toast from 'react-hot-toast';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [realTimeOrders, setRealTimeOrders] = useState([]);
-  const [socket, setSocket] = useState(null);
+  const [socketConnected, setSocketConnected] = useState(false);
+  const [activeDeliveries, setActiveDeliveries] = useState(0);
   
   // Requête pour le dashboard
   const { data, isLoading, error } = useQuery({
@@ -61,58 +64,85 @@ const Dashboard = () => {
 
   // Configuration WebSocket pour temps réel
   useEffect(() => {
-    if (!data) return; // Attendre que le dashboard soit chargé
+    if (!data) return;
 
     const token = localStorage.getItem('accessToken');
     if (!token) return;
 
-    // Connexion WebSocket - utiliser la même URL que l'API
-    const getWebSocketURL = () => {
-      if (import.meta.env.DEV) {
-        const backendPort = import.meta.env.VITE_BACKEND_PORT || '5000';
-        return `http://localhost:${backendPort}`;
-      }
-      return window.location.origin;
-    };
+    // Connecter au service WebSocket
+    socketService.connect(token);
 
-    const newSocket = io(getWebSocketURL(), {
-      auth: {
-        token: token,
-      },
-      transports: ['websocket', 'polling'],
-    });
-
-    newSocket.on('connect', () => {
-      console.log('✅ WebSocket connecté');
-      // Rejoindre la room admin dashboard
-      newSocket.emit('join_admin_dashboard');
-    });
-
-    newSocket.on('disconnect', () => {
-      console.log('❌ WebSocket déconnecté');
+    // Écouter le statut de connexion
+    const unsubscribeConnection = socketService.on('connection_status', (data) => {
+      setSocketConnected(data.connected);
     });
 
     // Écouter les nouvelles commandes
-    newSocket.on('new_order', (data) => {
-      console.log('🆕 Nouvelle commande:', data);
+    const unsubscribeNewOrder = socketService.on('new_order', (orderData) => {
+      console.log('🆕 Nouvelle commande:', orderData);
+      toast.success(`Nouvelle commande #${orderData.order_number || orderData.id?.slice(0,8)}`);
       refetchRealTimeOrders();
       refetchGeographic();
+      queryClient.invalidateQueries(['dashboard']);
     });
 
     // Écouter les mises à jour de commandes
-    newSocket.on('order_updated', (data) => {
-      console.log('🔄 Commande mise à jour:', data);
+    const unsubscribeOrderUpdated = socketService.on('order_updated', () => {
       refetchRealTimeOrders();
       refetchGeographic();
     });
 
-    setSocket(newSocket);
+    // Écouter les changements de statut
+    const unsubscribeStatusChanged = socketService.on('order_status_changed', (orderData) => {
+      console.log('📦 Statut commande changé:', orderData);
+      refetchRealTimeOrders();
+    });
 
-    // Nettoyage à la déconnexion
+    // Écouter les commandes livrées
+    const unsubscribeDelivered = socketService.on('order_delivered', (orderData) => {
+      toast.success(`Commande #${orderData.order_number || ''} livrée !`);
+      queryClient.invalidateQueries(['dashboard']);
+      refetchRealTimeOrders();
+    });
+
+    // Écouter les changements de statut des livreurs
+    const unsubscribeDeliveryStatus = socketService.on('delivery_status_changed', (statusData) => {
+      console.log('🚴 Statut livreur:', statusData);
+      if (statusData.status === 'available') {
+        setActiveDeliveries(prev => prev + 1);
+      } else if (statusData.status === 'offline') {
+        setActiveDeliveries(prev => Math.max(0, prev - 1));
+      }
+    });
+
+    // Écouter les alertes système
+    const unsubscribeSystemAlert = socketService.on('system_alert', (alertData) => {
+      toast.error(alertData.message || 'Alerte système', { duration: 5000 });
+    });
+
+    // Écouter les alertes de commandes en retard
+    const unsubscribeDelayedAlert = socketService.on('order_delayed_alert', (alertData) => {
+      toast.error(`⏰ Commande #${alertData.order_number} en retard !`, { duration: 8000 });
+    });
+
+    // Écouter les nouveaux tickets support
+    const unsubscribeSupportTicket = socketService.on('new_support_ticket', (ticketData) => {
+      toast(`🎫 Nouveau ticket: ${ticketData.subject || 'Support'}`, { icon: '📩' });
+    });
+
+    // Nettoyage
     return () => {
-      newSocket.close();
+      unsubscribeConnection();
+      unsubscribeNewOrder();
+      unsubscribeOrderUpdated();
+      unsubscribeStatusChanged();
+      unsubscribeDelivered();
+      unsubscribeDeliveryStatus();
+      unsubscribeSystemAlert();
+      unsubscribeDelayedAlert();
+      unsubscribeSupportTicket();
     };
-  }, [data, refetchRealTimeOrders, refetchGeographic]);
+  }, [data, refetchRealTimeOrders, refetchGeographic, queryClient]);
 
   // Mettre à jour les commandes en temps réel
   useEffect(() => {
@@ -289,7 +319,7 @@ const Dashboard = () => {
           />
           <KPICard
             title="Satisfaction"
-            value={`${(kpis?.satisfaction || 0).toFixed(1)}/5`}
+            value={`${parseFloat(kpis?.satisfaction || 0).toFixed(1)}/5`}
             change={kpis?.satisfaction_change}
             iconName="star"
           />

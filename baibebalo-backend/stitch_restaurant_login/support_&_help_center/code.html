@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#1c110d] dark:text-white transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto overflow-x-hidden shadow-2xl bg-white dark:bg-[#1a100c]">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center bg-white/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="text-[#1c110d] dark:text-white flex size-10 items-center justify-center cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Assistance &amp; Support</h2>
+</header>
+<main class="flex flex-col flex-1 pb-10">
+<!-- SearchBar -->
+<div class="px-4 py-4">
+<label class="flex flex-col min-w-40 h-14 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-xl h-full shadow-sm">
+<div class="text-primary flex border-none bg-gray-100 dark:bg-gray-800 items-center justify-center pl-4 rounded-l-xl">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-r-xl text-[#1c110d] dark:text-white focus:outline-0 focus:ring-0 border-none bg-gray-100 dark:bg-gray-800 focus:border-none h-full placeholder:text-gray-500 px-4 pl-2 text-base font-normal leading-normal" placeholder="Comment pouvons-nous vous aider ?"/>
+</div>
+</label>
+</div>
+<!-- Section Categories -->
+<div class="mt-2">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-4">Catégories d'aide</h3>
+<div class="grid grid-cols-3 gap-3 px-4">
+<div class="flex flex-col gap-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-4 items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors">
+<div class="text-primary">
+<span class="material-symbols-outlined" style="font-size: 32px;">shopping_bag</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-xs font-bold leading-tight">Commandes</h2>
+</div>
+<div class="flex flex-col gap-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-4 items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors">
+<div class="text-primary">
+<span class="material-symbols-outlined" style="font-size: 32px;">payments</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-xs font-bold leading-tight">Paiements</h2>
+</div>
+<div class="flex flex-col gap-2 rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 p-4 items-center justify-center text-center cursor-pointer hover:border-primary/50 transition-colors">
+<div class="text-primary">
+<span class="material-symbols-outlined" style="font-size: 32px;">menu_book</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-xs font-bold leading-tight">Menu</h2>
+</div>
+</div>
+</div>
+<!-- CTA Button -->
+<div class="flex px-4 py-8">
+<button class="flex min-w-[84px] max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 flex-1 bg-primary text-white gap-3 text-base font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/30 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined">chat_bubble</span>
+<span class="truncate">Démarrer un Chat</span>
+</button>
+</div>
+<!-- Recent Tickets -->
+<section class="mt-2">
+<div class="flex items-center justify-between px-4 mb-4">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Mes Tickets Récents</h3>
+<button class="text-primary text-sm font-semibold">Voir tout</button>
+</div>
+<div class="flex flex-col gap-3 px-4">
+<!-- Ticket Item -->
+<div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800/30 shadow-sm">
+<div class="flex flex-col gap-1">
+<span class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Ticket #BA-8821</span>
+<span class="text-sm font-bold">Erreur lors du paiement</span>
+<span class="text-xs text-gray-400">Hier, 14:20</span>
+</div>
+<div class="px-3 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                            Ouvert
+                        </div>
+</div>
+<!-- Ticket Item -->
+<div class="flex items-center justify-between p-4 rounded-xl border border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-800/30 shadow-sm">
+<div class="flex flex-col gap-1">
+<span class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wider">Ticket #BA-7940</span>
+<span class="text-sm font-bold">Modification d'adresse</span>
+<span class="text-xs text-gray-400">12 Oct 2023</span>
+</div>
+<div class="px-3 py-1 rounded-full bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-300 text-xs font-bold">
+                            Fermé
+                        </div>
+</div>
+</div>
+</section>
+<!-- Video Tutorials -->
+<section class="mt-8">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-4">Tutoriels Vidéo</h3>
+<div class="flex overflow-x-auto gap-4 px-4 no-scrollbar pb-4">
+<!-- Tutorial Card -->
+<div class="min-w-[200px] flex flex-col gap-2">
+<div class="relative aspect-video rounded-xl bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">play_circle</span>
+</div>
+<div class="w-full h-full bg-gradient-to-br from-primary/40 to-orange-200" data-alt="Tutoriel vidéo comment commander"></div>
+</div>
+<p class="text-sm font-semibold line-clamp-2">Comment passer votre première commande</p>
+</div>
+<!-- Tutorial Card -->
+<div class="min-w-[200px] flex flex-col gap-2">
+<div class="relative aspect-video rounded-xl bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">play_circle</span>
+</div>
+<div class="w-full h-full bg-gradient-to-br from-blue-400 to-blue-200" data-alt="Tutoriel vidéo configurer paiement"></div>
+</div>
+<p class="text-sm font-semibold line-clamp-2">Configurer vos moyens de paiement</p>
+</div>
+<!-- Tutorial Card -->
+<div class="min-w-[200px] flex flex-col gap-2">
+<div class="relative aspect-video rounded-xl bg-gray-200 dark:bg-gray-800 overflow-hidden group">
+<div class="absolute inset-0 bg-black/20 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+<span class="material-symbols-outlined text-white text-4xl">play_circle</span>
+</div>
+<div class="w-full h-full bg-gradient-to-br from-green-400 to-green-200" data-alt="Tutoriel vidéo parrainage"></div>
+</div>
+<p class="text-sm font-semibold line-clamp-2">Le système de parrainage Baibebalo</p>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Tab Bar Mockup (Visual decoration for Phone layout) -->
+<nav class="sticky bottom-0 bg-white dark:bg-background-dark border-t border-gray-100 dark:border-gray-800 px-6 py-3 flex justify-between items-center">
+<div class="flex flex-col items-center text-gray-400">
+<span class="material-symbols-outlined">home</span>
+</div>
+<div class="flex flex-col items-center text-gray-400">
+<span class="material-symbols-outlined">restaurant_menu</span>
+</div>
+<div class="flex flex-col items-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">help</span>
+</div>
+<div class="flex flex-col items-center text-gray-400">
+<span class="material-symbols-outlined">person</span>
+</div>
+</nav>
+</div>
+</body></html>

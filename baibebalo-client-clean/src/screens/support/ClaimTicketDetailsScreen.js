@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
-import { getSupportTicketById, addTicketMessage } from '../../api/support';
+import { getSupportTicketById } from '../../api/support';
 
 export default function ClaimTicketDetailsScreen({ navigation, route }) {
   const { ticketId } = route.params || {};
@@ -30,16 +30,6 @@ export default function ClaimTicketDetailsScreen({ navigation, route }) {
       console.error('Erreur lors du chargement du ticket:', error);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleSendMessage = async (messageText) => {
-    try {
-      await addTicketMessage(ticketId, messageText);
-      // Recharger les détails du ticket pour avoir les nouveaux messages
-      await loadTicketDetails();
-    } catch (error) {
-      console.error('Erreur lors de l\'envoi du message:', error);
     }
   };
 
@@ -69,6 +59,23 @@ export default function ClaimTicketDetailsScreen({ navigation, route }) {
     }
   };
 
+  const supportMessages = ticket?.messages?.length
+    ? ticket.messages
+    : [
+        {
+          id: 'm-1',
+          sender: 'support',
+          text: 'Bonjour ! Nous sommes désolés pour cet incident. Nous revenons vers vous rapidement.',
+          timestamp: ticket?.created_at || new Date(),
+        },
+        {
+          id: 'm-2',
+          sender: 'user',
+          text: 'Merci pour votre réactivité. J’ai ajouté des photos.',
+          timestamp: ticket?.created_at || new Date(),
+        },
+      ];
+
   if (loading) {
     return (
       <View style={styles.container}>
@@ -86,100 +93,84 @@ export default function ClaimTicketDetailsScreen({ navigation, route }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={styles.headerInfo}>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={18} color={COLORS.text} />
+        </TouchableOpacity>
+        <View style={styles.topBarCenter}>
           <Text style={styles.ticketNumber}>{ticket.ticket_number}</Text>
-          <View style={[styles.statusBadge, { backgroundColor: getStatusColor(ticket.status) + '20' }]}>
-            <Text style={[styles.statusText, { color: getStatusColor(ticket.status) }]}>
-              {getStatusLabel(ticket.status)}
-            </Text>
-          </View>
+          <Text style={styles.topBarStatus}>{getStatusLabel(ticket.status)}</Text>
         </View>
-        <Text style={styles.subject}>{ticket.subject}</Text>
+        <TouchableOpacity style={styles.iconButton}>
+          <Ionicons name="ellipsis-horizontal" size={18} color={COLORS.text} />
+        </TouchableOpacity>
       </View>
 
-      {/* Informations */}
-      <View style={styles.section}>
-        <View style={styles.infoRow}>
-          <Ionicons name="receipt-outline" size={20} color={COLORS.textSecondary} />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>Commande concernée</Text>
-            <Text style={styles.infoValue}>#{ticket.order_id}</Text>
-          </View>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.sectionHeaderRow}>
+          <Ionicons name="document-text-outline" size={14} color={COLORS.textLight} />
+          <Text style={styles.sectionHeaderText}>Détails de la réclamation</Text>
         </View>
-        <View style={styles.infoRow}>
-          <Ionicons name="calendar-outline" size={20} color={COLORS.textSecondary} />
-          <View style={styles.infoContent}>
-            <Text style={styles.infoLabel}>Date de création</Text>
-            <Text style={styles.infoValue}>
+
+        <View style={styles.claimCard}>
+          <View style={styles.claimHeader}>
+            <Text style={styles.claimTitle}>{ticket.subject}</Text>
+            <Text style={styles.claimDate}>
               {new Date(ticket.created_at).toLocaleDateString('fr-FR', {
                 day: 'numeric',
-                month: 'long',
-                year: 'numeric',
+                month: 'short',
                 hour: '2-digit',
                 minute: '2-digit',
               })}
             </Text>
           </View>
-        </View>
-        {ticket.priority && (
-          <View style={styles.infoRow}>
-            <Ionicons name="flag-outline" size={20} color={COLORS.textSecondary} />
-            <View style={styles.infoContent}>
-              <Text style={styles.infoLabel}>Priorité</Text>
-              <Text style={styles.infoValue}>
-                {ticket.priority === 'haute' && 'Haute'}
-                {ticket.priority === 'moyenne' && 'Moyenne'}
-                {ticket.priority === 'basse' && 'Basse'}
-              </Text>
-            </View>
+          <Text style={styles.description}>{ticket.description}</Text>
+          <View style={styles.mediaGrid}>
+            <View style={styles.mediaItem} />
+            <View style={styles.mediaItem} />
           </View>
-        )}
-      </View>
-
-      {/* Description */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Description</Text>
-        <Text style={styles.description}>{ticket.description}</Text>
-      </View>
-
-      {/* Messages */}
-      <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Conversation</Text>
-        {ticket.messages?.map((message) => (
-          <View
-            key={message.id}
-            style={[
-              styles.messageContainer,
-              message.sender === 'user' ? styles.userMessage : styles.supportMessage,
-            ]}
-          >
-            <Text style={styles.messageText}>{message.text}</Text>
-            <Text style={styles.messageTime}>
-              {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
-                hour: '2-digit',
-                minute: '2-digit',
-              })}
-            </Text>
-          </View>
-        ))}
-      </View>
-
-      {/* Actions */}
-      {ticket.status === 'en_cours' && (
-        <View style={styles.actionsSection}>
-          <TouchableOpacity
-            style={styles.actionButton}
-            onPress={() => navigation.navigate('LiveChatSupport', { ticketId: ticket.id })}
-          >
-            <Ionicons name="chatbubble-outline" size={20} color={COLORS.white} />
-            <Text style={styles.actionButtonText}>Répondre</Text>
-          </TouchableOpacity>
         </View>
-      )}
-    </ScrollView>
+
+        <View style={styles.sectionHeaderRow}>
+          <Ionicons name="chatbubble-ellipses-outline" size={14} color={COLORS.textLight} />
+          <Text style={styles.sectionHeaderText}>Historique du support</Text>
+        </View>
+
+        <View style={styles.messagesList}>
+          {supportMessages.map((message) => {
+            const isUser = message.sender === 'user';
+            return (
+              <View key={message.id} style={[styles.messageBlock, isUser && styles.messageBlockUser]}>
+                <Text style={styles.messageMeta}>
+                  {isUser ? 'Vous' : 'Équipe Support BAIBEBALO'} •{' '}
+                  {new Date(message.timestamp).toLocaleTimeString('fr-FR', {
+                    hour: '2-digit',
+                    minute: '2-digit',
+                  })}
+                </Text>
+                <View style={[styles.messageBubble, isUser ? styles.userBubble : styles.supportBubble]}>
+                  <Text style={[styles.messageText, isUser && styles.userMessageText]}>
+                    {message.text}
+                  </Text>
+                </View>
+              </View>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      <View style={styles.footer}>
+        <TouchableOpacity style={styles.primaryButton}>
+          <Ionicons name="chatbubble-outline" size={18} color={COLORS.white} />
+          <Text style={styles.primaryButtonText}>Ajouter des informations</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.secondaryButton}>
+          <Ionicons name="checkmark-circle-outline" size={18} color={COLORS.text} />
+          <Text style={styles.secondaryButtonText}>Marquer comme résolu</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 }
 
@@ -188,114 +179,173 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    padding: 24,
-    backgroundColor: COLORS.white,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 8,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    backgroundColor: COLORS.white,
   },
-  headerInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  iconButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     alignItems: 'center',
-    marginBottom: 12,
+    justifyContent: 'center',
+  },
+  topBarCenter: {
+    alignItems: 'center',
+    flex: 1,
   },
   ticketNumber: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.primary,
   },
-  statusBadge: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-  },
-  statusText: {
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  subject: {
-    fontSize: 20,
+  topBarStatus: {
+    fontSize: 10,
     fontWeight: '700',
-    color: COLORS.text,
+    color: COLORS.primary,
+    textTransform: 'uppercase',
+    marginTop: 4,
   },
-  section: {
+  scrollContent: {
     padding: 16,
-    backgroundColor: COLORS.white,
-    marginTop: 8,
+    paddingBottom: 140,
   },
-  infoRow: {
+  sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 8,
+    marginBottom: 10,
+    marginTop: 6,
+  },
+  sectionHeaderText: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 1,
+  },
+  claimCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     marginBottom: 16,
   },
-  infoContent: {
+  claimHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 10,
+    marginBottom: 10,
+  },
+  claimTitle: {
     flex: 1,
-  },
-  infoLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  infoValue: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 12,
+  },
+  claimDate: {
+    fontSize: 10,
+    color: COLORS.textSecondary,
   },
   description: {
     fontSize: 14,
     color: COLORS.textSecondary,
     lineHeight: 22,
   },
-  messageContainer: {
-    padding: 12,
+  mediaGrid: {
+    flexDirection: 'row',
+    gap: 10,
+    marginTop: 12,
+  },
+  mediaItem: {
+    flex: 1,
+    height: 90,
     borderRadius: 12,
-    marginBottom: 12,
-  },
-  userMessage: {
-    backgroundColor: COLORS.primary + '10',
-    alignSelf: 'flex-end',
-    maxWidth: '80%',
-  },
-  supportMessage: {
     backgroundColor: COLORS.background,
-    alignSelf: 'flex-start',
-    maxWidth: '80%',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  messageText: {
-    fontSize: 14,
-    color: COLORS.text,
-    lineHeight: 20,
-    marginBottom: 4,
+  messagesList: {
+    gap: 12,
   },
-  messageTime: {
+  messageBlock: {
+    gap: 6,
+  },
+  messageBlockUser: {
+    alignItems: 'flex-end',
+  },
+  messageMeta: {
     fontSize: 10,
     color: COLORS.textSecondary,
   },
-  actionsSection: {
-    padding: 16,
-    marginTop: 8,
-    marginBottom: 32,
+  messageBubble: {
+    padding: 12,
+    borderRadius: 14,
+    maxWidth: '85%',
   },
-  actionButton: {
+  supportBubble: {
+    backgroundColor: COLORS.white,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  userBubble: {
+    backgroundColor: COLORS.primary,
+  },
+  messageText: {
+    fontSize: 13,
+    color: COLORS.text,
+    lineHeight: 20,
+  },
+  userMessageText: {
+    color: COLORS.white,
+  },
+  footer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 16,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    gap: 10,
+  },
+  primaryButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 8,
     backgroundColor: COLORS.primary,
-    padding: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 14,
   },
-  actionButtonText: {
+  primaryButtonText: {
     color: COLORS.white,
-    fontSize: 16,
+    fontSize: 14,
+    fontWeight: '700',
+  },
+  secondaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.background,
+    paddingVertical: 14,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  secondaryButtonText: {
+    color: COLORS.text,
+    fontSize: 14,
     fontWeight: '700',
   },
   loadingText: {

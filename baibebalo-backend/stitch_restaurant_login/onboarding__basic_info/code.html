@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding: Basic Info - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#fcf9f8",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>.form-select-icon {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDgCM9nqqSwV52utV7b6mSMptzlU-v7jV8HhNnZmlQhKXCmxRVFsjBYJtDK829B_8lE-iL_15Bd83652rObyp4VgAj7ByZyyugTljBlDHIeery-HjslKBwsIsFAhV_BsKnmWHjXn1QgBIqN0X0mn8iIW8aMLdLGrwHcoxeAFX5k98Jc70siGbWhP7Nd4wzKKbORMHT0emGEIWQaFat7xSKQ0UtxiefNBLCDvTHoQjmukTBwxUXilJZE42OfLKVYoSauzjnmdJe2BC7P);
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.5em;
+    appearance: none
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1d110c] dark:text-white antialiased">
+<div class="relative flex min-h-screen w-full flex-col max-w-[480px] mx-auto overflow-x-hidden border-x border-gray-100 dark:border-zinc-800 bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-50 flex items-center bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-sm p-4 pb-2 justify-between">
+<div class="text-[#1d110c] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Onboarding</h2>
+</div>
+<!-- Progress Bar -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-[#1d110c] dark:text-white text-base font-semibold leading-normal">Étape 1 sur 6</p>
+<p class="text-[#a15d45] dark:text-primary text-sm font-medium leading-normal">1/6</p>
+</div>
+<div class="rounded-full bg-[#ead5cd] dark:bg-zinc-800 h-2.5 overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 16.66%;"></div>
+</div>
+</div>
+<!-- Headline -->
+<div class="px-4 pt-4">
+<h3 class="text-[#1d110c] dark:text-white tracking-tight text-2xl font-bold leading-tight">Informations de base</h3>
+<p class="text-[#a15d45] dark:text-zinc-400 text-sm mt-1">Dites-nous en plus sur votre établissement pour commencer.</p>
+</div>
+<!-- Form Fields -->
+<div class="flex flex-col gap-1 pb-32">
+<!-- Nom commercial -->
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col flex-1">
+<p class="text-[#1d110c] dark:text-zinc-200 text-sm font-medium leading-normal pb-1.5">Nom commercial</p>
+<input class="form-input flex w-full rounded-lg text-[#1d110c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#ead5cd] dark:border-zinc-700 bg-background-light dark:bg-zinc-800/50 focus:border-primary h-14 placeholder:text-[#a15d45]/60 p-4 text-base font-normal leading-normal" placeholder="Ex: Le Petit Bistro"/>
+</label>
+</div>
+<!-- Type d'établissement -->
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col flex-1">
+<p class="text-[#1d110c] dark:text-zinc-200 text-sm font-medium leading-normal pb-1.5">Type d'établissement</p>
+<select class="form-select-icon flex w-full rounded-lg text-[#1d110c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#ead5cd] dark:border-zinc-700 bg-background-light dark:bg-zinc-800/50 focus:border-primary h-14 p-4 text-base font-normal leading-normal">
+<option disabled="" selected="" value="">Sélectionner un type</option>
+<option value="restaurant">Restaurant</option>
+<option value="cafe">Café / Bar</option>
+<option value="dark_kitchen">Dark Kitchen</option>
+<option value="bakery">Boulangerie / Pâtisserie</option>
+</select>
+</label>
+</div>
+<!-- Catégorie de cuisine -->
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col flex-1">
+<p class="text-[#1d110c] dark:text-zinc-200 text-sm font-medium leading-normal pb-1.5">Catégorie de cuisine</p>
+<select class="form-select-icon flex w-full rounded-lg text-[#1d110c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#ead5cd] dark:border-zinc-700 bg-background-light dark:bg-zinc-800/50 focus:border-primary h-14 p-4 text-base font-normal leading-normal">
+<option disabled="" selected="" value="">Choisir une spécialité</option>
+<option value="italian">Italienne</option>
+<option value="french">Française</option>
+<option value="asian">Asiatique</option>
+<option value="fastfood">Fast Food</option>
+<option value="healthy">Healthy</option>
+</select>
+</label>
+</div>
+<!-- Contact Row -->
+<div class="flex flex-col px-4 py-3">
+<p class="text-[#1d110c] dark:text-zinc-200 text-sm font-medium leading-normal pb-1.5">Coordonnées professionnelles</p>
+<div class="flex flex-col gap-4">
+<label class="flex-1">
+<input class="form-input flex w-full rounded-lg text-[#1d110c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#ead5cd] dark:border-zinc-700 bg-background-light dark:bg-zinc-800/50 focus:border-primary h-14 placeholder:text-[#a15d45]/60 p-4 text-base font-normal leading-normal" placeholder="Téléphone (ex: 01 23 45 67 89)" type="tel"/>
+</label>
+<label class="flex-1">
+<input class="form-input flex w-full rounded-lg text-[#1d110c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#ead5cd] dark:border-zinc-700 bg-background-light dark:bg-zinc-800/50 focus:border-primary h-14 placeholder:text-[#a15d45]/60 p-4 text-base font-normal leading-normal" placeholder="Email professionnel" type="email"/>
+</label>
+</div>
+</div>
+<!-- Short Description -->
+<div class="flex flex-col gap-1 px-4 py-3">
+<label class="flex flex-col flex-1">
+<div class="flex justify-between items-center pb-1.5">
+<p class="text-[#1d110c] dark:text-zinc-200 text-sm font-medium leading-normal">Brève description</p>
+<span class="text-[#a15d45] dark:text-zinc-400 text-xs">0/250</span>
+</div>
+<textarea class="form-input flex w-full min-h-[120px] rounded-lg text-[#1d110c] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/20 border border-[#ead5cd] dark:border-zinc-700 bg-background-light dark:bg-zinc-800/50 focus:border-primary placeholder:text-[#a15d45]/60 p-4 text-base font-normal leading-normal resize-none" placeholder="Décrivez votre établissement en quelques mots..."></textarea>
+</label>
+</div>
+</div>
+<!-- Fixed Footer Button -->
+<div class="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-4 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-center">
+<button class="w-full h-14 bg-primary hover:bg-primary/90 text-white font-bold text-lg rounded-xl transition-colors shadow-lg shadow-primary/20">
+                Suivant
+            </button>
+</div>
+</div>
+</body></html>

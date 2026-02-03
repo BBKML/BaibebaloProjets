@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Delivery Preferences - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border: 2px solid #19e66b;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        input[type="range"]::-moz-range-thumb {
+            width: 24px;
+            height: 24px;
+            background: #ffffff;
+            border: 2px solid #19e66b;
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white">
+<div class="relative flex h-screen w-full flex-col max-w-[430px] mx-auto overflow-hidden bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<header class="flex items-center bg-white dark:bg-[#1a2e22] p-4 pt-6 pb-4 justify-between border-b border-gray-100 dark:border-gray-800 shrink-0">
+<div class="text-[#0e1b13] dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Préférences de livraison</h2>
+</header>
+<!-- Scrollable Content -->
+<main class="flex-1 overflow-y-auto pb-32">
+<!-- SectionHeader -->
+<div class="px-4 pb-2 pt-6">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Types de livraison</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Configurez les commandes que vous souhaitez recevoir</p>
+</div>
+<!-- List Items Container -->
+<div class="mt-2 space-y-1">
+<!-- ListItem: Cash -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a2e22] px-4 min-h-[80px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/20 shrink-0 size-12">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold leading-tight">Commandes en espèces</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-snug mt-1">Accepter les paiements à la livraison</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-[27px] w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- ListItem: Bulky -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a2e22] px-4 min-h-[80px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/20 shrink-0 size-12">
+<span class="material-symbols-outlined">inventory_2</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold leading-tight">Livraisons volumineuses</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-snug mt-1">Articles nécessitant plus d'espace</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-[27px] w-[27px] rounded-full bg-white shadow-md"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- ListItem: Long distance -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#1a2e22] px-4 min-h-[80px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/20 shrink-0 size-12">
+<span class="material-symbols-outlined">distance</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold leading-tight">Courses longue distance</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-snug mt-1">Trajets de plus de 15 km</p>
+</div>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-gray-200 dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-[27px] w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Slider Section -->
+<div class="mt-8 px-4">
+<div class="flex justify-between items-end mb-4">
+<div>
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Rayon de travail maximal</h3>
+<p class="text-sm text-gray-500 dark:text-gray-400 mt-1">Distance maximale de votre position actuelle</p>
+</div>
+<div class="text-primary font-bold text-xl">
+                        25 <span class="text-sm font-normal text-gray-500">km</span>
+</div>
+</div>
+<div class="bg-white dark:bg-[#1a2e22] p-6 rounded-2xl shadow-sm">
+<input class="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-primary" max="50" min="1" type="range" value="25"/>
+<div class="flex justify-between mt-4 text-xs font-medium text-gray-400 uppercase tracking-wider">
+<span>1 km</span>
+<span>25 km</span>
+<span>50 km</span>
+</div>
+</div>
+</div>
+<!-- Tips Card -->
+<div class="mt-8 px-4">
+<div class="bg-primary/5 dark:bg-primary/10 border border-primary/20 rounded-2xl p-4 flex gap-4">
+<span class="material-symbols-outlined text-primary">info</span>
+<p class="text-sm text-gray-700 dark:text-gray-300">
+                        Augmenter votre rayon de travail et activer toutes les options vous permet de recevoir 40% de commandes en plus.
+                    </p>
+</div>
+</div>
+</main>
+<!-- Fixed Footer Actions -->
+<div class="absolute bottom-0 left-0 right-0 bg-white/80 dark:bg-[#112117]/80 backdrop-blur-md border-t border-gray-100 dark:border-gray-800 p-4 pb-8">
+<button class="w-full bg-primary text-[#0e1b13] font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+                SAUVEGARDER LES PRÉFÉRENCES
+            </button>
+</div>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<nav class="absolute bottom-0 left-0 right-0 h-16 bg-white dark:bg-[#1a2e22] border-t border-gray-200 dark:border-gray-800 flex items-center justify-around px-2 z-50">
+<div class="flex flex-col items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] mt-0.5">Accueil</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] mt-0.5">Revenus</span>
+</div>
+<div class="flex flex-col items-center justify-center text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">settings</span>
+<span class="text-[10px] mt-0.5 font-medium">Préférences</span>
+</div>
+<div class="flex flex-col items-center justify-center text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] mt-0.5">Profil</span>
+</div>
+</nav>
+</div>
+</body></html>

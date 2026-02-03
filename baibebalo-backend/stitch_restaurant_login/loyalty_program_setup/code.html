@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Loyalty Program Setup - BAIBEBALO</title>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Google Fonts: Work Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#fcf9f8",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom radio logic using the variable from components */
+        .custom-radio {
+            --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(250,108,56)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen">
+<div class="max-w-[430px] mx-auto min-h-screen flex flex-col shadow-xl bg-background-light dark:bg-background-dark overflow-x-hidden relative">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-primary flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Loyalty Program Setup</h2>
+<div class="size-12 shrink-0"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="flex-1 pb-24">
+<!-- ActionPanel: Global Toggle -->
+<div class="p-4">
+<div class="flex flex-1 flex-col items-start justify-between gap-4 rounded-xl border border-[#e9d5ce] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b14] p-5 sm:flex-row sm:items-center shadow-sm">
+<div class="flex flex-col gap-1">
+<p class="text-[#1c110d] dark:text-white text-base font-bold leading-tight">Programme de Fidélité</p>
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-sm font-normal leading-normal">Activer le programme pour commencer à fidéliser vos clients.</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#4a342b] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- SectionHeader: Choosing Reward -->
+<div class="px-4">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pt-4">Choisir la Récompense</h3>
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-sm mt-1">Sélectionnez le type de récompense pour vos clients fidèles.</p>
+</div>
+<!-- RadioList: Rewards Options -->
+<div class="custom-radio flex flex-col gap-3 p-4">
+<label class="flex items-center gap-4 rounded-xl border-2 border-solid border-primary bg-primary/5 dark:bg-primary/10 p-4 flex-row-reverse cursor-pointer">
+<input checked="" class="h-5 w-5 border-2 border-[#e9d5ce] bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="reward_option" type="radio"/>
+<div class="flex grow items-center gap-3">
+<div class="bg-primary/20 p-2 rounded-lg text-primary">
+<span class="material-symbols-outlined">percent</span>
+</div>
+<div class="flex flex-col">
+<p class="text-[#1c110d] dark:text-white text-sm font-semibold leading-normal">Après 5 commandes: -10%</p>
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-xs font-normal leading-normal">Encouragez les visites fréquentes</p>
+</div>
+</div>
+</label>
+<label class="flex items-center gap-4 rounded-xl border border-solid border-[#e9d5ce] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b14] p-4 flex-row-reverse cursor-pointer">
+<input class="h-5 w-5 border-2 border-[#e9d5ce] bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0" name="reward_option" type="radio"/>
+<div class="flex grow items-center gap-3">
+<div class="bg-gray-100 dark:bg-[#3d2a23] p-2 rounded-lg text-gray-500">
+<span class="material-symbols-outlined">restaurant</span>
+</div>
+<div class="flex flex-col">
+<p class="text-[#1c110d] dark:text-white text-sm font-semibold leading-normal">Après 10 commandes: Plat offert</p>
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-xs font-normal leading-normal">Récompensez la fidélité à long terme</p>
+</div>
+</div>
+</label>
+</div>
+<!-- Pro Tip Banner -->
+<div class="mx-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800 flex gap-3">
+<span class="material-symbols-outlined text-blue-500">lightbulb</span>
+<p class="text-blue-700 dark:text-blue-300 text-xs leading-normal">
+<strong>Conseil Pro:</strong> L'option "-10% après 5 commandes" génère généralement 25% de visites supplémentaires par mois.
+                </p>
+</div>
+<!-- SectionHeader: Stats -->
+<div class="px-4 mt-6">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Aperçu des performances</h3>
+</div>
+<!-- Analytics Dashboard -->
+<div class="grid grid-cols-2 gap-4 p-4">
+<div class="bg-white dark:bg-[#2d1b14] p-5 rounded-xl border border-[#e9d5ce] dark:border-[#3d2a23] shadow-sm">
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-xs font-medium uppercase tracking-wider mb-2">Clients Fidèles</p>
+<div class="flex items-baseline gap-1">
+<span class="text-[#1c110d] dark:text-white text-3xl font-bold">1,284</span>
+<span class="text-green-500 text-xs font-bold">+12%</span>
+</div>
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-[10px] mt-1">30 derniers jours</p>
+</div>
+<div class="bg-white dark:bg-[#2d1b14] p-5 rounded-xl border border-[#e9d5ce] dark:border-[#3d2a23] shadow-sm">
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-xs font-medium uppercase tracking-wider mb-2">Fréquence d'usage</p>
+<div class="flex items-baseline gap-1">
+<span class="text-[#1c110d] dark:text-white text-3xl font-bold">4.2</span>
+<span class="text-[#1c110d] dark:text-white text-xs">/mois</span>
+</div>
+<div class="w-full bg-gray-100 dark:bg-[#3d2a23] h-1 rounded-full mt-3 overflow-hidden">
+<div class="bg-primary h-full w-[70%]"></div>
+</div>
+</div>
+</div>
+<!-- Empty State/Info -->
+<div class="px-4 text-center mt-4">
+<p class="text-[#9e5e47] dark:text-[#c4a194] text-xs italic">
+                    Les récompenses sont appliquées automatiquement lors du passage en caisse du client.
+                </p>
+</div>
+</main>
+<!-- Fixed Bottom Button -->
+<footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-4 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-[#e9d5ce] dark:border-[#3d2a23]">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+                Sauvegarder les modifications
+            </button>
+</footer>
+</div>
+</body></html>

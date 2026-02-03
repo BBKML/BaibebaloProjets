@@ -10,16 +10,24 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
 import useAuthStore from '../../store/authStore';
 import { getAddresses } from '../../api/users';
-import { createOrder, initiatePayment } from '../../api/orders';
+import { createOrder, initiatePayment, calculateFees } from '../../api/orders';
 import { validatePromoCode } from '../../api/users';
 
 export default function CheckoutScreen({ navigation, route }) {
-  const { items, getTotal, clearCart, restaurantId } = useCartStore();
+  const items = useCartStore((state) => state.items);
+  const getTotal = useCartStore((state) => state.getTotal);
+  const clearCart = useCartStore((state) => state.clearCart);
+  const restaurantId = useCartStore((state) => state.restaurantId);
   const { user } = useAuthStore();
+  const insets = useSafeAreaInsets();
+  // #region agent log
+  fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:21',message:'CheckoutScreen initialized',data:{itemsCount:items.length,restaurantId:restaurantId||'NULL'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'D'})}).catch(()=>{});
+  // #endregion
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash');
@@ -29,10 +37,23 @@ export default function CheckoutScreen({ navigation, route }) {
   const [promoDiscount, setPromoDiscount] = useState(0);
   const [applyingPromo, setApplyingPromo] = useState(false);
   const [promoApplied, setPromoApplied] = useState(false);
+  
+  // Frais calculés dynamiquement
+  const [deliveryFee, setDeliveryFee] = useState(0);
+  const [serviceFee, setServiceFee] = useState(0);
+  const [distanceKm, setDistanceKm] = useState(0);
+  const [loadingFees, setLoadingFees] = useState(false);
+  const [feesError, setFeesError] = useState(null);
 
   useEffect(() => {
     loadAddresses();
-    const unsubscribe = navigation.addListener('focus', loadAddresses);
+    const unsubscribe = navigation.addListener('focus', () => {
+      // #region agent log
+      const storeState = useCartStore.getState();
+      fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:40',message:'CheckoutScreen focused',data:{restaurantId:restaurantId||'NULL',storeRestaurantId:storeState.restaurantId||'NULL',itemsCount:items.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+      // #endregion
+      loadAddresses();
+    });
     return unsubscribe;
   }, [navigation]);
 
@@ -41,6 +62,86 @@ export default function CheckoutScreen({ navigation, route }) {
       setSelectedAddress(route.params.selectedAddressId);
     }
   }, [route?.params?.selectedAddressId]);
+
+  // Écouter le retour de PaymentMethod avec la méthode sélectionnée
+  useEffect(() => {
+    if (route?.params?.selectedPaymentMethod) {
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:50',message:'Payment method received from route params',data:{selectedPaymentMethod:route.params.selectedPaymentMethod},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+      // #endregion
+      setPaymentMethod(route.params.selectedPaymentMethod);
+      setPaymentMethodSelected(true);
+    }
+  }, [route?.params?.selectedPaymentMethod]);
+
+  // Calculer les frais quand l'adresse ou le panier change
+  useEffect(() => {
+    const loadFees = async () => {
+      if (!selectedAddress || !restaurantId || items.length === 0) {
+        setDeliveryFee(0);
+        setServiceFee(0);
+        return;
+      }
+
+      setLoadingFees(true);
+      setFeesError(null);
+      
+      try {
+        const subtotal = Number(getTotal());
+        if (Number.isNaN(subtotal) || subtotal < 0) {
+          setDeliveryFee(0);
+          setServiceFee(0);
+          setLoadingFees(false);
+          return;
+        }
+        const rid = restaurantId && String(restaurantId).trim();
+        const aid = selectedAddress && String(selectedAddress).trim();
+        if (!rid || !aid) {
+          setDeliveryFee(0);
+          setServiceFee(0);
+          setLoadingFees(false);
+          return;
+        }
+        const response = await calculateFees(rid, aid, subtotal);
+        
+        if (response?.success) {
+          setDeliveryFee(response.data.delivery_fee);
+          setServiceFee(response.data.service_fee ?? 0);
+          setDistanceKm(response.data.distance_km);
+          setFeesError(null);
+        }
+      } catch (error) {
+        const resData = error.response?.data;
+        const code = resData?.error?.code;
+        const errorMsg = resData?.error?.message;
+        const details = resData?.error?.details;
+        console.error('Erreur calcul frais:', {
+          code,
+          message: errorMsg,
+          details,
+          status: error.response?.status,
+          payload: { restaurantId, selectedAddress, subtotal: Number(getTotal()) },
+        });
+        if (code === 'OUT_OF_DELIVERY_RANGE') {
+          setFeesError(
+            'Vous ne faites pas partie de la zone de livraison de ce restaurant. Choisissez une adresse plus proche ou un autre restaurant.'
+          );
+        } else if (details?.length) {
+          setFeesError(details.map((d) => d.message).join('. ') || errorMsg || 'Erreur de validation.');
+        } else if (errorMsg) {
+          setFeesError(errorMsg);
+        } else {
+          setFeesError('Impossible de calculer les frais. Vérifiez votre adresse ou réessayez.');
+        }
+        setDeliveryFee(500);
+        setServiceFee(0);
+      } finally {
+        setLoadingFees(false);
+      }
+    };
+
+    loadFees();
+  }, [selectedAddress, restaurantId, items]);
 
   const loadAddresses = async () => {
     try {
@@ -56,6 +157,10 @@ export default function CheckoutScreen({ navigation, route }) {
   };
 
   const handlePlaceOrder = async () => {
+    // #region agent log
+    const storeState = useCartStore.getState();
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:75',message:'handlePlaceOrder entry',data:{selectedAddress:selectedAddress||'NULL',itemsCount:items.length,restaurantId:restaurantId||'NULL',storeRestaurantId:storeState.restaurantId||'NULL',itemsHaveRestaurantId:items.some(i=>i.restaurantId)},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+    // #endregion
     if (!selectedAddress) {
       Alert.alert('Erreur', 'Veuillez sélectionner une adresse de livraison');
       return;
@@ -66,24 +171,30 @@ export default function CheckoutScreen({ navigation, route }) {
       return;
     }
 
+    // Récupérer restaurantId depuis le store directement (fallback si la réactivité échoue)
+    const currentRestaurantId = restaurantId || useCartStore.getState().restaurantId;
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:95',message:'RestaurantId check',data:{restaurantIdFromHook:restaurantId||'NULL',currentRestaurantId:currentRestaurantId||'NULL'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'G'})}).catch(()=>{});
+    // #endregion
+    if (!currentRestaurantId) {
+      Alert.alert('Erreur', 'Restaurant non identifié. Veuillez recommencer votre commande.');
+      return;
+    }
+
     setLoading(true);
     try {
       const selectedAddressData = addresses.find((address) => address.id === selectedAddress);
+      // #region agent log
+      fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:77',message:'Address data found',data:{addressFound:!!selectedAddressData,addressKeys:selectedAddressData?Object.keys(selectedAddressData):[]},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'B'})}).catch(()=>{});
+      // #endregion
       if (!selectedAddressData) {
         Alert.alert('Erreur', 'Adresse de livraison introuvable');
-        return;
-      }
-
-      if (!selectedAddressData.latitude || !selectedAddressData.longitude) {
-        Alert.alert(
-          'Adresse incomplète',
-          'Veuillez ajouter la localisation GPS de cette adresse avant de commander.'
-        );
+        setLoading(false);
         return;
       }
 
       const orderData = {
-        restaurant_id: restaurantId,
+        restaurant_id: currentRestaurantId,
         delivery_address: {
           label: selectedAddressData.label || selectedAddressData.title || 'Adresse',
           street: selectedAddressData.street || selectedAddressData.address_line || '',
@@ -91,18 +202,36 @@ export default function CheckoutScreen({ navigation, route }) {
           landmark: selectedAddressData.delivery_instructions || selectedAddressData.landmark || '',
           address_line: selectedAddressData.address_line || selectedAddressData.street || '',
           district: selectedAddressData.district || selectedAddressData.city || '',
-          latitude: selectedAddressData.latitude,
-          longitude: selectedAddressData.longitude,
+          latitude: selectedAddressData.latitude || 0,
+          longitude: selectedAddressData.longitude || 0,
         },
         payment_method: paymentMethod,
-        items: items.map((item) => ({
-          menu_item_id: item.id,
-          quantity: item.quantity,
-          price: item.price,
-          selected_options: item.selected_options || item.customizations || {},
-        })),
-        promo_code: promoCode.trim() || null,
+        items: items.map((item) => {
+          // #region agent log
+          fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:96',message:'Mapping item for order',data:{itemId:item.id,hasSelectedOptions:!!item.selected_options,hasCustomizations:!!item.customizations},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'C'})}).catch(()=>{});
+          // #endregion
+          const itemData = {
+            menu_item_id: item.id,
+            quantity: item.quantity,
+            price: item.price,
+          };
+          
+          // Ajouter selected_options seulement s'il existe et n'est pas vide
+          const options = item.selected_options || item.customizations;
+          if (options && typeof options === 'object' && Object.keys(options).length > 0) {
+            itemData.selected_options = options;
+          }
+          
+          return itemData;
+        }),
       };
+
+      // Ajouter promo_code seulement s'il n'est pas vide
+      if (promoCode.trim()) {
+        orderData.promo_code = promoCode.trim();
+      }
+
+      console.log('📦 Données commande envoyées:', JSON.stringify(orderData, null, 2));
 
       const response = await createOrder(orderData);
       const createdOrder = response.data?.order || response.data?.data?.order || response.data;
@@ -121,13 +250,11 @@ export default function CheckoutScreen({ navigation, route }) {
           }
         } catch (paymentError) {
           console.error('Erreur lors de l\'initiation du paiement:', paymentError);
-          // Continuer quand même, le paiement peut être fait plus tard
         }
       }
       
       clearCart();
       
-      // Naviguer vers l'écran de confirmation
       navigation.replace('OrderConfirmation', {
         orderId: createdOrder?.id,
         orderNumber: createdOrder?.order_number || createdOrder?.id,
@@ -136,25 +263,33 @@ export default function CheckoutScreen({ navigation, route }) {
           : '12:45',
       });
     } catch (error) {
-      Alert.alert(
-        'Erreur',
-        error.response?.data?.error?.message || 'Erreur lors de la création de la commande'
-      );
+      console.error('❌ Erreur création commande:', error);
+      console.error('❌ Détails erreur:', error.response?.data);
+      
+      const errorMessage = 
+        error.response?.data?.error?.message || 
+        error.response?.data?.message ||
+        error.message ||
+        'Erreur lors de la création de la commande';
+      
+      Alert.alert('Erreur', errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
   const openPaymentSelection = () => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:180',message:'openPaymentSelection called',data:{paymentMethod,itemsLength:items.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
+    // #endregion
+    const currentTotal = getTotal();
+    const currentDeliveryFee = 1000;
     navigation.navigate('PaymentMethod', {
       selectedMethod: paymentMethod,
       itemsCount: items.length,
-      itemsTotal: total,
-      deliveryFee,
-      onSelect: (method) => {
-        setPaymentMethod(method);
-        setPaymentMethodSelected(true);
-      },
+      itemsTotal: currentTotal,
+      deliveryFee: currentDeliveryFee,
+      returnRoute: 'Checkout',
     });
   };
 
@@ -200,9 +335,7 @@ export default function CheckoutScreen({ navigation, route }) {
   };
 
   const total = getTotal();
-  const deliveryFee = 1000;
-  const serviceFee = 250;
-  const finalTotal = Math.max(0, total + deliveryFee + serviceFee - promoDiscount);
+  const finalTotal = Math.max(0, total + deliveryFee - promoDiscount);
 
   return (
     <View style={styles.container}>
@@ -261,7 +394,7 @@ export default function CheckoutScreen({ navigation, route }) {
                 <View style={styles.addressInfo}>
                   <Text style={styles.addressLabel}>{address.label || 'Adresse'}</Text>
                   <Text style={styles.addressText}>
-                    {[address.street, address.city].filter(Boolean).join(', ')}
+                    {[address.street || address.address_line, address.city || address.district].filter(Boolean).join(', ')}
                   </Text>
                 </View>
               </TouchableOpacity>
@@ -347,7 +480,7 @@ export default function CheckoutScreen({ navigation, route }) {
                 <View style={styles.itemInfo}>
                   <Text style={styles.itemName} numberOfLines={1}>{item.name}</Text>
                   <Text style={styles.itemMeta} numberOfLines={1}>
-                    {formatCustomizations(item.customizations)}
+                    {formatCustomizations(item.selected_options || item.customizations)}
                   </Text>
                   <View style={styles.itemFooter}>
                     <Text style={styles.itemQty}>Quantité: {item.quantity}</Text>
@@ -371,17 +504,22 @@ export default function CheckoutScreen({ navigation, route }) {
             </Text>
           </View>
           <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Frais de livraison</Text>
+            <View style={styles.summaryLabelRow}>
+              <Text style={styles.summaryLabel}>Frais de livraison</Text>
+              {distanceKm > 0 && (
+                <Text style={styles.summarySubLabel}>({distanceKm.toFixed(1)} km)</Text>
+              )}
+            </View>
             <Text style={styles.summaryValue}>
-              {deliveryFee.toLocaleString('fr-FR')} FCFA
+              {loadingFees ? '...' : `${deliveryFee.toLocaleString('fr-FR')} FCFA`}
             </Text>
           </View>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Taxes & Frais de service</Text>
-            <Text style={styles.summaryValue}>
-              {serviceFee.toLocaleString('fr-FR')} FCFA
-            </Text>
-          </View>
+          {feesError && (
+            <View style={styles.errorRow}>
+              <Ionicons name="warning" size={14} color={COLORS.error || '#E53E3E'} />
+              <Text style={styles.errorText}>{feesError}</Text>
+            </View>
+          )}
           {promoDiscount > 0 && (
             <View style={styles.summaryRow}>
               <Text style={styles.summaryLabel}>Réduction</Text>
@@ -399,7 +537,7 @@ export default function CheckoutScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <TouchableOpacity
           style={[styles.orderButton, loading && styles.orderButtonDisabled]}
           onPress={paymentMethodSelected ? handlePlaceOrder : openPaymentSelection}
@@ -584,24 +722,6 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
   },
-  paymentCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    marginBottom: 12,
-  },
-  paymentCardSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '10',
-  },
-  paymentText: {
-    fontSize: 16,
-    color: COLORS.text,
-    marginLeft: 12,
-  },
   paymentSummary: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -667,10 +787,34 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
   },
+  summaryLabelRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  summarySubLabel: {
+    fontSize: 12,
+    color: COLORS.textLight || '#999',
+  },
   summaryValue: {
     fontSize: 14,
     color: COLORS.text,
     fontWeight: '500',
+  },
+  errorRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: '#FEE2E2',
+    borderRadius: 8,
+    marginTop: 8,
+  },
+  errorText: {
+    fontSize: 12,
+    color: COLORS.error || '#E53E3E',
+    flex: 1,
   },
   totalRow: {
     borderTopWidth: 1,

@@ -106,8 +106,8 @@ export default function OTPVerificationScreen({ navigation, route }) {
       });
       
       // Le backend peut utiliser full_name ou first_name/last_name
-      const hasFullName = user?.full_name && user.full_name.trim().length > 0;
-      const hasFirstLastName = user?.first_name && user?.last_name;
+      const hasFullName = !!(user?.full_name && user.full_name.trim().length > 0);
+      const hasFirstLastName = !!(user?.first_name && user.first_name.trim().length > 0 && user?.last_name && user.last_name.trim().length > 0);
       const hasProfile = hasFullName || hasFirstLastName;
       
       console.log('🔍 OTPVerification - État du profil:', {

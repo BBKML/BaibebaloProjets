@@ -1,3 +1,4 @@
+
 // Configuration API
 export const API_CONFIG = {
   // URL de base de l'API
@@ -44,6 +45,7 @@ export const API_CONFIG = {
       DETAIL: (id) => `/restaurants/${id}`,
       MENU: (id) => `/restaurants/${id}/menu`,
       REVIEWS: (id) => `/restaurants/${id}/reviews`,
+      POPULAR_SEARCHES: '/restaurants/popular-searches',
     },
     
     // Commandes
@@ -60,5 +62,12 @@ export const API_CONFIG = {
 
     // Recherche
     SEARCH: '/search',
+    
+    // Notifications
+    NOTIFICATIONS: {
+      LIST: '/notifications',
+      MARK_READ: (id) => `/notifications/${id}/read`,
+      SAVE_FCM_TOKEN: '/notifications/fcm-token',
+    },
   },
 };

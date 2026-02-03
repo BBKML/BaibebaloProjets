@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#195de6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<title>Détails des gains hebdomadaires</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e121b] dark:text-white min-h-screen">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined cursor-pointer text-[#0e121b] dark:text-white">arrow_back_ios</span>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Détails de la semaine</h2>
+</div>
+<span class="material-symbols-outlined text-primary">calendar_month</span>
+</div>
+</div>
+<main class="max-w-md mx-auto pb-24">
+<!-- Weekly Chart Section -->
+<div class="px-4 py-6">
+<div class="flex flex-col gap-2">
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">Gains quotidiens</p>
+<p class="text-[32px] font-bold leading-tight tracking-tight text-primary dark:text-primary">67,800 FCFA</p>
+<p class="text-sm font-normal text-gray-500 dark:text-gray-400">Cette semaine (12 Mai - 18 Mai)</p>
+<div class="grid min-h-[180px] grid-flow-col gap-3 grid-rows-[1fr_auto] items-end justify-items-center mt-6">
+<!-- Monday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary/20 dark:bg-primary/30 rounded-t-lg w-full" style="height: 60%;"></div>
+<p class="text-[11px] font-bold text-gray-500">Lun</p>
+</div>
+<!-- Tuesday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary/20 dark:bg-primary/30 rounded-t-lg w-full" style="height: 40%;"></div>
+<p class="text-[11px] font-bold text-gray-500">Mar</p>
+</div>
+<!-- Wednesday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary/20 dark:bg-primary/30 rounded-t-lg w-full" style="height: 30%;"></div>
+<p class="text-[11px] font-bold text-gray-500">Mer</p>
+</div>
+<!-- Thursday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary rounded-t-lg w-full" style="height: 85%;"></div>
+<p class="text-[11px] font-bold text-primary">Jeu</p>
+</div>
+<!-- Friday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary/20 dark:bg-primary/30 rounded-t-lg w-full" style="height: 25%;"></div>
+<p class="text-[11px] font-bold text-gray-500">Ven</p>
+</div>
+<!-- Saturday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary/20 dark:bg-primary/30 rounded-t-lg w-full" style="height: 100%;"></div>
+<p class="text-[11px] font-bold text-gray-500">Sam</p>
+</div>
+<!-- Sunday -->
+<div class="flex flex-col items-center w-full gap-2">
+<div class="bg-primary/10 dark:bg-primary/20 rounded-t-lg w-full border-dashed border-2 border-primary/20" style="height: 10%;"></div>
+<p class="text-[11px] font-bold text-gray-500">Dim</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Summary Card -->
+<div class="px-4 py-2">
+<div class="flex flex-col bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-gray-100 dark:border-gray-800 overflow-hidden">
+<div class="h-24 w-full bg-primary/10 relative">
+<div class="absolute inset-0 flex items-center justify-center opacity-20">
+<span class="material-symbols-outlined text-[64px] text-primary">analytics</span>
+</div>
+</div>
+<div class="p-4 flex flex-col gap-3">
+<div class="flex justify-between items-center">
+<div>
+<p class="text-xs uppercase tracking-wider text-gray-500 font-semibold">Gains totaux</p>
+<p class="text-2xl font-bold text-[#0e121b] dark:text-white">67,800 FCFA</p>
+</div>
+<div class="bg-primary/10 text-primary p-2 rounded-lg">
+<span class="material-symbols-outlined">payments</span>
+</div>
+</div>
+<div class="h-px bg-gray-100 dark:bg-gray-800"></div>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col">
+<p class="text-xs text-gray-500">Nombre de courses</p>
+<p class="text-base font-bold">42 courses</p>
+</div>
+<div class="flex flex-col">
+<p class="text-xs text-gray-500">Total km</p>
+<p class="text-base font-bold">145 km</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Breakdown Section -->
+<div class="mt-4">
+<h3 class="text-lg font-bold px-4 mb-2">Répartition des gains</h3>
+<div class="mx-4 bg-white dark:bg-gray-900 rounded-xl border border-gray-100 dark:border-gray-800 overflow-hidden">
+<div class="p-4">
+<div class="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">wallet</span>
+<p class="text-sm font-medium">Gains de base</p>
+</div>
+<p class="text-sm font-bold text-right">55,000 F</p>
+</div>
+<div class="flex justify-between items-center py-3 border-b border-gray-50 dark:border-gray-800">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">redeem</span>
+<p class="text-sm font-medium">Bonus de performance</p>
+</div>
+<p class="text-sm font-bold text-right">8,500 F</p>
+</div>
+<div class="flex justify-between items-center py-3">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-gray-400">volunteer_activism</span>
+<p class="text-sm font-medium">Pourboires</p>
+</div>
+<p class="text-sm font-bold text-right">4,300 F</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Daily Activity List -->
+<div class="mt-6">
+<div class="flex justify-between items-center px-4 mb-2">
+<h3 class="text-lg font-bold">Historique quotidien</h3>
+<button class="text-primary text-sm font-semibold">Voir tout</button>
+</div>
+<div class="flex flex-col divide-y divide-gray-100 dark:divide-gray-800">
+<!-- Row Item -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold text-xs text-gray-600 dark:text-gray-300">
+                            13
+                        </div>
+<div>
+<p class="font-bold text-sm">Lundi</p>
+<p class="text-xs text-gray-500">8 courses</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-sm">12,450 F</p>
+<span class="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+</div>
+</div>
+<!-- Row Item -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-full bg-gray-100 dark:bg-gray-800 flex items-center justify-center font-bold text-xs text-gray-600 dark:text-gray-300">
+                            14
+                        </div>
+<div>
+<p class="font-bold text-sm">Mardi</p>
+<p class="text-xs text-gray-500">6 courses</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-sm">9,200 F</p>
+<span class="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+</div>
+</div>
+<!-- Row Item -->
+<div class="flex items-center justify-between p-4 bg-white dark:bg-gray-900 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer">
+<div class="flex items-center gap-4">
+<div class="size-10 rounded-full bg-primary/10 flex items-center justify-center font-bold text-xs text-primary">
+                            15
+                        </div>
+<div>
+<p class="font-bold text-sm">Mercredi</p>
+<p class="text-xs text-gray-500">12 courses</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<p class="font-bold text-sm">18,150 F</p>
+<span class="material-symbols-outlined text-gray-400 text-lg">chevron_right</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 px-6 py-3 flex justify-between items-center z-50 max-w-md mx-auto">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Gains</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">electric_moped</span>
+<span class="text-[10px] font-medium">Courses</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+</body></html>

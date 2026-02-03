@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../components/layout/Layout';
 import BarChart from '../components/charts/BarChart';
@@ -9,6 +10,7 @@ import { analyticsAPI } from '../api/analytics';
 import { dashboardAPI } from '../api/dashboard';
 
 const TemporalAnalysis = () => {
+  const navigate = useNavigate();
   const [selectedPeriod, setSelectedPeriod] = useState('30');
   const periodParam = selectedPeriod === '7' ? '7d' : selectedPeriod === '30' ? '30d' : '90d';
 
@@ -110,6 +112,13 @@ const TemporalAnalysis = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Retour"
+            >
+              <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+            </button>
             <h2 className="text-xl font-bold text-slate-900 dark:text-white">Analyse Temporelle</h2>
             <span className="px-2 py-1 bg-primary/10 text-primary text-[10px] font-bold uppercase rounded leading-none">
               Phase 5

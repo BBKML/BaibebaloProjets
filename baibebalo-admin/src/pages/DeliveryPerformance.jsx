@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../components/layout/Layout';
 import LineChart from '../components/charts/LineChart';
@@ -11,6 +12,7 @@ import { analyticsAPI } from '../api/analytics';
 import { dashboardAPI } from '../api/dashboard';
 
 const DeliveryPerformance = () => {
+  const navigate = useNavigate();
   const [timeRange, setTimeRange] = useState('realtime');
   const period = timeRange === 'realtime' ? '7d' : timeRange === 'weekly' ? '30d' : '90d';
 
@@ -85,13 +87,22 @@ const DeliveryPerformance = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Dashboard Performance Livreurs
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Suivi et classement analytique des livreurs en temps réel.
-            </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Retour"
+            >
+              <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+            </button>
+            <div>
+              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                Dashboard Performance Livreurs
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Suivi et classement analytique des livreurs en temps réel.
+              </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white text-sm font-bold px-4 py-2 rounded-lg flex items-center gap-2 border border-slate-200 dark:border-slate-700 transition-all">

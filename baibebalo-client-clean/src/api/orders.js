@@ -2,6 +2,22 @@ import apiClient from './client';
 import { API_CONFIG } from '../constants/api';
 
 /**
+ * Calculer les frais de livraison et de service
+ */
+export const calculateFees = async (restaurantId, deliveryAddressId, subtotal) => {
+  const subtotalNum = Number(subtotal);
+  if (Number.isNaN(subtotalNum) || subtotalNum < 0) {
+    throw new Error('Sous-total invalide');
+  }
+  const response = await apiClient.post('/orders/calculate-fees', {
+    restaurant_id: restaurantId,
+    delivery_address_id: deliveryAddressId,
+    subtotal: subtotalNum,
+  });
+  return response.data;
+};
+
+/**
  * Créer une commande
  */
 export const createOrder = async (orderData) => {

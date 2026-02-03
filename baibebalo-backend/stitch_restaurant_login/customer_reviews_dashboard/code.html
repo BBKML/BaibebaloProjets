@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-outlined.fill {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1c110d] dark:text-white antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 flex items-center bg-white dark:bg-background-dark/90 backdrop-blur-md p-4 pb-3 justify-between border-b border-gray-100 dark:border-white/10">
+<div class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-2xl">chevron_left</span>
+</div>
+<h2 class="text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Avis Clients</h2>
+</header>
+<main class="flex-1">
+<!-- Rating Summary Section -->
+<div class="bg-white dark:bg-background-dark/50 p-6 shadow-sm border-b border-gray-100 dark:border-white/10">
+<div class="flex flex-col md:flex-row gap-8 items-start">
+<div class="flex flex-col gap-1 items-center md:items-start shrink-0">
+<p class="text-6xl font-black leading-tight tracking-tight text-primary">4.6</p>
+<div class="flex gap-0.5 my-1">
+<span class="material-symbols-outlined fill text-primary text-2xl">star</span>
+<span class="material-symbols-outlined fill text-primary text-2xl">star</span>
+<span class="material-symbols-outlined fill text-primary text-2xl">star</span>
+<span class="material-symbols-outlined fill text-primary text-2xl">star</span>
+<span class="material-symbols-outlined text-primary text-2xl">star_half</span>
+</div>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Basé sur 1,240 avis</p>
+</div>
+<div class="grid w-full grid-cols-[30px_1fr_45px] items-center gap-y-2.5">
+<span class="text-sm font-semibold">5</span>
+<div class="flex h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+<div class="rounded-full bg-primary" style="width: 60%;"></div>
+</div>
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium text-right">60%</span>
+<span class="text-sm font-semibold">4</span>
+<div class="flex h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+<div class="rounded-full bg-primary" style="width: 25%;"></div>
+</div>
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium text-right">25%</span>
+<span class="text-sm font-semibold">3</span>
+<div class="flex h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+<div class="rounded-full bg-primary" style="width: 7%;"></div>
+</div>
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium text-right">7%</span>
+<span class="text-sm font-semibold">2</span>
+<div class="flex h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+<div class="rounded-full bg-primary" style="width: 3%;"></div>
+</div>
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium text-right">3%</span>
+<span class="text-sm font-semibold">1</span>
+<div class="flex h-2.5 flex-1 overflow-hidden rounded-full bg-gray-100 dark:bg-white/10">
+<div class="rounded-full bg-primary" style="width: 5%;"></div>
+</div>
+<span class="text-gray-500 dark:text-gray-400 text-xs font-medium text-right">5%</span>
+</div>
+</div>
+</div>
+<!-- Filter Chips -->
+<div class="flex gap-2.5 px-4 py-5 overflow-x-auto no-scrollbar scroll-smooth">
+<button class="flex h-10 shrink-0 items-center justify-center rounded-xl bg-primary text-white px-5 font-semibold text-sm shadow-sm transition-transform active:scale-95">
+                    Tous
+                </button>
+<button class="flex h-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-transparent px-5 font-semibold text-sm text-gray-700 dark:text-gray-200 transition-transform active:scale-95">
+                    Positifs
+                </button>
+<button class="flex h-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-transparent px-5 font-semibold text-sm text-gray-700 dark:text-gray-200 transition-transform active:scale-95">
+                    Négatifs
+                </button>
+<button class="flex h-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-white/10 border border-gray-200 dark:border-transparent px-5 font-semibold text-sm text-gray-700 dark:text-gray-200 transition-transform active:scale-95">
+                    Photos
+                </button>
+</div>
+<!-- List Header -->
+<div class="px-4 pb-2">
+<h3 class="text-lg font-bold leading-tight tracking-tight">Dernières évaluations</h3>
+</div>
+<!-- Reviews List -->
+<div class="flex flex-col px-4 pb-12 gap-4">
+<!-- Review Card 1 -->
+<article class="bg-white dark:bg-background-dark/40 rounded-2xl p-4 shadow-sm border border-gray-50 dark:border-white/5">
+<div class="flex items-center gap-3 mb-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 border-2 border-primary/10" data-alt="Portrait of a male customer Jean Dupont" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDJzj8G2HnAnAz_U-ffDDFXOaiJNMjr87suWz-mNlHHDRQ893qiu9L9Bpu-XV57VZn7CVsaWyV9ep7g6khGwpOm-wtvrApylO9RO_egsvv5VRZeMUi2GXtmcnm044gmYZ0PJcbfgfjVBQ8iMo2vGbHtb2AhALzPmv7ePeqzxdJYn1wJaFpU4jbqM8NRh-8wBtxTXMbQvNcbNCQn6AnEGXQo9olYFaOcfbjJTdv_c81Oxdyi7aW4gHI8WCIA8dcUb-EsV4bRTqYIZ8xx");'></div>
+<div class="flex-1">
+<p class="font-bold text-base">Jean Dupont</p>
+<p class="text-gray-400 dark:text-gray-500 text-xs font-medium">Il y a 2 heures • Vérifié</p>
+</div>
+<button class="text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl">flag</span>
+</button>
+</div>
+<div class="flex gap-0.5 mb-2">
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+</div>
+<p class="text-gray-700 dark:text-gray-200 text-sm leading-relaxed mb-4">
+                        L'expérience chez BAIBEBALO était absolument fantastique. Le canard laqué est une merveille. Le personnel est aux petits soins et l'ambiance chaleureuse. Je reviendrai sans hésiter !
+                    </p>
+<div class="flex items-center justify-between border-t border-gray-50 dark:border-white/5 pt-4">
+<button class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-base">error</span>
+                            Signaler
+                        </button>
+<button class="bg-primary text-white rounded-lg px-6 py-2.5 text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
+                            Répondre
+                        </button>
+</div>
+</article>
+<!-- Review Card 2 -->
+<article class="bg-white dark:bg-background-dark/40 rounded-2xl p-4 shadow-sm border border-gray-50 dark:border-white/5">
+<div class="flex items-center gap-3 mb-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 border-2 border-primary/10" data-alt="Portrait of a female customer Sophie Martin" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAtt0adkxPmcH1cYymMNt9az_nIifRo83YWpWFkgeIkZGTBNPmQyRpQjTmshUl64YXDs5tG7d915343bQcJ-9OOOB_YQJyqJQt3jVUKj4lRBfXaS1h1hwuGTaLtLEhOCxGA1jXRR5q3n1OHx9EJ62UAPJFMQU9pql09Q33wshqvEoZwxb-490R8vpBGwSni8IqpEfAeqB-XlsG-ihgUCaPR0nBh9bXnRLXL0rA_KzPhA95nfja4jjJBEIApcx_0lRapbh8OEwp4haBx");'></div>
+<div class="flex-1">
+<p class="font-bold text-base">Sophie Martin</p>
+<p class="text-gray-400 dark:text-gray-500 text-xs font-medium">Hier • Vérifié</p>
+</div>
+<button class="text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl">flag</span>
+</button>
+</div>
+<div class="flex gap-0.5 mb-2">
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined text-gray-300 dark:text-white/20 text-lg">star</span>
+</div>
+<p class="text-gray-700 dark:text-gray-200 text-sm leading-relaxed mb-4">
+                        Très bonne cuisine créative, mais l'attente était un peu longue ce samedi soir. Néanmoins, la qualité des plats compense largement ce petit bémol.
+                    </p>
+<div class="flex items-center justify-between border-t border-gray-50 dark:border-white/5 pt-4">
+<button class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-base">error</span>
+                            Signaler
+                        </button>
+<button class="bg-primary text-white rounded-lg px-6 py-2.5 text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
+                            Répondre
+                        </button>
+</div>
+</article>
+<!-- Review Card 3 -->
+<article class="bg-white dark:bg-background-dark/40 rounded-2xl p-4 shadow-sm border border-gray-50 dark:border-white/5">
+<div class="flex items-center gap-3 mb-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-11 border-2 border-primary/10" data-alt="Portrait of a male customer Marc Lefebvre" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB2LCf4J034zMcuDVJZhdDs7DvWc1oyT220nybnSx7HjIvZsDiwzLShIxmTFYKOI9x-rBbFdGGpTddBn48MRIhJOeoqFbuKwz8aUaMCIS5n1ziO2v6z--ZsJQX0-capWhiNaT_ent2zJ7AIJ5TafyhLHGJDE7Io3JSB24g6Tz82KNib6hqMFLF_jNEhJeabHN8gPdhT5fIy8VIyG0T11m6BqLSslRfOtztUbrGoDlIe2tXCy0TZftqzcIvo3kFjU9ILbrPycp6ZVWgK");'></div>
+<div class="flex-1">
+<p class="font-bold text-base">Marc Lefebvre</p>
+<p class="text-gray-400 dark:text-gray-500 text-xs font-medium">Il y a 2 jours</p>
+</div>
+<button class="text-gray-400 hover:text-red-500 transition-colors">
+<span class="material-symbols-outlined text-xl">flag</span>
+</button>
+</div>
+<div class="flex gap-0.5 mb-2">
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined fill text-primary text-lg">star</span>
+<span class="material-symbols-outlined text-gray-300 dark:text-white/20 text-lg">star</span>
+<span class="material-symbols-outlined text-gray-300 dark:text-white/20 text-lg">star</span>
+<span class="material-symbols-outlined text-gray-300 dark:text-white/20 text-lg">star</span>
+</div>
+<p class="text-gray-700 dark:text-gray-200 text-sm leading-relaxed mb-4">
+                        Déçu par la cuisson de la viande, j'avais demandé saignant et c'était à point. Dommage car le cadre est sympathique et la carte des vins excellente.
+                    </p>
+<div class="flex items-center justify-between border-t border-gray-50 dark:border-white/5 pt-4">
+<button class="flex items-center gap-1.5 text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider">
+<span class="material-symbols-outlined text-base">error</span>
+                            Signaler
+                        </button>
+<button class="bg-primary text-white rounded-lg px-6 py-2.5 text-sm font-bold shadow-md hover:brightness-110 active:scale-95 transition-all">
+                            Répondre
+                        </button>
+</div>
+</article>
+</div>
+</main>
+<!-- Bottom Tab Bar (iOS Style) -->
+<nav class="fixed bottom-0 w-full bg-white/90 dark:bg-background-dark/95 backdrop-blur-xl border-t border-gray-100 dark:border-white/10 px-6 py-3 flex justify-between items-center z-50">
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-bold">ACCUEIL</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined fill text-2xl">reviews</span>
+<span class="text-[10px] font-bold">AVIS</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">analytics</span>
+<span class="text-[10px] font-bold">STATS</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined text-2xl">settings</span>
+<span class="text-[10px] font-bold">RÉGLAGES</span>
+</div>
+</nav>
+<!-- Safe area padding for bottom nav -->
+<div class="h-20 shrink-0"></div>
+</div>
+</body></html>

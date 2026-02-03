@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d141b] dark:text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col group/design-root overflow-x-hidden">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800">
+<div class="text-[#0d141b] dark:text-slate-100 flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0d141b] dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center font-display">Invoices &amp; Receipts</h2>
+<div class="flex w-12 items-center justify-end">
+<button class="flex max-w-[480px] cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 bg-transparent text-[#0d141b] dark:text-slate-100 gap-2 text-base font-bold leading-normal tracking-[0.015em] min-w-0 p-0">
+<span class="material-symbols-outlined">search</span>
+</button>
+</div>
+</div>
+<!-- Search & Filter Bar (Custom) -->
+<div class="px-4 py-3 bg-background-light dark:bg-background-dark">
+<div class="flex gap-2">
+<div class="relative flex-1">
+<div class="absolute inset-y-0 left-3 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-slate-400 text-sm">search</span>
+</div>
+<input class="w-full bg-slate-200/50 dark:bg-slate-800 border-none rounded-lg py-2 pl-10 pr-4 text-sm focus:ring-2 focus:ring-primary/50 outline-none" placeholder="Rechercher une facture..." type="text"/>
+</div>
+<button class="bg-slate-200/50 dark:bg-slate-800 p-2 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-slate-600 dark:text-slate-400">tune</span>
+</button>
+</div>
+</div>
+<!-- Tabs -->
+<div class="bg-background-light dark:bg-background-dark">
+<div class="pb-3">
+<div class="flex border-b border-slate-200 dark:border-slate-800 px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-primary text-primary pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em] font-display">Tous</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-slate-500 dark:text-slate-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em] font-display">Factures</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent text-slate-500 dark:text-slate-400 pb-[13px] pt-4" href="#">
+<p class="text-sm font-bold leading-normal tracking-[0.015em] font-display">Reçus</p>
+</a>
+</div>
+</div>
+</div>
+<!-- Section: October 2023 -->
+<div class="bg-background-light dark:bg-background-dark">
+<h3 class="text-[#0d141b] dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4 font-display">Octobre 2023</h3>
+<!-- ListItem 1 -->
+<div class="flex flex-col border-b border-slate-100 dark:border-slate-800">
+<div class="flex gap-4 bg-background-light dark:bg-background-dark px-4 py-3 justify-between items-center">
+<div class="flex items-start gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0d141b] dark:text-slate-100 text-base font-semibold leading-normal font-display">Facture #INV-2023-088</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-tight">Approvisionnement Boissons</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-green-500">check_circle</span>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">24 Oct 2023 • Payé</p>
+</div>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[#0d141b] dark:text-slate-100 text-base font-bold leading-normal">1 240,00 €</p>
+</div>
+</div>
+<!-- ActionsBar for Item 1 -->
+<div class="px-4 pb-4">
+<div class="gap-4 flex justify-end">
+<div class="flex items-center gap-1 cursor-pointer bg-slate-200/50 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[18px] text-primary">download</span>
+<p class="text-slate-700 dark:text-slate-300 text-xs font-medium">Télécharger</p>
+</div>
+<div class="flex items-center gap-1 cursor-pointer bg-slate-200/50 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[18px] text-primary">mail</span>
+<p class="text-slate-700 dark:text-slate-300 text-xs font-medium">Envoyer</p>
+</div>
+</div>
+</div>
+</div>
+<!-- ListItem 2 -->
+<div class="flex flex-col border-b border-slate-100 dark:border-slate-800">
+<div class="flex gap-4 bg-background-light dark:bg-background-dark px-4 py-3 justify-between items-center">
+<div class="flex items-start gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">receipt_long</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0d141b] dark:text-slate-100 text-base font-semibold leading-normal font-display">Reçu #REC-9921</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-tight">Maintenance Cuisine</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-green-500">check_circle</span>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">15 Oct 2023 • Validé</p>
+</div>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[#0d141b] dark:text-slate-100 text-base font-bold leading-normal">325,50 €</p>
+</div>
+</div>
+<div class="px-4 pb-4">
+<div class="gap-4 flex justify-end">
+<div class="flex items-center gap-1 cursor-pointer bg-slate-200/50 dark:bg-slate-800 px-3 py-1.5 rounded-full">
+<span class="material-symbols-outlined text-[18px] text-primary">download</span>
+<p class="text-slate-700 dark:text-slate-300 text-xs font-medium">PDF</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Section: September 2023 -->
+<div class="bg-background-light dark:bg-background-dark">
+<h3 class="text-[#0d141b] dark:text-slate-100 text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6 font-display">Septembre 2023</h3>
+<!-- ListItem 3 (Pending) -->
+<div class="flex flex-col border-b border-slate-100 dark:border-slate-800">
+<div class="flex gap-4 bg-background-light dark:bg-background-dark px-4 py-3 justify-between items-center">
+<div class="flex items-start gap-4">
+<div class="text-orange-500 flex items-center justify-center rounded-lg bg-orange-500/10 shrink-0 size-12">
+<span class="material-symbols-outlined">pending_actions</span>
+</div>
+<div class="flex flex-1 flex-col justify-center">
+<p class="text-[#0d141b] dark:text-slate-100 text-base font-semibold leading-normal font-display">Facture #INV-2023-072</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm font-normal leading-tight">BAIBEBALO Services</p>
+<div class="flex items-center gap-1 mt-1">
+<span class="material-symbols-outlined text-[14px] text-orange-500">schedule</span>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">28 Sep 2023 • En attente</p>
+</div>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-[#0d141b] dark:text-slate-100 text-base font-bold leading-normal">450,00 €</p>
+</div>
+</div>
+<!-- ActionsBar for Pending -->
+<div class="px-4 pb-4">
+<div class="gap-2 px-0 flex flex-wrap justify-start">
+<div class="flex flex-col items-center gap-1 bg-background-light dark:bg-background-dark py-2 text-center w-20 cursor-pointer">
+<div class="rounded-full bg-slate-200 dark:bg-slate-800 p-2 text-primary">
+<span class="material-symbols-outlined">download</span>
+</div>
+<p class="text-[#0d141b] dark:text-slate-200 text-[10px] font-medium leading-normal">Télécharger</p>
+</div>
+<div class="flex flex-col items-center gap-1 bg-background-light dark:bg-background-dark py-2 text-center w-20 cursor-pointer">
+<div class="rounded-full bg-slate-200 dark:bg-slate-800 p-2 text-primary">
+<span class="material-symbols-outlined">mail</span>
+</div>
+<p class="text-[#0d141b] dark:text-slate-200 text-[10px] font-medium leading-normal">Email</p>
+</div>
+<div class="flex flex-col items-center gap-1 bg-background-light dark:bg-background-dark py-2 text-center w-20 cursor-pointer">
+<div class="rounded-full bg-primary/10 p-2 text-primary">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<p class="text-primary text-[10px] font-bold leading-normal">Payer</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Floating Action Button (iOS Style) -->
+<div class="fixed bottom-8 right-6">
+<button class="bg-primary text-white size-14 rounded-full flex items-center justify-center shadow-lg shadow-primary/40 active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-3xl">add</span>
+</button>
+</div>
+<!-- Bottom Navigation Spacer -->
+<div class="h-24 bg-background-light dark:bg-background-dark"></div>
+</div>
+</body></html>

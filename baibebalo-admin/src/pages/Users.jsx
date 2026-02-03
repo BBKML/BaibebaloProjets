@@ -6,6 +6,7 @@ import Layout from '../components/layout/Layout';
 import { usersAPI } from '../api/users';
 import { formatCurrency } from '../utils/format';
 import TableSkeleton from '../components/common/TableSkeleton';
+import { normalizeUploadUrl } from '../utils/url';
 
 const Users = () => {
   const navigate = useNavigate();
@@ -18,9 +19,13 @@ const Users = () => {
   const [isProcessing, setIsProcessing] = useState(false);
   const [filters, setFilters] = useState({
     status: '',
+    search: '',
     page: 1,
     limit: 20,
   });
+  const [searchInput, setSearchInput] = useState('');
+  const [deleteModal, setDeleteModal] = useState({ open: false, user: null });
+  const [deleteReason, setDeleteReason] = useState('');
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['users', filters],
@@ -28,7 +33,7 @@ const Users = () => {
   });
 
   const users = data?.data?.users || [];
-  const pagination = data?.data?.pagination || {};
+  const pagination = data?.data?.pagination || { page: 1, limit: 20, total: 0, pages: 1 };
 
   // Gérer la sélection d'utilisateurs
   const handleSelectUser = (userId) => {
@@ -66,6 +71,32 @@ const Users = () => {
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleDeleteSingle = async () => {
+    if (!deleteModal.user) return;
+    setIsProcessing(true);
+    try {
+      await usersAPI.bulkActionUsers([deleteModal.user.id], 'delete', deleteReason);
+      toast.success('Utilisateur supprimé');
+      setDeleteModal({ open: false, user: null });
+      setDeleteReason('');
+      queryClient.invalidateQueries(['users']);
+    } catch (err) {
+      toast.error(err.response?.data?.error?.message || 'Erreur lors de la suppression');
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  const handleSearch = (e) => {
+    e?.preventDefault();
+    setFilters((f) => ({ ...f, search: searchInput.trim(), page: 1 }));
+  };
+
+  const goToPage = (page) => {
+    const p = Math.max(1, Math.min(page, pagination.pages));
+    setFilters((f) => ({ ...f, page: p }));
   };
 
   if (isLoading) {
@@ -162,15 +193,31 @@ const Users = () => {
 
         {/* Filters */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-          <div className="flex gap-4">
+          <div className="flex flex-wrap gap-4 items-center">
+            <form onSubmit={handleSearch} className="flex gap-2 flex-1 min-w-[200px]">
+              <input
+                type="search"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
+                placeholder="Rechercher (nom, email, tél…)"
+                className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+              />
+              <button
+                type="submit"
+                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm font-semibold"
+              >
+                Rechercher
+              </button>
+            </form>
             <select
               value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
+              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value, page: 1 }))}
               className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
             >
-              <option value="">Tous les statuts</option>
+              <option value="">Tous (hors supprimés)</option>
               <option value="active">Actifs</option>
               <option value="suspended">Suspendus</option>
+              <option value="deleted">Supprimés</option>
             </select>
           </div>
         </div>
@@ -209,6 +256,7 @@ const Users = () => {
                     const initials = (user.first_name?.[0] || '') + (user.last_name?.[0] || '');
                     const isActive = user.status === 'active';
                     const isSelected = selectedUsers.includes(user.id);
+                    const avatarUrl = normalizeUploadUrl(user.profile_picture);
                     
                     return (
                       <tr 
@@ -226,8 +274,18 @@ const Users = () => {
                         </td>
                         <td className="px-6 py-4">
                           <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary">
-                              {initials || 'U'}
+                            <div className="relative w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-sm font-bold text-primary overflow-hidden">
+                              <span>{initials || 'U'}</span>
+                              {avatarUrl && (
+                                <img
+                                  src={avatarUrl}
+                                  alt={`${user.first_name || ''} ${user.last_name || ''}`.trim() || 'Utilisateur'}
+                                  className="absolute inset-0 w-full h-full object-cover"
+                                  onError={(event) => {
+                                    event.currentTarget.style.display = 'none';
+                                  }}
+                                />
+                              )}
                             </div>
                             <div>
                               <p className="text-sm font-semibold text-slate-900 dark:text-white">
@@ -256,12 +314,22 @@ const Users = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            onClick={() => navigate(`/users/${user.id}`)}
-                            className="material-symbols-outlined text-slate-400 hover:text-primary transition-colors"
-                          >
-                            visibility
-                          </button>
+                          <div className="flex items-center justify-end gap-1">
+                            <button
+                              onClick={() => navigate(`/users/${user.id}`)}
+                              className="p-1.5 material-symbols-outlined text-slate-400 hover:text-primary transition-colors rounded hover:bg-slate-100 dark:hover:bg-slate-800"
+                              title="Voir"
+                            >
+                              visibility
+                            </button>
+                            <button
+                              onClick={() => setDeleteModal({ open: true, user })}
+                              className="p-1.5 material-symbols-outlined text-slate-400 hover:text-red-500 transition-colors rounded hover:bg-red-50 dark:hover:bg-red-900/20"
+                              title="Supprimer"
+                            >
+                              delete
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -271,6 +339,36 @@ const Users = () => {
             </table>
           </div>
         </div>
+
+        {/* Pagination */}
+        {(pagination.pages > 1 || pagination.total > 0) && (
+          <div className="flex flex-wrap items-center justify-between gap-4 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 px-6 py-4">
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              {pagination.total === 0
+                ? '0 sur 0'
+                : `${(pagination.page - 1) * pagination.limit + 1}–${Math.min(pagination.page * pagination.limit, pagination.total)} sur ${pagination.total}`}
+            </p>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => goToPage(pagination.page - 1)}
+                disabled={pagination.page <= 1}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Précédent
+              </button>
+              <span className="px-3 py-1.5 text-sm text-slate-600 dark:text-slate-400">
+                Page {pagination.page} / {pagination.pages}
+              </span>
+              <button
+                onClick={() => goToPage(pagination.page + 1)}
+                disabled={pagination.page >= pagination.pages}
+                className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Suivant
+              </button>
+            </div>
+          </div>
+        )}
 
         {/* Modal Actions en Masse */}
         {showBulkModal && (
@@ -317,6 +415,50 @@ const Users = () => {
                   } disabled:opacity-50 disabled:cursor-not-allowed`}
                 >
                   {isProcessing ? 'Traitement...' : 'Confirmer'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal suppression utilisateur */}
+        {deleteModal.open && deleteModal.user && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
+            <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-6 max-w-md w-full">
+              <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
+                Supprimer l&apos;utilisateur
+              </h3>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                Êtes-vous sûr de vouloir supprimer {deleteModal.user.first_name} {deleteModal.user.last_name} ? Cette action est irréversible.
+              </p>
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Raison (optionnel)
+                </label>
+                <textarea
+                  value={deleteReason}
+                  onChange={(e) => setDeleteReason(e.target.value)}
+                  className="w-full px-3 py-2 border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white"
+                  rows={2}
+                  placeholder="Ex. demande du client"
+                />
+              </div>
+              <div className="flex gap-3 justify-end">
+                <button
+                  onClick={() => {
+                    setDeleteModal({ open: false, user: null });
+                    setDeleteReason('');
+                  }}
+                  className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                >
+                  Annuler
+                </button>
+                <button
+                  onClick={handleDeleteSingle}
+                  disabled={isProcessing}
+                  className="px-4 py-2 text-sm font-semibold rounded-lg bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isProcessing ? 'Suppression…' : 'Supprimer'}
                 </button>
               </div>
             </div>

@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                        "error": "#ef4444"
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .progress-ring__circle {
+            transition: stroke-dashoffset 0.35s;
+            transform: rotate(-90deg);
+            transform-origin: 50% 50%;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center justify-center">
+<span class="material-symbols-outlined text-2xl">notifications_active</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">
+            NOUVELLE COURSE DISPONIBLE
+        </h2>
+</div>
+<div class="flex-1 flex flex-col px-4 pb-8">
+<!-- Timer Section -->
+<div class="flex justify-center py-6">
+<div class="relative flex items-center justify-center">
+<!-- Circular Timer Visual -->
+<svg class="w-32 h-32">
+<circle class="text-gray-200 dark:text-gray-700" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-width="8"></circle>
+<circle class="text-primary" cx="64" cy="64" fill="transparent" r="58" stroke="currentColor" stroke-dasharray="364.4" stroke-dashoffset="100" stroke-linecap="round" stroke-width="8" style="transform: rotate(-90deg); transform-origin: 50% 50%;"></circle>
+</svg>
+<div class="absolute flex flex-col items-center">
+<p class="text-3xl font-bold leading-none">28</p>
+<p class="text-xs font-medium uppercase tracking-wider opacity-70">Sec</p>
+</div>
+</div>
+</div>
+<!-- Earnings Highlight -->
+<div class="bg-primary/10 dark:bg-primary/20 rounded-xl py-6 mb-6">
+<h1 class="text-primary dark:text-primary tracking-tight text-[40px] font-bold leading-tight text-center">1 750 FCFA</h1>
+<p class="text-primary dark:text-primary/80 text-sm font-medium leading-normal text-center uppercase tracking-wide">Rémunération estimée</p>
+</div>
+<!-- Delivery Details -->
+<div class="space-y-1 relative">
+<!-- Vertical Line Connector -->
+<div class="absolute left-10 top-12 bottom-12 w-0.5 border-l-2 border-dashed border-gray-300 dark:border-gray-600 z-0"></div>
+<!-- Pick-up -->
+<div class="relative z-10 flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl px-4 min-h-[80px] py-3 shadow-sm mb-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">storefront</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-[#0e1b13] dark:text-white text-base font-bold leading-normal">Restaurant Chez Marie</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal">Point de retrait • <span class="text-primary font-medium">1.2 km</span></p>
+</div>
+</div>
+<!-- Drop-off -->
+<div class="relative z-10 flex items-center gap-4 bg-white dark:bg-gray-800 rounded-xl px-4 min-h-[80px] py-3 shadow-sm">
+<div class="text-blue-500 flex items-center justify-center rounded-lg bg-blue-500/10 shrink-0 size-12">
+<span class="material-symbols-outlined">location_on</span>
+</div>
+<div class="flex flex-col justify-center flex-1">
+<p class="text-[#0e1b13] dark:text-white text-base font-bold leading-normal">Quartier Tchengué</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal">Destination finale • <span class="text-blue-500 font-medium">3.5 km</span></p>
+</div>
+</div>
+</div>
+<!-- Metrics Summary -->
+<div class="flex gap-4 mt-6">
+<div class="flex-1 bg-white dark:bg-gray-800 p-4 rounded-xl flex items-center gap-3 shadow-sm">
+<span class="material-symbols-outlined text-gray-400">route</span>
+<div>
+<p class="text-xs text-gray-500 uppercase font-bold">Total</p>
+<p class="font-bold">4.7 km</p>
+</div>
+</div>
+<div class="flex-1 bg-white dark:bg-gray-800 p-4 rounded-xl flex items-center gap-3 shadow-sm">
+<span class="material-symbols-outlined text-gray-400">schedule</span>
+<div>
+<p class="text-xs text-gray-500 uppercase font-bold">Temps</p>
+<p class="font-bold">25 min</p>
+</div>
+</div>
+</div>
+<!-- Spacer for push -->
+<div class="flex-1"></div>
+<!-- Action Buttons -->
+<div class="flex flex-col gap-3 mt-8">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-5 rounded-xl text-lg shadow-lg active:scale-[0.98] transition-transform">
+                ACCEPTER LA COURSE
+            </button>
+<button class="w-full bg-white dark:bg-gray-800 border-2 border-gray-100 dark:border-gray-700 text-error font-bold py-4 rounded-xl text-base active:scale-[0.98] transition-transform">
+                REFUSER
+            </button>
+</div>
+</div>
+<!-- Map Contextual Element (Subtle Background) -->
+<div class="fixed inset-0 -z-10 opacity-5 pointer-events-none">
+<img class="w-full h-full object-cover" data-alt="Modern abstract map pattern showing city streets" data-location="Libreville" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmHxklYc3q_2XlCGoRT40EoCZ1ajtbH1V5mm_KLVAdWikKoPuNLWdxk_cyfqiNSQuvVWSPHzbmWFogr4QF4UwaOfyPJ1e2b96LlFLiKyCAC-qhv6t4CLUDPCVyk48_mFvK9_1GV1Nsjyuu3X8tBlQiZyhl32-Wjhd0vc9B8WbJGq3H-Ljl_FjAeVt1YpaxgkUFu16zdvZhqGxrJ65EycN4wMdZnJWewoj3jXDwPou7NbiX82EaDeAYLa76jWSFiyPkq6sW7fd4pXyd"/>
+</div>
+</body></html>

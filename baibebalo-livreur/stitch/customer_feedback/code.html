@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Customer Feedback - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white antialiased">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark shadow-2xl overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-20 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="text-[#0e1b13] dark:text-white flex size-10 shrink-0 items-center justify-center rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Avis Clients</h2>
+</div>
+</header>
+<main class="flex-1 pb-24 overflow-y-auto">
+<!-- RatingSummary Card -->
+<section class="p-4 pt-2">
+<div class="bg-white dark:bg-zinc-900 rounded-xl p-5 shadow-sm border border-black/5 dark:border-white/5">
+<div class="flex flex-wrap gap-x-8 gap-y-6">
+<div class="flex flex-col gap-1">
+<p class="text-[#0e1b13] dark:text-white text-5xl font-black leading-tight tracking-[-0.033em]">4.8</p>
+<div class="flex gap-0.5 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0">star_half</span>
+</div>
+<p class="text-[#4e976b] text-sm font-medium mt-1">124 avis reçus</p>
+</div>
+<div class="grid min-w-[160px] flex-1 grid-cols-[16px_1fr_36px] items-center gap-y-2">
+<p class="text-xs font-semibold">5</p>
+<div class="flex h-2 flex-1 overflow-hidden rounded-full bg-primary/10"><div class="rounded-full bg-primary" style="width: 78%;"></div></div>
+<p class="text-[#4e976b] text-[10px] font-bold text-right">78%</p>
+<p class="text-xs font-semibold">4</p>
+<div class="flex h-2 flex-1 overflow-hidden rounded-full bg-primary/10"><div class="rounded-full bg-primary" style="width: 15%;"></div></div>
+<p class="text-[#4e976b] text-[10px] font-bold text-right">15%</p>
+<p class="text-xs font-semibold">3</p>
+<div class="flex h-2 flex-1 overflow-hidden rounded-full bg-primary/10"><div class="rounded-full bg-primary" style="width: 4%;"></div></div>
+<p class="text-[#4e976b] text-[10px] font-bold text-right">4%</p>
+<p class="text-xs font-semibold">2</p>
+<div class="flex h-2 flex-1 overflow-hidden rounded-full bg-primary/10"><div class="rounded-full bg-primary" style="width: 2%;"></div></div>
+<p class="text-[#4e976b] text-[10px] font-bold text-right">2%</p>
+<p class="text-xs font-semibold">1</p>
+<div class="flex h-2 flex-1 overflow-hidden rounded-full bg-primary/10"><div class="rounded-full bg-primary" style="width: 1%;"></div></div>
+<p class="text-[#4e976b] text-[10px] font-bold text-right">1%</p>
+</div>
+</div>
+</div>
+</section>
+<!-- SectionHeader -->
+<div class="px-4 pt-6 pb-2">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Points Forts</h3>
+<p class="text-sm text-[#4e976b]">Ce que vos clients apprécient le plus</p>
+</div>
+<!-- Chips Horizontal Scroll -->
+<div class="flex gap-3 px-4 py-3 overflow-x-auto hide-scrollbar">
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary/10 dark:bg-primary/20 pl-3 pr-4 border border-primary/20">
+<span class="material-symbols-outlined text-[#0e1b13] dark:text-white text-[20px]">bolt</span>
+<p class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-normal">Rapide (45)</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary/10 dark:bg-primary/20 pl-3 pr-4 border border-primary/20">
+<span class="material-symbols-outlined text-[#0e1b13] dark:text-white text-[20px]">sentiment_satisfied</span>
+<p class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-normal">Courtois (38)</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary/10 dark:bg-primary/20 pl-3 pr-4 border border-primary/20">
+<span class="material-symbols-outlined text-[#0e1b13] dark:text-white text-[20px]">shield_with_heart</span>
+<p class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-normal">Prudent (32)</p>
+</div>
+<div class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary/10 dark:bg-primary/20 pl-3 pr-4 border border-primary/20">
+<span class="material-symbols-outlined text-[#0e1b13] dark:text-white text-[20px]">restaurant</span>
+<p class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-normal">Souriant (25)</p>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="px-4 pt-8 pb-4">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Commentaires Récents</h3>
+</div>
+<!-- Recent Reviews List -->
+<div class="px-4 space-y-4">
+<!-- Review Item 1 -->
+<div class="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-black/5 dark:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-0.5 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+</div>
+<span class="text-[11px] font-medium text-zinc-400">Aujourd'hui, 14:20</span>
+</div>
+<p class="text-sm text-[#0e1b13] dark:text-white/90 leading-relaxed italic mb-3">"Livreur très poli et respectueux des consignes. Le repas est arrivé bien chaud, c'est parfait !"</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-white/5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Courtois</span>
+<span class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-white/5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Ponctuel</span>
+</div>
+</div>
+<!-- Review Item 2 -->
+<div class="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-black/5 dark:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-0.5 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 0">star</span>
+</div>
+<span class="text-[11px] font-medium text-zinc-400">Hier, 19:45</span>
+</div>
+<p class="text-sm text-[#0e1b13] dark:text-white/90 leading-relaxed italic mb-3">"Très rapide, rien à dire sur la livraison."</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-white/5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Rapide</span>
+</div>
+</div>
+<!-- Review Item 3 -->
+<div class="bg-white dark:bg-zinc-900 p-4 rounded-xl shadow-sm border border-black/5 dark:border-white/5">
+<div class="flex justify-between items-start mb-2">
+<div class="flex gap-0.5 text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+</div>
+<span class="text-[11px] font-medium text-zinc-400">12 Octobre</span>
+</div>
+<p class="text-sm text-[#0e1b13] dark:text-white/90 leading-relaxed italic mb-3">"Souriant et professionnel même sous la pluie. Merci !"</p>
+<div class="flex flex-wrap gap-2">
+<span class="px-2 py-0.5 rounded-lg bg-zinc-100 dark:bg-white/5 text-[10px] font-bold uppercase tracking-wider text-zinc-500">Souriant</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 z-30 max-w-[430px] mx-auto bg-white/90 dark:bg-zinc-900/90 backdrop-blur-lg border-t border-black/5 dark:border-white/10 pb-6 pt-2">
+<div class="flex justify-around items-center h-12 px-6">
+<div class="flex flex-col items-center gap-1 text-zinc-400">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+<span class="text-[10px] font-medium">Tableau</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-zinc-400">
+<span class="material-symbols-outlined text-[24px]">delivery_dining</span>
+<span class="text-[10px] font-medium">Courses</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1">grade</span>
+<span class="text-[10px] font-bold">Avis</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-zinc-400">
+<span class="material-symbols-outlined text-[24px]">account_circle</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+</nav>
+</div>
+</body></html>

@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Connexion Restaurant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#fcf9f8",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display antialiased">
+<div class="relative flex min-h-screen w-full flex-col overflow-x-hidden">
+<!-- TopAppBar with Logo -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-center pt-8">
+<h2 class="text-primary text-2xl font-black leading-tight tracking-[-0.03em] uppercase">BAIBEBALO</h2>
+</div>
+<div class="flex-1 flex flex-col items-center justify-start px-6 pt-10 pb-12 max-w-[480px] mx-auto w-full">
+<!-- Branding/Image Illustration -->
+<div class="w-full mb-8">
+<div class="w-full bg-center bg-no-repeat bg-cover flex flex-col justify-end overflow-hidden rounded-xl min-h-[160px] shadow-sm" data-alt="Modern restaurant kitchen with warm lighting" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBzUmXOsLDgAKfcnyE3Hy8Dhr_7KDb6NDs8lwALOp2AU-5vOC_u8W7zd_ErckalXyeZmXvZ9hJMvc4xKl_cUrPP4OQGmN5VORvWgEvG6W0xz-KNfpmLN-V0Z1EPk4wrYNYIWOjAYr0eMt2wbftAiv4427j1AG-ezRy9QMwhxXsp98Z1sqPVk9wn4gSNmj3-NyJTzJZEDCLYhRTBN8Lf1tUFsZtwphv5BI_lKXnYHsP20U8LaXEAUPHxin5UN_og-u-F1ZLPLDNBg3NM");'>
+</div>
+</div>
+<!-- Headline -->
+<div class="w-full text-center mb-8">
+<h1 class="text-[#1d110c] dark:text-white text-3xl font-bold leading-tight tracking-tight">Connexion Restaurant</h1>
+<p class="text-[#a15d45] dark:text-[#ead5cd] mt-2 text-base">Gérez votre établissement en toute simplicité</p>
+</div>
+<!-- Login Form -->
+<form class="w-full space-y-4">
+<!-- Phone Number Field -->
+<div class="flex flex-col w-full">
+<p class="text-[#1d110c] dark:text-white text-sm font-semibold leading-normal pb-2 ml-1">Numéro de téléphone</p>
+<div class="relative">
+<input class="form-input flex w-full rounded-xl text-[#1d110c] focus:outline-0 focus:ring-2 focus:ring-primary border border-[#ead5cd] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a22] dark:text-white h-14 placeholder:text-[#a15d45]/60 p-[15px] text-base font-normal leading-normal" placeholder="06 00 00 00 00" type="tel"/>
+</div>
+</div>
+<!-- Password Field -->
+<div class="flex flex-col w-full">
+<p class="text-[#1d110c] dark:text-white text-sm font-semibold leading-normal pb-2 ml-1">Mot de passe</p>
+<div class="flex w-full items-stretch rounded-xl">
+<input class="form-input flex w-full min-w-0 flex-1 rounded-xl rounded-r-none border-r-0 text-[#1d110c] focus:outline-0 focus:ring-0 border border-[#ead5cd] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a22] dark:text-white h-14 placeholder:text-[#a15d45]/60 p-[15px] text-base font-normal leading-normal" placeholder="••••••••" type="password"/>
+<div class="text-[#a15d45] flex border border-[#ead5cd] border-l-0 bg-white dark:bg-[#2d1b14] dark:border-[#3d2a22] items-center justify-center pr-[15px] rounded-r-xl">
+<span class="material-symbols-outlined cursor-pointer">visibility</span>
+</div>
+</div>
+</div>
+<!-- Forgot Password -->
+<div class="flex justify-end w-full py-1">
+<a class="text-primary text-sm font-medium hover:underline" href="#">Mot de passe oublié ?</a>
+</div>
+<!-- Login Button -->
+<div class="pt-4">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-colors flex items-center justify-center gap-2" type="submit">
+                        Se connecter
+                        <span class="material-symbols-outlined text-lg">arrow_forward</span>
+</button>
+</div>
+</form>
+<!-- Bottom Section -->
+<div class="mt-auto pt-12 text-center">
+<p class="text-[#a15d45] dark:text-[#ead5cd] text-sm mb-2">Pas encore partenaire ?</p>
+<a class="inline-block bg-primary/10 dark:bg-primary/20 text-primary font-bold py-3 px-8 rounded-full border border-primary/20 transition-all hover:bg-primary/20" href="#">
+                    Créer un compte restaurant
+                </a>
+</div>
+<!-- Footer Small Print -->
+<div class="mt-8 text-center px-4">
+<p class="text-[#a15d45]/60 dark:text-[#ead5cd]/40 text-[10px] leading-relaxed">
+                    En vous connectant, vous acceptez nos Conditions Générales d'Utilisation et notre Politique de Confidentialité.
+                </p>
+</div>
+</div>
+</div>
+</body></html>

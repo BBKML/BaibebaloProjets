@@ -13,16 +13,19 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
-import { getMyProfile, updateMyProfile } from '../../api/users';
+import { getMyProfile, updateMyProfile, uploadProfilePicture } from '../../api/users';
+import { normalizeUploadUrl } from '../../utils/url';
 
 export default function EditProfileScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
+    first_name: '',
+    last_name: '',
     full_name: '',
     email: '',
     phone_number: '',
-    gender: 'M',
+    gender: 'male',
     date_of_birth: '',
   });
   const [profileImage, setProfileImage] = useState(null);
@@ -41,20 +44,64 @@ export default function EditProfileScreen({ navigation }) {
     }
   };
 
+  const normalizeGenderFromApi = (gender) => {
+    if (!gender) return 'male';
+    const normalized = gender.toLowerCase();
+    const map = { m: 'male', f: 'female', o: 'other' };
+    return map[normalized] || normalized;
+  };
+
+  const normalizeGenderForApi = (gender) => {
+    if (!gender) return null;
+    const normalized = gender.toLowerCase();
+    const map = { m: 'male', f: 'female', o: 'other' };
+    return map[normalized] || normalized;
+  };
+
+  const normalizeDateForApi = (date) => {
+    if (!date) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+      const [day, month, year] = date.split('/');
+      return `${year}-${month}-${day}`;
+    }
+    return date;
+  };
+
+  const formatDateForDisplay = (value) => {
+    if (!value) return '';
+    const strValue = String(value);
+    if (/^\d{4}-\d{2}-\d{2}/.test(strValue)) {
+      return strValue.slice(0, 10);
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}/.test(strValue)) {
+      return strValue.slice(0, 10);
+    }
+    return strValue;
+  };
+
   const loadProfile = async () => {
     try {
       setLoading(true);
       const response = await getMyProfile();
-      const userData = response.data;
+      const userData = response.data?.data?.user || response.data?.user || response.data || {};
+      const fullName = userData.full_name 
+        || [userData.first_name, userData.last_name].filter(Boolean).join(' ').trim();
       setProfile({
-        full_name: userData.full_name || '',
+        first_name: userData.first_name || '',
+        last_name: userData.last_name || '',
+        full_name: fullName || '',
         email: userData.email || '',
-        phone_number: userData.phone_number || '',
-        gender: userData.gender || 'M',
-        date_of_birth: userData.date_of_birth || '',
+        phone_number: userData.phone_number || userData.phone || '',
+        gender: normalizeGenderFromApi(userData.gender),
+        date_of_birth: formatDateForDisplay(userData.date_of_birth),
       });
-      if (userData.profile_image_url) {
-        setProfileImage(userData.profile_image_url);
+      if (userData.profile_picture || userData.profile_image_url) {
+        setProfileImage(
+          normalizeUploadUrl(userData.profile_picture || userData.profile_image_url)
+        );
       }
     } catch (error) {
       console.error('Erreur lors du chargement du profil:', error);
@@ -63,21 +110,80 @@ export default function EditProfileScreen({ navigation }) {
     }
   };
 
+  const getMimeTypeFromUri = (uri) => {
+    if (!uri) return 'image/jpeg';
+    const extension = uri.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
+    }
+  };
+
   const pickImage = async () => {
     try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission requise', 'Nous avons besoin de l\'accès à vos photos');
+        return;
+      }
+
+      const mediaTypeImages =
+        ImagePicker.MediaType?.Images ?? ImagePicker.MediaTypeOptions?.Images;
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        ...(mediaTypeImages ? { mediaTypes: mediaTypeImages } : {}),
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+      if (!result.canceled && result.assets?.length) {
+        const asset = result.assets[0];
+        setProfileImage(asset.uri);
+
+        const formData = new FormData();
+        formData.append('profile_picture', {
+          uri: asset.uri,
+          name: asset.fileName || `profile-${Date.now()}.jpg`,
+          type: asset.mimeType || getMimeTypeFromUri(asset.uri),
+        });
+
+        const uploadResponse = await uploadProfilePicture(formData);
+        const uploadedUrl =
+          uploadResponse?.data?.profile_picture
+          || uploadResponse?.data?.user?.profile_picture
+          || uploadResponse?.profile_picture;
+        if (uploadedUrl) {
+          setProfileImage(uploadedUrl);
+        }
       }
     } catch (error) {
-      Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
+      Alert.alert('Erreur', error?.message || 'Impossible de sélectionner l\'image');
     }
+  };
+
+  const splitFullName = (fullName, fallbackFirst, fallbackLast) => {
+    if (!fullName || !fullName.trim()) {
+      return {
+        first_name: fallbackFirst || '',
+        last_name: fallbackLast || '',
+      };
+    }
+    const parts = fullName.trim().split(/\s+/);
+    if (parts.length === 1) {
+      return { first_name: parts[0], last_name: '' };
+    }
+    return {
+      first_name: parts[0],
+      last_name: parts.slice(1).join(' '),
+    };
   };
 
   const handleSave = async () => {
@@ -88,7 +194,19 @@ export default function EditProfileScreen({ navigation }) {
 
     setSaving(true);
     try {
-      await updateMyProfile(profile);
+      const { first_name, last_name } = splitFullName(
+        profile.full_name,
+        profile.first_name,
+        profile.last_name
+      );
+      const profileData = {
+        first_name,
+        last_name,
+        email: profile.email,
+        gender: normalizeGenderForApi(profile.gender),
+        date_of_birth: normalizeDateForApi(profile.date_of_birth),
+      };
+      await updateMyProfile(profileData);
       Alert.alert('Succès', 'Profil mis à jour', [
         {
           text: 'OK',
@@ -172,7 +290,7 @@ export default function EditProfileScreen({ navigation }) {
         <View style={styles.field}>
           <Text style={styles.label}>Genre</Text>
           <View style={styles.genderContainer}>
-            {['M', 'F', 'O'].map((gender) => (
+            {['male', 'female', 'other'].map((gender) => (
               <TouchableOpacity
                 key={gender}
                 style={[
@@ -187,11 +305,21 @@ export default function EditProfileScreen({ navigation }) {
                     profile.gender === gender && styles.genderTextActive,
                   ]}
                 >
-                  {gender === 'M' ? 'Homme' : gender === 'F' ? 'Femme' : 'Autre'}
+                  {gender === 'male' ? 'Homme' : gender === 'female' ? 'Femme' : 'Autre'}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
+        </View>
+
+        <View style={styles.field}>
+          <Text style={styles.label}>Date de naissance</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="JJ/MM/AAAA ou AAAA-MM-JJ"
+            value={profile.date_of_birth}
+            onChangeText={(text) => setProfile({ ...profile, date_of_birth: text })}
+          />
         </View>
       </View>
 

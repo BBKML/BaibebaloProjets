@@ -114,6 +114,8 @@ const migrations = [
     bank_account VARCHAR(50),
     business_registration TEXT,
     id_card TEXT,
+    id_card_front TEXT,
+    id_card_back TEXT,
     photos TEXT[] DEFAULT '{}',
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'suspended', 'rejected', 'closed')),
     rejection_reason TEXT,
@@ -122,6 +124,9 @@ const migrations = [
     total_orders INTEGER DEFAULT 0 CHECK (total_orders >= 0),
     total_revenue DECIMAL(12,2) DEFAULT 0 CHECK (total_revenue >= 0),
     balance DECIMAL(12,2) DEFAULT 0,
+    is_sponsored BOOLEAN DEFAULT false,
+    sponsor_expires_at TIMESTAMP,
+    sponsor_priority INTEGER DEFAULT 0,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
   );`,
@@ -134,6 +139,12 @@ const migrations = [
 
   // Ajouter fcm_token si manquant
   `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS fcm_token TEXT;`,
+  
+  // Ajouter colonnes manquantes pour l'inscription complète
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS landmark TEXT;`,
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS account_holder_name VARCHAR(255);`,
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS bank_rib VARCHAR(100);`,
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS documents JSONB DEFAULT '{}';`,
 
   // ======================================
   // Migration 5: Table menu_categories
@@ -227,6 +238,27 @@ const migrations = [
 
   // Ajouter fcm_token si manquant
   `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS fcm_token TEXT;`,
+
+  // Colonnes pour les statistiques avancées des livreurs
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS available_balance DECIMAL(12,2) DEFAULT 0;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS total_distance DECIMAL(12,2) DEFAULT 0;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS total_penalties DECIMAL(12,2) DEFAULT 0;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS daily_goal_bonus_count INTEGER DEFAULT 0;`,
+
+  // Colonnes documents livreur (recto/verso, profile_photo) pour que les uploads s'enregistrent
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS profile_photo TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS id_card_recto TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS id_card_verso TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS id_card_front TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS id_card_back TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS driver_license_recto TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS driver_license_verso TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS driver_license_front TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS driver_license_back TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS vehicle_registration_recto TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS vehicle_registration_verso TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS vehicle_registration_front TEXT;`,
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS vehicle_registration_back TEXT;`,
 
   // ======================================
   // Migration 8: Table orders
@@ -531,6 +563,8 @@ const migrations = [
         ALTER TABLE orders ADD COLUMN commission DECIMAL(10,2) DEFAULT 0.0 CHECK (commission >= 0);
       END IF;
     END $$;`,
+  // Migration: Ajouter colonne commission_rate à orders (taux appliqué au moment de la commande)
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS commission_rate DECIMAL(5,2) CHECK (commission_rate IS NULL OR (commission_rate >= 0 AND commission_rate <= 100));`,
 
   // ======================================
   // Migration 17: Table payout_requests
@@ -555,6 +589,32 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_payout_user ON payout_requests(user_type, user_id);`,
   `CREATE INDEX IF NOT EXISTS idx_payout_status ON payout_requests(status);`,
   `CREATE INDEX IF NOT EXISTS idx_payout_date ON payout_requests(created_at DESC);`,
+
+  // ======================================
+  // Remises espèces (livreur remet l'argent à l'agence ou dépôt sur compte entreprise)
+  // ======================================
+  `CREATE TABLE IF NOT EXISTS cash_remittances (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    delivery_person_id UUID NOT NULL REFERENCES delivery_persons(id) ON DELETE CASCADE,
+    amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
+    method VARCHAR(20) NOT NULL CHECK (method IN ('agency', 'bank_deposit')),
+    reference VARCHAR(100),
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'rejected')),
+    processed_by UUID REFERENCES admins(id) ON DELETE SET NULL,
+    processed_at TIMESTAMP,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );`,
+  `CREATE TABLE IF NOT EXISTS cash_remittance_orders (
+    remittance_id UUID NOT NULL REFERENCES cash_remittances(id) ON DELETE CASCADE,
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    order_total DECIMAL(10,2) NOT NULL,
+    PRIMARY KEY (remittance_id, order_id)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_cash_remittances_delivery ON cash_remittances(delivery_person_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_cash_remittances_status ON cash_remittances(status);`,
+  `CREATE INDEX IF NOT EXISTS idx_cash_remittances_created ON cash_remittances(created_at DESC);`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS cash_remittance_id UUID REFERENCES cash_remittances(id) ON DELETE SET NULL;`,
 
   // ======================================
   // Migration 18: Table support_tickets
@@ -835,6 +895,173 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(user_id, user_type);`,
   `CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);`,
   `CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);`,
+
+  // ======================================
+  // Migration: Table loyalty_transactions
+  // ======================================
+  `CREATE TABLE IF NOT EXISTS loyalty_transactions (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    type VARCHAR(50) NOT NULL CHECK (type IN ('earned', 'redeemed', 'expired', 'adjustment')),
+    amount INTEGER NOT NULL,
+    points INTEGER NOT NULL,
+    reason VARCHAR(255),
+    description TEXT,
+    order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+    promotion_id UUID REFERENCES promotions(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  `CREATE INDEX IF NOT EXISTS idx_loyalty_transactions_user ON loyalty_transactions(user_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_loyalty_transactions_type ON loyalty_transactions(type);`,
+  `CREATE INDEX IF NOT EXISTS idx_loyalty_transactions_order ON loyalty_transactions(order_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_loyalty_transactions_date ON loyalty_transactions(created_at DESC);`,
+
+  // ======================================
+  // Migration: Ajout des promotions sur plats individuels
+  // ======================================
+  // Champs pour gérer les promotions directement sur les plats
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_promotional BOOLEAN DEFAULT false;`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discount_type VARCHAR(20) CHECK (discount_type IN ('percentage', 'fixed_amount'));`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS discount_value DECIMAL(10,2) CHECK (discount_value >= 0);`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS promotional_price DECIMAL(10,2) CHECK (promotional_price >= 0);`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS promotion_start TIMESTAMP;`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS promotion_end TIMESTAMP;`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS promotion_description TEXT;`,
+
+  // Index pour les plats en promotion
+  `CREATE INDEX IF NOT EXISTS idx_menu_items_promotional ON menu_items(is_promotional) WHERE is_promotional = true;`,
+  `CREATE INDEX IF NOT EXISTS idx_menu_items_promotion_dates ON menu_items(promotion_start, promotion_end);`,
+
+  // Fonction pour calculer et mettre à jour le prix promotionnel automatiquement
+  `CREATE OR REPLACE FUNCTION calculate_promotional_price()
+   RETURNS TRIGGER AS $$
+   BEGIN
+     IF NEW.is_promotional = true AND NEW.discount_value IS NOT NULL THEN
+       IF NEW.discount_type = 'percentage' THEN
+         -- Prix promo = Prix × (1 - %réduction/100)
+         NEW.promotional_price := ROUND(NEW.price * (1 - NEW.discount_value / 100), 2);
+       ELSIF NEW.discount_type = 'fixed_amount' THEN
+         -- Prix promo = Prix - Montant fixe
+         NEW.promotional_price := GREATEST(0, NEW.price - NEW.discount_value);
+       END IF;
+     ELSE
+       NEW.promotional_price := NULL;
+     END IF;
+     RETURN NEW;
+   END;
+   $$ LANGUAGE plpgsql;`,
+
+  // Trigger pour calculer automatiquement le prix promotionnel
+  `DROP TRIGGER IF EXISTS trigger_calculate_promotional_price ON menu_items;`,
+  `CREATE TRIGGER trigger_calculate_promotional_price
+   BEFORE INSERT OR UPDATE OF price, is_promotional, discount_type, discount_value
+   ON menu_items
+   FOR EACH ROW
+   EXECUTE FUNCTION calculate_promotional_price();`,
+
+  // Mettre à jour loyalty_transactions pour supporter le type referral_bonus
+  `ALTER TABLE loyalty_transactions DROP CONSTRAINT IF EXISTS loyalty_transactions_type_check;`,
+  `ALTER TABLE loyalty_transactions ADD CONSTRAINT loyalty_transactions_type_check 
+   CHECK (type IN ('earned', 'redeemed', 'expired', 'adjustment', 'referral_bonus'));`,
+
+  // ======================================
+  // Migration: Table restaurant_ads (Publicités restaurants)
+  // ======================================
+  // Système de publicité payante pour les restaurants
+  `CREATE TABLE IF NOT EXISTS restaurant_ads (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    restaurant_id UUID NOT NULL REFERENCES restaurants(id) ON DELETE CASCADE,
+    
+    -- Type de publicité
+    ad_type VARCHAR(30) NOT NULL CHECK (ad_type IN ('homepage_banner', 'sponsored_badge', 'push_notification')),
+    
+    -- Tarification
+    daily_rate INTEGER NOT NULL, -- Prix par jour en FCFA (5000, 3000, ou 10000)
+    total_amount INTEGER NOT NULL, -- Montant total payé
+    
+    -- Période de validité
+    start_date TIMESTAMP NOT NULL,
+    end_date TIMESTAMP NOT NULL,
+    duration_days INTEGER NOT NULL, -- Nombre de jours achetés
+    
+    -- Contenu publicitaire
+    title VARCHAR(100), -- Titre de la bannière ou notification
+    description TEXT, -- Description ou message
+    image_url TEXT, -- Image de la bannière (pour homepage_banner)
+    
+    -- Ciblage (pour push_notification)
+    target_audience JSONB DEFAULT '{}'::jsonb, -- Critères de ciblage
+    target_count INTEGER DEFAULT 0, -- Nombre de personnes ciblées
+    sent_count INTEGER DEFAULT 0, -- Nombre de notifications envoyées
+    
+    -- Statistiques
+    impressions INTEGER DEFAULT 0, -- Nombre d'affichages
+    clicks INTEGER DEFAULT 0, -- Nombre de clics
+    
+    -- Statut
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'active', 'completed', 'cancelled', 'rejected')),
+    payment_status VARCHAR(20) DEFAULT 'pending' CHECK (payment_status IN ('pending', 'paid', 'refunded')),
+    payment_reference VARCHAR(100), -- Référence du paiement
+    
+    -- Validation admin
+    approved_by UUID REFERENCES admins(id) ON DELETE SET NULL,
+    approved_at TIMESTAMP,
+    rejection_reason TEXT,
+    
+    -- Métadonnées
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  // Index pour restaurant_ads
+  `CREATE INDEX IF NOT EXISTS idx_restaurant_ads_restaurant ON restaurant_ads(restaurant_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_restaurant_ads_type ON restaurant_ads(ad_type);`,
+  `CREATE INDEX IF NOT EXISTS idx_restaurant_ads_status ON restaurant_ads(status);`,
+  `CREATE INDEX IF NOT EXISTS idx_restaurant_ads_dates ON restaurant_ads(start_date, end_date);`,
+  `CREATE INDEX IF NOT EXISTS idx_restaurant_ads_active ON restaurant_ads(status, start_date, end_date) 
+   WHERE status = 'active';`,
+
+  // ======================================
+  // Migration: Table ad_pricing (Tarifs publicité)
+  // ======================================
+  `CREATE TABLE IF NOT EXISTS ad_pricing (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    ad_type VARCHAR(30) UNIQUE NOT NULL CHECK (ad_type IN ('homepage_banner', 'sponsored_badge', 'push_notification')),
+    name VARCHAR(100) NOT NULL,
+    description TEXT,
+    daily_rate INTEGER NOT NULL, -- Prix par jour en FCFA
+    min_days INTEGER DEFAULT 1, -- Durée minimum
+    max_days INTEGER DEFAULT 30, -- Durée maximum
+    is_active BOOLEAN DEFAULT true,
+    features JSONB DEFAULT '[]'::jsonb, -- Liste des fonctionnalités incluses
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  );`,
+
+  // Insérer les tarifs par défaut
+  `INSERT INTO ad_pricing (ad_type, name, description, daily_rate, min_days, max_days, features)
+   VALUES 
+   ('homepage_banner', 'Bannière Homepage', 'Bannière visible sur la page d''accueil de l''application client', 5000, 1, 30, 
+    '["Position premium en haut de page", "Image personnalisée", "Lien direct vers le restaurant", "Statistiques de clics"]'::jsonb),
+   ('sponsored_badge', 'Badge Sponsorisé', 'Badge \"Sponsorisé\" affiché à côté du nom du restaurant', 3000, 1, 30,
+    '["Badge visible sur la liste", "Priorité dans les résultats", "Mise en avant dans la catégorie"]'::jsonb),
+   ('push_notification', 'Notification Push Ciblée', 'Notification push envoyée aux clients ciblés', 10000, 1, 1,
+    '["Ciblage par zone géographique", "Message personnalisé", "Envoi immédiat ou programmé", "Rapport de livraison"]'::jsonb)
+   ON CONFLICT (ad_type) DO UPDATE SET
+     daily_rate = EXCLUDED.daily_rate,
+     name = EXCLUDED.name,
+     description = EXCLUDED.description,
+     features = EXCLUDED.features;`,
+
+  // Ajouter colonnes aux restaurants pour le statut sponsorisé
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS is_sponsored BOOLEAN DEFAULT false;`,
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS sponsor_priority INTEGER DEFAULT 0;`,
+  `ALTER TABLE restaurants ADD COLUMN IF NOT EXISTS sponsor_expires_at TIMESTAMP;`,
+
+  // Index pour les restaurants sponsorisés
+  `CREATE INDEX IF NOT EXISTS idx_restaurants_sponsored ON restaurants(is_sponsored, sponsor_priority DESC) 
+   WHERE is_sponsored = true;`,
 ];
 
 // Fonction pour vérifier si une table existe
@@ -938,7 +1165,8 @@ const runMigrations = async () => {
       'delivery_persons', 'orders', 'order_items', 'favorites', 'reviews',
       'promotions', 'transactions', 'notifications', 'otp_codes', 'admins',
       'payout_requests', 'support_tickets', 'ticket_messages', 'app_settings', 
-      'audit_logs', 'expenses', 'training_quizzes', 'quiz_results', 'activity_logs'
+      'audit_logs', 'expenses', 'training_quizzes', 'quiz_results', 'activity_logs',
+      'restaurant_ads', 'ad_pricing'
     ];
 
     for (const table of tables) {
@@ -967,6 +1195,7 @@ const resetDatabase = async () => {
     logger.warn('════════════════════════════════════════');
     
     const tables = [
+      'restaurant_ads', 'ad_pricing',
       'quiz_results', 'training_quizzes', 'expenses', 'activity_logs',
       'audit_logs',
       'ticket_messages', 'support_tickets', 'payout_requests',

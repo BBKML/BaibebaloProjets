@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Confirmation de Retrait - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#195de6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                        "success-green": "#22c55e",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 bg-background-light dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto w-full">
+<div class="w-10 h-10 flex items-center justify-start">
+<span class="material-symbols-outlined text-slate-900 dark:text-white cursor-pointer">arrow_back_ios</span>
+</div>
+<h1 class="text-slate-900 dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center">Confirmation</h1>
+<div class="w-10 h-10"></div> <!-- Spacer for balance -->
+</div>
+</header>
+<main class="flex-1 flex flex-col items-center px-4 py-6 max-w-md mx-auto w-full">
+<!-- HeaderImage / "Animation" Placeholder -->
+<div class="w-full @container mb-8">
+<div class="relative w-full aspect-square max-h-[280px] flex items-center justify-center rounded-2xl bg-gradient-to-br from-primary/10 to-primary/5 dark:from-primary/20 dark:to-transparent">
+<!-- Visual representation of coins moving to phone -->
+<div class="relative w-48 h-48">
+<!-- Phone Frame -->
+<div class="absolute bottom-4 left-1/2 -translate-x-1/2 w-24 h-44 border-4 border-slate-800 dark:border-slate-600 rounded-[2.5rem] bg-white dark:bg-slate-900 overflow-hidden shadow-xl">
+<div class="w-full h-4 bg-slate-800 dark:bg-slate-600 flex justify-center items-end pb-1">
+<div class="w-8 h-1 rounded-full bg-slate-700"></div>
+</div>
+<div class="p-2 flex flex-col items-center pt-8">
+<div class="w-12 h-12 rounded-full bg-success-green/20 flex items-center justify-center">
+<span class="material-symbols-outlined text-success-green text-2xl">check_circle</span>
+</div>
+</div>
+</div>
+<!-- Animated elements (Static represention) -->
+<div class="absolute top-4 right-4 w-12 h-12 rounded-full bg-yellow-400 shadow-lg flex items-center justify-center animate-bounce">
+<span class="material-symbols-outlined text-white">payments</span>
+</div>
+<div class="absolute top-12 left-4 w-10 h-10 rounded-full bg-yellow-500 shadow-md flex items-center justify-center opacity-80">
+<span class="material-symbols-outlined text-white text-sm">savings</span>
+</div>
+</div>
+</div>
+</div>
+<!-- HeadlineText -->
+<div class="w-full text-center mb-2">
+<h2 class="text-slate-900 dark:text-white text-3xl font-bold leading-tight">Demande envoyée !</h2>
+</div>
+<!-- BodyText -->
+<div class="w-full text-center mb-8">
+<p class="text-slate-500 dark:text-slate-400 text-base font-normal leading-relaxed px-6">
+                Le transfert vers votre compte Orange Money sera traité sous 24h ouvrées.
+            </p>
+</div>
+<!-- SectionHeader + Transaction Card -->
+<div class="w-full bg-white dark:bg-slate-800/50 rounded-2xl p-6 border border-slate-100 dark:border-slate-700 shadow-sm mb-8">
+<h3 class="text-slate-400 dark:text-slate-500 text-xs font-bold uppercase tracking-widest mb-4">Détails du transfert</h3>
+<div class="space-y-4">
+<div class="flex justify-between items-center">
+<span class="text-slate-600 dark:text-slate-400">Montant</span>
+<span class="text-slate-900 dark:text-white font-bold text-lg">45,000 FCFA</span>
+</div>
+<div class="flex justify-between items-center">
+<span class="text-slate-600 dark:text-slate-400">Frais</span>
+<span class="text-success-green font-semibold">0 FCFA</span>
+</div>
+<div class="pt-4 border-t border-slate-100 dark:border-slate-700 flex justify-between items-start">
+<span class="text-slate-600 dark:text-slate-400">Destination</span>
+<div class="text-right">
+<p class="text-slate-900 dark:text-white font-semibold">Orange Money</p>
+<p class="text-slate-500 dark:text-slate-400 text-sm">+225 XX XX XX XX XX</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Trust Indicator -->
+<div class="flex items-center gap-2 mb-8 opacity-60">
+<span class="material-symbols-outlined text-sm">verified_user</span>
+<span class="text-xs font-medium uppercase tracking-tighter">Sécurisé par BAIBEBALO</span>
+</div>
+<!-- Action Button -->
+<div class="mt-auto w-full pb-6">
+<button class="w-full bg-success-green hover:bg-success-green/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-success-green/20 transition-all active:scale-95 flex items-center justify-center gap-2">
+                RETOUR AU DASHBOARD
+                <span class="material-symbols-outlined">dashboard</span>
+</button>
+</div>
+</main>
+<!-- Support Footer -->
+<footer class="p-6 text-center">
+<p class="text-slate-400 dark:text-slate-500 text-xs">
+            Un problème ? <a class="text-primary font-semibold underline underline-offset-4" href="#">Contacter le support</a>
+</p>
+</footer>
+</body></html>

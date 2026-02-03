@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendOTP, verifyOTP } from '../api/auth';
+import { getMyProfile } from '../api/users';
 import { setAuthStore } from './authStoreRef';
 
 const useAuthStore = create((set, get) => ({
@@ -120,22 +121,23 @@ const useAuthStore = create((set, get) => ({
       const data = payload?.data ? payload.data : payload;
       const isNewUser = payload?.isNewUser ?? data?.isNewUser ?? false;
       const { user, accessToken, refreshToken } = data || {};
-      
+      const userToSave = { ...user, isNewUser };
+
       // Sauvegarder les tokens
       await get().setTokens(accessToken, refreshToken);
-      
-      // Sauvegarder l'utilisateur
-      await AsyncStorage.setItem('user', JSON.stringify(user));
-      
+
+      // Sauvegarder l'utilisateur (avec isNewUser pour la redirection au prochain démarrage)
+      await AsyncStorage.setItem('user', JSON.stringify(userToSave));
+
       set({
-        user,
+        user: userToSave,
         isAuthenticated: true,
         isLoading: false,
         otpSent: false,
         otpAttempts: 0,
         otpExpiresAt: null,
       });
-      
+
       return { success: true, data: { ...(data || {}), isNewUser } };
     } catch (error) {
       set((state) => ({
@@ -147,6 +149,15 @@ const useAuthStore = create((set, get) => ({
         error: error.response?.data?.error?.message || 'Code invalide',
       };
     }
+  },
+
+  /** Met à jour le profil et persiste (après création de profil). Marque isNewUser: false. */
+  completeProfile: async (updates) => {
+    const { user } = get();
+    if (!user) return;
+    const merged = { ...user, ...updates, isNewUser: false };
+    set({ user: merged });
+    await AsyncStorage.setItem('user', JSON.stringify(merged));
   },
 
   logout: async () => {
@@ -165,10 +176,10 @@ const useAuthStore = create((set, get) => ({
     set({ isLoading: true });
     try {
       // Timeout de sécurité pour éviter un chargement infini
-      const timeoutPromise = new Promise((_, reject) => 
+      const timeoutPromise = new Promise((_, reject) =>
         setTimeout(() => reject(new Error('Timeout')), 2000)
       );
-      
+
       const storagePromise = AsyncStorage.multiGet([
         'accessToken',
         'refreshToken',
@@ -180,7 +191,7 @@ const useAuthStore = create((set, get) => ({
         timeoutPromise,
       ]);
 
-      if (accessToken && accessToken[1] && refreshToken && refreshToken[1] && userStr && userStr[1]) {
+      if (accessToken?.[1] && refreshToken?.[1] && userStr?.[1]) {
         try {
           const user = JSON.parse(userStr[1]);
           set({
@@ -189,6 +200,31 @@ const useAuthStore = create((set, get) => ({
             refreshToken: refreshToken[1],
             isAuthenticated: true,
           });
+
+          // Recharger le profil complet depuis l'API pour avoir full_name / first_name / last_name
+          // et éviter la redirection vers ProfileCreation alors que le compte existe déjà
+          try {
+            const response = await getMyProfile();
+            const profileUser = response?.data?.user ?? response?.user ?? response;
+            if (profileUser && typeof profileUser === 'object') {
+              const mergedUser = {
+                ...user,
+                ...profileUser,
+                isNewUser: false,
+                // full_name pour compatibilité avec getInitialRoute
+                full_name:
+                  profileUser.full_name ||
+                  (profileUser.first_name && profileUser.last_name
+                    ? `${profileUser.first_name} ${profileUser.last_name}`.trim()
+                    : user?.full_name),
+              };
+              set({ user: mergedUser });
+              await AsyncStorage.setItem('user', JSON.stringify(mergedUser));
+            }
+          } catch (profileError) {
+            console.warn('Profil non rechargé (réseau ou token):', profileError?.message);
+            // On garde l'utilisateur tel qu'en storage
+          }
         } catch (parseError) {
           console.error('Erreur lors du parsing de l\'utilisateur:', parseError);
         }

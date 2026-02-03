@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Personal Coverage Map - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#195de6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                        "success": "#10b981",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-tab-bar {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e121b] dark:text-white font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-[430px] mx-auto bg-background-light dark:bg-background-dark shadow-2xl">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-20 border-b border-gray-200 dark:border-gray-800">
+<div class="text-primary flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0e121b] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Couverture Personnelle</h2>
+</div>
+<div class="flex-1 overflow-y-auto pb-24">
+<!-- SegmentedButtons -->
+<div class="flex px-4 py-4">
+<div class="flex h-11 flex-1 items-center justify-center rounded-xl bg-gray-200 dark:bg-gray-800 p-1">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-semibold transition-all">
+<span class="truncate">Aujourd'hui</span>
+<input checked="" class="invisible w-0" name="timeframe" type="radio" value="today"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-gray-700 has-[:checked]:shadow-sm has-[:checked]:text-primary text-gray-500 dark:text-gray-400 text-sm font-semibold transition-all">
+<span class="truncate">Cette semaine</span>
+<input class="invisible w-0" name="timeframe" type="radio" value="week"/>
+</label>
+</div>
+</div>
+<!-- Map View -->
+<div class="px-4 relative group">
+<div class="relative w-full aspect-[4/5] rounded-2xl overflow-hidden shadow-md border border-gray-200 dark:border-gray-800">
+<div class="w-full h-full bg-center bg-no-repeat bg-cover flex items-center justify-center" data-alt="Interactive city map with green heatmap overlays" data-location="Abidjan" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDyCk7-PAk2IEKS7bKeN89RmfTPkCE1Ol9FIVgs7Hf4EMNi89arDE9pe8uJ8G7--McU_onkn-aqgmKe7K0A3akM0nPqpGRrsYGLNcK1vDcev_KtdnwjW69fJ2KJp3D1xOEhN395YZ6MsPFwuyiq8jvEx7xJqYVCVIFX8RGfE457p-sDWTZHoQviqLJHvSTXsl4aIl9_7Eyd04cAd9kd1z_LljIdwNA6Q-fFaLJbN3aT8l4lUBbTTf2mXj9E4rRsfF8gI4dbbWlGE1pS");'>
+<!-- Simulated Green Heatmap Overlay -->
+<div class="absolute inset-0 bg-success/20 mix-blend-multiply"></div>
+<div class="absolute top-1/4 left-1/3 w-32 h-32 bg-success/40 rounded-full blur-3xl"></div>
+<div class="absolute bottom-1/3 right-1/4 w-40 h-40 bg-success/30 rounded-full blur-3xl"></div>
+<!-- Map Legend Overlay -->
+<div class="absolute bottom-4 left-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-md p-3 rounded-xl border border-white/20 shadow-lg flex items-center justify-between">
+<div class="flex items-center gap-2">
+<div class="w-3 h-3 rounded-full bg-success"></div>
+<span class="text-xs font-semibold text-gray-700 dark:text-gray-300">Haute densité de livraison</span>
+</div>
+<span class="text-[10px] text-gray-500 uppercase tracking-wider">Mise à jour à l'instant</span>
+</div>
+</div>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="flex items-center justify-between px-4 pt-6 pb-2">
+<h3 class="text-[#0e121b] dark:text-white text-xl font-bold leading-tight tracking-tight">Analyse de performance</h3>
+<span class="material-symbols-outlined text-gray-400">info</span>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-3 p-4">
+<div class="flex flex-col gap-2 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<p class="text-xs font-bold uppercase tracking-wider opacity-70">Top Quartier</p>
+</div>
+<p class="text-[#0e121b] dark:text-white tracking-tight text-xl font-bold leading-tight truncate">Plateau</p>
+<p class="text-[10px] text-success font-medium">+12% vs hier</p>
+</div>
+<div class="flex flex-col gap-2 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">route</span>
+<p class="text-xs font-bold uppercase tracking-wider opacity-70">Dist. Moyenne</p>
+</div>
+<p class="text-[#0e121b] dark:text-white tracking-tight text-xl font-bold leading-tight">4.2 km</p>
+<p class="text-[10px] text-gray-500 font-medium">Zone optimisée</p>
+</div>
+<div class="flex flex-col gap-2 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">package_2</span>
+<p class="text-xs font-bold uppercase tracking-wider opacity-70">Livraisons</p>
+</div>
+<p class="text-[#0e121b] dark:text-white tracking-tight text-xl font-bold leading-tight">24 courses</p>
+<p class="text-[10px] text-gray-500 font-medium">Période actuelle</p>
+</div>
+<div class="flex flex-col gap-2 rounded-2xl p-5 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-sm">timer</span>
+<p class="text-xs font-bold uppercase tracking-wider opacity-70">Temps Moyen</p>
+</div>
+<p class="text-[#0e121b] dark:text-white tracking-tight text-xl font-bold leading-tight">18 min</p>
+<p class="text-[10px] text-success font-medium">-2 min vs moy.</p>
+</div>
+</div>
+<!-- Zone Optimization Tip -->
+<div class="mx-4 p-4 rounded-2xl bg-primary/10 border border-primary/20 flex items-start gap-4">
+<div class="bg-primary p-2 rounded-lg text-white">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<div class="flex-1">
+<h4 class="text-sm font-bold text-primary">Conseil d'optimisation</h4>
+<p class="text-xs text-primary/80 leading-relaxed mt-1">Vous êtes 15% plus rapide à <strong>Cocody</strong> entre 11h et 14h. Envisagez de vous y positionner demain.</p>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation Bar (iOS Style) -->
+<div class="ios-tab-bar absolute bottom-0 left-0 right-0 h-20 bg-white/80 dark:bg-gray-900/80 border-t border-gray-200 dark:border-gray-800 px-6 pb-4 pt-2 flex justify-between items-center z-30">
+<div class="flex flex-col items-center gap-1 cursor-pointer opacity-40">
+<span class="material-symbols-outlined text-[24px]">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</div>
+<div class="flex flex-col items-center gap-1 cursor-pointer text-primary">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1">explore</span>
+<span class="text-[10px] font-bold">Carte</span>
+</div>
+<div class="flex flex-col items-center gap-1 cursor-pointer opacity-40">
+<span class="material-symbols-outlined text-[24px]">payments</span>
+<span class="text-[10px] font-medium">Revenus</span>
+</div>
+<div class="flex flex-col items-center gap-1 cursor-pointer opacity-40">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+<!-- Home Indicator Area -->
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-gray-300 dark:bg-gray-700 rounded-full z-40"></div>
+</div>
+</body></html>

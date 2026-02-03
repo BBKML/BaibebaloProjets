@@ -102,10 +102,15 @@ export const getAddresses = async () => {
  * Ajouter une adresse
  */
 export const addAddress = async (addressData) => {
+  const mappedData = mapAddressToApi(addressData);
+  console.log('📍 API addAddress - Données originales:', addressData);
+  console.log('📍 API addAddress - Données mappées:', mappedData);
+  
   const response = await apiClient.post(
     API_CONFIG.ENDPOINTS.USERS.ADDRESSES,
-    mapAddressToApi(addressData)
+    mappedData
   );
+  console.log('📍 API addAddress - Réponse:', response.data);
   const payload = response.data?.data || response.data;
   return {
     ...response.data,
@@ -177,6 +182,16 @@ export const removeFavorite = async (restaurantId) => {
  */
 export const getLoyaltyPoints = async () => {
   const response = await apiClient.get(API_CONFIG.ENDPOINTS.USERS.LOYALTY);
+  return response.data;
+};
+
+/**
+ * Récupérer l'historique des transactions de fidélité
+ */
+export const getLoyaltyTransactions = async (params = {}) => {
+  const response = await apiClient.get(`${API_CONFIG.ENDPOINTS.USERS.LOYALTY}/transactions`, {
+    params,
+  });
   return response.data;
 };
 

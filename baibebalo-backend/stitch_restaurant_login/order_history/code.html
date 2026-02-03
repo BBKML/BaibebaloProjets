@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Order History - BAIBEBALO Restaurant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-gray-900 dark:text-gray-100 min-h-screen">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center justify-between p-4 max-w-md mx-auto">
+<div class="flex items-center gap-3">
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</button>
+<h1 class="text-xl font-bold tracking-tight">Order History</h1>
+</div>
+<button class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-100 dark:hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined">ios_share</span>
+</button>
+</div>
+</header>
+<main class="max-w-md mx-auto pb-20">
+<!-- KPI Stats Section -->
+<section class="p-4 grid grid-cols-3 gap-3">
+<div class="flex flex-col gap-1 rounded-xl p-4 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Orders</p>
+<p class="text-xl font-bold leading-tight">142</p>
+<span class="text-[10px] text-green-500 font-bold">+12%</span>
+</div>
+<div class="flex flex-col gap-1 rounded-xl p-4 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Revenue</p>
+<p class="text-xl font-bold leading-tight">$2.4k</p>
+<span class="text-[10px] text-green-500 font-bold">+$340</span>
+</div>
+<div class="flex flex-col gap-1 rounded-xl p-4 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Avg Prep</p>
+<p class="text-xl font-bold leading-tight">18m</p>
+<span class="text-[10px] text-primary font-bold">-2m</span>
+</div>
+</section>
+<!-- Advanced Filters -->
+<section class="px-4 py-2 sticky top-[73px] z-40 bg-background-light dark:bg-background-dark/95">
+<div class="flex gap-2 overflow-x-auto pb-2 no-scrollbar">
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-primary text-white px-4 shadow-sm">
+<span class="material-symbols-outlined text-[20px]">calendar_today</span>
+<p class="text-sm font-semibold">Today</p>
+<span class="material-symbols-outlined text-[18px]">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4">
+<p class="text-sm font-medium">Status</p>
+<span class="material-symbols-outlined text-[18px] text-gray-400">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 shrink-0 items-center justify-center gap-x-2 rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 px-4">
+<p class="text-sm font-medium">Amount</p>
+<span class="material-symbols-outlined text-[18px] text-gray-400">keyboard_arrow_down</span>
+</button>
+<button class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800">
+<span class="material-symbols-outlined text-[20px]">tune</span>
+</button>
+</div>
+</section>
+<!-- Order List -->
+<section class="mt-2">
+<!-- Group Header -->
+<div class="px-4 py-3 flex items-center justify-between">
+<h3 class="text-lg font-bold">Today</h3>
+<span class="text-xs text-gray-400 font-medium">12 Orders</span>
+</div>
+<!-- List Content -->
+<div class="px-4 flex flex-col gap-4">
+<!-- Order Card: Delivered -->
+<div class="flex flex-col rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="p-4 flex gap-4">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider">Delivered</span>
+<span class="text-xs text-gray-400">• 12:45 PM</span>
+</div>
+<h4 class="text-base font-bold text-gray-900 dark:text-white">Order #84920</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">John Doe • 3 items</p>
+</div>
+<div class="w-20 h-20 rounded-lg bg-cover bg-center" data-alt="Close up of a gourmet hamburger with cheese" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDvI9GyIFhrXlnozd3UoaL12HOqKfJW3PHTfl0-abSEK5UPmaVwDpwEKyssMhPstqIUrUDYMjjG2FNDlqhxG8z0TN5HwwBpAWr6EF-T11waRBtXkG9JY1jDOBy6nt52OqYyGj57JTT5C9_FySobrkJ-r4DYp0zoS8E-ViIbkTyxiqp83LB9kW4VFlu2t1erdZoeu_ikRRulLsKcCCyKWjnjUJenQ-GIo4kfrR0XTudVnpIkHQQW5WHue6ilS65wNGHUgm3JUNQ8Mw9Z");'></div>
+</div>
+<div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+<p class="text-sm font-bold">$42.50</p>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">Details</button>
+</div>
+</div>
+<!-- Order Card: Refused -->
+<div class="flex flex-col rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="p-4 flex gap-4">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 text-[10px] font-bold uppercase tracking-wider">Refused</span>
+<span class="text-xs text-gray-400">• 11:20 AM</span>
+</div>
+<h4 class="text-base font-bold text-gray-900 dark:text-white">Order #84918</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">Sarah Miller • 1 item</p>
+</div>
+<div class="w-20 h-20 rounded-lg bg-cover bg-center grayscale opacity-70" data-alt="Plate of vegetable pasta with herbs" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDP7wqcqGy2or1q5ER2A-VP0xydXxg19WR_rHtLSHBujxWE_xsuMnKt-nlJUiE9SfBr06c2cwPYPcaIm8IfIWhpsfaOIPKKUKLkZxBzDM0N2IxTUobLWU3b7xrz-RDYuMSsGsgHiKtZ1-vQCn5YVc6AtWyeNAreINeOP90Bst-KrB71JbkPxfm1j47B6mi3bchhQ2PmzVN-UMBDWIg3QBUEb1wecnItoV9OGONuMHqxsZY_--7uIkWlQ1_BAWyHU2yB6eS6dqhmRJs9");'></div>
+</div>
+<div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+<p class="text-sm font-bold">$18.90</p>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">Details</button>
+</div>
+</div>
+</div>
+<!-- Group Header -->
+<div class="px-4 py-6 flex items-center justify-between">
+<h3 class="text-lg font-bold">Yesterday</h3>
+<span class="text-xs text-gray-400 font-medium">28 Orders</span>
+</div>
+<div class="px-4 flex flex-col gap-4">
+<!-- Order Card: Cancelled -->
+<div class="flex flex-col rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="p-4 flex gap-4">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold uppercase tracking-wider">Cancelled</span>
+<span class="text-xs text-gray-400">• 08:15 PM</span>
+</div>
+<h4 class="text-base font-bold text-gray-900 dark:text-white">Order #84892</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">Mark Thompson • 5 items</p>
+</div>
+<div class="w-20 h-20 rounded-lg bg-cover bg-center grayscale opacity-50" data-alt="Large pepperoni pizza with melted cheese" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB6Ls6bS0ekQtq7GvLpJXztEKj5Tp3VkK-rnOoMPzt5BGgaPehySKjrJ8g4a_2A9WbV4lTPCIVYCuQewYGhUfseHztTnLgxlapJdYtcv9eF4McPnF515y9XtG250cp5I5D7HG64mhm3nTwYHaQAE8MfK_CzQ6gBQcGnp_BjY4MFAKY4hx1H_9yjKVVRkodgOQgL7wf3zYxzEbdE4yHQkTx9PxjdnGiwEHoKpOlyFT6DJnknFId0OEr9VumDdl1to-ikpXhyp0rXV_XG");'></div>
+</div>
+<div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+<p class="text-sm font-bold">$74.20</p>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">Details</button>
+</div>
+</div>
+<!-- Order Card: Delivered -->
+<div class="flex flex-col rounded-xl bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm overflow-hidden">
+<div class="p-4 flex gap-4">
+<div class="flex-1 flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 text-[10px] font-bold uppercase tracking-wider">Delivered</span>
+<span class="text-xs text-gray-400">• 07:40 PM</span>
+</div>
+<h4 class="text-base font-bold text-gray-900 dark:text-white">Order #84888</h4>
+<p class="text-sm text-gray-500 dark:text-gray-400">Emma Watson • 2 items</p>
+</div>
+<div class="w-20 h-20 rounded-lg bg-cover bg-center" data-alt="Two colorful fruit smoothies in glasses" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAOg6SaIci4mVeAlJablgNN4GAaxMj_HP5VmrCCbMz3uBGBKuB6041RWlDQYwGmopYITtTp0Rkx7q2cAVr1AbYIhro6rKEhgaNNliJ34p2Gc4vvzLnZEMNPLna9NG039L1K5Y-UQ1Ml2zhYl3YE37LGAT_u_2pQpuFw_B_5WRoA3CtSDCrgZbSAX8CfVPk9BxaZGTeBVS9gZOmkrJrhFHZVzFuCx4VrHQbwMdNWYODbmjmOKRkV1qCexPDOz_VxDplVQMPcrkNgpRzk");'></div>
+</div>
+<div class="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 flex justify-between items-center border-t border-gray-100 dark:border-gray-800">
+<p class="text-sm font-bold">$12.00</p>
+<button class="text-primary text-xs font-bold uppercase tracking-widest">Details</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Floating Export Menu (Simulated iOS Bottom Sheet) -->
+<div class="fixed inset-x-0 bottom-0 z-50 p-4 pointer-events-none">
+<div class="max-w-md mx-auto pointer-events-auto bg-white dark:bg-gray-900 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-800 overflow-hidden transform translate-y-2 translate-y-0 transition-transform duration-300">
+<div class="w-12 h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mx-auto my-3"></div>
+<div class="px-6 py-2">
+<h5 class="text-center text-sm font-bold text-gray-400 uppercase tracking-widest mb-4">Export Report</h5>
+<div class="flex flex-col gap-2 pb-6">
+<button class="w-full py-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">description</span>
+<span class="font-medium text-lg">Export as PDF</span>
+</div>
+<span class="material-symbols-outlined text-gray-400">chevron_right</span>
+</button>
+<button class="w-full py-4 flex items-center justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-green-500">table_view</span>
+<span class="font-medium text-lg">Export as CSV</span>
+</div>
+<span class="material-symbols-outlined text-gray-400">chevron_right</span>
+</button>
+<button class="w-full mt-4 py-4 rounded-xl bg-gray-100 dark:bg-gray-800 font-bold text-gray-600 dark:text-gray-300">
+                            Cancel
+                        </button>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- App Bottom Tab Bar (Contextual) -->
+<nav class="fixed bottom-0 inset-x-0 bg-white/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 py-2 px-6">
+<div class="max-w-md mx-auto flex justify-between items-center">
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-medium">Home</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-bold">History</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">restaurant_menu</span>
+<span class="text-[10px] font-medium">Menu</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Settings</span>
+</button>
+</div>
+</nav>
+<style>
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</body></html>

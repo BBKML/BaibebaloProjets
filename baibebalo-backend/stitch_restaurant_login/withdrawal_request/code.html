@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Retrait - BAIBEBALO Restaurant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1c110d] dark:text-[#f8f6f5] transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col max-w-[480px] mx-auto overflow-x-hidden">
+<!-- Header -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800">
+<div class="text-[#1c110d] dark:text-[#f8f6f5] flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-[#f8f6f5] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Retrait</h2>
+</div>
+<!-- Scrollable Content -->
+<div class="flex-1 overflow-y-auto">
+<!-- Balance Card -->
+<div class="p-4">
+<div class="flex flex-col gap-2 rounded-xl p-6 bg-primary/10 dark:bg-primary/20 border border-primary/20">
+<p class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-medium uppercase tracking-wider opacity-70">Solde actuel</p>
+<div class="flex items-baseline gap-2">
+<p class="text-[#1c110d] dark:text-white tracking-tight text-3xl font-bold leading-tight">150,000</p>
+<p class="text-primary font-bold text-lg">CFA</p>
+</div>
+</div>
+</div>
+<!-- Destination Account Section -->
+<div>
+<h3 class="text-[#1c110d] dark:text-[#f8f6f5] text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Compte de destination</h3>
+<div class="mx-4 mt-2">
+<div class="flex items-center gap-4 bg-white dark:bg-gray-800/50 rounded-xl px-4 min-h-[80px] py-2 border border-gray-200 dark:border-gray-800">
+<div class="flex items-center gap-4 flex-1">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">smartphone</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-normal line-clamp-1">+225 0708091011</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal leading-normal">Jean Dupont - Orange Money</p>
+</div>
+</div>
+<div class="shrink-0 text-primary">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Input Amount Section -->
+<div class="mt-6">
+<div class="flex flex-col gap-4 px-4 py-3">
+<label class="flex flex-col gap-2">
+<div class="flex justify-between items-center px-1">
+<p class="text-[#1c110d] dark:text-[#f8f6f5] text-base font-semibold">Montant à retirer</p>
+<button class="text-primary text-sm font-bold">Tout retirer</button>
+</div>
+<div class="flex w-full items-stretch relative">
+<input class="form-input flex w-full min-w-0 flex-1 rounded-xl text-[#1c110d] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-800/50 h-16 placeholder:text-gray-400 p-[20px] pr-14 text-xl font-bold" placeholder="0" type="number" value=""/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold pointer-events-none">
+                                CFA
+                            </div>
+</div>
+</label>
+<p class="text-gray-500 dark:text-gray-400 text-xs px-1">Le montant minimum pour un retrait est de 1,000 CFA.</p>
+</div>
+</div>
+<!-- Info Box -->
+<div class="p-4 mt-4">
+<div class="flex gap-4 p-4 rounded-xl bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
+<div class="text-blue-500 shrink-0">
+<span class="material-symbols-outlined">info</span>
+</div>
+<div class="flex flex-col gap-1">
+<p class="text-blue-800 dark:text-blue-300 text-sm font-bold">Délai de traitement</p>
+<p class="text-blue-700 dark:text-blue-400 text-sm leading-snug">
+                            Le traitement des demandes de retrait prend généralement entre <span class="font-bold">24 et 48 heures</span> ouvrables.
+                        </p>
+</div>
+</div>
+</div>
+<div class="h-24"></div> <!-- Spacer for fixed button -->
+</div>
+<!-- Fixed Footer Action -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light dark:bg-background-dark max-w-[480px] mx-auto border-t border-gray-200 dark:border-gray-800">
+<button class="flex items-center justify-center gap-2 w-full h-14 bg-primary hover:bg-primary/90 text-white rounded-xl font-bold text-lg shadow-lg shadow-primary/20 transition-all active:scale-[0.98]">
+<span class="material-symbols-outlined text-xl">lock</span>
+                Confirmer le retrait
+            </button>
+</div>
+</div>
+</body></html>

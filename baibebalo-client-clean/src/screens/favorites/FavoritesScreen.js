@@ -58,7 +58,7 @@ export default function FavoritesScreen({ navigation }) {
       onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.restaurant_id || item.id })}
     >
       <Image
-        source={{ uri: item.image_url || item.restaurant?.image_url || 'https://via.placeholder.com/300' }}
+        source={{ uri: item.banner || item.logo || item.image_url || item.restaurant?.banner || item.restaurant?.logo || item.restaurant?.image_url || 'https://via.placeholder.com/300' }}
         style={styles.restaurantImage}
       />
       <View style={styles.restaurantInfo}>

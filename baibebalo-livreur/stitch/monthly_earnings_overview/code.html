@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#195de6",
+                        "background-light": "#f6f6f8",
+                        "background-dark": "#111621",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<title>Monthly Earnings Overview - BAIBEBALO</title>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 min-h-screen">
+<!-- Top App Bar -->
+<div class="sticky top-0 z-50 bg-background-light dark:bg-background-dark border-b border-slate-200 dark:border-slate-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary cursor-pointer">arrow_back_ios</span>
+<h2 class="text-lg font-bold leading-tight tracking-tight">Performance Mensuelle</h2>
+</div>
+<div class="flex items-center gap-2 px-3 py-1 bg-primary/10 rounded-full text-primary">
+<span class="text-xs font-semibold">Décembre 2023</span>
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+</div>
+</div>
+</div>
+<main class="max-w-md mx-auto pb-24">
+<!-- Monthly Trends Chart Section -->
+<div class="px-4 pt-6">
+<div class="bg-white dark:bg-slate-900 rounded-xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm">
+<div class="flex flex-col gap-1 mb-6">
+<p class="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenu total ce mois</p>
+<div class="flex items-baseline gap-2">
+<p class="text-3xl font-bold tracking-tight">185,000 FCFA</p>
+<span class="text-[#07883b] text-sm font-bold flex items-center">
+<span class="material-symbols-outlined text-sm">trending_up</span>
+                            12%
+                        </span>
+</div>
+</div>
+<div class="relative h-40 w-full">
+<svg class="w-full h-full" preserveaspectratio="none" viewbox="0 0 400 120">
+<defs>
+<lineargradient id="chartGradient" x1="0" x2="0" y1="0" y2="1">
+<stop offset="0%" stop-color="#195de6" stop-opacity="0.2"></stop>
+<stop offset="100%" stop-color="#195de6" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+<!-- Area path -->
+<path d="M0,100 C20,95 40,110 60,90 C80,70 100,85 120,40 C140,20 160,50 180,60 C200,70 220,10 240,30 C260,50 280,110 300,90 C320,70 340,30 360,20 C380,15 400,5 400,5 L400,120 L0,120 Z" fill="url(#chartGradient)"></path>
+<!-- Line path -->
+<path d="M0,100 C20,95 40,110 60,90 C80,70 100,85 120,40 C140,20 160,50 180,60 C200,70 220,10 240,30 C260,50 280,110 300,90 C320,70 340,30 360,20 C380,15 400,5" fill="none" stroke="#195de6" stroke-linecap="round" stroke-width="3"></path>
+</svg>
+<div class="flex justify-between mt-2 px-1">
+<p class="text-slate-400 text-[10px] font-bold">Sem 1</p>
+<p class="text-slate-400 text-[10px] font-bold">Sem 2</p>
+<p class="text-slate-400 text-[10px] font-bold">Sem 3</p>
+<p class="text-slate-400 text-[10px] font-bold">Sem 4</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Metrics Grid -->
+<div class="grid grid-cols-2 gap-4 p-4">
+<div class="flex flex-col gap-2 rounded-xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Croissance</p>
+<div class="flex flex-col">
+<p class="text-xl font-bold leading-tight">+12%</p>
+<p class="text-[10px] text-slate-400">vs mois dernier</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm">
+<p class="text-slate-500 dark:text-slate-400 text-xs font-medium">Meilleur Jour</p>
+<div class="flex flex-col">
+<p class="text-xl font-bold leading-tight">18,500 F</p>
+<p class="text-[10px] text-slate-400">15 Décembre</p>
+</div>
+</div>
+</div>
+<!-- Weekly Breakdown List -->
+<div class="px-4">
+<div class="flex items-center justify-between mb-2">
+<h3 class="text-base font-bold leading-tight tracking-tight">Détails Hebdomadaires</h3>
+</div>
+<div class="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
+<!-- Week 1 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-slate-100 dark:border-slate-800">
+<div class="flex flex-col justify-center">
+<p class="text-sm font-semibold leading-normal">Semaine 1</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">01 Déc - 07 Déc</p>
+</div>
+<div class="shrink-0">
+<p class="text-base font-bold text-primary">42,000 F</p>
+</div>
+</div>
+<!-- Week 2 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-slate-100 dark:border-slate-800">
+<div class="flex flex-col justify-center">
+<p class="text-sm font-semibold leading-normal">Semaine 2</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">08 Déc - 14 Déc</p>
+</div>
+<div class="shrink-0">
+<p class="text-base font-bold text-primary">48,500 F</p>
+</div>
+</div>
+<!-- Week 3 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between border-b border-slate-100 dark:border-slate-800">
+<div class="flex flex-col justify-center">
+<p class="text-sm font-semibold leading-normal">Semaine 3</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">15 Déc - 21 Déc</p>
+</div>
+<div class="shrink-0">
+<p class="text-base font-bold text-primary">51,500 F</p>
+</div>
+</div>
+<!-- Week 4 -->
+<div class="flex items-center gap-4 px-4 min-h-[72px] py-2 justify-between">
+<div class="flex flex-col justify-center">
+<p class="text-sm font-semibold leading-normal">Semaine 4</p>
+<p class="text-slate-500 dark:text-slate-400 text-xs font-normal">22 Déc - 31 Déc</p>
+</div>
+<div class="shrink-0">
+<p class="text-base font-bold text-primary">43,000 F</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Download CTA -->
+<div class="p-4 mt-4">
+<button class="w-full flex items-center justify-center gap-2 py-4 bg-primary/10 text-primary rounded-xl font-bold border border-primary/20 hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">picture_as_pdf</span>
+<span>Télécharger le relevé mensuel (PDF)</span>
+</button>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-safe shadow-lg">
+<div class="max-w-md mx-auto flex justify-around items-center p-2">
+<button class="flex flex-col items-center gap-1 text-slate-400 py-1">
+<span class="material-symbols-outlined text-2xl">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 py-1">
+<span class="material-symbols-outlined text-2xl">receipt_long</span>
+<span class="text-[10px] font-medium">Courses</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary py-1">
+<span class="material-symbols-outlined text-2xl" style="font-variation-settings: 'FILL' 1">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Revenus</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-slate-400 py-1">
+<span class="material-symbols-outlined text-2xl">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</button>
+</div>
+</nav>
+</body></html>

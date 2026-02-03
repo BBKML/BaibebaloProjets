@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Notification Center - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec5b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                        "system-blue": "#007AFF",
+                        "promo-orange": "#FF9500",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-blur {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0d1b12] dark:text-white font-display">
+<!-- Header Section -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 ios-blur pt-6 pb-2">
+<div class="flex items-center px-4 justify-between">
+<h1 class="text-[#0d1b12] dark:text-white text-2xl font-bold leading-tight tracking-tight">Notifications</h1>
+<button class="text-[#078829] dark:text-primary text-[15px] font-semibold active:opacity-50">Tout marquer comme lu</button>
+</div>
+<!-- Tabs Section -->
+<div class="mt-4">
+<div class="flex border-b border-[#cfe7d7] dark:border-white/10 px-4 gap-8">
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-primary pb-3 pt-2" href="#">
+<p class="text-[#0d1b12] dark:text-white text-sm font-bold">Tout</p>
+</a>
+<a class="flex flex-col items-center justify-center border-b-[3px] border-b-transparent pb-3 pt-2 opacity-50" href="#">
+<p class="text-[#0d1b12] dark:text-white text-sm font-bold">Non lus</p>
+</a>
+</div>
+</div>
+</header>
+<!-- Content List -->
+<main class="flex flex-col pb-24">
+<!-- Gains Category (Unread) -->
+<div class="flex gap-4 bg-white/50 dark:bg-white/5 px-4 py-4 border-b border-[#cfe7d7]/30 dark:border-white/5 items-start">
+<div class="bg-primary/20 text-[#078829] dark:text-primary flex items-center justify-center rounded-xl shrink-0 size-12">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+</div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-[#0d1b12] dark:text-white text-base font-semibold">Bonus Week-end !</p>
+<div class="flex items-center gap-2">
+<p class="text-[#4c9a66] dark:text-primary/70 text-xs font-medium">Il y a 2h</p>
+<div class="size-2 rounded-full bg-primary"></div>
+</div>
+</div>
+<p class="text-[#4c9a66] dark:text-gray-400 text-sm font-normal mt-0.5 leading-snug">
+                    Félicitations, vous avez reçu un bonus de 15€ pour vos courses de samedi.
+                </p>
+</div>
+</div>
+<!-- System Category (Unread) -->
+<div class="flex gap-4 bg-white/50 dark:bg-white/5 px-4 py-4 border-b border-[#cfe7d7]/30 dark:border-white/5 items-start">
+<div class="bg-system-blue/20 text-system-blue flex items-center justify-center rounded-xl shrink-0 size-12">
+<span class="material-symbols-outlined">settings_suggest</span>
+</div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-[#0d1b12] dark:text-white text-base font-semibold">Mise à jour système</p>
+<div class="flex items-center gap-2">
+<p class="text-[#4c9a66] dark:text-primary/70 text-xs font-medium">Il y a 5h</p>
+<div class="size-2 rounded-full bg-primary"></div>
+</div>
+</div>
+<p class="text-[#4c9a66] dark:text-gray-400 text-sm font-normal mt-0.5 leading-snug">
+                    Une nouvelle version de l'application BAIBEBALO est disponible pour améliorer votre stabilité.
+                </p>
+</div>
+</div>
+<!-- Promotions Category (Read) -->
+<div class="flex gap-4 px-4 py-4 border-b border-[#cfe7d7]/30 dark:border-white/5 items-start">
+<div class="bg-promo-orange/20 text-promo-orange flex items-center justify-center rounded-xl shrink-0 size-12">
+<span class="material-symbols-outlined">local_offer</span>
+</div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-[#0d1b12] dark:text-white text-base font-semibold opacity-80">Multiplicateur x1.5</p>
+<p class="text-[#4c9a66] dark:text-gray-500 text-xs font-medium">Hier</p>
+</div>
+<p class="text-[#4c9a66] dark:text-gray-500 text-sm font-normal mt-0.5 leading-snug">
+                    Zone Centre-Ville : profitez de tarifs majorés ce soir dès 19h.
+                </p>
+</div>
+</div>
+<!-- System Category (Read) -->
+<div class="flex gap-4 px-4 py-4 border-b border-[#cfe7d7]/30 dark:border-white/5 items-start">
+<div class="bg-system-blue/20 text-system-blue flex items-center justify-center rounded-xl shrink-0 size-12 opacity-60">
+<span class="material-symbols-outlined">info</span>
+</div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-[#0d1b12] dark:text-white text-base font-semibold opacity-80">Rappel Sécurité</p>
+<p class="text-[#4c9a66] dark:text-gray-500 text-xs font-medium">Hier</p>
+</div>
+<p class="text-[#4c9a66] dark:text-gray-500 text-sm font-normal mt-0.5 leading-snug">
+                    N'oubliez pas de porter votre équipement de sécurité haute visibilité la nuit.
+                </p>
+</div>
+</div>
+<!-- Gains Category (Read) -->
+<div class="flex gap-4 px-4 py-4 border-b border-[#cfe7d7]/30 dark:border-white/5 items-start">
+<div class="bg-primary/20 text-[#078829] dark:text-primary flex items-center justify-center rounded-xl shrink-0 size-12 opacity-60">
+<span class="material-symbols-outlined">payments</span>
+</div>
+<div class="flex flex-1 flex-col">
+<div class="flex justify-between items-start">
+<p class="text-[#0d1b12] dark:text-white text-base font-semibold opacity-80">Paiement Envoyé</p>
+<p class="text-[#4c9a66] dark:text-gray-500 text-xs font-medium">2 jours</p>
+</div>
+<p class="text-[#4c9a66] dark:text-gray-500 text-sm font-normal mt-0.5 leading-snug">
+                    Votre virement pour la période du 01/10 au 07/10 a été initié.
+                </p>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-background-dark/95 ios-blur border-t border-[#cfe7d7] dark:border-white/10 px-6 pb-8 pt-3 flex justify-between items-center z-50">
+<button class="flex flex-col items-center gap-1 opacity-40">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 opacity-40">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-[10px] font-bold">Courses</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#078829] dark:text-primary">
+<div class="relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">notifications</span>
+<div class="absolute -top-1 -right-1 size-2.5 bg-red-500 rounded-full border-2 border-white dark:border-background-dark"></div>
+</div>
+<span class="text-[10px] font-bold">Alertes</span>
+</button>
+<button class="flex flex-col items-center gap-1 opacity-40">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-bold">Profil</span>
+</button>
+</nav>
+</body></html>

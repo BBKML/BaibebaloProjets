@@ -21,12 +21,28 @@ router.use(authenticate);
  */
 
 /**
+ * @route   POST /api/v1/orders/calculate-fees
+ * @desc    Calculer les frais de livraison et de service
+ * @access  Private (User)
+ */
+router.post('/calculate-fees',
+  authorize('user', 'client'),
+  [
+    body('restaurant_id').isUUID().withMessage('ID restaurant invalide'),
+    body('delivery_address_id').isUUID().withMessage('ID adresse invalide'),
+    body('subtotal').toFloat().isFloat({ min: 0 }).withMessage('Sous-total invalide'),
+  ],
+  validate,
+  orderController.calculateFees
+);
+
+/**
  * @route   POST /api/v1/orders
  * @desc    Créer une nouvelle commande
  * @access  Private (User)
  */
 router.post('/', 
-  authorize('user'), // ✅ CORRIGÉ : 'user' au lieu de 'client'
+  authorize('user', 'client'), // Accepter 'user' et 'client' (synonymes)
   createOrderValidators, // ✅ Validation complète (définie en Phase 3)
   orderController.createOrder
 );
@@ -57,7 +73,7 @@ router.get('/:id/track',
  * @access  Private (User)
  */
 router.put('/:id/cancel', 
-  authorize('user'),
+  authorize('user', 'client'), // Accepter 'user' et 'client' (synonymes)
   uuidValidator('id', 'Order ID'),
   [
     body('reason')
@@ -79,7 +95,7 @@ router.put('/:id/cancel',
  * @access  Private (User)
  */
 router.post('/:id/review', 
-  authorize('user'),
+  authorize('user', 'client'), // Accepter 'user' et 'client' (synonymes)
   uuidValidator('id', 'Order ID'),
   [
     body('restaurant_rating')
@@ -116,7 +132,7 @@ router.post('/:id/review',
  * @access  Private (User)
  */
 router.post('/:id/report',
-  authorize('user'),
+  authorize('user', 'client'), // Accepter 'user' et 'client' (synonymes)
   uuidValidator('id', 'Order ID'),
   [
     body('issue_type')
@@ -273,7 +289,7 @@ router.put('/:id/deliver',
  * @access  Private (User)
  */
 router.post('/:id/payment/initiate',
-  authorize('user'),
+  authorize('user', 'client'), // Accepter 'user' et 'client' (synonymes)
   uuidValidator('id', 'Order ID'),
   [
     body('payment_method')
@@ -296,6 +312,53 @@ router.post('/:id/payment/initiate',
 router.get('/:id/payment/status',
   uuidValidator('id', 'Order ID'),
   orderController.checkPaymentStatus
+);
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * CHAT CLIENT ↔ RESTAURANT
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * @route   GET /api/v1/orders/:id/messages
+ * @desc    Récupérer les messages d'une commande
+ * @access  Private (User, Restaurant)
+ */
+router.get('/:id/messages',
+  authorize('user', 'client', 'restaurant'),
+  uuidValidator('id', 'Order ID'),
+  orderController.getOrderMessages
+);
+
+/**
+ * @route   POST /api/v1/orders/:id/messages
+ * @desc    Envoyer un message sur une commande
+ * @access  Private (User, Restaurant)
+ */
+router.post('/:id/messages',
+  authorize('user', 'client', 'restaurant'),
+  uuidValidator('id', 'Order ID'),
+  [
+    body('message')
+      .trim()
+      .notEmpty()
+      .isLength({ min: 1, max: 1000 })
+      .withMessage('Message requis (1-1000 caractères)'),
+  ],
+  validate,
+  orderController.sendOrderMessage
+);
+
+/**
+ * @route   PUT /api/v1/orders/:id/messages/read
+ * @desc    Marquer les messages comme lus
+ * @access  Private (User, Restaurant)
+ */
+router.put('/:id/messages/read',
+  authorize('user', 'client', 'restaurant'),
+  uuidValidator('id', 'Order ID'),
+  orderController.markMessagesRead
 );
 
 /**

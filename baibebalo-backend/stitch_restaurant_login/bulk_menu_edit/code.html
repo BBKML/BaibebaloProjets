@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Bulk Menu Edit - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>body {
+    font-family: "Work Sans", sans-serif
+    }
+.checkbox-custom:checked {
+    background-image: url(https://lh3.googleusercontent.com/aida-public/AB6AXuDXG-mvXJPxiLo02ZkA21vJidDliqTi8KEmgGrz58f2ZKI3VE9M3nV2RtD72z5aRIkghreo9jFiCCFuVCBwFtNiGxHXD3yUfvOkB0_fwHckmoIPzonYb9LMc9kHS555skpF1gaD7SuIVz6zqv86gqPxfiqBGuHBhCSDNBKm8c64TXGg127iy-0YFh3SV9Yy0_eJcH04HX-mi3LbeJPs6HeorVn1qExTlSmmsJ9rSJJeEUswfr5vbQmGfW5UklBQU179wcW0l-d2onCB)
+    }</style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1c110d] dark:text-white">
+<!-- Top App Bar -->
+<header class="sticky top-0 z-30 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#e9d5ce] dark:border-[#3d2a23]">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-[#1c110d] dark:text-white flex size-12 shrink-0 items-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Bulk Menu Edit</h2>
+<div class="flex w-12 items-center justify-end">
+<p class="text-primary text-base font-bold leading-normal tracking-[0.015em] shrink-0 cursor-pointer">Select All</p>
+</div>
+</div>
+</header>
+<main class="pb-32">
+<!-- Search Bar -->
+<div class="px-4 py-3">
+<label class="flex flex-col min-w-40 h-12 w-full">
+<div class="flex w-full flex-1 items-stretch rounded-lg h-full">
+<div class="text-[#9e5e47] flex border-none bg-[#f4eae6] dark:bg-[#3d2a23] items-center justify-center pl-4 rounded-l-lg">
+<span class="material-symbols-outlined">search</span>
+</div>
+<input class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-lg text-[#1c110d] dark:text-white focus:outline-0 focus:ring-0 border-none bg-[#f4eae6] dark:bg-[#3d2a23] focus:border-none h-full placeholder:text-[#9e5e47] px-4 rounded-l-none border-l-0 pl-2 text-base font-normal leading-normal" placeholder="Search items or categories..." value=""/>
+</div>
+</label>
+</div>
+<!-- Category Chips -->
+<div class="flex gap-3 px-4 py-3 overflow-x-auto no-scrollbar">
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary px-4 text-white">
+<p class="text-sm font-medium">All Items</p>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f4eae6] dark:bg-[#3d2a23] px-4">
+<p class="text-[#1c110d] dark:text-white text-sm font-medium">Appetizers</p>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f4eae6] dark:bg-[#3d2a23] px-4">
+<p class="text-[#1c110d] dark:text-white text-sm font-medium">Main Course</p>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+<button class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-[#f4eae6] dark:bg-[#3d2a23] px-4">
+<p class="text-[#1c110d] dark:text-white text-sm font-medium">Desserts</p>
+<span class="material-symbols-outlined text-sm">keyboard_arrow_down</span>
+</button>
+</div>
+<!-- Selection Count Info -->
+<div class="px-4 py-2">
+<p class="text-[#9e5e47] text-sm font-medium">12 items found in "Main Course"</p>
+</div>
+<!-- Menu Item List -->
+<div class="flex flex-col gap-1">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 bg-primary/5 dark:bg-primary/10 px-4 min-h-[88px] py-3 justify-between border-y border-primary/20">
+<div class="flex items-center gap-4">
+<div class="flex size-7 items-center justify-center">
+<input checked="" class="checkbox-custom h-6 w-6 rounded border-[#e9d5ce] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-primary focus:outline-none" type="checkbox"/>
+</div>
+<div class="h-16 w-16 rounded-lg bg-cover bg-center" data-alt="Truffle Pasta close up shot" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAO1lc3HuFBDY-CksrK9bv-pYkI9t1WCY81yiwwaiv2TpOcVpttF8NjGkiJ7gRGE5rU_IX2NF0MEhfe-quk1kXtO7a9UXaMY9KoZ652tjiyKK00lmGmaZa9Wfwl8QwThKImbNPI34piPkeKG5uSZknyE_RwrTfp2tjFLcGd2veWh9BnhaXqMGqntG7f0sh3NH2h4nsuOPGWfCH7rB0J45WD-rURc2edgcM3qn74gkiHBQZASw1srLQ48ujKPMzmcSBk_E_kPfBKYJ-R');"></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Truffle Pasta</p>
+<p class="text-[#9e5e47] text-sm font-normal leading-normal line-clamp-1">$18.50 • Main Course</p>
+<span class="mt-1 w-fit px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">Active</span>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-primary">drag_indicator</span>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark px-4 min-h-[88px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="flex size-7 items-center justify-center">
+<input class="checkbox-custom h-6 w-6 rounded border-[#e9d5ce] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-primary focus:outline-none" type="checkbox"/>
+</div>
+<div class="h-16 w-16 rounded-lg bg-cover bg-center" data-alt="Classic Margherita Pizza" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuCZ9JS93yEo9FQKcH6kLJveNEcjswItTfriV3GMbsbJYnGiT1SslsJz_L3zM66pOzh24d8CJSj64lO4JAVZdPpqaXEtSpliEWY6bU3yXSjoTUG-ivbPymS2ynqBsFoydPdcAs3ZM28sE9b3PSNKQoo7OBAhyKAoD6N44PrMU6e5L9rqNnXqborQx5x7loLp2YApQS7Z59mTYk5_ZOmBBR72GaRHmRh6VjJHO7qSTKM0Pf-aNjrdcea8C2gVtOoqZM2GCQ1eZbsU9Hdr');"></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Margherita Pizza</p>
+<p class="text-[#9e5e47] text-sm font-normal leading-normal line-clamp-1">$14.00 • Main Course</p>
+<span class="mt-1 w-fit px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">Active</span>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-[#9e5e47]">drag_indicator</span>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-4 bg-primary/5 dark:bg-primary/10 px-4 min-h-[88px] py-3 justify-between border-y border-primary/20">
+<div class="flex items-center gap-4">
+<div class="flex size-7 items-center justify-center">
+<input checked="" class="checkbox-custom h-6 w-6 rounded border-[#e9d5ce] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-primary focus:outline-none" type="checkbox"/>
+</div>
+<div class="h-16 w-16 rounded-lg bg-cover bg-center" data-alt="Grilled BBQ Pork Ribs" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDWs52_pHBzQq5Rc10J_Bh5FJXMRH66--xSFMoSJmVrm8DKN4XBPU5X-BSu4shT_LRVP6C_NJbINEWA61bWrWp5xScMA_31Vfd63ggTTlrm9o0l_mmymmN4toVhPatRC0-MWKRUxBEhHgNAwCURd18qho5-E8pRzXKxWYixkZF7e3bUgghHupVDIUhHfY46i415KR43SyumG7FCpuEG59pDPCiy3k9U5d-Pvyds5uS5Zz3NWrT_5QW3wyVM2owH0yNpfv5MCmtVtJQM');"></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Grilled Ribs</p>
+<p class="text-[#9e5e47] text-sm font-normal leading-normal line-clamp-1">$22.00 • Main Course</p>
+<span class="mt-1 w-fit px-2 py-0.5 rounded-full bg-gray-200 text-gray-600 text-[10px] font-bold uppercase tracking-wider">Inactive</span>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-primary">drag_indicator</span>
+</div>
+</div>
+<!-- Item 4 -->
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark px-4 min-h-[88px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="flex size-7 items-center justify-center">
+<input class="checkbox-custom h-6 w-6 rounded border-[#e9d5ce] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-primary focus:outline-none" type="checkbox"/>
+</div>
+<div class="h-16 w-16 rounded-lg bg-cover bg-center" data-alt="Beef Burger with fries" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBSW1o4CNeF06kCi2bYA_3YKQKoX0Cv2-LPDaF2DPMB_j18TIZPcBTZj2fBj9b8wDc8mPDADyArsGSEwcE3Ohkp-UyRWUIQAttU3thZxfQakVJr9NMLmq1ACH0F2iM8D47FCJ8IxmtILEJ3aYIwEhk9ImANtqdzCAnxF339j2hXNFFla2_OIoQSyHRR5qW1xVTrHUEaOYQZ9XkujEwbTrIFCNTFm9WsUhEDdhe-1StyZrlzroUyzIBR4nyomzyjo9uTYr25cT-BuRwp');"></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Signature Burger</p>
+<p class="text-[#9e5e47] text-sm font-normal leading-normal line-clamp-1">$16.50 • Main Course</p>
+<span class="mt-1 w-fit px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">Active</span>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-[#9e5e47]">drag_indicator</span>
+</div>
+</div>
+<!-- Item 5 -->
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark px-4 min-h-[88px] py-3 justify-between">
+<div class="flex items-center gap-4">
+<div class="flex size-7 items-center justify-center">
+<input class="checkbox-custom h-6 w-6 rounded border-[#e9d5ce] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-primary focus:outline-none" type="checkbox"/>
+</div>
+<div class="h-16 w-16 rounded-lg bg-cover bg-center" data-alt="Fresh Salmon Salad" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAAEewfXpq6A0YkWNVtuoIyDSoGnpyGS8TK1AD7tBcbCvw8HvsUGwbLwwv5TbsNyNH9etAxYlpv3dDWiA1sL6hTFFBIYZJmmNe6teMTDFJXWXk67Wbp2MO9Jm9ncPMD9CdlMiJDKOtQKpiGhuaxWYPfBLZtFAcVu14pGygpiZYVHZl7e1AKYdUo6mZ92T3sD8F34zdH10i0KQA0nkyCZ-Uf7tWSRX4pdOeHh8sy5YhW162IaW62qBNFAS283MwD-6RbshP6DovfV08H');"></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-tight line-clamp-1">Salmon Salad</p>
+<p class="text-[#9e5e47] text-sm font-normal leading-normal line-clamp-1">$15.00 • Appetizers</p>
+<span class="mt-1 w-fit px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-[10px] font-bold uppercase tracking-wider">Active</span>
+</div>
+</div>
+<div class="shrink-0">
+<span class="material-symbols-outlined text-[#9e5e47]">drag_indicator</span>
+</div>
+</div>
+</div>
+</main>
+<!-- Contextual Bottom Action Bar -->
+<div class="fixed bottom-0 inset-x-0 bg-white dark:bg-[#2e1d17] border-t border-[#e9d5ce] dark:border-[#3d2a23] px-4 pt-4 pb-8 shadow-[0_-8px_30px_rgb(0,0,0,0.12)] z-50 rounded-t-xl">
+<div class="flex items-center justify-between mb-4">
+<p class="text-[#1c110d] dark:text-white font-bold text-lg"><span class="text-primary">2</span> items selected</p>
+<button class="text-[#9e5e47] font-medium text-sm">Clear Selection</button>
+</div>
+<div class="grid grid-cols-3 gap-3">
+<!-- Price Change -->
+<button class="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#f4eae6] dark:bg-[#3d2a23] text-[#1c110d] dark:text-white transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">payments</span>
+<span class="text-xs font-semibold">Change Price</span>
+</button>
+<!-- Move Category -->
+<button class="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#f4eae6] dark:bg-[#3d2a23] text-[#1c110d] dark:text-white transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">category</span>
+<span class="text-xs font-semibold">Move Cat.</span>
+</button>
+<!-- Status Update -->
+<button class="flex flex-col items-center justify-center gap-2 p-3 rounded-xl bg-[#f4eae6] dark:bg-[#3d2a23] text-[#1c110d] dark:text-white transition-all active:scale-95">
+<span class="material-symbols-outlined text-primary">toggle_on</span>
+<span class="text-xs font-semibold">Set Status</span>
+</button>
+</div>
+<!-- Primary Action Button -->
+<button class="mt-4 w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+<span>Apply 2 Changes</span>
+<span class="material-symbols-outlined">auto_fix_high</span>
+</button>
+</div>
+<!-- Floating Action Preview (Optional visual cue) -->
+<div class="fixed bottom-36 right-6 z-40">
+<div class="bg-white dark:bg-[#3d2a23] p-2 rounded-full shadow-xl border border-primary/20">
+<div class="bg-primary text-white size-12 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">edit</span>
+</div>
+</div>
+</div>
+</body></html>

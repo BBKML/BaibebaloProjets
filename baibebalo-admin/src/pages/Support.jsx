@@ -1,6 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { supportAPI } from '../api/support';
 import { formatDateShort } from '../utils/format';
@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 
 const Support = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     status: '',
@@ -17,6 +18,30 @@ const Support = () => {
     limit: 20,
   });
   const [showCreateModal, setShowCreateModal] = useState(false);
+
+  const userIdParam = searchParams.get('user_id') || '';
+  const orderIdParam = searchParams.get('order_id') || '';
+  const initialCreateData = useMemo(() => {
+    if (!userIdParam || !orderIdParam) return null;
+    return {
+      user_id: userIdParam,
+      order_id: orderIdParam,
+      user_type: 'user',
+      subject: `Contact client - Commande #${orderIdParam.slice(0, 8)}`,
+      message: '',
+      priority: 'medium',
+      category: 'order',
+    };
+  }, [userIdParam, orderIdParam]);
+
+  useEffect(() => {
+    if (initialCreateData) setShowCreateModal(true);
+  }, [initialCreateData]);
+
+  const handleCloseCreateModal = () => {
+    setShowCreateModal(false);
+    if (userIdParam || orderIdParam) setSearchParams({});
+  };
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['tickets', filters],
@@ -29,6 +54,7 @@ const Support = () => {
     onSuccess: () => {
       queryClient.invalidateQueries(['tickets']);
       setShowCreateModal(false);
+      if (userIdParam || orderIdParam) setSearchParams({});
       toast.success('Ticket créé avec succès');
     },
     onError: (error) => {
@@ -175,12 +201,29 @@ const Support = () => {
 
         {/* Table */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+          {/* Info pagination en haut */}
+          <div className="px-6 py-3 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-700 flex justify-between items-center">
+            <span className="text-sm text-slate-600 dark:text-slate-400">
+              {pagination.total || tickets.length} ticket(s) trouvé(s)
+            </span>
+            <select
+              value={filters.limit}
+              onChange={(e) => setFilters({ ...filters, limit: parseInt(e.target.value), page: 1 })}
+              className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+            >
+              <option value={10}>10 par page</option>
+              <option value={20}>20 par page</option>
+              <option value={50}>50 par page</option>
+              <option value={100}>100 par page</option>
+            </select>
+          </div>
           <div className="overflow-x-auto custom-scrollbar">
             <table className="w-full text-left border-collapse">
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-32">ID</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-40">Utilisateur</th>
+                  <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-28">Catégorie</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sujet</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-36">Priorité</th>
                   <th className="px-6 py-4 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 w-40">Statut</th>
@@ -191,7 +234,7 @@ const Support = () => {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {tickets.length === 0 ? (
                   <tr>
-                    <td colSpan="7" className="px-6 py-8 text-center text-slate-500">
+                    <td colSpan="8" className="px-6 py-8 text-center text-slate-500">
                       Aucun ticket trouvé
                     </td>
                   </tr>
@@ -206,10 +249,21 @@ const Support = () => {
                     };
                     const userTypeInfo = userTypeConfig[userType] || userTypeConfig.client;
 
+                    // Mapper les catégories vers des labels lisibles
+                    const categoryConfig = {
+                      order: { label: 'Commande', icon: 'shopping_bag', class: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' },
+                      payment: { label: 'Paiement', icon: 'payments', class: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' },
+                      delivery: { label: 'Livraison', icon: 'local_shipping', class: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400' },
+                      account: { label: 'Compte', icon: 'person', class: 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' },
+                      technical: { label: 'Technique', icon: 'build', class: 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' },
+                      other: { label: 'Autre', icon: 'help', class: 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400' },
+                    };
+                    const categoryInfo = categoryConfig[ticket.category] || categoryConfig.other;
+
                     return (
                       <tr key={ticket.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/30 transition-colors group">
                         <td className="px-6 py-4 font-mono text-xs text-slate-900 dark:text-white font-medium">
-                          #{ticket.id.slice(0, 8)}
+                          #{ticket.ticket_number || ticket.id.slice(0, 8)}
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${userTypeInfo.class}`}>
@@ -217,8 +271,14 @@ const Support = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4">
+                          <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-md text-xs font-bold ${categoryInfo.class}`}>
+                            <span className="material-symbols-outlined text-sm">{categoryInfo.icon}</span>
+                            {categoryInfo.label}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4">
                           <p className="text-sm font-semibold text-slate-900 dark:text-white line-clamp-1">{ticket.subject}</p>
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{ticket.message?.substring(0, 50)}...</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{ticket.description?.substring(0, 60)}...</p>
                         </td>
                         <td className="px-6 py-4">
                           <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
@@ -263,12 +323,80 @@ const Support = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {pagination.pages > 1 && (
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <div className="text-sm text-slate-600 dark:text-slate-400">
+                Page {filters.page} sur {pagination.pages}
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setFilters({ ...filters, page: 1 })}
+                  disabled={filters.page === 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">first_page</span>
+                </button>
+                <button
+                  onClick={() => setFilters({ ...filters, page: Math.max(1, filters.page - 1) })}
+                  disabled={filters.page === 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">chevron_left</span>
+                </button>
+                
+                {/* Numéros de pages */}
+                {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                  let pageNum;
+                  if (pagination.pages <= 5) {
+                    pageNum = i + 1;
+                  } else if (filters.page <= 3) {
+                    pageNum = i + 1;
+                  } else if (filters.page >= pagination.pages - 2) {
+                    pageNum = pagination.pages - 4 + i;
+                  } else {
+                    pageNum = filters.page - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setFilters({ ...filters, page: pageNum })}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        filters.page === pageNum
+                          ? 'bg-primary text-white'
+                          : 'border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setFilters({ ...filters, page: Math.min(pagination.pages, filters.page + 1) })}
+                  disabled={filters.page === pagination.pages}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">chevron_right</span>
+                </button>
+                <button
+                  onClick={() => setFilters({ ...filters, page: pagination.pages })}
+                  disabled={filters.page === pagination.pages}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">last_page</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal Créer Ticket */}
         {showCreateModal && (
           <CreateTicketModal
-            onClose={() => setShowCreateModal(false)}
+            initialData={initialCreateData}
+            onClose={handleCloseCreateModal}
             onSubmit={(formData) => createMutation.mutate(formData)}
             isLoading={createMutation.isPending}
           />
@@ -278,17 +406,22 @@ const Support = () => {
   );
 };
 
+const defaultFormData = {
+  subject: '',
+  message: '',
+  priority: 'medium',
+  category: '',
+  user_type: '',
+  user_id: '',
+  order_id: '',
+};
+
 // Modal pour créer un ticket
-const CreateTicketModal = ({ onClose, onSubmit, isLoading }) => {
-  const [formData, setFormData] = useState({
-    subject: '',
-    message: '',
-    priority: 'medium',
-    category: '',
-    user_type: '',
-    user_id: '',
-    order_id: '',
-  });
+const CreateTicketModal = ({ initialData, onClose, onSubmit, isLoading }) => {
+  const [formData, setFormData] = useState(() => ({
+    ...defaultFormData,
+    ...(initialData || {}),
+  }));
 
   const handleSubmit = (e) => {
     e.preventDefault();

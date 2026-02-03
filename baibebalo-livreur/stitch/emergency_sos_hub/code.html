@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Emergency SOS Hub - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f20d0d",
+                        "background-light": "#f8f5f5",
+                        "background-dark": "#221010",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .sos-glow {
+            box-shadow: 0 0 30px rgba(242, 13, 13, 0.4);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white transition-colors duration-300">
+<div class="relative flex h-screen w-full flex-col overflow-hidden max-w-md mx-auto shadow-2xl">
+<!-- TopAppBar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between border-b border-primary/10">
+<div class="text-primary flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined text-3xl">emergency_home</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-lg font-extrabold leading-tight tracking-tight flex-1 text-center pr-12 uppercase">
+                Centre d'urgence
+            </h2>
+</header>
+<main class="flex-1 overflow-y-auto pb-24 px-4 pt-6">
+<!-- Large SOS Button Section -->
+<div class="flex flex-col items-center justify-center py-6 mb-4">
+<button class="group relative flex size-44 items-center justify-center rounded-full bg-primary sos-glow active:scale-95 transition-transform duration-100">
+<div class="absolute inset-0 rounded-full bg-primary/20 animate-ping"></div>
+<div class="flex flex-col items-center z-10">
+<span class="material-symbols-outlined text-6xl text-white font-bold">sos</span>
+<span class="text-white text-3xl font-black mt-[-4px]">SOS</span>
+</div>
+</button>
+<p class="text-gray-600 dark:text-gray-300 text-sm font-semibold leading-normal mt-6 flex items-center gap-2">
+<span class="material-symbols-outlined text-lg">touch_app</span>
+                    Maintenir 3s pour alerter
+                </p>
+</div>
+<!-- GPS Info Card -->
+<div class="mb-8 rounded-xl bg-primary/5 dark:bg-primary/10 border border-primary/20 p-4">
+<div class="flex items-center justify-between mb-2">
+<h4 class="text-primary text-xs font-bold uppercase tracking-widest flex items-center gap-2">
+<span class="material-symbols-outlined text-sm">location_on</span>
+                        Ma Position Actuelle
+                    </h4>
+<span class="flex size-2 rounded-full bg-green-500 shadow-[0_0_8px_rgba(34,197,94,0.6)]"></span>
+</div>
+<div class="flex items-end justify-between">
+<div>
+<p class="text-gray-900 dark:text-white text-sm font-bold">48.8566° N, 2.3522° E</p>
+<p class="text-gray-500 dark:text-gray-400 text-[10px] mt-1">Dernière mise à jour: à l'instant</p>
+</div>
+<button class="p-2 rounded-lg bg-white dark:bg-[#341818] text-primary border border-primary/20">
+<span class="material-symbols-outlined">share</span>
+</button>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="mb-4">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-tight px-1">
+                    Catégories d'urgence
+                </h3>
+</div>
+<!-- Emergency Grid -->
+<div class="grid grid-cols-2 gap-3 mb-8">
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-[#341818] p-4 items-start active:bg-primary/10 transition-colors cursor-pointer">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">car_crash</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-base font-bold">Accident</h2>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-[#341818] p-4 items-start active:bg-primary/10 transition-colors cursor-pointer">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">construction</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-base font-bold">Panne</h2>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-[#341818] p-4 items-start active:bg-primary/10 transition-colors cursor-pointer">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">policy</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-base font-bold">Sécurité</h2>
+</div>
+<div class="flex flex-col gap-3 rounded-xl border border-primary/10 bg-white dark:bg-[#341818] p-4 items-start active:bg-primary/10 transition-colors cursor-pointer">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">medical_services</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-base font-bold">Santé</h2>
+</div>
+<div class="col-span-2 flex gap-4 rounded-xl border border-primary/10 bg-white dark:bg-[#341818] p-4 items-center active:bg-primary/10 transition-colors cursor-pointer">
+<div class="text-primary">
+<span class="material-symbols-outlined text-3xl">more_horiz</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-base font-bold">Autre problème</h2>
+</div>
+</div>
+</main>
+<!-- Bottom Action Button -->
+<footer class="absolute bottom-0 left-0 right-0 p-4 bg-background-light dark:bg-background-dark/95 backdrop-blur-sm border-t border-primary/10">
+<button class="flex w-full cursor-pointer items-center justify-center gap-3 rounded-xl h-14 bg-primary text-white text-base font-bold shadow-lg active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">support_agent</span>
+<span>Contacter le support d'urgence</span>
+</button>
+</footer>
+</div>
+</body></html>

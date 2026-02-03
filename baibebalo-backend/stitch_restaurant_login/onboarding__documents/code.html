@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - Documents</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1d110c] dark:text-white transition-colors duration-300">
+<div class="relative flex h-screen max-w-md mx-auto flex-col bg-background-light dark:bg-background-dark overflow-hidden">
+<!-- TopAppBar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10">
+<div class="text-[#1d110c] dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Onboarding</h2>
+</header>
+<main class="flex-1 overflow-y-auto pb-32">
+<!-- ProgressBar -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal">Étape 4 sur 6</p>
+<p class="text-[#1d110c] dark:text-white text-sm font-normal leading-normal">4/6</p>
+</div>
+<div class="rounded-full bg-[#ead5cd] dark:bg-[#3d2a24] overflow-hidden">
+<div class="h-2 rounded-full bg-primary" style="width: 66%;"></div>
+</div>
+<p class="text-[#a15d45] dark:text-[#cc9b8a] text-sm font-normal leading-normal uppercase tracking-wider font-semibold">Documents de l'établissement</p>
+</div>
+<!-- HeadlineText -->
+<h3 class="text-[#1d110c] dark:text-white tracking-tight text-2xl font-bold leading-tight px-4 text-left pt-5">Téléchargez vos documents</h3>
+<!-- BodyText -->
+<p class="text-[#1d110c] dark:text-white/80 text-base font-normal leading-normal pb-3 pt-1 px-4">
+                Nous avons besoin de ces pièces pour valider votre compte. <br/>
+<span class="text-sm opacity-70 italic font-light">Formats acceptés : JPG, PNG, PDF. Taille max : 5 Mo.</span>
+</p>
+<div class="flex flex-col gap-1 mt-2">
+<!-- ListItem - RCCM (Uploaded State) -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1d18] mx-4 my-1 p-4 rounded-xl border border-primary/20 shadow-sm">
+<div class="flex flex-1 items-center gap-4">
+<div class="text-primary flex items-center justify-center rounded-lg bg-primary/10 shrink-0 size-12">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-semibold leading-normal line-clamp-1">RCCM</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-green-500 font-bold">check_circle</span>
+<p class="text-[#a15d45] dark:text-[#cc9b8a] text-xs font-normal leading-normal truncate max-w-[120px]">rccm_final.pdf</p>
+</div>
+</div>
+</div>
+<div class="shrink-0 flex gap-2">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-lg bg-[#f4eae6] dark:bg-[#3d2a24] text-[#1d110c] dark:text-white">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+<!-- ListItem - Manager ID (Action Required) -->
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark px-4 min-h-[80px] py-2 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-[#1d110c] dark:text-white flex items-center justify-center rounded-lg bg-[#f4eae6] dark:bg-[#3d2a24] shrink-0 size-12">
+<span class="material-symbols-outlined">badge</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal line-clamp-1">Pièce d'identité</p>
+<p class="text-[#a15d45] dark:text-[#cc9b8a] text-sm font-normal leading-normal line-clamp-2">Gérant de l'établissement</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-semibold leading-normal">
+<span class="truncate">Télécharger</span>
+</button>
+</div>
+</div>
+<!-- ListItem - Storefront (Uploaded State with Thumbnail) -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1d18] mx-4 my-1 p-4 rounded-xl border border-primary/20 shadow-sm">
+<div class="flex flex-1 items-center gap-4">
+<div class="shrink-0 size-12 rounded-lg overflow-hidden border border-[#ead5cd]">
+<img class="h-full w-full object-cover" data-alt="Modern restaurant storefront with outdoor seating" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCb7Mp2bVGWm5rnZcUdstx3AUnvSO3CNsaQULPrw361BIALXU1gorDO41oDOn1BkCsmdFVWZ5MWUnTJEgfCpWc5lY_tAM0nXlnFTSVkS7SoM0QB6IVNZ3VG7zHFRwsswpnSI4T52xR0DHunA3UAFnlXT9EjQe8uyL_1grP8bixH6mhVxDgBN5nrgpNfDaUEO8nZUD5tr1o9xcBFREl3O2XRjNnpgxCbnCGlj0FXYKsMEBxy2zY7C9RYtv572O8pD_-7m2IU96BPd354"/>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-semibold leading-normal line-clamp-1">Photo Devanture</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px] text-green-500 font-bold">check_circle</span>
+<p class="text-[#a15d45] dark:text-[#cc9b8a] text-xs font-normal leading-normal">upload_01.jpg</p>
+</div>
+</div>
+</div>
+<div class="shrink-0">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-lg bg-[#f4eae6] dark:bg-[#3d2a24] text-[#1d110c] dark:text-white">
+<span class="material-symbols-outlined text-[20px]">delete</span>
+</button>
+</div>
+</div>
+<!-- ListItem - Menu Photo (Action Required) -->
+<div class="flex items-center gap-4 bg-background-light dark:bg-background-dark px-4 min-h-[80px] py-2 justify-between">
+<div class="flex items-center gap-4">
+<div class="text-[#1d110c] dark:text-white flex items-center justify-center rounded-lg bg-[#f4eae6] dark:bg-[#3d2a24] shrink-0 size-12">
+<span class="material-symbols-outlined">restaurant_menu</span>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal line-clamp-1">Photo du Menu</p>
+<p class="text-[#a15d45] dark:text-[#cc9b8a] text-sm font-normal leading-normal line-clamp-2">Carte actuelle et prix</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center rounded-lg h-9 px-4 bg-primary text-white text-sm font-semibold leading-normal">
+<span class="truncate">Télécharger</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Help Section -->
+<div class="mx-4 mt-8 p-4 rounded-xl border border-dashed border-[#ead5cd] dark:border-[#3d2a24] bg-white/50 dark:bg-black/10">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-[#a15d45] dark:text-[#cc9b8a]">help_outline</span>
+<div>
+<p class="text-sm font-semibold text-[#1d110c] dark:text-white mb-1">Besoin d'aide ?</p>
+<p class="text-xs text-[#a15d45] dark:text-[#cc9b8a] leading-relaxed">
+                            Si vous rencontrez des difficultés techniques pour télécharger vos fichiers, contactez notre support partenaire.
+                        </p>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Footer Action -->
+<footer class="absolute bottom-0 left-0 w-full p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-[#ead5cd] dark:border-[#3d2a24]">
+<button class="w-full flex items-center justify-center rounded-xl h-14 px-4 bg-primary text-white text-base font-bold shadow-lg shadow-primary/20 opacity-50 cursor-not-allowed">
+<span>Continuer (2/4)</span>
+<span class="material-symbols-outlined ml-2">chevron_right</span>
+</button>
+</footer>
+</div>
+</body></html>

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Driver Dashboard - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .nav-shadow {
+            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white antialiased">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark pb-24">
+<!-- TopAppBar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-20">
+<div class="flex size-12 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary/20" data-alt="Portrait photo of Jean, the delivery driver" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCuoozQkPNIHMsSt-Xiht_suttZjmygzMY4jhuvFkSRetJUjjRyI8PahbRAA2Gzs93IwZ9BZs9nsNleSO4-rvdYdnuOtMicQDnq8esV1Z7Xg3dIdF1WlGg65CfNp7zWaqFSEiCTfnPqbnS7EDcwzYz3jRSc38LoYO3xUoEwbUYcMqcSA1fjFWQh8E8_NIalZGY5366SBpHtDPsGN1zslkEv7DqbHTwNP414NjQnmS7h_CsWutxTnI7hAgoKvV2MxEzGK9DpwQcLfYGn");'>
+</div>
+</div>
+<div class="flex-1 px-3">
+<p class="text-xs text-[#50956c] font-medium uppercase tracking-wider">Livreur Baibebalo</p>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Bonjour, Jean!</h2>
+</div>
+<div class="flex w-12 items-center justify-end">
+<button class="flex size-10 cursor-pointer items-center justify-center rounded-full bg-white dark:bg-[#1a2e21] shadow-sm border border-[#d1e6d9] dark:border-[#2a4535]">
+<span class="material-symbols-outlined text-[#0e1b13] dark:text-white">notifications</span>
+</button>
+</div>
+</header>
+<!-- Availability Status (ActionPanel style) -->
+<div class="p-4 pt-2">
+<div class="flex flex-1 items-center justify-between gap-4 rounded-xl border border-[#d1e6d9] dark:border-[#2a4535] bg-white dark:bg-[#1a2e21] p-5 shadow-sm">
+<div class="flex flex-col gap-1">
+<p class="text-[#0e1b13] dark:text-white text-base font-bold leading-tight uppercase tracking-wide">Statut</p>
+<div class="flex items-center gap-2">
+<span class="flex h-2 w-2 rounded-full bg-primary animate-pulse"></span>
+<p class="text-primary text-base font-semibold leading-normal">DISPONIBLE</p>
+</div>
+</div>
+<label class="relative flex h-[34px] w-[60px] cursor-pointer items-center rounded-full border-none bg-[#e8f3ec] dark:bg-[#2a4535] p-1 transition-colors duration-300 has-[:checked]:bg-primary">
+<div class="h-full w-[26px] translate-x-[26px] rounded-full bg-white shadow-md transition-transform duration-300"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="flex flex-wrap gap-3 px-4">
+<div class="flex min-w-[100px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-[#1a2e21] border border-[#d1e6d9] dark:border-[#2a4535] shadow-sm">
+<p class="text-[#50956c] text-xs font-medium uppercase tracking-tighter">Gains</p>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-xl font-bold">12 450 F</p>
+</div>
+<div class="flex min-w-[100px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-[#1a2e21] border border-[#d1e6d9] dark:border-[#2a4535] shadow-sm">
+<p class="text-[#50956c] text-xs font-medium uppercase tracking-tighter">Courses</p>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-xl font-bold">8</p>
+</div>
+<div class="flex min-w-[100px] flex-1 flex-col gap-1 rounded-xl p-4 bg-white dark:bg-[#1a2e21] border border-[#d1e6d9] dark:border-[#2a4535] shadow-sm">
+<p class="text-[#50956c] text-xs font-medium uppercase tracking-tighter">Note</p>
+<div class="flex items-center gap-1">
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-xl font-bold">4.8</p>
+<span class="material-symbols-outlined text-yellow-400 text-sm" style="font-variation-settings: 'FILL' 1;">star</span>
+</div>
+</div>
+</div>
+<!-- ProgressBar Daily Goal -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between items-end">
+<div class="flex flex-col">
+<p class="text-[#0e1b13] dark:text-white text-base font-bold leading-tight">Objectif quotidien</p>
+<p class="text-[#50956c] text-sm font-normal">Plus que 2 courses !</p>
+</div>
+<p class="text-[#0e1b13] dark:text-white text-lg font-bold">8<span class="text-[#50956c] font-normal text-sm">/10</span></p>
+</div>
+<div class="h-3 w-full rounded-full bg-[#d1e6d9] dark:bg-[#2a4535] overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 80%;"></div>
+</div>
+</div>
+<!-- Map Section (SectionHeader + Map) -->
+<div class="px-4 pb-2">
+<div class="flex items-center justify-between py-2">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold tracking-tight">Zones de forte demande</h3>
+<button class="text-primary text-sm font-semibold">Voir tout</button>
+</div>
+<div class="relative w-full aspect-video rounded-xl overflow-hidden border border-[#d1e6d9] dark:border-[#2a4535] shadow-sm group">
+<!-- Mock Map Image with Overlays -->
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Map showing delivery hot zones in the city" data-location="Abidjan" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuBfd41rlK6rC7XcUpV_AAWA2ciTPfkK8VA2STqmd5UPmu062Mv_vz_0Q5MuSkFlxtKTfekFxjK7_PCWmTJ6drnXDJt8XMbdMN_K7OYPo1mxtDty9CuZyZBU_pjcg__Tbbq1cYi5ghN29tBtdK5SYshVHFUqZ_4NKP2zqTufKmbhep8uCDLlSDNznhgZ0uwyRzD-99dk17zjeeKd5CP5rLXyHfelsDD4l-cRioQcjI14vWSq3VvTy_aPu0ZOirl4A5gvydpAN1QtFOtV');">
+</div>
+<!-- Heatmap Overlay simulation -->
+<div class="absolute top-1/4 left-1/3 size-24 rounded-full bg-primary/30 blur-2xl"></div>
+<div class="absolute bottom-1/3 right-1/4 size-32 rounded-full bg-orange-500/20 blur-2xl"></div>
+<!-- Map Controls -->
+<div class="absolute bottom-4 right-4 flex flex-col gap-2">
+<button class="size-10 bg-white dark:bg-[#1a2e21] rounded-lg shadow-lg flex items-center justify-center text-[#0e1b13] dark:text-white">
+<span class="material-symbols-outlined">my_location</span>
+</button>
+</div>
+<!-- Current Location Marker -->
+<div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2">
+<div class="relative">
+<div class="size-10 rounded-full bg-primary/20 animate-ping absolute -inset-0"></div>
+<div class="size-4 bg-primary rounded-full border-2 border-white relative z-10 shadow-lg"></div>
+</div>
+</div>
+</div>
+</div>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto bg-white/95 dark:bg-[#112117]/95 backdrop-blur-lg border-t border-[#d1e6d9] dark:border-[#2a4535] h-20 px-6 flex items-center justify-between z-30 nav-shadow">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">home</span>
+<span class="text-[10px] font-bold">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#50956c] dark:text-gray-400">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="text-[10px] font-medium">Courses</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#50956c] dark:text-gray-400">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Gains</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#50956c] dark:text-gray-400">
+<span class="material-symbols-outlined">monitoring</span>
+<span class="text-[10px] font-medium">Stats</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-[#50956c] dark:text-gray-400">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Paramètres</span>
+</button>
+</nav>
+<!-- iPhone Safe Area Bottom -->
+<div class="h-6 bg-white dark:bg-[#112117] fixed bottom-0 w-full max-w-[430px]"></div>
+</div>
+</body></html>

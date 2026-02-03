@@ -10,8 +10,9 @@ import {
   Linking,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
-import { getRestaurantDetail, getRestaurantMenu } from '../../api/restaurants';
+import { getRestaurantDetail, getRestaurantMenu, getRestaurantReviews } from '../../api/restaurants';
 import { addFavorite, removeFavorite, getFavorites } from '../../api/users';
 import useCartStore from '../../store/cartStore';
 
@@ -23,11 +24,16 @@ export default function RestaurantDetailScreen({ route, navigation }) {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [loading, setLoading] = useState(true);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [reviews, setReviews] = useState([]);
+  const [reviewFilter, setReviewFilter] = useState('recent'); // 'recent', 'helpful', 'photos'
+  const [showAllReviews, setShowAllReviews] = useState(false);
+  const insets = useSafeAreaInsets();
   const { addItem, getTotal, getItemCount } = useCartStore();
 
   useEffect(() => {
     loadRestaurantData();
     checkFavoriteStatus();
+    loadReviews();
   }, [restaurantId]);
 
   const checkFavoriteStatus = async () => {
@@ -40,6 +46,26 @@ export default function RestaurantDetailScreen({ route, navigation }) {
       console.error('Erreur lors de la vérification des favoris:', error);
     }
   };
+
+  const loadReviews = async () => {
+    try {
+      const response = await getRestaurantReviews(restaurantId, {
+        filter: reviewFilter,
+        limit: showAllReviews ? 50 : 5,
+      });
+      const reviewsData = response.data?.reviews || response.data?.data?.reviews || response.data || [];
+      setReviews(Array.isArray(reviewsData) ? reviewsData : []);
+    } catch (error) {
+      console.error('Erreur lors du chargement des avis:', error);
+      setReviews([]);
+    }
+  };
+
+  useEffect(() => {
+    if (restaurantId) {
+      loadReviews();
+    }
+  }, [reviewFilter, showAllReviews, restaurantId]);
 
   const handleToggleFavorite = async () => {
     try {
@@ -64,12 +90,22 @@ export default function RestaurantDetailScreen({ route, navigation }) {
       ]);
       const restaurantData = restaurantRes.data;
       setRestaurant(restaurantData);
-      setMenu(menuRes.data?.menu_items || []);
-      const categoryList = menuRes.data?.categories || [];
+      
+      // L'API retourne les données dans menuRes.data.data
+      const menuData = menuRes.data?.data || menuRes.data;
+      const categoryList = menuData?.categories || [];
+      
+      // Extraire tous les items de toutes les catégories
+      const allItems = categoryList.flatMap(cat => 
+        (cat.items || []).map(item => ({
+          ...item,
+          category_id: cat.id,
+          category_name: cat.name
+        }))
+      );
+      
+      setMenu(allItems);
       setCategories(categoryList);
-      if (categoryList[0]) {
-        setSelectedCategory(categoryList[0].id);
-      }
       
       // Vérifier si le restaurant est fermé
       if (restaurantData.is_closed || restaurantData.status === 'closed') {
@@ -83,6 +119,32 @@ export default function RestaurantDetailScreen({ route, navigation }) {
   };
 
   const handleAddToCart = (item) => {
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RestaurantDetailScreen.js:95',message:'handleAddToCart called',data:{restaurantId:restaurantId,restaurantExists:!!restaurant,restaurantIdFromRestaurant:restaurant?.id||'NULL',restaurantName:restaurant?.name||'NULL',itemId:item.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
+    if (!restaurant) {
+      Alert.alert('Erreur', 'Les informations du restaurant ne sont pas encore chargées. Veuillez réessayer.');
+      return;
+    }
+
+    const currentRestaurantId = restaurant.id || restaurantId;
+    const currentRestaurantName = restaurant.name || 'Restaurant';
+
+    // Si l'article a des options de personnalisation, naviguer vers l'écran de personnalisation
+    if (item.customization_options && item.customization_options.length > 0) {
+      navigation.navigate('CustomizeDish', {
+        dish: {
+          ...item,
+          restaurant_id: currentRestaurantId,
+          restaurant_name: currentRestaurantName,
+        },
+        restaurantId: currentRestaurantId,
+        restaurantName: currentRestaurantName,
+      });
+      return;
+    }
+
+    // Sinon, ajouter directement au panier
     const result = addItem(
       {
         id: item.id,
@@ -91,8 +153,8 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         image_url: item.image_url,
         customizations: {},
       },
-      restaurant.id,
-      restaurant.name
+      currentRestaurantId,
+      currentRestaurantName
     );
 
     if (result?.requiresConfirm) {
@@ -113,15 +175,19 @@ export default function RestaurantDetailScreen({ route, navigation }) {
                   image_url: item.image_url,
                   customizations: {},
                 },
-                restaurant.id,
-                restaurant.name,
+                currentRestaurantId,
+                currentRestaurantName,
                 { force: true }
               );
             },
           },
         ]
       );
+      return;
     }
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RestaurantDetailScreen.js:135',message:'Item added to cart',data:{result:result?.added||result?.updated||'other',restaurantId:currentRestaurantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
   };
 
   const handleCallRestaurant = () => {
@@ -158,7 +224,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     <ScrollView style={styles.container}>
       <View style={styles.heroWrapper}>
         <Image
-          source={{ uri: restaurant.image_url || 'https://via.placeholder.com/400' }}
+          source={{ uri: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/400' }}
           style={styles.headerImage}
         />
         <View style={styles.heroOverlay} />
@@ -288,7 +354,22 @@ export default function RestaurantDetailScreen({ route, navigation }) {
               <TouchableOpacity
                 key={item.id}
                 style={styles.menuItem}
-                onPress={() => navigation.navigate('DishInformation', { dish: item })}
+                onPress={() => {
+                  // #region agent log
+                  fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RestaurantDetailScreen.js:316',message:'Navigating to DishInformation',data:{restaurantId:restaurantId,restaurantExists:!!restaurant,restaurantIdFromRestaurant:restaurant?.id||'NULL',restaurantName:restaurant?.name||'NULL',itemId:item.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
+                  // #endregion
+                  const currentRestaurantId = restaurant?.id || restaurantId;
+                  const currentRestaurantName = restaurant?.name || 'Restaurant';
+                  navigation.navigate('DishInformation', { 
+                    dish: {
+                      ...item,
+                      restaurant_id: currentRestaurantId,
+                      restaurant_name: currentRestaurantName,
+                    },
+                    restaurantId: currentRestaurantId,
+                    restaurantName: currentRestaurantName,
+                  });
+                }}
               >
                 <View style={styles.menuItemContent}>
                   <View style={styles.menuItemInfo}>
@@ -319,18 +400,172 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         </>
       )}
 
+      {/* Section Avis et notes améliorée */}
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Avis et notes</Text>
-        <View style={styles.reviewCard}>
-          <Text style={styles.reviewTitle}>Note globale</Text>
-          <Text style={styles.reviewValue}>{restaurant.rating || '4.5'} / 5</Text>
-          <Text style={styles.reviewSub}>Basé sur les avis clients</Text>
+        
+        {/* Note globale avec jauge visuelle */}
+        <View style={styles.ratingCard}>
+          <View style={styles.ratingHeader}>
+            <View style={styles.ratingMain}>
+              <Text style={styles.ratingValue}>{restaurant.rating || '4.5'}</Text>
+              <View style={styles.ratingStars}>
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <Ionicons
+                    key={star}
+                    name={star <= Math.round(restaurant.rating || 4.5) ? 'star' : 'star-outline'}
+                    size={20}
+                    color={COLORS.warning}
+                  />
+                ))}
+              </View>
+              <Text style={styles.ratingCount}>
+                {reviews.length > 0 ? `${reviews.length} avis` : 'Aucun avis'}
+              </Text>
+            </View>
+          </View>
+
+          {/* Répartition des notes */}
+          {reviews.length > 0 && (
+            <View style={styles.ratingDistribution}>
+              {[5, 4, 3, 2, 1].map((rating) => {
+                const count = reviews.filter(r => Math.round(r.rating || r.restaurant_rating) === rating).length;
+                const percentage = reviews.length > 0 ? (count / reviews.length) * 100 : 0;
+                return (
+                  <View key={rating} style={styles.ratingBarRow}>
+                    <Text style={styles.ratingBarLabel}>{rating}★</Text>
+                    <View style={styles.ratingBarContainer}>
+                      <View style={[styles.ratingBar, { width: `${percentage}%` }]} />
+                    </View>
+                    <Text style={styles.ratingBarCount}>{count}</Text>
+                  </View>
+                );
+              })}
+            </View>
+          )}
         </View>
-        <View style={styles.reviewCard}>
-          <Text style={styles.reviewTitle}>Commentaires récents</Text>
-          <Text style={styles.reviewText}>“Excellent service et plats savoureux.”</Text>
-          <Text style={styles.reviewMeta}>Jean D. • Il y a 2 jours</Text>
-        </View>
+
+        {/* Filtres d'avis */}
+        {reviews.length > 0 && (
+          <View style={styles.reviewFilters}>
+            <TouchableOpacity
+              style={[styles.filterChip, reviewFilter === 'recent' && styles.filterChipActive]}
+              onPress={() => setReviewFilter('recent')}
+            >
+              <Text style={[styles.filterChipText, reviewFilter === 'recent' && styles.filterChipTextActive]}>
+                Plus récents
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterChip, reviewFilter === 'helpful' && styles.filterChipActive]}
+              onPress={() => setReviewFilter('helpful')}
+            >
+              <Text style={[styles.filterChipText, reviewFilter === 'helpful' && styles.filterChipTextActive]}>
+                Plus utiles
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.filterChip, reviewFilter === 'photos' && styles.filterChipActive]}
+              onPress={() => setReviewFilter('photos')}
+            >
+              <Text style={[styles.filterChipText, reviewFilter === 'photos' && styles.filterChipTextActive]}>
+                Avec photos
+              </Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {/* Liste des avis */}
+        {reviews.length > 0 ? (
+          <View style={styles.reviewsList}>
+            {(showAllReviews ? reviews : reviews.slice(0, 3)).map((review, index) => (
+              <View key={review.id || index} style={styles.reviewItem}>
+                <View style={styles.reviewHeader}>
+                  <View style={styles.reviewUser}>
+                    <View style={styles.reviewAvatar}>
+                      <Text style={styles.reviewAvatarText}>
+                        {(review.user?.first_name?.[0] || review.user?.name?.[0] || 'U').toUpperCase()}
+                      </Text>
+                    </View>
+                    <View style={styles.reviewUserInfo}>
+                      <Text style={styles.reviewUserName}>
+                        {review.user?.first_name && review.user?.last_name
+                          ? `${review.user.first_name} ${review.user.last_name[0]}.`
+                          : review.user?.name || 'Client'}
+                      </Text>
+                      <View style={styles.reviewRating}>
+                        {[1, 2, 3, 4, 5].map((star) => (
+                          <Ionicons
+                            key={star}
+                            name={star <= (review.rating || review.restaurant_rating || 0) ? 'star' : 'star-outline'}
+                            size={12}
+                            color={COLORS.warning}
+                          />
+                        ))}
+                      </View>
+                    </View>
+                  </View>
+                  <Text style={styles.reviewDate}>
+                    {review.created_at
+                      ? new Date(review.created_at).toLocaleDateString('fr-FR', {
+                          day: 'numeric',
+                          month: 'short',
+                        })
+                      : 'Récent'}
+                  </Text>
+                </View>
+                {review.comment || review.restaurant_comment ? (
+                  <Text style={styles.reviewComment}>
+                    {review.comment || review.restaurant_comment}
+                  </Text>
+                ) : null}
+                {review.photos && review.photos.length > 0 && (
+                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.reviewPhotos}>
+                    {review.photos.map((photo, photoIndex) => (
+                      <Image
+                        key={photoIndex}
+                        source={{ uri: photo }}
+                        style={styles.reviewPhoto}
+                      />
+                    ))}
+                  </ScrollView>
+                )}
+                {review.restaurant_response && (
+                  <View style={styles.restaurantResponse}>
+                    <Text style={styles.restaurantResponseLabel}>Réponse du restaurant :</Text>
+                    <Text style={styles.restaurantResponseText}>{review.restaurant_response}</Text>
+                  </View>
+                )}
+              </View>
+            ))}
+            {reviews.length > 3 && !showAllReviews && (
+              <TouchableOpacity
+                style={styles.showMoreButton}
+                onPress={() => setShowAllReviews(true)}
+              >
+                <Text style={styles.showMoreText}>
+                  Voir tous les avis ({reviews.length})
+                </Text>
+                <Ionicons name="chevron-down" size={16} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+            {showAllReviews && reviews.length > 3 && (
+              <TouchableOpacity
+                style={styles.showMoreButton}
+                onPress={() => setShowAllReviews(false)}
+              >
+                <Text style={styles.showMoreText}>Voir moins</Text>
+                <Ionicons name="chevron-up" size={16} color={COLORS.primary} />
+              </TouchableOpacity>
+            )}
+          </View>
+        ) : (
+          <View style={styles.noReviews}>
+            <Ionicons name="star-outline" size={48} color={COLORS.textLight} />
+            <Text style={styles.noReviewsText}>Aucun avis pour le moment</Text>
+            <Text style={styles.noReviewsSubtext}>Soyez le premier à noter ce restaurant !</Text>
+          </View>
+        )}
       </View>
 
       <View style={styles.section}>
@@ -341,10 +576,10 @@ export default function RestaurantDetailScreen({ route, navigation }) {
       </View>
 
       {getItemCount() > 0 && (
-        <View style={styles.cartBar}>
+        <View style={[styles.cartBar, { bottom: insets.bottom + 24 }]}>
           <TouchableOpacity
             style={styles.cartButton}
-            onPress={() => navigation.navigate('ShoppingCart')}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Cart' })}
           >
             <View style={styles.cartCount}>
               <Text style={styles.cartCountText}>{getItemCount()}</Text>
@@ -545,7 +780,7 @@ const styles = StyleSheet.create({
   },
   menuContainer: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 140, // Espace pour le cart bar + safe area
   },
   section: {
     marginHorizontal: 16,
@@ -557,38 +792,212 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     marginBottom: 8,
   },
-  reviewCard: {
+  ratingCard: {
     backgroundColor: COLORS.white,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
-    padding: 12,
+    padding: 16,
+    marginBottom: 12,
+  },
+  ratingHeader: {
+    marginBottom: 16,
+  },
+  ratingMain: {
+    alignItems: 'center',
+  },
+  ratingValue: {
+    fontSize: 48,
+    fontWeight: '800',
+    color: COLORS.text,
     marginBottom: 8,
   },
-  reviewTitle: {
+  ratingStars: {
+    flexDirection: 'row',
+    gap: 4,
+    marginBottom: 8,
+  },
+  ratingCount: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  ratingDistribution: {
+    marginTop: 16,
+    gap: 8,
+  },
+  ratingBarRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  ratingBarLabel: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    textTransform: 'uppercase',
+    width: 24,
+  },
+  ratingBarContainer: {
+    flex: 1,
+    height: 8,
+    backgroundColor: COLORS.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  ratingBar: {
+    height: '100%',
+    backgroundColor: COLORS.warning,
+    borderRadius: 4,
+  },
+  ratingBarCount: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    width: 24,
+    textAlign: 'right',
+  },
+  reviewFilters: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 16,
+    flexWrap: 'wrap',
+  },
+  filterChip: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  filterChipActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  filterChipText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  filterChipTextActive: {
+    color: COLORS.white,
+  },
+  reviewsList: {
+    gap: 12,
+  },
+  reviewItem: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 16,
+  },
+  reviewHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    marginBottom: 12,
+  },
+  reviewUser: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    flex: 1,
+  },
+  reviewAvatar: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  reviewAvatarText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  reviewUserInfo: {
+    flex: 1,
+  },
+  reviewUserName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
     marginBottom: 4,
   },
-  reviewValue: {
-    fontSize: 18,
+  reviewRating: {
+    flexDirection: 'row',
+    gap: 2,
+  },
+  reviewDate: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  reviewComment: {
+    fontSize: 14,
+    color: COLORS.text,
+    lineHeight: 20,
+    marginBottom: 12,
+  },
+  reviewPhotos: {
+    marginBottom: 12,
+  },
+  reviewPhoto: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    marginRight: 8,
+    backgroundColor: COLORS.border,
+  },
+  restaurantResponse: {
+    marginTop: 12,
+    padding: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: 8,
+    borderLeftWidth: 3,
+    borderLeftColor: COLORS.primary,
+  },
+  restaurantResponseLabel: {
+    fontSize: 12,
     fontWeight: '700',
     color: COLORS.text,
     marginBottom: 4,
+    textTransform: 'uppercase',
   },
-  reviewSub: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
-  reviewText: {
+  restaurantResponseText: {
     fontSize: 13,
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  reviewMeta: {
-    fontSize: 11,
     color: COLORS.textSecondary,
+    lineHeight: 18,
+  },
+  showMoreButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 12,
+    gap: 8,
+  },
+  showMoreText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.primary,
+  },
+  noReviews: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    padding: 32,
+    alignItems: 'center',
+  },
+  noReviewsText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginTop: 16,
+    marginBottom: 8,
+  },
+  noReviewsSubtext: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
   menuItem: {
     backgroundColor: COLORS.white,
@@ -646,7 +1055,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 16,
     right: 16,
-    bottom: 24,
+    bottom: 24, // Sera ajusté dynamiquement avec insets
   },
   cartButton: {
     backgroundColor: COLORS.primary,

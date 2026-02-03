@@ -147,32 +147,78 @@ const OrderDetails = () => {
           </div>
         </div>
 
+        {/* Order Summary Card */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <div className="flex flex-wrap items-center gap-4 justify-between">
+            <div>
+              <p className="text-sm text-slate-500">Numéro de commande</p>
+              <p className="text-2xl font-bold text-slate-900 dark:text-white">#{order.order_number || order.id?.slice(0, 8)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Date</p>
+              <p className="text-lg font-semibold text-slate-900 dark:text-white">{formatDateShort(order.placed_at || order.created_at)}</p>
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Statut</p>
+              <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${
+                order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
+                order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
+                order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
+                order.status === 'delivering' ? 'bg-purple-100 text-purple-700' :
+                'bg-amber-100 text-amber-700'
+              }`}>
+                {order.status === 'delivered' ? 'Livrée' :
+                 order.status === 'cancelled' ? 'Annulée' :
+                 order.status === 'preparing' ? 'En préparation' :
+                 order.status === 'delivering' ? 'En livraison' :
+                 order.status === 'ready' ? 'Prête' :
+                 order.status}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Paiement</p>
+              <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${
+                order.payment_status === 'paid' ? 'bg-emerald-100 text-emerald-700' :
+                order.payment_status === 'failed' ? 'bg-red-100 text-red-700' :
+                'bg-amber-100 text-amber-700'
+              }`}>
+                {order.payment_status === 'paid' ? 'Payé' :
+                 order.payment_status === 'failed' ? 'Échoué' :
+                 'En attente'}
+              </span>
+            </div>
+            <div>
+              <p className="text-sm text-slate-500">Total</p>
+              <p className="text-2xl font-bold text-primary">{formatCurrency(order.total_amount || order.total || 0)}</p>
+            </div>
+          </div>
+        </div>
+
         {/* Info Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           {/* Customer Info */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
-              Customer Info
+              Client
             </h3>
             <div className="flex items-center gap-4 mb-4">
-              <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center text-primary text-xl font-bold">
+              <div className="w-12 h-12 rounded-xl bg-primary/20 flex items-center justify-center text-primary text-lg font-bold">
                 {order.customer_name?.charAt(0) || 'C'}
               </div>
               <div>
-                <h4 className="font-bold text-base text-slate-900 dark:text-white">
+                <h4 
+                  className="font-bold text-sm text-slate-900 dark:text-white cursor-pointer hover:text-primary"
+                  onClick={() => order.user_id && navigate(`/users/${order.user_id}`)}
+                >
                   {order.customer_name || 'N/A'}
                 </h4>
-                <p className="text-sm text-slate-500">{order.customer_phone || 'N/A'}</p>
+                <p className="text-xs text-slate-500">{order.customer_phone || 'N/A'}</p>
               </div>
             </div>
             <div className="space-y-2 text-sm">
               <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <span className="material-symbols-outlined text-lg">email</span>
-                <span>{order.customer_email || 'N/A'}</span>
-              </div>
-              <div className="flex items-center gap-2 text-slate-600 dark:text-slate-400">
-                <span className="material-symbols-outlined text-lg">phone</span>
-                <span>{order.customer_phone || 'N/A'}</span>
+                <span className="material-symbols-outlined text-base">email</span>
+                <span className="text-xs truncate">{order.customer_email || 'N/A'}</span>
               </div>
             </div>
           </div>
@@ -180,32 +226,132 @@ const OrderDetails = () => {
           {/* Restaurant Info */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
-              Restaurant Info
+              Restaurant
             </h3>
             <div className="space-y-3">
-              <div>
-                <h4 className="font-bold text-base text-slate-900 dark:text-white mb-1">
-                  {order.restaurant_name || 'N/A'}
-                </h4>
-              </div>
-              <div className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">location_on</span>
+              <h4 
+                className="font-bold text-sm text-slate-900 dark:text-white cursor-pointer hover:text-primary"
+                onClick={() => order.restaurant_id && navigate(`/restaurants/${order.restaurant_id}`)}
+              >
+                {order.restaurant_name || 'N/A'}
+              </h4>
+              <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex items-start gap-2">
+                  <span className="material-symbols-outlined text-base mt-0.5">location_on</span>
                   <span>{order.restaurant_address || 'N/A'}</span>
                 </div>
                 <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-lg">email</span>
-                  <span>{order.restaurant_email || 'N/A'}</span>
+                  <span className="material-symbols-outlined text-base">phone</span>
+                  <span>{order.restaurant_phone || 'N/A'}</span>
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Timeline & Actions */}
+          {/* Delivery Info */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
-              Timeline & Actions
+              Livraison
             </h3>
+            <div className="space-y-3">
+              {order.delivery_person_id ? (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">delivery_dining</span>
+                  </div>
+                  <div>
+                    <p 
+                      className="text-sm font-semibold text-slate-900 dark:text-white cursor-pointer hover:text-primary"
+                      onClick={() => navigate(`/drivers/${order.delivery_person_id}`)}
+                    >
+                      {order.delivery_first_name || ''} {order.delivery_last_name || 'Livreur assigné'}
+                    </p>
+                    <p className="text-xs text-slate-500">{order.delivery_phone || ''}</p>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-amber-600">Aucun livreur assigné</p>
+              )}
+              <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                <div className="flex items-start gap-2">
+                  <span className="material-symbols-outlined text-base mt-0.5">pin_drop</span>
+                  <span>{
+                    typeof order.delivery_address === 'object' 
+                      ? (order.delivery_address?.address_line || order.delivery_address?.label || order.delivery_address?.street || `${order.delivery_address?.district || ''} ${order.delivery_address?.city || ''}`.trim())
+                      : (order.delivery_address || order.delivery_location?.address || 'Adresse non définie')
+                  }</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="material-symbols-outlined text-base">payments</span>
+                  <span>Frais: {formatCurrency(order.delivery_fee || 0)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Payment Info */}
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+              Paiement
+            </h3>
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+                  <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">
+                    {order.payment_method === 'cash' ? 'money' : 'credit_card'}
+                  </span>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-white">
+                    {order.payment_method === 'cash' ? 'Espèces' : 
+                     order.payment_method === 'mobile_money' ? 'Mobile Money' :
+                     order.payment_method || 'Non défini'}
+                  </p>
+                </div>
+              </div>
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Sous-total</span>
+                  <span className="font-semibold">{formatCurrency(order.subtotal || (order.total - (order.delivery_fee || 0)) || 0)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-slate-500">Frais de livraison</span>
+                  <span className="font-semibold">{formatCurrency(order.delivery_fee || 0)}</span>
+                </div>
+                {order.discount > 0 && (
+                  <div className="flex justify-between text-emerald-600">
+                    <span>Réduction</span>
+                    <span className="font-semibold">-{formatCurrency(order.discount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                  <span className="text-slate-900 dark:text-white font-bold">Total</span>
+                  <span className="font-bold text-primary">{formatCurrency(order.total_amount || order.total || 0)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Special Instructions */}
+        {order.special_instructions && (
+          <div className="bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800 p-4">
+            <div className="flex items-start gap-3">
+              <span className="material-symbols-outlined text-amber-600">info</span>
+              <div>
+                <p className="text-sm font-bold text-amber-800 dark:text-amber-400">Instructions spéciales</p>
+                <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">{order.special_instructions}</p>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Timeline & Actions */}
+        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+          <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+            Timeline & Actions
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             
             {/* Timeline */}
             <div className="space-y-4 mb-6">

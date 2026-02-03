@@ -74,4 +74,18 @@ export const financesAPI = {
     });
     return response.data;
   },
+
+  // Remises espèces (livreurs remettent l'argent à l'agence ou dépôt sur compte)
+  getCashRemittances: async (params = {}) => {
+    const response = await apiClient.get('/admin/finances/cash-remittances', { params });
+    return response.data;
+  },
+  confirmCashRemittance: async (id, notes) => {
+    const response = await apiClient.put(`/admin/finances/cash-remittances/${id}/confirm`, { notes });
+    return response.data;
+  },
+  rejectCashRemittance: async (id, reason) => {
+    const response = await apiClient.put(`/admin/finances/cash-remittances/${id}/reject`, { reason });
+    return response.data;
+  },
 };

@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Détails de la commande - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1c110d] dark:text-white pb-32">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="text-[#1c110d] dark:text-white flex size-10 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Commande #8829</h2>
+<div class="flex min-w-10 items-center justify-end">
+<span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider">En attente</span>
+</div>
+</div>
+</header>
+<main class="max-w-md mx-auto">
+<!-- Section: Client Information -->
+<section>
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-6">Informations Client</h3>
+<!-- ListItem: Client Profile -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1e18] mx-4 rounded-xl px-4 min-h-[72px] py-3 justify-between shadow-sm">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-14 w-14 border-2 border-primary/20" data-alt="Portrait photo of Jean Dupont" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBCG4eGeU5lEZG9X5muyg1S_64sod9n5Cl6RH2Eff-ElKzGdiR6ZyHGCmSoZSvl9t8S5NaWz6NjODy90LYOu-alkhXSdOiIi-Y1GuRXSrIEKHdgVYtHx3HCdAOxziBaK6fUn_Tf9sJ2_AssedR0lylGnZA-7eV6zTNi3E6adr8nVtqapMuJpm2_TEYo63l-QHeBYW2DtfGENCEhnTrJ6Y2RdLDOoipvE1Amps-BT1zaySbf2pMT5aWgIheQjWuDg4KvCB6Gv4wsDS6_");'>
+</div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-bold leading-normal line-clamp-1">Jean Dupont</p>
+<p class="text-[#9e5e47] dark:text-gray-400 text-sm font-normal leading-normal line-clamp-1">+33 6 12 34 56 78</p>
+</div>
+</div>
+<div class="shrink-0">
+<button class="flex min-w-[44px] cursor-pointer items-center justify-center overflow-hidden rounded-full h-11 w-11 bg-primary text-white">
+<span class="material-symbols-outlined">call</span>
+</button>
+</div>
+</div>
+<!-- ActionPanel: Address -->
+<div class="p-4">
+<div class="flex flex-1 flex-col items-start justify-between gap-4 rounded-xl border border-[#e9d5ce] dark:border-gray-700 bg-white dark:bg-[#2d1e18] p-5">
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">location_on</span>
+<p class="text-[#1c110d] dark:text-white text-base font-bold leading-tight">Adresse de livraison</p>
+</div>
+<p class="text-[#9e5e47] dark:text-gray-400 text-base font-normal leading-normal ml-6">123 Rue de Rivoli, 75001 Paris</p>
+</div>
+<a class="text-sm font-bold leading-normal tracking-[0.015em] flex items-center gap-2 text-primary ml-6" data-location="Paris" href="#">
+                        Voir sur la carte
+                        <span class="material-symbols-outlined text-sm">open_in_new</span>
+</a>
+</div>
+</div>
+</section>
+<!-- Section: Ordered Items -->
+<section>
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-4">Articles commandés</h3>
+<div class="space-y-1">
+<!-- Item 1 -->
+<div class="flex items-center gap-4 bg-transparent px-4 py-3 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg h-16 w-16" data-alt="Delicious classic burger with cheese" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuD1nxjIXkD4fLJZhI0Pv3TVC-Zm5w4djilKAnLe4KfkhnFn6s_06Ndte0emO6r3rhD7wfvnhVlMgYfIwNoMYSCIqz6vgIAnqUKRs_LjTcpvIh82iNYWItf9VvitJud7fG2bKhu57J-ueBdwj4lPtmb33LMQERQx9FHws0aHyrkuU1lZXMMiC6gXC6kdmG5rN2-lXHnMIZM1Aa9NWEbIGvP7aOgnhZyrmtHv7CKDSd_-MLatm5FtEx345RTlPNKvQB-JoG95uUhzu5Pn");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-normal">Burger Classic</p>
+<p class="text-[#9e5e47] dark:text-gray-400 text-sm font-normal leading-normal">Sans oignons, Sauce BBQ</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold">x2</div>
+<p class="text-[#1c110d] dark:text-white font-medium">30.00 €</p>
+</div>
+</div>
+<!-- Item 2 -->
+<div class="flex items-center gap-4 bg-transparent px-4 py-3 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg h-16 w-16" data-alt="Homemade french fries in a bowl" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuA8eaSSG2dWqGTyiLob81eyHEGec5RPR4fyEvimggCHWQY0C5bq73edKJI7oPqftFL_DojHWFP10uHDYYpvKf-LGZRE0NSn7wyrM2ZZU0JIlZjE04rH2Y3-3oa3VsitAnt-bjQyoAWPELAPbKtuHNxByfdPYmqSiEnF8aShEuOm0rY6qDOcR97lsC7Imzap99dAxpzKztIJ5Fx39go5Egf70oi_uJ9a5DDkgTktND_NmKpajkhCrZixfH9x1Uc_Pt0j0KSJwQVIAFUj");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-normal">Frites Maison</p>
+<p class="text-[#9e5e47] dark:text-gray-400 text-sm font-normal leading-normal">Format XL</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold">x1</div>
+<p class="text-[#1c110d] dark:text-white font-medium">5.00 €</p>
+</div>
+</div>
+<!-- Item 3 -->
+<div class="flex items-center gap-4 bg-transparent px-4 py-3 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-lg h-16 w-16" data-alt="Cold bottle of soda" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAeoyYdW7fAmtTFWgGMyYjXjtHEpI0fBX7XhxzkSIrCfbqEmBKMGUECqhAI-4l-tLgL1gkqLBUJbxU-Vs9PdY_BVmVdZ7bbOHvbQKkPRicnzFGDzGSr3sLxLMtzPX_2oh2IVIH1enbQDVuIe43ytywC543nNMPAWdQl_d1x5IjBTQXg72jADeDBQKP8R3VZgWmj4Q3ehHTEKHUkN_0_6aTIZ9rJK0tv8M7gAmL3cxeTGW68gquyaMUcMC1uBXnCU2RgT_2ctS2563y6");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-white text-base font-semibold leading-normal">Boisson 33cl</p>
+<p class="text-[#9e5e47] dark:text-gray-400 text-sm font-normal leading-normal">Coca-Cola Zero</p>
+</div>
+</div>
+<div class="flex flex-col items-end gap-1">
+<div class="bg-primary/10 text-primary px-2 py-0.5 rounded text-xs font-bold">x3</div>
+<p class="text-[#1c110d] dark:text-white font-medium">10.00 €</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Section: Financial Summary -->
+<section class="mt-6 mb-8 px-4">
+<div class="bg-white dark:bg-[#2d1e18] rounded-2xl p-6 shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="space-y-3">
+<div class="flex justify-between items-center">
+<p class="text-[#9e5e47] dark:text-gray-400 text-sm font-medium">Total Commande</p>
+<p class="text-[#1c110d] dark:text-white text-sm font-semibold">45.00 €</p>
+</div>
+<div class="flex justify-between items-center">
+<p class="text-[#9e5e47] dark:text-gray-400 text-sm font-medium">Commission BAIBEBALO (15%)</p>
+<p class="text-red-500 text-sm font-semibold">-6.75 €</p>
+</div>
+<div class="pt-3 border-t border-dashed border-gray-200 dark:border-gray-700 mt-3">
+<div class="flex justify-between items-center">
+<p class="text-[#1c110d] dark:text-white text-lg font-bold">Revenu Net</p>
+<p class="text-primary text-2xl font-bold">38.25 €</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<div class="h-10"></div>
+</main>
+<!-- Sticky Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800">
+<div class="max-w-md mx-auto pb-safe">
+<button class="w-full flex items-center justify-center gap-2 h-14 bg-primary text-white text-lg font-bold rounded-xl shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-[0.98] transition-all">
+<span class="material-symbols-outlined">restaurant</span>
+                Démarrer la préparation
+            </button>
+</div>
+</div>
+</body></html>

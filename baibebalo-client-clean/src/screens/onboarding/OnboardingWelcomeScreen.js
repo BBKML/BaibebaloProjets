@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,12 +15,13 @@ const { width } = Dimensions.get('window');
 
 export default function OnboardingWelcomeScreen({ navigation }) {
   const [currentPage, setCurrentPage] = useState(0);
+  const scrollViewRef = useRef(null);  // ✅ Référence au ScrollView
 
   const onboardingPages = [
     {
       title: 'Bienvenue sur',
-      titleHighlight: 'BAIBEBALO',
-      subtitle: 'Vos plats préférés livrés chez vous en un clic.',
+      titleHighlight: 'BAIBEBALO  KORHOGO',
+      subtitle: 'Vos plats préférés livrés chez vous en un clic partout à Korhogo.',
       image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=400',
     },
     {
@@ -39,7 +40,14 @@ export default function OnboardingWelcomeScreen({ navigation }) {
 
   const handleNext = () => {
     if (currentPage < onboardingPages.length - 1) {
-      setCurrentPage(currentPage + 1);
+      const nextPage = currentPage + 1;
+      setCurrentPage(nextPage);
+      
+      // ✅ Faire défiler vers la page suivante
+      scrollViewRef.current?.scrollTo({
+        x: nextPage * width,
+        animated: true,
+      });
     } else {
       // Fin de l'onboarding, naviguer vers l'authentification
       navigation.replace('PhoneEntry');
@@ -52,7 +60,6 @@ export default function OnboardingWelcomeScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
-      {/* Header avec bouton Passer */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleSkip} style={styles.skipButton}>
           <Text style={styles.skipText}>Passer</Text>
@@ -60,6 +67,7 @@ export default function OnboardingWelcomeScreen({ navigation }) {
       </View>
 
       <ScrollView
+        ref={scrollViewRef}  // ✅ Ajouter la référence
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -71,7 +79,6 @@ export default function OnboardingWelcomeScreen({ navigation }) {
       >
         {onboardingPages.map((page, index) => (
           <View key={index} style={styles.page}>
-            {/* Image Hero */}
             <View style={styles.imageContainer}>
               <Image
                 source={{ uri: page.image }}
@@ -81,7 +88,6 @@ export default function OnboardingWelcomeScreen({ navigation }) {
               <View style={styles.imageOverlay} />
             </View>
 
-            {/* Contenu texte */}
             <View style={styles.content}>
               <Text style={styles.title}>
                 {page.title}{' '}
@@ -129,7 +135,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   header: {
-    paddingTop: 50,
+    paddingTop: 36,
     paddingHorizontal: 24,
     paddingBottom: 16,
     alignItems: 'flex-end',
@@ -154,7 +160,7 @@ const styles = StyleSheet.create({
   imageContainer: {
     width: '100%',
     aspectRatio: 4 / 5,
-    borderRadius: 12,
+    borderRadius: 16,
     overflow: 'hidden',
     marginTop: 16,
     shadowColor: '#000',
@@ -176,12 +182,12 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(0, 0, 0, 0.4)',
   },
   content: {
-    marginTop: 40,
+    marginTop: 32,
     alignItems: 'center',
     paddingHorizontal: 16,
   },
   title: {
-    fontSize: 28,
+    fontSize: 30,
     fontWeight: '800',
     color: COLORS.text,
     textAlign: 'center',
@@ -202,7 +208,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: 8,
+    gap: 6,
     paddingVertical: 24,
   },
   indicator: {
@@ -212,7 +218,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.border,
   },
   indicatorActive: {
-    width: 32,
+    width: 28,
     backgroundColor: COLORS.primary,
   },
   footer: {

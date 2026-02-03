@@ -9,10 +9,12 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { getAddresses, deleteAddress } from '../../api/users';
 
 export default function ManageAddressesScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -195,7 +197,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     padding: 16,
-    paddingBottom: 120,
+    paddingBottom: 140, // Espace pour les boutons + safe area
   },
   addressCard: {
     backgroundColor: COLORS.white,

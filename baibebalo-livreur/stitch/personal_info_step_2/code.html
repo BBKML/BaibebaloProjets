@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Personal Info Step 2 - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col font-display">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-10 bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-[480px] mx-auto w-full">
+<div class="flex items-center gap-3">
+<button class="text-gray-800 dark:text-gray-100 flex items-center justify-center size-10 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-full transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-tight">Informations personnelles</h2>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-[480px] mx-auto w-full pb-32">
+<!-- Progress Bar Section -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between items-center">
+<p class="text-gray-700 dark:text-gray-300 text-sm font-medium">Progression de l'inscription</p>
+<p class="text-primary text-sm font-bold">1/5</p>
+</div>
+<div class="rounded-full bg-primary/20 h-2.5 overflow-hidden">
+<div class="h-full bg-primary rounded-full" style="width: 20%;"></div>
+</div>
+</div>
+<!-- Profile Photo Section -->
+<div class="flex p-6">
+<div class="flex w-full flex-col gap-6 items-center">
+<div class="relative group">
+<div class="bg-gray-200 dark:bg-gray-800 bg-center bg-no-repeat aspect-square bg-cover rounded-full h-36 w-36 border-4 border-white dark:border-gray-700 shadow-sm flex items-center justify-center overflow-hidden" data-alt="Placeholder for user profile photo upload" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAoXOpxXqwhcAFGkHy0q8iKEnkfL3QPSaTf-e4cq-AhkZZq_wDGXr8nRf-ngMTc--dln9sql2Q1FPxu_zqgYO8MYSMTDdz4-KXX_40pjUrstK0nMxUhac2B-aCpyMoLn2ZfzwGygs869f5MRenzqGRE0jyzwpX1Ke0ZhrRW3Lvn-FKkYHKJ7gZqNBWgY44lzbxRuL-LFaRezpMtQ3hDK1yyUUaUjHT0HOPJEIy7ycklyCaGQlD9LGB9tUSbxYUjuOFFQy-KZP2P6W5W");'>
+<!-- Overlay icon if image is missing -->
+<div class="absolute inset-0 bg-black/10 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+<span class="material-symbols-outlined text-white text-3xl">photo_camera</span>
+</div>
+</div>
+<div class="absolute bottom-1 right-1 bg-primary text-white p-2 rounded-full border-2 border-white dark:border-gray-900 shadow-lg">
+<span class="material-symbols-outlined text-sm block">add_a_photo</span>
+</div>
+</div>
+<div class="flex flex-col items-center justify-center gap-1">
+<p class="text-gray-900 dark:text-white text-xl font-bold tracking-tight text-center">Photo de profil</p>
+<p class="text-gray-500 dark:text-gray-400 text-sm font-normal text-center max-w-[280px]">Ajoutez une photo claire pour votre profil de livreur BAIBEBALO</p>
+</div>
+<button class="flex min-w-[200px] cursor-pointer items-center justify-center gap-2 overflow-hidden rounded-xl h-12 px-6 bg-primary/10 dark:bg-primary/20 text-primary text-sm font-bold transition-all hover:bg-primary/20 active:scale-95">
+<span class="material-symbols-outlined text-xl">camera_alt</span>
+<span>Prendre une photo</span>
+</button>
+</div>
+</div>
+<!-- Form Inputs Section -->
+<div class="space-y-1 px-4">
+<!-- Adresse -->
+<div class="flex flex-col gap-1.5 py-2">
+<label class="text-gray-900 dark:text-gray-100 text-sm font-semibold px-1">Adresse de résidence</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">home</span>
+<input class="flex w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-14 pl-12 pr-4 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600" placeholder="Ex: 123 Rue de la République" type="text"/>
+</div>
+</div>
+<!-- Quartier -->
+<div class="flex flex-col gap-1.5 py-2">
+<label class="text-gray-900 dark:text-gray-100 text-sm font-semibold px-1">Quartier</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">location_city</span>
+<input class="flex w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-14 pl-12 pr-4 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600" placeholder="Votre quartier" type="text"/>
+</div>
+</div>
+<!-- Ville -->
+<div class="flex flex-col gap-1.5 py-2">
+<label class="text-gray-900 dark:text-gray-100 text-sm font-semibold px-1">Ville</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-gray-400">map</span>
+<input class="flex w-full rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 h-14 pl-12 pr-4 text-gray-900 dark:text-white focus:border-primary focus:ring-1 focus:ring-primary outline-none transition-all placeholder:text-gray-400 dark:placeholder:text-gray-600" placeholder="Votre ville actuelle" type="text"/>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Button -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-20">
+<div class="max-w-[480px] mx-auto">
+<button class="w-full flex items-center justify-center rounded-xl bg-primary h-14 text-white text-base font-bold tracking-wide shadow-lg shadow-primary/20 hover:bg-opacity-90 active:scale-[0.98] transition-all">
+                CONTINUER
+            </button>
+</div>
+</div>
+</body></html>

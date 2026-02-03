@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Livraison Réussie</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              colors: {
+                "primary": "#1dc962",
+                "background-light": "#f6f8f7",
+                "background-dark": "#112117",
+              },
+              fontFamily: {
+                "display": ["Inter", "sans-serif"]
+              },
+              borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+            },
+          },
+        }
+    </script>
+<style>
+        .confetti-pattern {
+            background-image: radial-gradient(#1dc962 1px, transparent 1px), radial-gradient(#1dc962 1px, transparent 1px);
+            background-size: 40px 40px;
+            background-position: 0 0, 20px 20px;
+            opacity: 0.1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white transition-colors duration-300">
+<div class="relative flex h-screen w-full flex-col overflow-x-hidden group/design-root max-w-[430px] mx-auto border-x border-gray-100 dark:border-gray-800 shadow-2xl">
+<!-- Background Decor (Confetti-like effect) -->
+<div class="absolute inset-0 pointer-events-none confetti-pattern"></div>
+<!-- Top Navigation -->
+<div class="flex items-center bg-transparent p-4 pb-2 justify-between z-10">
+<div class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">close</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Détails de la course</h2>
+</div>
+<!-- Main Content Area -->
+<div class="flex-1 flex flex-col items-center justify-center px-4 z-10">
+<!-- Animated Success Icon Header -->
+<div class="mb-6 flex flex-col items-center">
+<div class="w-24 h-24 rounded-full bg-primary/20 flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-primary !text-6xl font-bold">check_circle</span>
+</div>
+<h1 class="text-[#0e1b13] dark:text-white tracking-light text-[32px] font-bold leading-tight text-center">
+                    Livraison effectuée !
+                </h1>
+</div>
+<!-- Earnings Card -->
+<div class="w-full @container mb-8">
+<div class="flex flex-col items-stretch justify-start rounded-xl shadow-[0_4px_12px_rgba(0,0,0,0.05)] bg-white dark:bg-[#1a2e21] border border-primary/10 overflow-hidden">
+<!-- Image Placeholder for Trip context -->
+<div class="w-full bg-center bg-no-repeat aspect-video bg-cover" data-alt="Abstract green geometric pattern representing success" style="background-image: linear-gradient(135deg, #1dc962 0%, #078829 100%);">
+<div class="w-full h-full flex items-center justify-center bg-black/10">
+<span class="material-symbols-outlined text-white !text-5xl opacity-80">celebration</span>
+</div>
+</div>
+<div class="flex w-full flex-col items-center justify-center gap-1 py-6 px-4">
+<p class="text-primary text-sm font-semibold uppercase tracking-wider">Gain de la course</p>
+<p class="text-[#0e1b13] dark:text-white text-4xl font-extrabold leading-tight tracking-[-0.025em]">+1 750 FCFA</p>
+<div class="mt-2 flex items-center gap-2">
+<span class="material-symbols-outlined text-primary size-5">stars</span>
+<p class="text-[#50956c] dark:text-[#8bcfa5] text-base font-medium">Excellent travail !</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Stats Section -->
+<div class="w-full">
+<div class="flex gap-4">
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-5 border border-[#d1e6d9] dark:border-[#2a4534] bg-white/50 dark:bg-[#1a2e21]/50 backdrop-blur-sm">
+<p class="text-[#0e1b13] dark:text-gray-300 text-xs font-medium uppercase tracking-tight">Total aujourd'hui</p>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-xl font-bold">12 400 FCFA</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#078829] !text-sm">trending_up</span>
+<p class="text-[#078829] text-sm font-bold">+15%</p>
+</div>
+</div>
+<div class="flex min-w-[140px] flex-1 flex-col gap-1 rounded-xl p-5 border border-[#d1e6d9] dark:border-[#2a4534] bg-white/50 dark:bg-[#1a2e21]/50 backdrop-blur-sm">
+<p class="text-[#0e1b13] dark:text-gray-300 text-xs font-medium uppercase tracking-tight">Courses</p>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-xl font-bold">8</p>
+<div class="flex items-center gap-1">
+<span class="material-symbols-outlined text-[#078829] !text-sm">add_circle</span>
+<p class="text-[#078829] text-sm font-bold">+1</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Buttons -->
+<div class="p-4 pb-8 z-10 bg-background-light dark:bg-background-dark">
+<div class="flex flex-col items-stretch gap-3 w-full max-w-[480px] mx-auto">
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] w-full shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform active:scale-95">
+<span class="truncate">RETOUR À L'ACCUEIL</span>
+</button>
+<button class="flex min-w-[84px] cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary/10 dark:bg-primary/20 text-primary dark:text-[#4ade80] text-base font-bold leading-normal tracking-[0.015em] w-full border border-primary/20">
+<span class="truncate">VOIR MES GAINS</span>
+</button>
+</div>
+<!-- Safe Area Indicator Mock -->
+<div class="mt-6 flex justify-center">
+<div class="w-32 h-1 bg-gray-300 dark:bg-gray-700 rounded-full"></div>
+</div>
+</div>
+</div>
+</body></html>

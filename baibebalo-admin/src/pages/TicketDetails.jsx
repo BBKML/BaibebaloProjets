@@ -193,6 +193,25 @@ const TicketDetails = () => {
           <div className="p-6 border-b border-slate-200 dark:border-slate-800 flex flex-wrap items-center justify-between gap-4">
             <div className="flex-1 min-w-[300px]">
               <div className="flex items-center gap-3 mb-2">
+                {/* Catégorie */}
+                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-xs font-bold ${
+                  ticket.category === 'order' ? 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400' :
+                  ticket.category === 'payment' ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' :
+                  ticket.category === 'technical' ? 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400' :
+                  ticket.category === 'account' ? 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400' :
+                  'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400'
+                }`}>
+                  <span className="material-symbols-outlined text-sm">
+                    {ticket.category === 'order' ? 'shopping_bag' :
+                     ticket.category === 'payment' ? 'payments' :
+                     ticket.category === 'technical' ? 'build' :
+                     ticket.category === 'account' ? 'person' : 'help'}
+                  </span>
+                  {ticket.category === 'order' ? 'Commande' :
+                   ticket.category === 'payment' ? 'Paiement' :
+                   ticket.category === 'technical' ? 'Technique' :
+                   ticket.category === 'account' ? 'Compte' : 'Autre'}
+                </span>
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${
                   ticket.priority === 'urgent' 
                     ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500'
@@ -216,7 +235,7 @@ const TicketDetails = () => {
                 {ticket.subject || 'Sujet du ticket'}
               </h2>
               <p className="text-sm text-slate-500 mt-1">
-                Ticket #{ticket.id?.slice(0, 8)} • Créé le {formatDateShort(ticket.created_at)}
+                Ticket #{ticket.ticket_number || ticket.id?.slice(0, 8)} • Créé le {formatDateShort(ticket.created_at)}
               </p>
             </div>
             <div className="flex gap-2">
@@ -232,37 +251,56 @@ const TicketDetails = () => {
             </div>
           </div>
 
+          {/* Description du problème */}
+          {ticket.description && (
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-200 dark:border-slate-800">
+              <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-2">
+                Description du problème
+              </h3>
+              <p className="text-sm text-slate-700 dark:text-slate-300 whitespace-pre-line">
+                {ticket.description}
+              </p>
+            </div>
+          )}
+
           {/* Messages Area */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-6 space-y-4">
+            {messages.length === 0 && (
+              <div className="text-center py-8 text-slate-500">
+                <span className="material-symbols-outlined text-4xl mb-2">chat_bubble_outline</span>
+                <p>Aucun message dans cette conversation</p>
+                <p className="text-xs mt-1">Envoyez un message pour commencer</p>
+              </div>
+            )}
             {messages.map((msg) => (
               <div
                 key={msg.id}
-                className={`flex gap-4 ${
+                className={`flex gap-3 ${
                   msg.sender_type === 'admin' ? 'flex-row-reverse' : 'flex-row'
                 }`}
               >
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold ${
+                <div className={`w-10 h-10 flex-shrink-0 rounded-full flex items-center justify-center text-sm font-bold ${
                   msg.sender_type === 'admin'
                     ? 'bg-primary text-white'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                 }`}>
-                  {msg.sender_name?.charAt(0) || 'U'}
+                  {msg.sender_type === 'admin' ? 'A' : 'R'}
                 </div>
-                <div className={`flex-1 ${
+                <div className={`flex-1 max-w-[85%] ${
                   msg.sender_type === 'admin' ? 'text-right' : 'text-left'
                 }`}>
-                  <div className={`inline-block max-w-[70%] p-4 rounded-2xl ${
+                  <div className={`inline-block w-full p-4 rounded-2xl ${
                     msg.sender_type === 'admin'
-                      ? 'bg-primary text-white'
-                      : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white'
+                      ? 'bg-primary text-white rounded-tr-md'
+                      : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-tl-md'
                   }`}>
-                    <p className="text-sm leading-relaxed">{msg.message}</p>
+                    <p className="text-sm leading-relaxed whitespace-pre-wrap break-words">{msg.message}</p>
                     <p className={`text-xs mt-2 ${
                       msg.sender_type === 'admin' 
-                        ? 'text-primary-100' 
+                        ? 'text-white/70' 
                         : 'text-slate-500 dark:text-slate-400'
                     }`}>
-                      {formatDateShort(msg.created_at)} • {msg.sender_name}
+                      {formatDateShort(msg.created_at)} • {msg.sender_type === 'admin' ? 'Support' : 'Restaurant'}
                     </p>
                   </div>
                 </div>

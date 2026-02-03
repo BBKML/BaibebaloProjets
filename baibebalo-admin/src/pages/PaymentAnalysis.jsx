@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../components/layout/Layout';
 import { formatCurrency } from '../utils/format';
@@ -10,6 +11,7 @@ import ChartSkeleton from '../components/common/ChartSkeleton';
 import TableSkeleton from '../components/common/TableSkeleton';
 
 const PaymentAnalysis = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState('30days');
 
   // Simuler un chargement de données
@@ -95,13 +97,22 @@ const PaymentAnalysis = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
-              <span>Analytics</span>
-              <span className="material-symbols-outlined text-[14px]">chevron_right</span>
-              <span className="text-slate-900 dark:text-slate-300 font-medium">Paiements Phase 5</span>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Retour"
+            >
+              <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+            </button>
+            <div>
+              <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 text-xs mb-1">
+                <span>Analytics</span>
+                <span className="material-symbols-outlined text-[14px]">chevron_right</span>
+                <span className="text-slate-900 dark:text-slate-300 font-medium">Paiements Phase 5</span>
+              </div>
+              <h2 className="text-xl font-bold text-slate-900 dark:text-white">Analyse des Paiements</h2>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white">Analyse des Paiements</h2>
           </div>
           <div className="flex items-center gap-3">
             <div className="hidden lg:flex items-center bg-slate-100 dark:bg-slate-800 rounded-lg px-3 py-1.5 border border-slate-200 dark:border-slate-700">

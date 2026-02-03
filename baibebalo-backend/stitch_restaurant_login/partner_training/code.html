@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .material-symbols-fill {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1d110c] dark:text-white transition-colors duration-300">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md p-4 pb-2 justify-between border-b border-gray-200 dark:border-gray-800">
+<div class="text-[#1d110c] dark:text-white flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Formation Partenaire</h2>
+<div class="flex w-10 items-center justify-end">
+<button class="flex cursor-pointer items-center justify-center rounded-lg h-10 bg-transparent text-[#1d110c] dark:text-white">
+<span class="material-symbols-outlined">help</span>
+</button>
+</div>
+</header>
+<main class="flex-1 pb-32">
+<!-- MediaPlayer -->
+<div class="p-4">
+<div class="relative flex flex-col items-center justify-center bg-black bg-cover bg-center aspect-video rounded-xl overflow-hidden shadow-lg" data-alt="Video player showing restaurant training tutorial interface" style='background-image: linear-gradient(rgba(0,0,0,0.3), rgba(0,0,0,0.3)), url("https://lh3.googleusercontent.com/aida-public/AB6AXuC2A1qZM8O5uUdrQNruGcbd1t7KWzmKwjiz607BOu-pakByE-AuIzoA9VgFymhatraNyzLJPWXjJ7w8E50dhAYXUX7Q2sc7UIAONd6EjzuB1rqy-LhlGGBz1XV8g5eU4TXm43c-HGxFZEagnrQ1lbQdiPP2JkSNSvIQ6D61c_ID1aXk7mQYfm77ihqsdi1LcOW7PCwmPFB2l7GCqB1M9sgblDNva5IBFVwwuMScyPg7JAo6BD4pK7FE3LE8sGYvftz__T4WKTdowR8g");'>
+<button class="flex shrink-0 items-center justify-center rounded-full size-16 bg-white/20 backdrop-blur-md text-white border border-white/30 hover:bg-white/30 transition-all">
+<span class="material-symbols-outlined text-4xl material-symbols-fill">play_arrow</span>
+</button>
+<div class="absolute inset-x-0 bottom-0 px-4 py-4 bg-gradient-to-t from-black/80 to-transparent">
+<div class="flex h-1 items-center justify-center mb-2">
+<div class="h-1 w-[75%] rounded-full bg-primary"></div>
+<div class="relative">
+<div class="absolute -left-1.5 -top-1.5 size-3 rounded-full bg-white shadow-sm"></div>
+</div>
+<div class="h-1 flex-1 rounded-full bg-white/30"></div>
+</div>
+<div class="flex items-center justify-between">
+<p class="text-white text-[10px] font-medium tracking-wider uppercase">12:45 / 15:30</p>
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-white text-sm">settings</span>
+<span class="material-symbols-outlined text-white text-sm">fullscreen</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- HeadlineText -->
+<div class="px-4 pt-2">
+<h3 class="text-[#1d110c] dark:text-white tracking-tight text-2xl font-bold leading-tight">Maîtriser l'interface BAIBEBALO</h3>
+<p class="text-gray-500 dark:text-gray-400 text-sm mt-1">Module 1 : Onboarding &amp; Fondations</p>
+</div>
+<!-- ProgressBar -->
+<div class="flex flex-col gap-2 p-4 mt-2">
+<div class="flex gap-6 justify-between items-end">
+<p class="text-[#1d110c] dark:text-white text-base font-semibold">Progression du module</p>
+<p class="text-primary text-sm font-bold">75%</p>
+</div>
+<div class="rounded-full bg-gray-200 dark:bg-gray-800 h-2.5 overflow-hidden">
+<div class="h-full rounded-full bg-primary transition-all duration-500" style="width: 75%;"></div>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="px-4 pb-2 pt-4">
+<h3 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Sommaire de la formation</h3>
+</div>
+<!-- Training Sections List -->
+<div class="flex flex-col gap-3 px-4">
+<!-- Section 1 (Completed) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-[#2d1b15] border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex size-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="text-[#1d110c] dark:text-white font-semibold text-sm">Introduction à la plateforme</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">02:30 min</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</div>
+<!-- Section 2 (Completed) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-white dark:bg-[#2d1b15] border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex size-10 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400">
+<span class="material-symbols-outlined">check_circle</span>
+</div>
+<div class="flex-1">
+<p class="text-[#1d110c] dark:text-white font-semibold text-sm">Gestion des commandes</p>
+<p class="text-xs text-gray-500 dark:text-gray-400">05:15 min</p>
+</div>
+<span class="material-symbols-outlined text-gray-400 text-sm">chevron_right</span>
+</div>
+<!-- Section 3 (Active/Current) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-primary/10 dark:bg-primary/5 border border-primary/30 shadow-sm">
+<div class="flex size-10 items-center justify-center rounded-full bg-primary/20 text-primary">
+<span class="material-symbols-outlined material-symbols-fill animate-pulse">play_circle</span>
+</div>
+<div class="flex-1">
+<p class="text-[#1d110c] dark:text-white font-bold text-sm">Standards de qualité</p>
+<p class="text-xs text-primary font-medium">En cours • 04:20 min</p>
+</div>
+<span class="material-symbols-outlined text-primary text-sm">chevron_right</span>
+</div>
+<!-- Section 4 (Locked) -->
+<div class="flex items-center gap-4 p-4 rounded-xl bg-gray-50 dark:bg-[#1a0e0a] border border-transparent opacity-60">
+<div class="flex size-10 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-800 text-gray-400">
+<span class="material-symbols-outlined">lock</span>
+</div>
+<div class="flex-1">
+<p class="text-gray-600 dark:text-gray-400 font-semibold text-sm">Communication livreurs</p>
+<p class="text-xs text-gray-400 dark:text-gray-500">03:25 min</p>
+</div>
+<span class="material-symbols-outlined text-gray-300 text-sm">chevron_right</span>
+</div>
+</div>
+</main>
+<!-- Sticky Bottom CTA -->
+<div class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-6 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800">
+<button class="w-full flex items-center justify-center gap-2 h-14 rounded-xl bg-primary text-white font-bold text-lg shadow-lg shadow-primary/30 hover:scale-[1.02] active:scale-[0.98] transition-all">
+<span>Passer le quiz</span>
+<span class="material-symbols-outlined">assignment</span>
+</button>
+<p class="text-center text-[10px] text-gray-500 dark:text-gray-400 mt-2 uppercase tracking-widest font-medium">Complétez les vidéos pour débloquer</p>
+</div>
+</div>
+</body></html>

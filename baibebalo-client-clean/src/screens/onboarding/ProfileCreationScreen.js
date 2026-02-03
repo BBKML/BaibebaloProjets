@@ -11,19 +11,22 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
-import { updateMyProfile } from '../../api/users';
+import { updateMyProfile, uploadProfilePicture } from '../../api/users';
 import useAuthStore from '../../store/authStore';
+import { normalizeUploadUrl } from '../../utils/url';
 
 export default function ProfileCreationScreen({ navigation, route }) {
-  const { user, setUser } = useAuthStore();
+  const insets = useSafeAreaInsets();
+  const { user, setUser, completeProfile } = useAuthStore();
   const [loading, setLoading] = useState(false);
   const [profile, setProfile] = useState({
     first_name: route?.params?.first_name || '',
     last_name: route?.params?.last_name || '',
     email: route?.params?.email || '',
-    gender: 'M',
+    gender: 'male',
     date_of_birth: '',
   });
   const [profileImage, setProfileImage] = useState(null);
@@ -41,21 +44,82 @@ export default function ProfileCreationScreen({ navigation, route }) {
     requestImagePermission();
   }, []);
 
+  const getMimeTypeFromUri = (uri) => {
+    if (!uri) return 'image/jpeg';
+    const extension = uri.split('.').pop()?.toLowerCase();
+    switch (extension) {
+      case 'png':
+        return 'image/png';
+      case 'webp':
+        return 'image/webp';
+      case 'gif':
+        return 'image/gif';
+      case 'jpg':
+      case 'jpeg':
+      default:
+        return 'image/jpeg';
+    }
+  };
+
   const pickImage = async () => {
     try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission requise', 'Nous avons besoin de l\'accès à vos photos');
+        return;
+      }
+
+      const mediaTypeImages =
+        ImagePicker.MediaType?.Images ?? ImagePicker.MediaTypeOptions?.Images;
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        ...(mediaTypeImages ? { mediaTypes: mediaTypeImages } : {}),
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
       });
 
-      if (!result.canceled) {
-        setProfileImage(result.assets[0].uri);
+      if (!result.canceled && result.assets?.length) {
+        const asset = result.assets[0];
+        setProfileImage(asset.uri);
+
+        const formData = new FormData();
+        formData.append('profile_picture', {
+          uri: asset.uri,
+          name: asset.fileName || `profile-${Date.now()}.jpg`,
+          type: asset.mimeType || getMimeTypeFromUri(asset.uri),
+        });
+
+        const uploadResponse = await uploadProfilePicture(formData);
+        const uploadedUrl =
+          uploadResponse?.data?.profile_picture
+          || uploadResponse?.data?.user?.profile_picture
+          || uploadResponse?.profile_picture;
+        if (uploadedUrl) {
+          setProfileImage(normalizeUploadUrl(uploadedUrl));
+        }
       }
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de sélectionner l\'image');
     }
+  };
+
+  const normalizeGenderForApi = (gender) => {
+    if (!gender) return null;
+    const normalized = gender.toLowerCase();
+    const map = { m: 'male', f: 'female', o: 'other' };
+    return map[normalized] || normalized;
+  };
+
+  const normalizeDateForApi = (date) => {
+    if (!date) return null;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+      return date;
+    }
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
+      const [day, month, year] = date.split('/');
+      return `${year}-${month}-${day}`;
+    }
+    return date;
   };
 
   const handleSave = async () => {
@@ -70,24 +134,23 @@ export default function ProfileCreationScreen({ navigation, route }) {
       const fullName = `${profile.first_name} ${profile.last_name}`.trim();
       
       const profileData = {
-        full_name: fullName,
+        first_name: profile.first_name.trim(),
+        last_name: profile.last_name.trim(),
         email: profile.email || null,
-        gender: profile.gender,
-        date_of_birth: profile.date_of_birth || null,
+        gender: normalizeGenderForApi(profile.gender),
+        date_of_birth: normalizeDateForApi(profile.date_of_birth),
       };
 
       const updatedUser = await updateMyProfile(profileData);
       
-      // Mettre à jour l'utilisateur dans le store avec les données complètes
+      // Mettre à jour l'utilisateur dans le store et persister (isNewUser: false)
       if (user) {
-        // Le backend peut retourner l'utilisateur mis à jour
-        const userData = updatedUser?.data || updatedUser || profileData;
-        setUser({ 
-          ...user, 
+        const userData = updatedUser?.data?.user ?? updatedUser?.data ?? updatedUser ?? profileData;
+        await completeProfile({
           ...userData,
           first_name: profile.first_name,
           last_name: profile.last_name,
-          full_name: fullName
+          full_name: fullName,
         });
       }
 
@@ -200,9 +263,9 @@ export default function ProfileCreationScreen({ navigation, route }) {
             <Text style={styles.label}>Genre</Text>
             <View style={styles.genderContainer}>
               {[
-                { value: 'M', label: 'Homme' },
-                { value: 'F', label: 'Femme' },
-                { value: 'O', label: 'Autre' },
+                { value: 'male', label: 'Homme' },
+                { value: 'female', label: 'Femme' },
+                { value: 'other', label: 'Autre' },
               ].map((gender) => (
                 <TouchableOpacity
                   key={gender.value}
@@ -230,7 +293,7 @@ export default function ProfileCreationScreen({ navigation, route }) {
             <Text style={styles.label}>Date de naissance</Text>
             <TextInput
               style={styles.input}
-              placeholder="JJ/MM/AAAA"
+              placeholder="JJ/MM/AAAA ou AAAA-MM-JJ"
               placeholderTextColor={COLORS.textLight}
               value={profile.date_of_birth}
               onChangeText={(text) => setProfile({ ...profile, date_of_birth: text })}
@@ -238,18 +301,19 @@ export default function ProfileCreationScreen({ navigation, route }) {
           </View>
         </View>
 
-        {/* Bouton de sauvegarde */}
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.saveButton, loading && styles.saveButtonDisabled]}
-            onPress={handleSave}
-            disabled={loading}
-          >
-            <Text style={styles.saveButtonText}>
-              {loading ? 'Enregistrement...' : 'Continuer'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+        <View style={styles.pattern} />
+      </View>
+
+      <View style={styles.footer}>
+        <TouchableOpacity
+          style={[styles.saveButton, loading && styles.saveButtonDisabled]}
+          onPress={handleSave}
+          disabled={loading}
+        >
+          <Text style={styles.saveButtonText}>
+            {loading ? 'Enregistrement...' : 'Terminer'}
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );
@@ -295,7 +359,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 24,
-    paddingBottom: 32,
+    paddingBottom: 140, // Espace pour les boutons + safe area
   },
   headerSection: {
     marginBottom: 32,
@@ -420,9 +484,21 @@ const styles = StyleSheet.create({
   genderTextActive: {
     color: COLORS.white,
   },
+  pattern: {
+    height: 80,
+    marginTop: 24,
+    backgroundColor: COLORS.primary + '08',
+    borderRadius: 16,
+  },
   footer: {
-    marginTop: 32,
-    paddingBottom: 32,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    padding: 24,
+    backgroundColor: COLORS.background,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
   },
   saveButton: {
     backgroundColor: COLORS.primary,

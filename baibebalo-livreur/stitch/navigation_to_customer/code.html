@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary": "#1dc962",
+              "background-light": "#f6f8f7",
+              "background-dark": "#112117",
+            },
+            fontFamily: {
+              "display": ["Inter", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .ios-tab-shadow {
+            box-shadow: 0 -1px 0 0 rgba(0,0,0,0.1);
+        }
+        .instruction-box {
+            border-left: 4px solid #1dc962;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-slate-900 dark:text-slate-100 antialiased h-screen flex flex-col overflow-hidden">
+<!-- Top Navigation Bar -->
+<header class="flex items-center bg-white dark:bg-background-dark px-4 py-3 border-b border-slate-200 dark:border-slate-800 shrink-0">
+<div class="flex items-center justify-center size-10 rounded-full hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios_new</span>
+</div>
+<h1 class="flex-1 text-center text-lg font-bold leading-tight">En route vers le client</h1>
+<div class="size-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">navigation</span>
+</div>
+</header>
+<!-- Main Content Area (Scrollable) -->
+<main class="flex-1 flex flex-col overflow-y-auto">
+<!-- Map View Section (Top Half) -->
+<section class="w-full h-72 shrink-0 relative">
+<div class="absolute inset-0 bg-center bg-cover" data-alt="Map showing delivery route in Quartier Tchengué" data-location="Port-Gentil, Gabon" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB0e0wlrfJQA6UOOtTAtSokgfgERJ53Vu9gjV2ETe8gsyXkvJb6B0gmSOE_XFTFptkH20b7laiB-kKH3bXmO3CPrY1sJMCmND2XAIllQJ4Gu6RSVU2sglgOZqF_pIx2ME_XA6cul3OFod2hryovvHdCbQLVkkWLZs07i4C-BUfmXVyR02ElI-jumU9W0DauovyDZjhExg0d9GM_C8dXTW-4fWV5FnuF06nuYSpy9d-XDEdHk6sf56SquKdvO8hHl8IIdQurB-w5gA9e");'>
+</div>
+<!-- Floating Navigation Info -->
+<div class="absolute top-4 left-4 right-4 bg-white/90 dark:bg-background-dark/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 flex items-center gap-3">
+<div class="bg-primary text-white p-2 rounded-lg">
+<span class="material-symbols-outlined text-2xl">turn_right</span>
+</div>
+<div>
+<p class="text-xs uppercase tracking-wider font-bold text-slate-500">Dans 200m</p>
+<p class="font-bold">Tournez à droite sur Rue L122</p>
+</div>
+</div>
+</section>
+<!-- Details & Actions Section (Bottom Half) -->
+<section class="flex-1 bg-white dark:bg-background-dark rounded-t-[2rem] -mt-6 z-10 shadow-[0_-8px_20px_rgba(0,0,0,0.05)] px-5 pt-3 pb-24">
+<!-- Handle -->
+<div class="flex justify-center mb-6">
+<div class="h-1.5 w-12 rounded-full bg-slate-200 dark:bg-slate-700"></div>
+</div>
+<!-- Customer Profile Header -->
+<div class="flex items-center justify-between mb-6">
+<div class="flex items-center gap-4">
+<div class="size-16 rounded-full bg-center bg-cover border-2 border-primary/20" data-alt="Portrait of client Jean K." style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB_pZbyOLGSKISk2_v-0GWiueLZNL46_kXH88A1RKVYYk2PWZMsHhGT_--gvWNN6-7HjYVpbPUm2lQKR4xfVfZGVxc_qTLC_KYiI2lcRH2MZCztagat3tyNqQatni7WL26pP3aaEU4fT3tdFvUKYXiKKZkEkA2A7XEXFxroztmk-V0RdxOu4GS3dVIHFFe6ccHJaACTMOpqc143HBCd8XOqIsy4YZawlu5f8iN678gxMoOfMRxcNAfJilMkgwT1tu2OmF6CcxCIebO5");'>
+</div>
+<div>
+<h2 class="text-xl font-bold">Jean K.</h2>
+<p class="text-slate-500 dark:text-slate-400 text-sm">Quartier Tchengué</p>
+<p class="text-primary font-medium text-sm">+241 07 45 89 22</p>
+</div>
+</div>
+<div class="flex gap-2">
+<button class="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">call</span>
+</button>
+<button class="size-12 rounded-full bg-primary/10 text-primary flex items-center justify-center hover:bg-primary/20 transition-colors">
+<span class="material-symbols-outlined">chat_bubble</span>
+</button>
+</div>
+</div>
+<!-- Instructions Box -->
+<div class="instruction-box bg-primary/5 dark:bg-primary/10 p-4 rounded-xl mb-6">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-xl">info</span>
+<p class="text-xs font-bold uppercase text-primary tracking-tight">Instructions de livraison</p>
+</div>
+<p class="text-slate-800 dark:text-slate-200 font-medium">
+                    "Appeler à l'arrivée, portail vert"
+                </p>
+</div>
+<!-- Address Card -->
+<div class="bg-slate-50 dark:bg-slate-800/50 p-4 rounded-xl mb-8 flex items-start gap-3">
+<span class="material-symbols-outlined text-slate-400">location_on</span>
+<div>
+<p class="font-semibold">Quartier Tchengué</p>
+<p class="text-sm text-slate-500 dark:text-slate-400">Près de la pharmacie, Maison n°45</p>
+</div>
+</div>
+<!-- Management Actions -->
+<div class="space-y-3">
+<button class="w-full bg-primary text-white py-4 rounded-xl font-bold text-lg shadow-lg shadow-primary/20 hover:brightness-105 active:scale-[0.98] transition-all">
+                    Je suis arrivé
+                </button>
+<div class="grid grid-cols-2 gap-3">
+<button class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-transparent text-sm font-semibold hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-red-500 text-lg">person_off</span>
+                        Client absent
+                    </button>
+<button class="flex items-center justify-center gap-2 py-3 px-4 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-transparent text-sm font-semibold hover:bg-slate-50 transition-colors">
+<span class="material-symbols-outlined text-amber-500 text-lg">warning</span>
+                        Signaler un souci
+                    </button>
+</div>
+</div>
+</section>
+</main>
+<!-- iOS Bottom Navigation Bar -->
+<nav class="shrink-0 bg-white/80 dark:bg-background-dark/80 backdrop-blur-md border-t border-slate-200 dark:border-slate-800 pb-8 pt-2 px-6 ios-tab-shadow">
+<div class="flex justify-between items-center max-w-md mx-auto">
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1">directions_car</span>
+<span class="text-[10px] font-bold">Livraison</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-medium">Historique</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Gains</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-slate-400">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</div>
+</div>
+</nav>
+</body></html>

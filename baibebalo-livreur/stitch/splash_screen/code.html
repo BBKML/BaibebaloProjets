@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        .loader-ring {
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid #ffffff;
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-primary font-display antialiased">
+<!-- Main Splash Screen Container -->
+<div class="relative flex h-screen w-full flex-col items-center justify-between bg-primary p-6 overflow-hidden">
+<!-- Top Spacer for alignment -->
+<div class="h-20"></div>
+<!-- Center Brand Block -->
+<div class="flex flex-col items-center gap-4 text-center">
+<!-- Icon Container (Stylized Scooter) -->
+<div class="mb-2 flex items-center justify-center h-24 w-24 rounded-3xl bg-white/10 backdrop-blur-sm border border-white/20">
+<span class="material-symbols-outlined text-white text-6xl">
+                    moped
+                </span>
+</div>
+<!-- App Name -->
+<h1 class="text-white text-[40px] font-bold tracking-tight leading-none">
+                BAIBEBALO
+            </h1>
+<!-- Role Identifier -->
+<div class="px-4 py-1.5 rounded-full bg-white/20">
+<p class="text-white text-lg font-medium tracking-wide uppercase">
+                    Livreur
+                </p>
+</div>
+</div>
+<!-- Bottom Section (Loading & Safe Area) -->
+<div class="flex flex-col items-center gap-8 pb-10">
+<!-- Subtle Loading Indicator -->
+<div class="flex flex-col items-center gap-3">
+<div class="loader-ring"></div>
+<p class="text-white/70 text-sm font-medium">Chargement...</p>
+</div>
+<!-- Version Tag (Optional, clean UI addition) -->
+<div class="text-white/40 text-xs font-medium tracking-widest uppercase">
+                v1.0 MVP
+            </div>
+</div>
+<!-- Background Decorative Elements -->
+<div class="absolute top-[-10%] left-[-20%] w-[300px] h-[300px] rounded-full bg-white/5 blur-3xl"></div>
+<div class="absolute bottom-[-5%] right-[-10%] w-[250px] h-[250px] rounded-full bg-black/5 blur-3xl"></div>
+</div>
+</body></html>

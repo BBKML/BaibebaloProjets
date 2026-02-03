@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: "Work Sans", sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1c110d] dark:text-[#fcf9f8]">
+<div class="relative flex h-auto min-h-screen w-full max-w-[430px] mx-auto flex-col overflow-x-hidden shadow-2xl bg-background-light dark:bg-background-dark">
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-[#f4eae6] dark:border-[#3d2a23]">
+<div class="text-primary flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined" style="font-size: 28px;">chevron_left</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-[#fcf9f8] text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Préférences</h2>
+</div>
+<div class="flex flex-col gap-1 pb-20">
+<!-- Section: COMMANDES & ACTIVITÉ -->
+<div class="pt-4">
+<h3 class="text-[#1c110d] dark:text-[#fcf9f8] text-xs font-bold leading-tight tracking-widest px-4 pb-2 uppercase opacity-60">Commandes &amp; Activité</h3>
+<!-- ListItem: Nouvelles Commandes -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1b14] px-4 min-h-[72px] py-2 justify-between border-b border-[#f4eae6]/50 dark:border-[#3d2a23]">
+<div class="flex flex-col justify-center">
+<p class="text-[#1c110d] dark:text-[#fcf9f8] text-base font-medium leading-normal line-clamp-1">Nouvelles Commandes</p>
+<p class="text-[#9e5e47] dark:text-[#b48d7d] text-sm font-normal leading-normal line-clamp-2">Sonnerie : "Ding" classique</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#3d2a23] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- ListItem: Avis Clients -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1b14] px-4 min-h-14 justify-between border-b border-[#f4eae6]/50 dark:border-[#3d2a23]">
+<p class="text-[#1c110d] dark:text-[#fcf9f8] text-base font-medium leading-normal flex-1 truncate">Avis Clients</p>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#3d2a23] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Section: ADMINISTRATION -->
+<div class="pt-6">
+<h3 class="text-[#1c110d] dark:text-[#fcf9f8] text-xs font-bold leading-tight tracking-widest px-4 pb-2 uppercase opacity-60">Administration</h3>
+<!-- ListItem: Rapports Financiers -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1b14] px-4 min-h-14 justify-between border-b border-[#f4eae6]/50 dark:border-[#3d2a23]">
+<p class="text-[#1c110d] dark:text-[#fcf9f8] text-base font-medium leading-normal flex-1 truncate">Rapports Financiers</p>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#3d2a23] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- ListItem: Alertes Marketing -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1b14] px-4 min-h-14 justify-between border-b border-[#f4eae6]/50 dark:border-[#3d2a23]">
+<p class="text-[#1c110d] dark:text-[#fcf9f8] text-base font-medium leading-normal flex-1 truncate">Alertes Marketing</p>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#3d2a23] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+<!-- Section: CANAUX DE RÉCEPTION -->
+<div class="pt-6">
+<h3 class="text-[#1c110d] dark:text-[#fcf9f8] text-xs font-bold leading-tight tracking-widest px-4 pb-2 uppercase opacity-60">Canaux de Réception</h3>
+<!-- ListItem: SMS -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1b14] px-4 min-h-14 justify-between border-b border-[#f4eae6]/50 dark:border-[#3d2a23]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">sms</span>
+<p class="text-[#1c110d] dark:text-[#fcf9f8] text-base font-medium leading-normal">Alertes par SMS</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#3d2a23] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- ListItem: Email -->
+<div class="flex items-center gap-4 bg-white dark:bg-[#2d1b14] px-4 min-h-14 justify-between">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">mail</span>
+<p class="text-[#1c110d] dark:text-[#fcf9f8] text-base font-medium leading-normal">Alertes par Email</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#f4eae6] dark:bg-[#3d2a23] p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary transition-all duration-200">
+<div class="h-full w-[27px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+</div>
+</div>
+<!-- Footer Action Button -->
+<div class="fixed bottom-0 left-0 right-0 max-w-[430px] mx-auto p-4 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg active:scale-95 transition-transform">
+                Enregistrer les modifications
+            </button>
+</div>
+</div>
+</body></html>

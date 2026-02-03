@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>BAIBEBALO - Commandes Urgentes</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f24a0d",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#120a07",
+                        "card-dark": "#1e110c",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .urgent-pulse {
+            box-shadow: 0 0 0 0 rgba(242, 74, 13, 0.7);
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(242, 74, 13, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(242, 74, 13, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(242, 74, 13, 0); }
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-slate-900 dark:text-white min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-b border-gray-200 dark:border-white/10">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary text-2xl">error</span>
+<h1 class="text-xl font-bold tracking-tight">Commandes Urgentes</h1>
+</div>
+<div class="flex items-center justify-center size-10 rounded-full bg-primary/10">
+<span class="material-symbols-outlined text-primary">notifications_active</span>
+</div>
+</div>
+</header>
+<main class="flex-1 w-full max-w-md mx-auto pb-24">
+<!-- Timer Section -->
+<section class="mt-6 px-4">
+<div class="bg-card-dark rounded-xl p-4 border border-primary/30">
+<h4 class="text-primary text-sm font-bold uppercase tracking-widest text-center mb-4">Répondre dans</h4>
+<div class="flex gap-4 justify-center">
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-16 w-20 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
+<p class="text-3xl font-extrabold tabular-nums">01</p>
+</div>
+<p class="text-xs font-medium opacity-60 uppercase">Minutes</p>
+</div>
+<div class="flex h-16 items-center">
+<span class="text-3xl font-bold text-primary">:</span>
+</div>
+<div class="flex flex-col items-center gap-2">
+<div class="flex h-16 w-20 items-center justify-center rounded-xl bg-primary text-white shadow-lg shadow-primary/20">
+<p class="text-3xl font-extrabold tabular-nums">45</p>
+</div>
+<p class="text-xs font-medium opacity-60 uppercase">Secondes</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Urgent Orders List -->
+<section class="mt-8 px-4 flex flex-col gap-4">
+<div class="flex items-center justify-between mb-2">
+<h2 class="text-lg font-bold">En attente (2)</h2>
+<span class="bg-primary/20 text-primary px-2 py-1 rounded-full text-xs font-bold uppercase tracking-wider">Haute Priorité</span>
+</div>
+<!-- Order Card 1 -->
+<div class="urgent-pulse flex flex-col overflow-hidden rounded-xl border border-primary/40 bg-card-dark shadow-2xl">
+<div class="relative h-40 w-full overflow-hidden">
+<div class="absolute inset-0 bg-cover bg-center transition-transform hover:scale-105" data-alt="Pizza pepperoni chaude prête à être livrée" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB6lv-MkLYwx1W7Xsjf4fm1RRVZ7zkqv99kM3tUTadmIcKkv_b-jU-RkfsB3rAtwR6vbkXmbgNbYJbstaa48n4ag8VV7_ApEtRKsrlIdPcZtM4xAvHaex7vS_tg209Ba5vxfxYKAHklVxfBCuibxmafDIFWtS6SLpfklFZb0KQVwZohkXHDiVmmLp3EC233Yobtxj5wr7NYQUp1pha0TEv_AQmLYClwZ2pvHV6b6fyQExNRRmqxPOWb-dy56iDIxromoO2hzGmdomMS");'>
+</div>
+<div class="absolute top-3 left-3 bg-primary text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        TRÈS URGENT
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-xl font-extrabold text-white">Commande #1234</h3>
+<p class="text-primary font-medium text-sm">Jean Dupont</p>
+</div>
+<p class="text-2xl font-black text-white">45,00€</p>
+</div>
+<div class="flex items-center gap-2 mb-4 text-xs text-white/60">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span class="truncate" data-location="Paris, France">12 Rue de la Paix, Paris</span>
+</div>
+<div class="flex gap-3">
+<button class="flex-1 h-14 bg-primary text-white rounded-lg font-bold text-lg flex items-center justify-center gap-2 shadow-lg shadow-primary/40 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">check_circle</span>
+                            ACCEPTER
+                        </button>
+<button class="flex-1 h-14 bg-white/5 text-white border border-white/10 rounded-lg font-bold text-lg flex items-center justify-center gap-2 active:scale-95 transition-transform">
+<span class="material-symbols-outlined">cancel</span>
+                            REFUSER
+                        </button>
+</div>
+</div>
+</div>
+<!-- Order Card 2 -->
+<div class="flex flex-col overflow-hidden rounded-xl border border-white/10 bg-card-dark">
+<div class="relative h-32 w-full overflow-hidden opacity-80">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Gros burger gourmet avec frites" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuDPfbB66jci53HoZvJBE1rDFzBq6pPjM4PkvFhb7DxFSDVudDXcGxEggDl64miFk7NvckrljtlNanP101glSavOp9t5eB7JsSMn3iJmcMK_xs4Bg4jNETEXVqz6qlTm2tL1UMYpBjo-ops00ppAQqmvrSamTohC2G-3uG-Y5R3X5bLYA_EqNlPwjkceDWY4iMt_JQ96uZ5mItVcfzCD0VOKFhL_AMRFVX0-kF8slcpfeYBVX6VGyX5SWU8UFfT_K6c1_k5sVhikdFHD");'>
+</div>
+<div class="absolute top-3 left-3 bg-white/20 backdrop-blur-md text-white px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-tighter">
+                        NOUVEAU
+                    </div>
+</div>
+<div class="p-4">
+<div class="flex justify-between items-start mb-2">
+<div>
+<h3 class="text-xl font-extrabold text-white">Commande #1235</h3>
+<p class="text-white/60 font-medium text-sm">Marie Curie</p>
+</div>
+<p class="text-2xl font-black text-white">12,50€</p>
+</div>
+<div class="flex gap-3 mt-4">
+<button class="flex-1 h-12 bg-primary/20 text-primary border border-primary/30 rounded-lg font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            ACCEPTER
+                        </button>
+<button class="flex-1 h-12 bg-white/5 text-white/60 border border-white/5 rounded-lg font-bold text-base flex items-center justify-center gap-2 active:scale-95 transition-transform">
+                            REFUSER
+                        </button>
+</div>
+</div>
+</div>
+</section>
+<!-- Empty State Visual Placeholder (Hidden for now) -->
+<div class="hidden flex-col items-center justify-center p-12 text-center">
+<div class="size-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center mb-4">
+<span class="material-symbols-outlined text-4xl">check_circle</span>
+</div>
+<h3 class="text-lg font-bold">Tout est sous contrôle</h3>
+<p class="text-white/60 text-sm mt-1">Aucune commande urgente en attente.</p>
+</div>
+</main>
+<!-- Navigation Tab Bar (iOS Style) -->
+<nav class="fixed bottom-0 left-0 right-0 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-white/10 pb-6 pt-2 px-6">
+<div class="max-w-md mx-auto flex justify-between items-center">
+<div class="flex flex-col items-center gap-1 text-white/40">
+<span class="material-symbols-outlined">list_alt</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined font-fill">warning</span>
+<span class="text-[10px] font-bold">Urgentes</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-white/40">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[10px] font-medium">Historique</span>
+</div>
+<div class="flex flex-col items-center gap-1 text-white/40">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Réglages</span>
+</div>
+</div>
+</nav>
+</body></html>

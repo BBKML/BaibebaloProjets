@@ -6,17 +6,57 @@ import {
   ScrollView,
   TouchableOpacity,
   Switch,
+  Image,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import PropTypes from 'prop-types';
 import { COLORS } from '../../constants/colors';
+import useAuthStore from '../../store/authStore';
+import { normalizeUploadUrl } from '../../utils/url';
 
 export default function SettingsScreen({ navigation }) {
+  const { user, logout } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationEnabled, setLocationEnabled] = React.useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
+
+  const displayName =
+    user?.full_name ||
+    [user?.first_name, user?.last_name].filter(Boolean).join(' ') ||
+    user?.phone_number ||
+    'Mon compte';
+
+  const displaySub =
+    user?.email ||
+    user?.phone_number ||
+    'Gérer votre profil';
+
+  const avatarUrl = normalizeUploadUrl(
+    user?.profile_picture || user?.profile_image_url
+  );
+
+  const initials = displayName
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join('');
+
+  const handleLogout = () => {
+    Alert.alert('Déconnexion', 'Voulez-vous vous déconnecter ?', [
+      { text: 'Annuler', style: 'cancel' },
+      {
+        text: 'Se déconnecter',
+        style: 'destructive',
+        onPress: logout,
+      },
+    ]);
+  };
 
   const settingsSections = [
     {
-      title: 'Notifications',
+      title: 'Préférences',
       items: [
         {
           icon: 'notifications-outline',
@@ -33,16 +73,18 @@ export default function SettingsScreen({ navigation }) {
           type: 'toggle',
         },
         {
+          icon: 'moon-outline',
+          label: 'Mode sombre',
+          value: darkModeEnabled,
+          onToggle: setDarkModeEnabled,
+          type: 'toggle',
+        },
+        {
           icon: 'notifications-outline',
           label: 'Préférences',
           onPress: () => navigation.navigate('NotificationPreferences'),
           type: 'navigate',
         },
-      ],
-    },
-    {
-      title: 'Localisation',
-      items: [
         {
           icon: 'location-outline',
           label: 'Autoriser la localisation',
@@ -50,10 +92,27 @@ export default function SettingsScreen({ navigation }) {
           onToggle: setLocationEnabled,
           type: 'toggle',
         },
+      ],
+    },
+    {
+      title: 'Système',
+      items: [
         {
-          icon: 'map-outline',
-          label: 'Sélecteur de carte',
-          onPress: () => navigation.navigate('MapLocationSelector'),
+          icon: 'shield-checkmark-outline',
+          label: 'Sécurité du compte',
+          onPress: () => navigation.navigate('AccountSecurity'),
+          type: 'navigate',
+        },
+        {
+          icon: 'save-outline',
+          label: 'Données et stockage',
+          onPress: () => navigation.navigate('DataStorage'),
+          type: 'navigate',
+        },
+        {
+          icon: 'help-circle-outline',
+          label: 'Centre d\'aide',
+          onPress: () => navigation.navigate('HelpCenter'),
           type: 'navigate',
         },
       ],
@@ -69,26 +128,15 @@ export default function SettingsScreen({ navigation }) {
           type: 'navigate',
         },
         {
-          icon: 'shield-checkmark-outline',
-          label: 'Sécurité du compte',
-          onPress: () => navigation.navigate('AccountSecurity'),
+          icon: 'wallet-outline',
+          label: 'Moyens de paiement',
+          onPress: () => navigation.navigate('ManagePaymentMethods'),
           type: 'navigate',
         },
         {
-          icon: 'save-outline',
-          label: 'Données et stockage',
-          onPress: () => navigation.navigate('DataStorage'),
-          type: 'navigate',
-        },
-      ],
-    },
-    {
-      title: 'Aide',
-      items: [
-        {
-          icon: 'help-circle-outline',
-          label: 'Centre d\'aide',
-          onPress: () => navigation.navigate('HelpCenter'),
+          icon: 'map-outline',
+          label: 'Sélecteur de carte',
+          onPress: () => navigation.navigate('MapLocationSelector'),
           type: 'navigate',
         },
         {
@@ -152,25 +200,101 @@ export default function SettingsScreen({ navigation }) {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      {settingsSections.map((section, sectionIndex) => (
-        <View key={sectionIndex} style={styles.section}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-          <View style={styles.sectionContent}>
-            {section.items.map((item, itemIndex) =>
-              renderSettingItem(item, itemIndex)
-            )}
-          </View>
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <Ionicons name="arrow-back" size={22} color={COLORS.text} />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Paramètres</Text>
+        <TouchableOpacity style={styles.moreButton}>
+          <Ionicons name="ellipsis-vertical" size={20} color={COLORS.textSecondary} />
+        </TouchableOpacity>
+      </View>
+
+      <ScrollView contentContainerStyle={styles.scrollContent}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Compte</Text>
+          <TouchableOpacity
+            style={styles.profileCard}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Profile' })}
+          >
+            <View style={styles.avatarWrapper}>
+              {avatarUrl ? (
+                <Image source={{ uri: avatarUrl }} style={styles.avatarImage} />
+              ) : (
+                <Text style={styles.avatarInitials}>{initials || 'BB'}</Text>
+              )}
+            </View>
+            <View style={styles.profileInfo}>
+              <Text style={styles.profileName}>{displayName}</Text>
+              <Text style={styles.profileSub}>{displaySub}</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+          </TouchableOpacity>
         </View>
-      ))}
-    </ScrollView>
+
+        {settingsSections.map((section) => (
+          <View key={section.title} style={styles.section}>
+            <Text style={styles.sectionTitle}>{section.title}</Text>
+            <View style={styles.sectionContent}>
+              {section.items.map((item, itemIndex) =>
+                renderSettingItem(item, itemIndex)
+              )}
+            </View>
+          </View>
+        ))}
+
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutButtonText}>Déconnexion</Text>
+        </TouchableOpacity>
+      </ScrollView>
+    </View>
   );
 }
+
+SettingsScreen.propTypes = {
+  navigation: PropTypes.shape({
+    goBack: PropTypes.func.isRequired,
+    navigate: PropTypes.func.isRequired,
+  }).isRequired,
+};
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  backButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  headerTitle: {
+    flex: 1,
+    fontSize: 20,
+    fontWeight: '700',
+    color: COLORS.text,
+    textAlign: 'center',
+  },
+  moreButton: {
+    width: 40,
+    height: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  scrollContent: {
+    paddingBottom: 32,
   },
   section: {
     marginTop: 24,
@@ -190,6 +314,47 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     overflow: 'hidden',
   },
+  profileCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    gap: 12,
+  },
+  avatarWrapper: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  avatarImage: {
+    width: '100%',
+    height: '100%',
+  },
+  avatarInitials: {
+    color: COLORS.white,
+    fontSize: 18,
+    fontWeight: '700',
+  },
+  profileInfo: {
+    flex: 1,
+  },
+  profileName: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  profileSub: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -207,5 +372,20 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
     marginRight: 8,
+  },
+  logoutButton: {
+    marginTop: 24,
+    marginHorizontal: 16,
+    paddingVertical: 16,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: '#ffeef0',
+    borderWidth: 1,
+    borderColor: '#f7d4d9',
+  },
+  logoutButtonText: {
+    color: COLORS.error,
+    fontSize: 16,
+    fontWeight: '700',
   },
 });

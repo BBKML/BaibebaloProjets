@@ -54,7 +54,7 @@ const upload = multer({
   storage,
   limits: {
     fileSize: config.upload?.maxSize || 5 * 1024 * 1024, // 5MB par défaut
-    files: 1, // Un seul fichier à la fois
+    files: 12, // Permettre jusqu'à 12 fichiers (logo + banner + 10 photos)
   },
   fileFilter,
 });
@@ -63,14 +63,26 @@ class UploadService {
   /**
    * Upload un fichier localement (pour développement)
    */
-  async uploadToLocal(file, folder = 'general') {
+  async uploadToLocal(file, folder = 'general', options = {}) {
     try {
+      logger.debug('📤 Upload local - Fichier reçu:', {
+        hasFile: !!file,
+        hasBuffer: !!file?.buffer,
+        bufferSize: file?.buffer?.length,
+        originalname: file?.originalname,
+        mimetype: file?.mimetype,
+        size: file?.size,
+        fieldname: file?.fieldname,
+      });
+      
       // Vérifier que le fichier a les propriétés nécessaires
       if (!file || !file.buffer) {
+        logger.error('❌ Fichier invalide: buffer manquant', { file: file ? Object.keys(file) : 'null' });
         throw new Error('Fichier invalide: buffer manquant');
       }
       
       if (!file.originalname) {
+        logger.error('❌ Fichier invalide: originalname manquant', { file: file ? Object.keys(file) : 'null' });
         throw new Error('Fichier invalide: originalname manquant');
       }
 
@@ -94,12 +106,14 @@ class UploadService {
       
       // Construire l'URL publique
       // Utiliser l'URL de base de l'API depuis la config, ou construire depuis le port
-      let apiBaseUrl = config.urls?.apiBase;
+      let apiBaseUrl = options.baseUrl || config.urls?.apiBase;
       if (!apiBaseUrl || apiBaseUrl.includes('localhost:3000')) {
         // Si pas configuré ou utilise le port par défaut, utiliser le port actuel
         const port = config.port || 5000;
         apiBaseUrl = `http://localhost:${port}`;
       }
+      // Si l'URL inclut /api/vX, supprimer le path API
+      apiBaseUrl = apiBaseUrl.replace(/\/api\/v\d+\/?$/i, '');
       // S'assurer que l'URL ne se termine pas par un slash
       apiBaseUrl = apiBaseUrl.replace(/\/$/, '');
       const url = `${apiBaseUrl}${publicPath}/${folder}/${fileName}`;

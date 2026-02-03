@@ -9,15 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
-import { getLoyaltyPoints } from '../../api/users';
-
-const MOCK_TRANSACTIONS = [
-  { id: 'tx-1', type: 'earned', amount: 50, title: 'Commande', subtitle: 'Commande livrée', icon: 'restaurant', dateLabel: 'Récent' },
-  { id: 'tx-2', type: 'earned', amount: 10, title: 'Avis laissé', subtitle: 'Feedback client', icon: 'star', dateLabel: 'Récent' },
-  { id: 'tx-3', type: 'redeemed', amount: -100, title: 'Réduction', subtitle: 'Coupon utilisé', icon: 'ticket', dateLabel: 'Récent' },
-  { id: 'tx-4', type: 'earned', amount: 25, title: 'Bonus inscription', subtitle: 'Cadeau de bienvenue', icon: 'gift', dateLabel: 'Récent' },
-  { id: 'tx-5', type: 'redeemed', amount: -150, title: 'Course offerte', subtitle: 'Transport Baibebalo', icon: 'car', dateLabel: 'Récent' },
-];
+import { getLoyaltyPoints, getLoyaltyTransactions } from '../../api/users';
 
 const FCFA_PER_POINT = 5;
 
@@ -34,15 +26,69 @@ export default function PointsHistoryScreen({ navigation }) {
   const loadTransactions = async () => {
     try {
       setLoading(true);
-      const response = await getLoyaltyPoints();
-      const data = response?.data || response;
-      const pts = Number(data?.points) || 0;
+      // Charger les points et les transactions en parallèle
+      const [pointsResponse, transactionsResponse] = await Promise.all([
+        getLoyaltyPoints(),
+        getLoyaltyTransactions({ limit: 30 }).catch(() => ({ data: { transactions: [] } }))
+      ]);
+      
+      const pointsData = pointsResponse?.data || pointsResponse;
+      const pts = Number(pointsData?.points) || 0;
       setPoints(pts);
-      setTransactions(MOCK_TRANSACTIONS);
+      
+      // Mapper les transactions depuis l'API
+      const transactionsData = transactionsResponse?.data?.transactions || transactionsResponse?.transactions || [];
+      const mappedTransactions = transactionsData.map((tx) => {
+        const isEarned = tx.type === 'earned' || tx.amount > 0;
+        const amount = Math.abs(tx.amount || tx.points || 0);
+        
+        // Déterminer l'icône et le titre selon le type
+        let icon = 'restaurant';
+        let title = tx.description || tx.reason || 'Transaction';
+        
+        if (tx.reason?.includes('commande') || tx.reason?.includes('order')) {
+          icon = 'restaurant';
+          title = 'Commande';
+        } else if (tx.reason?.includes('avis') || tx.reason?.includes('review')) {
+          icon = 'star';
+          title = 'Avis laissé';
+        } else if (tx.reason?.includes('réduction') || tx.reason?.includes('discount')) {
+          icon = 'ticket';
+          title = 'Réduction';
+        } else if (tx.reason?.includes('inscription') || tx.reason?.includes('signup')) {
+          icon = 'gift';
+          title = 'Bonus inscription';
+        } else if (tx.reason?.includes('livraison') || tx.reason?.includes('delivery')) {
+          icon = 'car';
+          title = 'Course offerte';
+        }
+        
+        // Formater la date
+        const date = tx.created_at ? new Date(tx.created_at) : new Date();
+        const now = new Date();
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+        let dateLabel = 'Récent';
+        if (diffDays === 0) dateLabel = "Aujourd'hui";
+        else if (diffDays === 1) dateLabel = 'Hier';
+        else if (diffDays < 7) dateLabel = `Il y a ${diffDays} jours`;
+        else dateLabel = date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
+        
+        return {
+          id: tx.id || `tx-${Date.now()}-${Math.random()}`,
+          type: isEarned ? 'earned' : 'redeemed',
+          amount: isEarned ? amount : -amount,
+          title,
+          subtitle: tx.description || tx.reason || 'Transaction de fidélité',
+          icon,
+          dateLabel,
+        };
+      });
+      
+      setTransactions(mappedTransactions);
     } catch (error) {
       console.error('Erreur chargement points:', error);
       Alert.alert('Erreur', 'Impossible de charger les points de fidélité.');
-      setTransactions(MOCK_TRANSACTIONS);
+      setTransactions([]); // Tableau vide au lieu de données mockées
     } finally {
       setLoading(false);
     }

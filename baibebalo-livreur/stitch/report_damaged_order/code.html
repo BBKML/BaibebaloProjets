@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Signaler une commande endommagée</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .checkbox-custom {
+            --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(14,27,19)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen">
+<div class="relative mx-auto flex h-full min-h-screen max-w-[480px] flex-col overflow-x-hidden shadow-sm bg-background-light dark:bg-background-dark">
+<!-- Header -->
+<header class="sticky top-0 z-10 flex items-center bg-white dark:bg-background-dark border-b border-gray-100 dark:border-gray-800 p-4 justify-between">
+<div class="text-[#0e1b13] dark:text-white flex size-10 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-tight flex-1 text-center pr-10">Signaler une commande</h2>
+</header>
+<main class="flex-1 pb-24">
+<!-- Visual Evidence Section -->
+<div class="px-4 pt-6">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-tight mb-4">Preuve visuelle</h3>
+<div class="flex flex-col gap-3">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-32 px-5 border-2 border-dashed border-[#d0e7d9] bg-white dark:bg-gray-800 text-[#0e1b13] dark:text-white gap-3 transition-colors active:bg-gray-50">
+<div class="flex flex-col items-center gap-2">
+<span class="material-symbols-outlined text-primary text-4xl">camera_alt</span>
+<span class="text-base font-semibold">Prendre une photo des dégâts</span>
+</div>
+</button>
+<p class="text-sm text-gray-500 dark:text-gray-400 px-1">Veuillez prendre une photo claire des dommages constatés.</p>
+</div>
+</div>
+<!-- Damage Type Checklist -->
+<div class="mt-6">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-tight px-4 pb-2">Type de dommage</h3>
+<div class="px-4 bg-white dark:bg-gray-800 border-y border-gray-100 dark:border-gray-700 checkbox-custom">
+<label class="flex gap-x-3 py-4 flex-row-reverse justify-between items-center cursor-pointer border-b border-gray-50 dark:border-gray-700 last:border-b-0">
+<input class="h-6 w-6 rounded-lg border-[#d0e7d9] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<p class="text-[#0e1b13] dark:text-white text-base font-medium">Emballage ouvert</p>
+</label>
+<label class="flex gap-x-3 py-4 flex-row-reverse justify-between items-center cursor-pointer border-b border-gray-50 dark:border-gray-700 last:border-b-0">
+<input class="h-6 w-6 rounded-lg border-[#d0e7d9] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<p class="text-[#0e1b13] dark:text-white text-base font-medium">Liquide renversé</p>
+</label>
+<label class="flex gap-x-3 py-4 flex-row-reverse justify-between items-center cursor-pointer">
+<input class="h-6 w-6 rounded-lg border-[#d0e7d9] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none" type="checkbox"/>
+<p class="text-[#0e1b13] dark:text-white text-base font-medium">Plat écrasé</p>
+</label>
+</div>
+</div>
+<!-- Description Section -->
+<div class="mt-6">
+<div class="flex max-w-full flex-wrap items-end gap-4 px-4 py-3">
+<label class="flex flex-col min-w-40 flex-1">
+<p class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-tight pb-3">Description du problème</p>
+<textarea class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#0e1b13] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-[#d0e7d9] dark:border-gray-700 bg-white dark:bg-gray-800 placeholder:text-gray-400 p-4 text-base font-normal leading-normal min-h-[144px]" placeholder="Décrivez brièvement les dégâts constatés..."></textarea>
+</label>
+</div>
+</div>
+</main>
+<!-- Fixed Footer Action -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light dark:bg-background-dark max-w-[480px] mx-auto border-t border-gray-100 dark:border-gray-800">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-black transition-transform active:scale-[0.98]">
+<span class="truncate text-base font-bold uppercase tracking-wider">Soumettre le rapport</span>
+</button>
+</div>
+</div>
+</body></html>

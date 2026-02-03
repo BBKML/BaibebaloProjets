@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Phone Registration - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .checkbox-custom {
+            --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27white%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col items-center">
+<!-- Main Container -->
+<div class="relative flex h-full min-h-screen w-full max-w-[430px] flex-col bg-background-light dark:bg-background-dark overflow-x-hidden shadow-2xl">
+<!-- Top App Bar -->
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center justify-start hover:opacity-70 transition-opacity">
+<span class="material-symbols-outlined" style="font-size: 28px;">arrow_back_ios</span>
+</button>
+<div class="flex-1 text-center font-semibold text-sm tracking-wide opacity-50 dark:text-white">BAIBEBALO</div>
+<div class="size-12"></div> <!-- Spacer for balance -->
+</div>
+<!-- Content Area -->
+<div class="flex-1 flex flex-col px-6">
+<!-- Headline Text -->
+<h1 class="text-[#0e1b13] dark:text-white tracking-tight text-[32px] font-bold leading-tight pb-2 pt-8">
+                Votre numéro de téléphone
+            </h1>
+<!-- Body Text -->
+<p class="text-[#4a5c50] dark:text-[#a1b3a8] text-base font-normal leading-normal pb-8">
+                Nous vous enverrons un code de validation par SMS.
+            </p>
+<!-- Phone Input Field -->
+<div class="flex flex-col gap-2 py-3">
+<label class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-normal ml-1 uppercase tracking-wider opacity-70">
+                    Numéro de téléphone
+                </label>
+<div class="flex w-full items-stretch rounded-xl overflow-hidden border border-[#d1e6d9] dark:border-[#2a3d31] bg-white dark:bg-[#1a2e22] shadow-sm focus-within:ring-2 focus-within:ring-primary/50 transition-all">
+<!-- Prefix & Flag -->
+<div class="flex items-center gap-2 px-4 bg-[#f0f4f2] dark:bg-[#22362a] border-r border-[#d1e6d9] dark:border-[#2a3d31]">
+<img alt="Ivory Coast Flag" class="w-6 h-auto rounded-sm" data-alt="Drapeau de la Côte d'Ivoire" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALDMqdCe4bK0tZg2b4roIPzYw_KPmh6VQ-jsnCRVAoYr27axeDb-glatZepA_dBR69-0MdDX7mmbcrU3CeG6QAf60AN38Cv3PFDZx_03s0LPAKS8hkCcXyQCLvz3VM-quEHwCkkqUttB1N9bh9xHEl0Sd4Jo_bO2iUeP7U8C77hJaRodz5KiVmdXcMSVfl0MqRHsg2tRBzV8CVJEItEgBKN8EaQj07-a2LRYp8duC5BPJGieQBivepvpF9tI2-gJDnYrYdWIqCL2Pw"/>
+<span class="text-[#0e1b13] dark:text-white font-semibold">+225</span>
+</div>
+<!-- Input -->
+<input class="form-input flex w-full min-w-0 flex-1 border-none bg-transparent h-14 text-[#0e1b13] dark:text-white placeholder:text-[#a1b3a8] p-4 text-lg font-medium tracking-widest focus:ring-0" placeholder="07 00 00 00 00" type="tel"/>
+</div>
+</div>
+<!-- Checklists / Legal -->
+<div class="mt-4">
+<label class="flex items-start gap-x-3 py-3 group cursor-pointer">
+<div class="relative flex items-center mt-1">
+<input class="checkbox-custom h-6 w-6 rounded border-[#d1e6d9] dark:border-[#2a3d31] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-primary focus:ring-offset-0 focus:outline-none transition-colors" type="checkbox"/>
+</div>
+<p class="text-[#4a5c50] dark:text-[#a1b3a8] text-sm font-normal leading-relaxed">
+                        J'accepte les <a class="text-primary font-semibold underline underline-offset-2" href="#">conditions générales</a> d'utilisation de BAIBEBALO.
+                    </p>
+</label>
+</div>
+<!-- Spacer to push button down but keep it accessible -->
+<div class="flex-1"></div>
+<!-- Action Button -->
+<div class="py-10">
+<button class="w-full bg-primary hover:bg-[#18b556] active:scale-[0.98] transition-all text-white text-base font-bold h-16 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 uppercase tracking-widest">
+<span>RECEVOIR LE CODE</span>
+<span class="material-symbols-outlined">chevron_right</span>
+</button>
+<p class="text-center mt-6 text-[#a1b3a8] text-xs font-medium">
+                    Phase 1 MVP - Driver Onboarding
+                </p>
+</div>
+</div>
+</div>
+<!-- UI Background Decoration (iOS look) -->
+<div class="fixed top-0 left-0 w-full h-full -z-10 bg-gradient-to-tr from-[#f0f9f4] to-[#ffffff] dark:from-[#0d1a12] dark:to-[#112117]"></div>
+</body></html>

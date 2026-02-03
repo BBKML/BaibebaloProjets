@@ -5,10 +5,13 @@ import {
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
-export default function EmptyOrderHistoryScreen({ navigation }) {
+export default function EmptyOrderHistoryScreen() {
+  const navigation = useNavigation();
+  
   return (
     <View style={styles.container}>
       <View style={styles.content}>

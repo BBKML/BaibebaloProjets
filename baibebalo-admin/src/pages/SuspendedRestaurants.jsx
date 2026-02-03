@@ -226,7 +226,11 @@ const SuspendedRestaurants = () => {
                             </div>
                             <div>
                               <div className="text-sm font-bold text-primary dark:text-primary">{restaurant.name}</div>
-                              <div className="text-xs text-slate-500 dark:text-slate-400">{restaurant.address || restaurant.location || 'N/A'}</div>
+                              <div className="text-xs text-slate-500 dark:text-slate-400">{
+                                typeof restaurant.address === 'object' 
+                                  ? (restaurant.address?.address_line || restaurant.address?.street || `${restaurant.address?.district || ''} ${restaurant.address?.city || ''}`.trim() || 'N/A')
+                                  : (restaurant.address || restaurant.location || 'N/A')
+                              }</div>
                             </div>
                           </div>
                         </td>

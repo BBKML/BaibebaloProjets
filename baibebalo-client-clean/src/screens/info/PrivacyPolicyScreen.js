@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import { COLORS } from '../../constants/colors';
 
@@ -47,35 +48,61 @@ export default function PrivacyPolicyScreen({ navigation }) {
   ];
 
   return (
-    <ScrollView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Politique de confidentialité</Text>
-        <Text style={styles.headerDate}>Dernière mise à jour: 15 janvier 2024</Text>
+    <View style={styles.container}>
+      <View style={styles.topBar}>
+        <TouchableOpacity style={styles.backButton}>
+          <Text style={styles.backText}>‹</Text>
+        </TouchableOpacity>
+        <Text style={styles.topBarTitle}>Conditions & Confidentialité</Text>
+        <View style={styles.topBarSpacer} />
       </View>
+      <View style={styles.progress} />
 
-      <View style={styles.intro}>
-        <Text style={styles.introText}>
-          Chez BAIBEBALO, nous nous engageons à protéger votre vie privée.
-          Cette politique explique comment nous collectons, utilisons et
-          protégeons vos informations personnelles.
-        </Text>
-      </View>
-
-      {sections.map((section, index) => (
-        <View key={index} style={styles.section}>
-          <Text style={styles.sectionTitle}>{section.title}</Text>
-          <Text style={styles.sectionContent}>{section.content}</Text>
+      <ScrollView style={styles.scroll}>
+        <View style={styles.header}>
+          <View style={styles.headerIcon}>
+            <Text style={styles.headerIconText}>§</Text>
+          </View>
+          <Text style={styles.headerTitle}>Aspects Juridiques</Text>
+          <Text style={styles.headerDate}>Dernière mise à jour : 24 Mai 2024</Text>
         </View>
-      ))}
 
-      <View style={styles.contactSection}>
-        <Text style={styles.contactTitle}>Questions ?</Text>
-        <Text style={styles.contactText}>
-          Si vous avez des questions concernant cette politique de
-          confidentialité, contactez-nous à : support@baibebalo.ci
-        </Text>
+        <View style={styles.intro}>
+          <Text style={styles.introText}>
+            Bienvenue sur <Text style={styles.highlight}>BAIBEBALO</Text>. En utilisant
+            notre service, vous acceptez les présentes conditions.
+          </Text>
+        </View>
+
+        {sections.map((section, index) => (
+          <View key={section.title} style={styles.section}>
+            <View style={styles.sectionHeader}>
+              <View style={styles.sectionBadge}>
+                <Text style={styles.sectionBadgeText}>{String(index + 1).padStart(2, '0')}</Text>
+              </View>
+              <Text style={styles.sectionTitle}>{section.title}</Text>
+            </View>
+            <Text style={styles.sectionContent}>{section.content}</Text>
+          </View>
+        ))}
+
+        <View style={styles.contactSection}>
+          <Text style={styles.contactTitle}>Questions ?</Text>
+          <Text style={styles.contactText}>
+            Contactez-nous : support@baibebalo.ci
+          </Text>
+        </View>
+      </ScrollView>
+
+      <View style={styles.actionBar}>
+        <TouchableOpacity style={styles.declineButton}>
+          <Text style={styles.declineText}>Refuser</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.acceptButton}>
+          <Text style={styles.acceptText}>J'accepte</Text>
+        </TouchableOpacity>
       </View>
-    </ScrollView>
+    </View>
   );
 }
 
@@ -84,63 +111,154 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  header: {
-    padding: 24,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.border,
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
   },
-  headerTitle: {
-    fontSize: 28,
+  backButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  backText: {
+    fontSize: 18,
+    color: COLORS.text,
+  },
+  topBarTitle: {
+    flex: 1,
+    textAlign: 'center',
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 8,
+  },
+  topBarSpacer: {
+    width: 36,
+  },
+  progress: {
+    height: 2,
+    backgroundColor: COLORS.border,
+  },
+  scroll: {
+    flex: 1,
+  },
+  header: {
+    padding: 24,
+  },
+  headerIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary + '10',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  headerIconText: {
+    fontSize: 20,
+    color: COLORS.primary,
+  },
+  headerTitle: {
+    fontSize: 24,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginBottom: 4,
   },
   headerDate: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.textSecondary,
   },
   intro: {
-    padding: 24,
-    backgroundColor: COLORS.white,
-    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingBottom: 12,
   },
   introText: {
-    fontSize: 16,
+    fontSize: 14,
     color: COLORS.text,
-    lineHeight: 24,
+    lineHeight: 22,
+  },
+  highlight: {
+    color: COLORS.primary,
+    fontWeight: '700',
   },
   section: {
-    padding: 24,
-    backgroundColor: COLORS.white,
-    marginTop: 8,
+    paddingHorizontal: 24,
+    paddingBottom: 16,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 8,
+  },
+  sectionBadge: {
+    backgroundColor: COLORS.primary + '10',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  sectionBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 12,
   },
   sectionContent: {
-    fontSize: 14,
+    fontSize: 13,
     color: COLORS.textSecondary,
     lineHeight: 22,
   },
   contactSection: {
     padding: 24,
-    backgroundColor: COLORS.white,
-    marginTop: 8,
-    marginBottom: 32,
   },
   contactTitle: {
-    fontSize: 18,
+    fontSize: 14,
     fontWeight: '700',
     color: COLORS.text,
-    marginBottom: 12,
+    marginBottom: 6,
   },
   contactText: {
-    fontSize: 14,
+    fontSize: 12,
     color: COLORS.textSecondary,
     lineHeight: 22,
+  },
+  actionBar: {
+    flexDirection: 'row',
+    gap: 8,
+    padding: 16,
+    backgroundColor: COLORS.white,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  declineButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 20,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+  },
+  declineText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  acceptButton: {
+    flex: 2,
+    paddingVertical: 14,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary,
+    alignItems: 'center',
+  },
+  acceptText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.white,
   },
 });

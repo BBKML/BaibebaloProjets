@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Availability Settings - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e1b13] dark:text-white font-display">
+<div class="relative flex min-h-screen w-full flex-col max-w-[430px] mx-auto bg-background-light dark:bg-background-dark overflow-x-hidden pb-32">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between border-b border-gray-100 dark:border-gray-800">
+<div class="flex size-12 shrink-0 items-center">
+<span class="material-symbols-outlined text-[#0e1b13] dark:text-white">arrow_back_ios</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Availability Settings</h2>
+</header>
+<main class="flex flex-col gap-4 p-4">
+<!-- ActionPanel: Vacation Mode -->
+<div class="flex flex-col gap-4 rounded-xl border border-[#d0e7d9] dark:border-gray-700 bg-white dark:bg-[#1a2e22] p-5 shadow-sm">
+<div class="flex items-center justify-between w-full">
+<div class="flex flex-col gap-1">
+<p class="text-[#0e1b13] dark:text-white text-base font-bold leading-tight">Mode Vacances</p>
+<p class="text-[#4e976b] dark:text-gray-400 text-sm font-normal leading-normal">Désactiver les commandes pendant vos congés</p>
+</div>
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full border-none bg-[#e7f3ec] dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[27px] rounded-full bg-white" style="box-shadow: rgba(0, 0, 0, 0.15) 0px 3px 8px, rgba(0, 0, 0, 0.06) 0px 3px 1px;"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+<!-- CalendarPicker (Simplified range view) -->
+<div class="border-t border-gray-100 dark:border-gray-700 pt-4 mt-2">
+<div class="flex items-center justify-between mb-4">
+<div class="flex flex-col">
+<span class="text-[10px] uppercase font-bold text-gray-400">Début</span>
+<span class="text-sm font-semibold">12 Juil. 2024</span>
+</div>
+<span class="material-symbols-outlined text-gray-300">arrow_forward</span>
+<div class="flex flex-col text-right">
+<span class="text-[10px] uppercase font-bold text-gray-400">Fin</span>
+<span class="text-sm font-semibold">20 Juil. 2024</span>
+</div>
+</div>
+<!-- Minimized Calendar Widget -->
+<div class="flex flex-col gap-0.5 bg-gray-50 dark:bg-gray-800/50 p-3 rounded-lg">
+<div class="flex items-center justify-between mb-2">
+<button><span class="material-symbols-outlined text-sm">chevron_left</span></button>
+<p class="text-sm font-bold">Juillet 2024</p>
+<button><span class="material-symbols-outlined text-sm">chevron_right</span></button>
+</div>
+<div class="grid grid-cols-7 text-center text-[10px] font-bold text-gray-400 mb-1">
+<div>S</div><div>M</div><div>T</div><div>W</div><div>T</div><div>F</div><div>S</div>
+</div>
+<div class="grid grid-cols-7 gap-y-1">
+<div class="h-8 flex items-center justify-center text-xs opacity-20">29</div>
+<div class="h-8 flex items-center justify-center text-xs opacity-20">30</div>
+<div class="h-8 flex items-center justify-center text-xs">1</div>
+<div class="h-8 flex items-center justify-center text-xs">2</div>
+<div class="h-8 flex items-center justify-center text-xs">3</div>
+<div class="h-8 flex items-center justify-center text-xs">4</div>
+<div class="h-8 flex items-center justify-center text-xs">5</div>
+<!-- Selected Range -->
+<div class="h-8 flex items-center justify-center text-xs">11</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20 rounded-l-full text-primary font-bold">12</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">13</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">14</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">15</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">16</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">17</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">18</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20">19</div>
+<div class="h-8 flex items-center justify-center text-xs bg-primary/20 rounded-r-full text-primary font-bold">20</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Weekly Availability Section Header -->
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pt-4">Disponibilité hebdomadaire</h3>
+<!-- Days List -->
+<div class="flex flex-col gap-3">
+<!-- Monday (Enabled) -->
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center bg-primary/10 text-primary rounded-full">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold">Lundi</p>
+</div>
+<label class="relative flex h-[28px] w-[48px] cursor-pointer items-center rounded-full border-none bg-[#e7f3ec] dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[24px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-primary bg-primary/10 text-[#0e1b13] dark:text-white">Matin (08-12h)</button>
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-primary bg-primary/10 text-[#0e1b13] dark:text-white">Après-midi (12-18h)</button>
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-gray-100 dark:border-gray-700 text-gray-500">Soir (18-22h)</button>
+</div>
+</div>
+<!-- Tuesday (Enabled) -->
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center bg-primary/10 text-primary rounded-full">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold">Mardi</p>
+</div>
+<label class="relative flex h-[28px] w-[48px] cursor-pointer items-center rounded-full border-none bg-[#e7f3ec] dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[24px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-gray-100 dark:border-gray-700 text-gray-500">Matin (08-12h)</button>
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-primary bg-primary/10 text-[#0e1b13] dark:text-white">Après-midi (12-18h)</button>
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-primary bg-primary/10 text-[#0e1b13] dark:text-white">Soir (18-22h)</button>
+</div>
+</div>
+<!-- Wednesday (Disabled) -->
+<div class="bg-white/50 dark:bg-black/20 rounded-xl p-4 border border-dashed border-gray-200 dark:border-gray-700 opacity-60">
+<div class="flex items-center justify-between">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-400 rounded-full">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<div class="flex flex-col">
+<p class="text-gray-400 text-base font-semibold">Mercredi</p>
+<p class="text-xs text-gray-400">Non disponible</p>
+</div>
+</div>
+<label class="relative flex h-[28px] w-[48px] cursor-pointer items-center rounded-full border-none bg-[#e7f3ec] dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[24px] rounded-full bg-white shadow-sm"></div>
+<input class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+</div>
+<!-- Thursday (Enabled) -->
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl p-4 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center justify-between mb-4">
+<div class="flex items-center gap-3">
+<div class="flex size-10 items-center justify-center bg-primary/10 text-primary rounded-full">
+<span class="material-symbols-outlined">calendar_today</span>
+</div>
+<p class="text-[#0e1b13] dark:text-white text-base font-semibold">Jeudi</p>
+</div>
+<label class="relative flex h-[28px] w-[48px] cursor-pointer items-center rounded-full border-none bg-[#e7f3ec] dark:bg-gray-700 p-0.5 has-[:checked]:justify-end has-[:checked]:bg-primary">
+<div class="h-full w-[24px] rounded-full bg-white shadow-md"></div>
+<input checked="" class="invisible absolute" type="checkbox"/>
+</label>
+</div>
+<div class="flex flex-wrap gap-2">
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-primary bg-primary/10 text-[#0e1b13] dark:text-white">Matin (08-12h)</button>
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-gray-100 dark:border-gray-700 text-gray-500">Après-midi (12-18h)</button>
+<button class="px-3 py-1.5 rounded-full text-xs font-medium border-2 border-gray-100 dark:border-gray-700 text-gray-500">Soir (18-22h)</button>
+</div>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Action Button -->
+<div class="fixed bottom-16 left-0 right-0 p-4 bg-gradient-to-t from-background-light dark:from-background-dark via-background-light dark:via-background-dark to-transparent z-40 max-w-[430px] mx-auto">
+<button class="w-full h-14 bg-primary text-[#0e1b13] font-bold rounded-xl shadow-lg shadow-primary/20 hover:scale-[0.98] transition-transform flex items-center justify-center gap-2">
+<span class="material-symbols-outlined">update</span>
+                MISE À JOUR DES DISPONIBILITÉS
+            </button>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-[#0a140d] border-t border-gray-100 dark:border-gray-800 flex justify-around items-center h-16 z-50 max-w-[430px] mx-auto">
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">local_shipping</span>
+<span class="text-[10px] font-medium">Commandes</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">calendar_month</span>
+<span class="text-[10px] font-medium">Agenda</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="text-[10px] font-medium">Profil</span>
+</button>
+</nav>
+</div>
+</body></html>

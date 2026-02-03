@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
-import { getRestaurants } from '../../api/restaurants';
+import { getRestaurants, getCategories, getPopularSearches } from '../../api/restaurants';
 import { searchCatalog } from '../../api/search';
 import SearchFiltersModal from './SearchFiltersModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -25,13 +25,35 @@ export default function SearchScreen({ navigation }) {
   const [filtersVisible, setFiltersVisible] = useState(false);
   const [filters, setFilters] = useState({});
   const [recentSearches, setRecentSearches] = useState([]);
-  const popularSearches = ['Pizza', 'Burger', 'Choucouya', 'Alloco', 'Boissons'];
-  const categoryChips = ['Restaurant', 'Fast-food', 'Maquis', 'Grillades', 'Pizza', 'Plats légers'];
+  const [popularSearches, setPopularSearches] = useState(['Pizza', 'Burger', 'Choucouya', 'Alloco', 'Boissons']);
+  const [categoryChips, setCategoryChips] = useState(['Restaurant', 'Fast-food', 'Maquis', 'Grillades', 'Pizza', 'Plats légers']);
 
   useEffect(() => {
     loadTrending();
     loadRecentSearches();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      const [categoriesRes, popularSearchesRes] = await Promise.all([
+        getCategories().catch(() => ({ data: { categories: [] } })),
+        getPopularSearches(5).catch(() => ({ data: { searches: [] } })),
+      ]);
+
+      const apiCategories = categoriesRes.data?.categories || [];
+      if (apiCategories.length > 0) {
+        setCategoryChips(apiCategories.map((cat) => cat.label));
+      }
+
+      const apiSearches = popularSearchesRes.data?.searches || [];
+      if (apiSearches.length > 0) {
+        setPopularSearches(apiSearches);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    }
+  };
   const loadRecentSearches = async () => {
     try {
       const stored = await AsyncStorage.getItem('recentSearches');
@@ -236,7 +258,7 @@ export default function SearchScreen({ navigation }) {
       onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.id })}
     >
       <Image
-        source={{ uri: item.image_url || 'https://via.placeholder.com/300' }}
+        source={{ uri: item.banner || item.logo || item.image_url || 'https://via.placeholder.com/300' }}
         style={styles.restaurantImage}
       />
       <View style={styles.restaurantInfo}>
@@ -257,7 +279,7 @@ export default function SearchScreen({ navigation }) {
     name: restaurant.featured_dish || restaurant.speciality || 'Plat populaire',
     price: restaurant.average_price || 3500,
     restaurantName: restaurant.name || 'Restaurant',
-    image: restaurant.image_url || 'https://via.placeholder.com/100',
+    image: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/100',
   }));
   const dishResults = dishResultsFromApi.length > 0 ? dishResultsFromApi : fallbackDishResults;
 
@@ -351,7 +373,7 @@ export default function SearchScreen({ navigation }) {
             <View style={styles.suggestionsSection}>
               <Text style={styles.suggestionsTitle}>Suggestions pour vous</Text>
               <View style={styles.suggestionsRow}>
-                {suggestionChips.map((chip) => (
+                {categoryChips.map((chip) => (
                   <TouchableOpacity
                     key={chip}
                     style={styles.suggestionChip}

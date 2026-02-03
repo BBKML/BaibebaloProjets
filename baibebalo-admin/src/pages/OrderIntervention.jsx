@@ -97,7 +97,11 @@ const OrderIntervention = () => {
             <h2 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Restaurant Info</h2>
             <div>
               <p className="text-base font-bold text-slate-900 dark:text-white mb-2">{order.restaurant.name}</p>
-              <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{order.restaurant.address}</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">{
+                typeof order.restaurant?.address === 'object' 
+                  ? (order.restaurant.address?.address_line || order.restaurant.address?.street || `${order.restaurant.address?.district || ''} ${order.restaurant.address?.city || ''}`.trim() || '')
+                  : (order.restaurant?.address || '')
+              }</p>
               <p className="text-sm text-slate-600 dark:text-slate-400">{order.restaurant.email}</p>
             </div>
           </div>

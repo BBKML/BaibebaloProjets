@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding: Media Upload - BAIBEBALO</title>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .aspect-16-9 {
+            aspect-ratio: 16 / 9;
+        }
+        .aspect-square {
+            aspect-ratio: 1 / 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1d110c] dark:text-white font-display">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-[#ead5cd] dark:border-[#3d2a23]">
+<div class="flex items-center p-4 justify-between">
+<div class="flex size-10 items-center justify-center rounded-full hover:bg-black/5 cursor-pointer">
+<span class="material-symbols-outlined text-[#1d110c] dark:text-white">arrow_back</span>
+</div>
+<h2 class="text-lg font-bold leading-tight flex-1 text-center pr-10">Étape 6: Médias</h2>
+</div>
+<!-- Progress Bar Component -->
+<div class="flex flex-col gap-2 p-4 pt-0">
+<div class="flex justify-between items-end">
+<p class="text-sm font-medium opacity-70">Progression de l'inscription</p>
+<p class="text-sm font-bold">6/6</p>
+</div>
+<div class="h-1.5 w-full rounded-full bg-[#ead5cd] dark:bg-[#3d2a23] overflow-hidden">
+<div class="h-full rounded-full bg-primary" style="width: 100%;"></div>
+</div>
+</div>
+</div>
+<main class="p-4 pb-32 flex flex-col gap-6">
+<!-- Section: Logo -->
+<section>
+<div class="flex items-center gap-2 mb-3">
+<h3 class="text-lg font-bold">Logo du restaurant</h3>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Requis</span>
+</div>
+<div class="flex flex-col items-center gap-4 rounded-xl border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] p-8 transition-colors hover:border-primary/50">
+<div class="flex flex-col items-center text-center gap-2">
+<div class="size-16 rounded-full bg-primary/10 flex items-center justify-center mb-2">
+<span class="material-symbols-outlined text-primary text-3xl">add_photo_alternate</span>
+</div>
+<p class="font-bold">Ajouter un logo</p>
+<p class="text-xs opacity-60">Format carré (min 500x500px)</p>
+</div>
+<button class="flex min-w-[140px] items-center justify-center rounded-lg h-10 px-4 bg-primary/10 text-primary text-sm font-bold transition-all active:scale-95">
+                    Choisir un fichier
+                </button>
+</div>
+</section>
+<!-- Section: Banner -->
+<section>
+<div class="flex items-center gap-2 mb-3">
+<h3 class="text-lg font-bold">Photo de couverture</h3>
+<span class="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full font-bold">Requis</span>
+</div>
+<div class="aspect-16-9 w-full flex flex-col items-center justify-center gap-4 rounded-xl border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] overflow-hidden relative group cursor-pointer hover:border-primary/50">
+<div class="flex flex-col items-center text-center p-4">
+<span class="material-symbols-outlined text-primary/40 text-4xl mb-2">image</span>
+<p class="font-bold">Importer la bannière</p>
+<p class="text-xs opacity-60">Ratio 16:9 recommandé</p>
+</div>
+</div>
+</section>
+<!-- Section: Ambiance Grid -->
+<section>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-lg font-bold">Photos d'ambiance</h3>
+<span class="text-xs opacity-60">0/4</span>
+</div>
+<p class="text-sm opacity-70 mb-4">Montrez l'intérieur et l'atmosphère de votre établissement.</p>
+<div class="grid grid-cols-2 gap-3">
+<!-- Grid items -->
+<div class="aspect-square rounded-xl border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30">add_a_photo</span>
+</div>
+<div class="aspect-square rounded-xl border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30">add_a_photo</span>
+</div>
+<div class="aspect-square rounded-xl border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30">add_a_photo</span>
+</div>
+<div class="aspect-square rounded-xl border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30">add_a_photo</span>
+</div>
+</div>
+</section>
+<!-- Section: Popular Dishes -->
+<section>
+<div class="flex items-center justify-between mb-3">
+<h3 class="text-lg font-bold">Plats Populaires</h3>
+<span class="text-xs opacity-60">0/6</span>
+</div>
+<p class="text-sm opacity-70 mb-4">Mettez en avant vos meilleures créations culinaires.</p>
+<div class="grid grid-cols-3 gap-2">
+<!-- Smaller Grid for many items -->
+<div class="aspect-square rounded-lg border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30 text-xl">restaurant</span>
+</div>
+<div class="aspect-square rounded-lg border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30 text-xl">restaurant</span>
+</div>
+<div class="aspect-square rounded-lg border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30 text-xl">restaurant</span>
+</div>
+<div class="aspect-square rounded-lg border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30 text-xl">restaurant</span>
+</div>
+<div class="aspect-square rounded-lg border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30 text-xl">restaurant</span>
+</div>
+<div class="aspect-square rounded-lg border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a23] bg-white dark:bg-[#2d1b15] flex items-center justify-center hover:border-primary/50 cursor-pointer">
+<span class="material-symbols-outlined text-primary/30 text-xl">restaurant</span>
+</div>
+</div>
+</section>
+<!-- Final Notice -->
+<div class="bg-primary/5 p-4 rounded-xl border border-primary/20">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-primary shrink-0">info</span>
+<p class="text-xs leading-relaxed text-[#1d110c]/80 dark:text-white/80">
+                    En soumettant ces médias, vous confirmez que vous possédez les droits d'utilisation pour ces images. Elles seront utilisées sur votre profil public.
+                </p>
+</div>
+</div>
+</main>
+<!-- Fixed Bottom Button -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-[#ead5cd] dark:border-[#3d2a23]">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 transition-all active:scale-[0.98] flex items-center justify-center gap-2">
+<span>Soumettre le dossier</span>
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</body></html>

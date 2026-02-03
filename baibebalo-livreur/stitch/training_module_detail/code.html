@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .fill-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<div class="text-[#0e1b13] dark:text-white flex size-10 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</div>
+<div class="flex flex-col items-center">
+<h2 class="text-[#0e1b13] dark:text-white text-base font-bold leading-tight tracking-tight">Module 1</h2>
+<p class="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-widest">Étape 1 sur 5</p>
+</div>
+<div class="size-10 flex items-center justify-center">
+<span class="material-symbols-outlined text-primary">info</span>
+</div>
+</div>
+</header>
+<main class="flex-1 max-w-md mx-auto w-full pb-32">
+<!-- Video Player Section -->
+<div class="p-4">
+<div class="relative flex flex-col bg-black rounded-xl overflow-hidden shadow-lg aspect-video group" data-alt="Interface du lecteur vidéo montrant l'application Baibebalo">
+<div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent z-10"></div>
+<!-- Video Thumbnail / Placeholder -->
+<div class="absolute inset-0 bg-cover bg-center" data-alt="Chauffeur utilisant une application de livraison sur smartphone" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuDato2AxNX9M5TWNohy_IwI1XDA7a0sblyX09QlaeLqVB1qnMRDG9TsyIT-7vYsDSV8ZrQmUaumL2m0Mq5Qxjen6XNRO56a0_JQGSYjt84c3UNQFBWDPeK2CUD_bagrq539OZ2S1ieL5ypYP51zz6blN4VGQo49A0WDCvAcZefBp5QovNbMgTc0zw1djzSGorE7dKKbZ5Bx3HcpBCT-pbYzYA4XBlkt3gPqbiq9X65vk5ZFjm2LdgEMj6ZKPuAk0Qp2eEUIlRPxRpnT');"></div>
+<!-- Play Button Overlay -->
+<div class="absolute inset-0 flex items-center justify-center z-20">
+<button class="flex shrink-0 items-center justify-center rounded-full size-16 bg-primary text-white shadow-2xl transition-transform hover:scale-110">
+<span class="material-symbols-outlined fill-icon" style="font-size: 32px;">play_arrow</span>
+</button>
+</div>
+<!-- Video Controls -->
+<div class="absolute inset-x-0 bottom-0 px-4 py-4 z-30">
+<div class="flex h-1.5 items-center justify-center mb-2">
+<div class="h-1 flex-[0.35] rounded-full bg-primary"></div>
+<div class="relative">
+<div class="absolute -left-1 -top-1.5 size-3 rounded-full bg-primary ring-4 ring-primary/20"></div>
+</div>
+<div class="h-1 flex-[0.65] rounded-full bg-white/30"></div>
+</div>
+<div class="flex items-center justify-between">
+<p class="text-white text-xs font-semibold leading-normal">0:42</p>
+<div class="flex gap-4">
+<span class="material-symbols-outlined text-white text-lg">subtitles</span>
+<span class="material-symbols-outlined text-white text-lg">settings</span>
+<span class="material-symbols-outlined text-white text-lg">fullscreen</span>
+</div>
+<p class="text-white text-xs font-semibold leading-normal">3:15</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Content Section -->
+<div class="px-4 space-y-2">
+<h3 class="text-[#0e1b13] dark:text-white tracking-tight text-2xl font-bold leading-tight pt-2">Utilisation de l'app</h3>
+<p class="text-gray-600 dark:text-gray-400 text-sm font-normal leading-relaxed pb-4">
+                Découvrez les bases essentielles pour bien démarrer votre première course avec Baibebalo. Regardez la vidéo pour débloquer la suite.
+            </p>
+</div>
+<!-- Key Points Section -->
+<div class="px-4 py-2">
+<div class="bg-white dark:bg-gray-900/50 rounded-xl border border-gray-100 dark:border-gray-800 p-4 shadow-sm">
+<h4 class="text-[#0e1b13] dark:text-white text-sm font-bold uppercase tracking-wider mb-3">Points clés de la formation</h4>
+<div class="space-y-1">
+<label class="flex gap-x-3 py-3 items-start border-b border-gray-50 dark:border-gray-800 last:border-0">
+<div class="mt-0.5">
+<input class="h-5 w-5 rounded border-gray-300 dark:border-gray-700 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all cursor-not-allowed" disabled="" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<p class="text-[#0e1b13] dark:text-gray-200 text-base font-medium leading-snug">Comment accepter les commandes</p>
+<p class="text-gray-500 dark:text-gray-500 text-xs">Apprenez à réagir aux notifications d'appels.</p>
+</div>
+</label>
+<label class="flex gap-x-3 py-3 items-start border-b border-gray-50 dark:border-gray-800 last:border-0">
+<div class="mt-0.5">
+<input class="h-5 w-5 rounded border-gray-300 dark:border-gray-700 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all cursor-not-allowed" disabled="" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<p class="text-[#0e1b13] dark:text-gray-200 text-base font-medium leading-snug">Utilisation du GPS intégré</p>
+<p class="text-gray-500 dark:text-gray-500 text-xs">Navigation en temps réel vers le client.</p>
+</div>
+</label>
+<label class="flex gap-x-3 py-3 items-start last:border-0">
+<div class="mt-0.5">
+<input class="h-5 w-5 rounded border-gray-300 dark:border-gray-700 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all cursor-not-allowed" disabled="" type="checkbox"/>
+</div>
+<div class="flex flex-col">
+<p class="text-[#0e1b13] dark:text-gray-200 text-base font-medium leading-snug">Marquer les étapes de la livraison</p>
+<p class="text-gray-500 dark:text-gray-500 text-xs">Mise à jour du statut pour le client final.</p>
+</div>
+</label>
+</div>
+</div>
+</div>
+<!-- Locked Warning -->
+<div class="px-4 mt-6 flex items-center gap-3 p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg mx-4">
+<span class="material-symbols-outlined text-orange-600 dark:text-orange-400">lock</span>
+<p class="text-orange-800 dark:text-orange-300 text-xs font-medium leading-tight">
+                Veuillez terminer de visionner la vidéo pour valider ces points et passer au module suivant.
+            </p>
+</div>
+</main>
+<!-- Bottom Action Button -->
+<footer class="fixed bottom-0 inset-x-0 bg-background-light dark:bg-background-dark p-4 border-t border-gray-200 dark:border-gray-800 pb-8">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-gray-300 dark:bg-gray-800 text-gray-500 dark:text-gray-500 font-bold py-4 rounded-xl flex items-center justify-center gap-2 cursor-not-allowed transition-all" disabled="">
+<span>MODULE SUIVANT</span>
+<span class="material-symbols-outlined text-sm">lock</span>
+</button>
+</div>
+</footer>
+</body></html>

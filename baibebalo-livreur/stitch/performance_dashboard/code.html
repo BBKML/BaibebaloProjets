@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Performance Dashboard - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#0e1b13] dark:text-white min-h-screen">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 pb-4 justify-between max-w-md mx-auto">
+<div class="flex size-10 shrink-0 items-center">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-10 border-2 border-primary" data-alt="Portrait of a smiling delivery driver" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBVAm_d6m8BliHjOcNtY68LgEcnU5JWvDPg6DB9rf7qQBiA17zahO-TOJMlTV2UFGelv0RggDX5JAwctpkK1qqwxboatrrpOm8S0-DPECW9D8OaqNdpBRNWpA-y_ZzP0ssn30PTbgPZgk_FD9KTOY1Nowvov0pC1_WtMAdFd4b9cGMnhj5K_cv_CwBH22wEGnjku89KZzMnYWse4g94i7lIUHAgc5qBHGohHYOIvWgrnMbsVfgroTU43FthmDwxZ9fQuvgw_i7DO2Gu");'></div>
+</div>
+<div class="flex flex-col items-center">
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Tableau de bord</h2>
+<span class="text-[10px] uppercase tracking-widest text-primary font-bold">Baibebalo Pro</span>
+</div>
+<div class="flex w-10 items-center justify-end">
+<button class="relative flex cursor-pointer items-center justify-center rounded-lg h-10 w-10 bg-transparent text-[#0e1b13] dark:text-white">
+<span class="material-symbols-outlined">notifications</span>
+<span class="absolute top-2 right-2 flex h-2 w-2 rounded-full bg-red-500"></span>
+</button>
+</div>
+</div>
+</div>
+<main class="max-w-md mx-auto pb-24">
+<!-- Welcome & Goal Section -->
+<div class="px-4 pt-6">
+<div class="bg-white dark:bg-gray-900 rounded-xl p-4 shadow-sm border border-gray-100 dark:border-gray-800">
+<div class="flex justify-between items-center mb-2">
+<p class="text-sm font-medium text-gray-500 dark:text-gray-400">Objectif hebdo : 450 courses</p>
+<p class="text-sm font-bold text-primary">86%</p>
+</div>
+<div class="w-full bg-gray-100 dark:bg-gray-800 rounded-full h-2">
+<div class="bg-primary h-2 rounded-full" style="width: 86%"></div>
+</div>
+</div>
+</div>
+<!-- Stats Grid 2x2 -->
+<div class="p-4 grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-yellow-500 text-sm filled-icon">star</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Note moyenne</p>
+</div>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-2xl font-bold leading-tight">4.8/5</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-primary text-sm">check_circle</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Acceptation</p>
+</div>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-2xl font-bold leading-tight">98%</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-blue-500 text-sm">schedule</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">À l'heure</p>
+</div>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-2xl font-bold leading-tight">95%</p>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-4 bg-white dark:bg-gray-900 border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-purple-500 text-sm">directions_bike</span>
+<p class="text-gray-500 dark:text-gray-400 text-xs font-medium uppercase tracking-wider">Courses</p>
+</div>
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-2xl font-bold leading-tight">387</p>
+</div>
+</div>
+<!-- Chart Section -->
+<div class="px-4 py-2">
+<div class="bg-white dark:bg-gray-900 rounded-xl p-5 border border-gray-100 dark:border-gray-800 shadow-sm">
+<p class="text-gray-500 dark:text-gray-400 text-sm font-medium">Évolution (7 jours)</p>
+<div class="flex items-baseline gap-2 mt-1">
+<p class="text-[#0e1b13] dark:text-white tracking-tight text-3xl font-bold leading-tight truncate">387 courses</p>
+<p class="text-primary text-sm font-medium leading-normal">+12%</p>
+</div>
+<div class="flex min-h-[160px] flex-col gap-6 py-4">
+<svg fill="none" height="120" preserveaspectratio="none" viewbox="0 0 478 150" width="100%" xmlns="http://www.w3.org/2000/svg">
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25V149H326.769H0V109Z" fill="url(#paint0_linear)"></path>
+<path d="M0 109C18.1538 109 18.1538 21 36.3077 21C54.4615 21 54.4615 41 72.6154 41C90.7692 41 90.7692 93 108.923 93C127.077 93 127.077 33 145.231 33C163.385 33 163.385 101 181.538 101C199.692 101 199.692 61 217.846 61C236 61 236 45 254.154 45C272.308 45 272.308 121 290.462 121C308.615 121 308.615 149 326.769 149C344.923 149 344.923 1 363.077 1C381.231 1 381.231 81 399.385 81C417.538 81 417.538 129 435.692 129C453.846 129 453.846 25 472 25" stroke="#19e66b" stroke-linecap="round" stroke-width="3"></path>
+<defs>
+<lineargradient gradientunits="userSpaceOnUse" id="paint0_linear" x1="236" x2="236" y1="1" y2="149">
+<stop stop-color="#19e66b" stop-opacity="0.2"></stop>
+<stop offset="1" stop-color="#19e66b" stop-opacity="0"></stop>
+</lineargradient>
+</defs>
+</svg>
+<div class="flex justify-around">
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Lun</p>
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Mar</p>
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Mer</p>
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Jeu</p>
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Ven</p>
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider text-primary">Sam</p>
+<p class="text-gray-400 text-[11px] font-bold uppercase tracking-wider">Dim</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section Header -->
+<div class="px-4 pt-4 flex justify-between items-center">
+<h3 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Commentaires récents</h3>
+<button class="text-primary text-sm font-semibold">Tout voir</button>
+</div>
+<!-- Reviews List -->
+<div class="flex flex-col gap-4 p-4">
+<!-- Review Item 1 -->
+<div class="flex flex-col gap-3 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" data-alt="Small profile photo of a customer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuB1wK1-kj48AhoqyTNDRdRVWOA1lmeVjYa8seysYk6Nypmaag6GJtvPwDHKFObEJ9GomoMaS6WkjO16JP5mCbA-i_dWFH3657B0BaOxz451AOq35a-Uywhd78mQJ_1rnUnsl4sqmL8H4YWDmATGrvVeg4ldyS48ZsmIpdp6lnsPIJsy6gUs7rAR-PJT_jtoawvTNTNzc5Y5BFfmsgsyYm7Moz2D1f1Cs9YEMnKYdnR6ftjGhb4nQmyien_D1NB21X91C8q6xfcINz0b");'></div>
+<div class="flex-1">
+<p class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-tight">Jean D.</p>
+<p class="text-gray-400 text-xs">Hier • Commande #4829</p>
+</div>
+<div class="flex gap-0.5">
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+</div>
+</div>
+<p class="text-[#0e1b13] dark:text-gray-200 text-sm font-normal leading-relaxed italic">"Livreur très poli et respectueux des consignes ! Arrivé en avance."</p>
+</div>
+<!-- Review Item 2 -->
+<div class="flex flex-col gap-3 bg-white dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800 shadow-sm">
+<div class="flex items-center gap-3">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full size-8" data-alt="Small profile photo of a male customer" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBMJkvYCb0nG4XZyJY4X9dJ2Ws-YuV8XX3ZiM_cymKqTHKjkLZtFhY_b7mxg4FXYlRyPHDoiafexzV4mZthE7RGmP31xb7hsX0IRVt-L8diD-FyDF9vgQ_mqsUbs9ZB-4Di_UYFhzS6rFLTgzn5l9SG0GSe8H0nknSECPIi2zvlsjSCXS9GlvlKdvmCMjmpqXs4X5vmZ67EXnMxKZvk-uYNqDPjehLQK2fHlkbBE41gZ8m0sZVuPcSGEDUPlGiAESdPWciABFjRS8RD");'></div>
+<div class="flex-1">
+<p class="text-[#0e1b13] dark:text-white text-sm font-semibold leading-tight">Marie L.</p>
+<p class="text-gray-400 text-xs">Il y a 2 jours • Commande #4812</p>
+</div>
+<div class="flex gap-0.5">
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+<span class="material-symbols-outlined text-primary text-[14px] filled-icon">star</span>
+</div>
+</div>
+<p class="text-[#0e1b13] dark:text-gray-200 text-sm font-normal leading-relaxed italic">"Livraison ultra rapide. Le colis était en parfait état."</p>
+</div>
+</div>
+</main>
+<!-- iOS style Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-900/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 pb-safe-area-inset-bottom">
+<div class="flex justify-around items-center h-16 max-w-md mx-auto">
+<button class="flex flex-col items-center gap-1 text-primary">
+<span class="material-symbols-outlined filled-icon">dashboard</span>
+<span class="text-[10px] font-bold">Dashboard</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-[10px] font-medium">Missions</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">account_balance_wallet</span>
+<span class="text-[10px] font-medium">Gains</span>
+</button>
+<button class="flex flex-col items-center gap-1 text-gray-400 dark:text-gray-500 hover:text-primary transition-colors">
+<span class="material-symbols-outlined">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</button>
+</div>
+<!-- iPhone indicator area spacing -->
+<div class="h-5"></div>
+</nav>
+</body></html>

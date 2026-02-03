@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Certification Quiz - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lexend:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Lexend", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Lexend', sans-serif;
+        }
+        .radio-dot-svg {
+            --radio-dot-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(29,201,98)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3ccircle cx=%278%27 cy=%278%27 r=%273%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e1b13] dark:text-white min-h-screen flex flex-col">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-10 bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 pb-2 justify-between">
+<div class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center justify-center cursor-pointer">
+<span class="material-symbols-outlined">close</span>
+</div>
+<h2 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Certification Quiz</h2>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex-1 flex flex-col max-w-md mx-auto w-full">
+<!-- Progress Bar Section -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between items-end">
+<p class="text-[#0e1b13] dark:text-white text-base font-medium leading-normal">Question 5 sur 20</p>
+<p class="text-[#0e1b13]/60 dark:text-white/60 text-sm font-normal leading-normal">25% Complété</p>
+</div>
+<div class="rounded-full bg-gray-200 dark:bg-gray-700 overflow-hidden h-2">
+<div class="h-full rounded-full bg-primary" style="width: 25%;"></div>
+</div>
+</div>
+<!-- Question Section -->
+<div class="px-4 pt-4 pb-2">
+<h3 class="text-[#0e1b13] dark:text-white tracking-tight text-2xl font-bold leading-tight">
+                Que devez-vous faire si un client ne répond pas à votre appel ?
+            </h3>
+</div>
+<!-- Options Section -->
+<div class="radio-dot-svg flex flex-col gap-3 p-4 mb-20">
+<!-- Option 1 (Selected) -->
+<label class="flex items-center gap-4 rounded-xl border-2 border-solid border-primary bg-primary/5 dark:bg-primary/10 p-4 transition-all cursor-pointer">
+<input checked="" class="h-5 w-5 border-2 border-primary bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary" name="quiz-option" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#0e1b13] dark:text-white text-sm font-medium leading-normal">Attendre 5 minutes et annuler la course.</p>
+</div>
+</label>
+<!-- Option 2 -->
+<label class="flex items-center gap-4 rounded-xl border border-solid border-gray-200 dark:border-gray-800 p-4 hover:border-primary/50 transition-all cursor-pointer">
+<input class="h-5 w-5 border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary" name="quiz-option" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#0e1b13] dark:text-white text-sm font-medium leading-normal">Appeler le support BAIBEBALO immédiatement.</p>
+</div>
+</label>
+<!-- Option 3 -->
+<label class="flex items-center gap-4 rounded-xl border border-solid border-gray-200 dark:border-gray-800 p-4 hover:border-primary/50 transition-all cursor-pointer">
+<input class="h-5 w-5 border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary" name="quiz-option" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#0e1b13] dark:text-white text-sm font-medium leading-normal">Laisser un message vocal et attendre à l'emplacement prévu.</p>
+</div>
+</label>
+<!-- Option 4 -->
+<label class="flex items-center gap-4 rounded-xl border border-solid border-gray-200 dark:border-gray-800 p-4 hover:border-primary/50 transition-all cursor-pointer">
+<input class="h-5 w-5 border-2 border-gray-300 dark:border-gray-600 bg-transparent text-transparent checked:border-primary checked:bg-[image:--radio-dot-svg] focus:outline-none focus:ring-0 focus:ring-offset-0 checked:focus:border-primary" name="quiz-option" type="radio"/>
+<div class="flex grow flex-col">
+<p class="text-[#0e1b13] dark:text-white text-sm font-medium leading-normal">Partir immédiatement vers la course suivante.</p>
+</div>
+</label>
+</div>
+</main>
+<!-- Sticky Footer Action -->
+<footer class="sticky bottom-0 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 p-4 pb-8">
+<div class="max-w-md mx-auto w-full">
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-[#0e1b13] text-base font-bold leading-normal tracking-[0.015em] hover:opacity-90 active:scale-[0.98] transition-all">
+<span class="truncate">QUESTION SUIVANTE</span>
+</button>
+</div>
+</footer>
+</body></html>

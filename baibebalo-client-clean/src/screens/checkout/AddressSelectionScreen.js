@@ -5,29 +5,47 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { getAddresses } from '../../api/users';
 
 export default function AddressSelectionScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(route?.params?.selectedAddressId || null);
+  const [loading, setLoading] = useState(true);
 
+  // Charger les adresses au montage ET quand l'écran revient au focus
   useEffect(() => {
     loadAddresses();
-  }, []);
+    
+    // Écouter le retour au focus pour recharger les adresses
+    const unsubscribe = navigation.addListener('focus', () => {
+      console.log('📍 AddressSelection focused - reloading addresses');
+      loadAddresses();
+    });
+    
+    return unsubscribe;
+  }, [navigation]);
 
   const loadAddresses = async () => {
     try {
+      setLoading(true);
       const response = await getAddresses();
-      const fetchedAddresses = response.data?.addresses || response.data?.data?.addresses || [];
+      console.log('📍 Adresses reçues:', response);
+      const fetchedAddresses = response.data?.addresses || response.data?.data?.addresses || response.addresses || [];
+      console.log('📍 Adresses parsées:', fetchedAddresses.length, 'adresse(s)');
       setAddresses(fetchedAddresses);
       if (fetchedAddresses.length > 0 && !selectedAddress) {
         setSelectedAddress(fetchedAddresses[0].id);
       }
     } catch (error) {
       console.error('Erreur lors du chargement des adresses:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -127,7 +145,12 @@ export default function AddressSelectionScreen({ navigation, route }) {
           </TouchableOpacity>
         </View>
 
-        {addresses.length === 0 ? (
+        {loading ? (
+          <View style={styles.loadingState}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={styles.loadingText}>Chargement des adresses...</Text>
+          </View>
+        ) : addresses.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="location-outline" size={64} color={COLORS.textLight} />
             <Text style={styles.emptyTitle}>Aucune adresse</Text>
@@ -157,17 +180,18 @@ export default function AddressSelectionScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      {addresses.length > 0 && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={[styles.confirmButton, !selectedAddress && styles.confirmButtonDisabled]}
-            onPress={handleSelect}
-            disabled={!selectedAddress}
-          >
-            <Text style={styles.confirmButtonText}>Continuer</Text>
-          </TouchableOpacity>
-        </View>
-      )}
+      {/* Footer toujours visible */}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
+        <TouchableOpacity
+          style={[styles.confirmButton, (!selectedAddress || addresses.length === 0) && styles.confirmButtonDisabled]}
+          onPress={handleSelect}
+          disabled={!selectedAddress || addresses.length === 0}
+        >
+          <Text style={styles.confirmButtonText}>
+            {addresses.length === 0 ? 'Ajoutez une adresse' : 'Continuer'}
+          </Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 }
@@ -242,7 +266,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
   },
   contentInner: {
-    paddingBottom: 120,
+    paddingBottom: 140, // Espace pour le footer + safe area
   },
   heroTitle: {
     fontSize: 26,
@@ -393,6 +417,18 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 18,
     fontWeight: '800',
+  },
+  loadingState: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 32,
+    minHeight: 200,
+  },
+  loadingText: {
+    marginTop: 12,
+    fontSize: 14,
+    color: COLORS.textSecondary,
   },
   emptyState: {
     flex: 1,

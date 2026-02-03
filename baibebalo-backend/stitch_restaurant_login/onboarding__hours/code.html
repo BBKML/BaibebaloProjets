@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Onboarding - Horaires d'ouverture</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#ff6933",
+                        "background-light": "#fcf9f8",
+                        "background-dark": "#23140f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: "Work Sans", sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-toggle:checked ~ .ios-toggle-dot {
+            transform: translateX(20px);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1d110c] dark:text-white">
+<div class="relative flex h-auto min-h-screen w-full flex-col max-w-[430px] mx-auto overflow-x-hidden border-x border-gray-100 dark:border-gray-800 shadow-sm">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between">
+<button class="text-[#1d110c] dark:text-white flex size-12 shrink-0 items-center justify-start focus:outline-none">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</button>
+<h2 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12 font-display">Horaires d'ouverture</h2>
+</div>
+</header>
+<!-- ProgressBar -->
+<div class="flex flex-col gap-3 p-4">
+<div class="flex gap-6 justify-between">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal font-display">Étape 3: Horaires d'ouverture</p>
+<p class="text-[#1d110c] dark:text-white text-sm font-normal leading-normal">3/6</p>
+</div>
+<div class="rounded-full bg-[#ead5cd] dark:bg-[#3d2a24] overflow-hidden">
+<div class="h-2 rounded-full bg-primary" style="width: 50%;"></div>
+</div>
+</div>
+<main class="flex-1 pb-32">
+<!-- SectionHeader -->
+<div class="flex items-center justify-between px-4 pb-2 pt-4">
+<h3 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] font-display">Horaires réguliers</h3>
+<button class="text-primary text-sm font-semibold flex items-center gap-1">
+<span class="material-symbols-outlined text-sm">content_copy</span>
+                    Appliquer à tous
+                </button>
+</div>
+<!-- ListItem: Lundi -->
+<div class="flex flex-col border-b border-[#f4eae6] dark:border-[#3d2a24]">
+<div class="flex items-center gap-4 bg-transparent px-4 min-h-[72px] py-2 justify-between">
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal">Lundi</p>
+<p class="text-[#a15d45] dark:text-primary/70 text-sm font-normal leading-normal">09:00 - 18:00</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f4eae6] dark:bg-[#3d2a24] p-0.5 transition-colors duration-200">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md transform transition-transform duration-200 peer-checked:translate-x-[20px] peer-checked:bg-white"></div>
+<div class="absolute inset-0 rounded-full peer-checked:bg-primary -z-10 transition-colors duration-200"></div>
+</label>
+</div>
+</div>
+<div class="px-4 pb-4 flex flex-col gap-3">
+<div class="flex items-center gap-3">
+<div class="flex-1 flex items-center gap-2 bg-white dark:bg-[#1a0f0b] border border-[#ead5cd] dark:border-[#3d2a24] rounded-lg px-3 py-2">
+<span class="material-symbols-outlined text-gray-400 text-sm">schedule</span>
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-full text-[#1d110c] dark:text-white" type="time" value="09:00"/>
+</div>
+<span class="text-gray-400">à</span>
+<div class="flex-1 flex items-center gap-2 bg-white dark:bg-[#1a0f0b] border border-[#ead5cd] dark:border-[#3d2a24] rounded-lg px-3 py-2">
+<span class="material-symbols-outlined text-gray-400 text-sm">schedule</span>
+<input class="bg-transparent border-none p-0 text-sm focus:ring-0 w-full text-[#1d110c] dark:text-white" type="time" value="18:00"/>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<label class="flex items-center gap-2 cursor-pointer group">
+<input class="h-5 w-5 rounded border-[#ead5cd] border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:border-[#ead5cd] focus:outline-none" type="checkbox"/>
+<span class="text-[#1d110c] dark:text-white text-sm font-normal">Pause déjeuner</span>
+</label>
+</div>
+</div>
+</div>
+<!-- ListItem: Mardi -->
+<div class="flex flex-col border-b border-[#f4eae6] dark:border-[#3d2a24]">
+<div class="flex items-center gap-4 bg-transparent px-4 min-h-[72px] py-2 justify-between">
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal">Mardi</p>
+<p class="text-[#a15d45] dark:text-primary/70 text-sm font-normal leading-normal">09:00 - 18:00</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f4eae6] dark:bg-[#3d2a24] p-0.5 transition-colors duration-200">
+<input checked="" class="sr-only peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md transform transition-transform duration-200 peer-checked:translate-x-[20px] peer-checked:bg-white"></div>
+<div class="absolute inset-0 rounded-full peer-checked:bg-primary -z-10 transition-colors duration-200"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- ListItem: Dimanche (Fermé example) -->
+<div class="flex flex-col border-b border-[#f4eae6] dark:border-[#3d2a24]">
+<div class="flex items-center gap-4 bg-transparent px-4 min-h-[72px] py-2 justify-between">
+<div class="flex flex-col justify-center">
+<p class="text-[#1d110c] dark:text-white text-base font-medium leading-normal opacity-50">Dimanche</p>
+<p class="text-[#a15d45] dark:text-primary/70 text-sm font-normal leading-normal opacity-50">Fermé</p>
+</div>
+<div class="shrink-0">
+<label class="relative flex h-[31px] w-[51px] cursor-pointer items-center rounded-full bg-[#f4eae6] dark:bg-[#3d2a24] p-0.5 transition-colors duration-200">
+<input class="sr-only peer" type="checkbox"/>
+<div class="h-full w-[27px] rounded-full bg-white shadow-md transform transition-transform duration-200 peer-checked:translate-x-[20px] peer-checked:bg-white"></div>
+<div class="absolute inset-0 rounded-full peer-checked:bg-primary -z-10 transition-colors duration-200"></div>
+</label>
+</div>
+</div>
+</div>
+<!-- Section Header Exceptionnels -->
+<h3 class="text-[#1d110c] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] px-4 pb-2 pt-8 font-display">Horaires exceptionnels</h3>
+<p class="px-4 text-[#a15d45] dark:text-primary/70 text-sm mb-4">Ajoutez des fermetures pour les jours fériés ou congés.</p>
+<div class="px-4">
+<button class="w-full flex items-center justify-center gap-2 border-2 border-dashed border-[#ead5cd] dark:border-[#3d2a24] rounded-xl py-4 text-primary font-medium hover:bg-primary/5 transition-colors">
+<span class="material-symbols-outlined">add_circle</span>
+                    Ajouter une date exceptionnelle
+                </button>
+</div>
+</main>
+<!-- Footer Actions -->
+<footer class="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-[430px] p-4 bg-background-light dark:bg-background-dark border-t border-[#f4eae6] dark:border-[#3d2a24] flex flex-col gap-3">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 active:scale-[0.98] transition-all">
+                Suivant
+            </button>
+<button class="w-full text-[#1d110c] dark:text-white font-medium py-2 text-sm opacity-60">
+                Retour
+            </button>
+</footer>
+</div>
+</body></html>

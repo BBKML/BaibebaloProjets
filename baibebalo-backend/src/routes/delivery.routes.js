@@ -13,6 +13,7 @@ const {
   paginationValidator 
 } = require('../middlewares/validators');
 const deliveryController = require('../controllers/delivery.controller');
+const { uploadMiddleware } = require('../services/upload.service');
 
 const router = express.Router();
 
@@ -41,7 +42,15 @@ router.post('/register',
 // Toutes les routes suivantes nécessitent authentification livreur
 router.use(authenticate);
 router.use(authorize('delivery_person')); // ✅ CORRIGÉ : 'delivery_person' au lieu de 'delivery'
-router.use(requireActiveDelivery); // Vérifier que le livreur est actif
+
+/**
+ * @route   GET /api/v1/delivery/check-status
+ * @desc    Vérifier le statut du livreur (accessible même si compte en attente)
+ * @access  Private (Delivery Person, y compris pending)
+ */
+router.get('/check-status', deliveryController.getCheckStatus);
+
+router.use(requireActiveDelivery); // Vérifier que le livreur est actif pour les routes suivantes
 
 /**
  * @route   GET /api/v1/delivery/me
@@ -49,6 +58,16 @@ router.use(requireActiveDelivery); // Vérifier que le livreur est actif
  * @access  Private (Delivery Person)
  */
 router.get('/me', deliveryController.getMyProfile);
+
+/**
+ * @route   POST /api/v1/delivery/upload-document
+ * @desc    Upload un document (CNI, permis, photo profil, etc.)
+ * @access  Private (Delivery Person)
+ */
+router.post('/upload-document',
+  uploadMiddleware.single('file'),
+  deliveryController.uploadDocument
+);
 
 /**
  * @route   PUT /api/v1/delivery/me
@@ -319,6 +338,43 @@ router.get('/payout-requests',
 
 /**
  * ═══════════════════════════════════════════════════════════
+ * REMISES ESPÈCES (paiement en espèces uniquement)
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * @route   GET /api/v1/delivery/cash-remittances/orders-pending
+ * @desc    Commandes espèces livrées dont la remise n'a pas encore été validée
+ * @access  Private (Delivery Person)
+ */
+router.get('/cash-remittances/orders-pending', deliveryController.getOrdersPendingCashRemittance);
+
+/**
+ * @route   POST /api/v1/delivery/cash-remittances
+ * @desc    Déclarer une remise espèces (remise à l'agence ou dépôt sur compte entreprise, sans enlever sa part)
+ * @access  Private (Delivery Person)
+ */
+router.post('/cash-remittances',
+  [
+    body('amount').isFloat({ min: 1 }).toFloat().withMessage('Montant requis'),
+    body('method').isIn(['agency', 'bank_deposit']).withMessage('Méthode: agency ou bank_deposit'),
+    body('order_ids').isArray({ min: 1 }).withMessage('Liste des IDs de commandes requise'),
+    body('order_ids.*').isUUID().withMessage('ID commande invalide'),
+    body('reference').optional().trim(),
+  ],
+  validate,
+  deliveryController.createCashRemittance
+);
+
+/**
+ * @route   GET /api/v1/delivery/cash-remittances
+ * @desc    Liste des remises espèces du livreur
+ * @access  Private (Delivery Person)
+ */
+router.get('/cash-remittances', paginationValidator, deliveryController.getMyCashRemittances);
+
+/**
+ * ═══════════════════════════════════════════════════════════
  * HISTORIQUE & STATISTIQUES
  * ═══════════════════════════════════════════════════════════
  */
@@ -365,6 +421,13 @@ router.get('/reviews',
   paginationValidator,
   deliveryController.getMyReviews
 );
+
+/**
+ * @route   GET /api/v1/delivery/rankings
+ * @desc    Classement des livreurs (leaderboard)
+ * @access  Private (Delivery Person)
+ */
+router.get('/rankings', deliveryController.getLeaderboard);
 
 /**
  * ═══════════════════════════════════════════════════════════
@@ -511,13 +574,13 @@ router.post('/support/contact',
     body('subject')
       .trim()
       .notEmpty()
-      .isLength({ min: 5, max: 200 })
-      .withMessage('Sujet requis (5-200 caractères)'),
+      .isLength({ min: 1, max: 200 })
+      .withMessage('Sujet requis (1-200 caractères)'),
     body('message')
       .trim()
       .notEmpty()
-      .isLength({ min: 10, max: 1000 })
-      .withMessage('Message requis (10-1000 caractères)'),
+      .isLength({ min: 1, max: 2000 })
+      .withMessage('Message requis'),
     body('order_id')
       .optional()
       .isUUID()
@@ -525,6 +588,37 @@ router.post('/support/contact',
   ],
   validate,
   deliveryController.contactSupport
+);
+
+/**
+ * @route   GET /api/v1/delivery/support/conversations
+ * @desc    Obtenir toutes les conversations de support
+ * @access  Private (Delivery Person)
+ */
+router.get('/support/conversations', deliveryController.getSupportConversations);
+
+/**
+ * @route   GET /api/v1/delivery/support/messages/:ticketId
+ * @desc    Obtenir les messages d'une conversation
+ * @access  Private (Delivery Person)
+ */
+router.get('/support/messages/:ticketId', deliveryController.getSupportMessages);
+
+/**
+ * @route   POST /api/v1/delivery/support/messages/:ticketId
+ * @desc    Envoyer un message dans une conversation existante
+ * @access  Private (Delivery Person)
+ */
+router.post('/support/messages/:ticketId',
+  [
+    body('message')
+      .trim()
+      .notEmpty()
+      .isLength({ min: 1, max: 2000 })
+      .withMessage('Message requis'),
+  ],
+  validate,
+  deliveryController.sendSupportMessage
 );
 
 module.exports = router;

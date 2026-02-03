@@ -14,31 +14,93 @@ import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
 
 export default function CustomizeDishScreen({ navigation, route }) {
-  const { dish } = route.params || {};
+  const { dish, restaurantId, restaurantName } = route.params || {};
   const { addItem } = useCartStore();
   const [quantity, setQuantity] = useState(1);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [notes, setNotes] = useState('');
 
+  // Calcul du prix total des options sélectionnées
+  const calculateOptionsTotal = () => {
+    if (!dish?.customization_options) return 0;
+    
+    let optionsTotal = 0;
+    dish.customization_options.forEach(option => {
+      const selectedValue = selectedOptions[option.key];
+      if (selectedValue && option.choices) {
+        // Gérer les sélections multiples (array) et simples (string)
+        if (Array.isArray(selectedValue)) {
+          // Type multiple - additionner les prix de tous les éléments sélectionnés
+          selectedValue.forEach(val => {
+            const selectedChoice = option.choices.find(c => c.value === val);
+            if (selectedChoice?.price) {
+              optionsTotal += parseFloat(selectedChoice.price) || 0;
+            }
+          });
+        } else {
+          // Type single/radio - un seul élément
+          const selectedChoice = option.choices.find(c => c.value === selectedValue);
+          if (selectedChoice?.price) {
+            optionsTotal += parseFloat(selectedChoice.price) || 0;
+          }
+        }
+      }
+    });
+    return optionsTotal;
+  };
+
+  // Prix unitaire = Prix de base + Options
+  const unitPrice = (parseFloat(dish?.price) || 0) + calculateOptionsTotal();
+  
+  // Prix total = Prix unitaire × Quantité
+  const totalPrice = unitPrice * quantity;
+
+  // #region agent log
+  React.useEffect(() => {
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CustomizeDishScreen.js:17',message:'CustomizeDishScreen mounted',data:{dishExists:!!dish,dishRestaurantId:dish?.restaurant_id||'NULL',dishRestaurantName:dish?.restaurant_name||'NULL',routeRestaurantId:restaurantId||'NULL',routeRestaurantName:restaurantName||'NULL',dishKeys:dish?Object.keys(dish).join(','):'NO_DISH'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+  }, []);
+  // #endregion
+
   const handleAddToCart = () => {
     if (!dish) return;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CustomizeDishScreen.js:23',message:'handleAddToCart called',data:{dishHasRestaurantId:!!dish.restaurant_id,dishHasRestaurant:!!dish.restaurant,dishRestaurantId:dish.restaurant_id||'NULL',dishRestaurantName:dish.restaurant_name||'NULL'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
+    // #endregion
 
     const customizations = Object.entries(selectedOptions)
       .filter(([_, value]) => value !== null && value !== '')
       .map(([key, value]) => ({ key, value }));
 
-    const restaurantId = dish.restaurant_id || dish.restaurant?.id;
-    const restaurantName = dish.restaurant_name || dish.restaurant?.name;
+    // Essayer plusieurs sources pour restaurantId et restaurantName
+    const currentRestaurantId = restaurantId || dish?.restaurant_id || dish?.restaurant?.id;
+    const currentRestaurantName = restaurantName || dish?.restaurant_name || dish?.restaurant?.name;
+
+    // #region agent log
+    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CustomizeDishScreen.js:35',message:'RestaurantId resolution',data:{fromRoute:restaurantId||'NULL',fromDish:dish?.restaurant_id||'NULL',fromDishRestaurant:dish?.restaurant?.id||'NULL',finalRestaurantId:currentRestaurantId||'NULL',finalRestaurantName:currentRestaurantName||'NULL'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
+    // #endregion
+
+    if (!currentRestaurantId) {
+      Alert.alert('Erreur', 'Impossible d\'identifier le restaurant. Veuillez réessayer.');
+      return;
+    }
+
+    // Calculer le prix avec les options
+    const optionsTotal = calculateOptionsTotal();
+    const priceWithOptions = (parseFloat(dish.price) || 0) + optionsTotal;
 
     const result = addItem(
       {
         ...dish,
+        price: priceWithOptions, // Prix incluant les options
+        base_price: dish.price, // Prix de base original
+        options_total: optionsTotal, // Total des options pour référence
         quantity,
         customizations,
         notes: notes.trim() || undefined,
       },
-      restaurantId,
-      restaurantName
+      currentRestaurantId,
+      currentRestaurantName
     );
 
     if (result?.requiresConfirm) {
@@ -54,12 +116,15 @@ export default function CustomizeDishScreen({ navigation, route }) {
               addItem(
                 {
                   ...dish,
+                  price: priceWithOptions,
+                  base_price: dish.price,
+                  options_total: optionsTotal,
                   quantity,
                   customizations,
                   notes: notes.trim() || undefined,
                 },
-                restaurantId,
-                restaurantName,
+                currentRestaurantId,
+                currentRestaurantName,
                 { force: true }
               );
               navigation.goBack();
@@ -118,48 +183,105 @@ export default function CustomizeDishScreen({ navigation, route }) {
               <Text style={styles.sectionTitle}>Personnaliser</Text>
               {dish.customization_options.map((option, index) => (
                 <View key={index} style={styles.optionGroup}>
-                  <Text style={styles.optionLabel}>{option.label}</Text>
-                  {option.type === 'radio' ? (
-                    option.choices.map((choice) => (
+                  <View style={styles.optionHeader}>
+                    <Text style={styles.optionLabel}>{option.label}</Text>
+                    {option.required && option.key !== 'side_dish' && (
+                      <Text style={styles.requiredBadge}>Obligatoire</Text>
+                    )}
+                  </View>
+                  
+                  {/* Type single ou radio - choix unique */}
+                  {(option.type === 'single' || option.type === 'radio') && option.choices?.map((choice) => (
+                    <TouchableOpacity
+                      key={choice.value}
+                      style={[
+                        styles.choiceButton,
+                        selectedOptions[option.key] === choice.value &&
+                          styles.choiceButtonSelected,
+                      ]}
+                      onPress={() =>
+                        setSelectedOptions({
+                          ...selectedOptions,
+                          [option.key]: choice.value,
+                        })
+                      }
+                    >
+                      <View style={styles.radioOuter}>
+                        {selectedOptions[option.key] === choice.value && (
+                          <View style={styles.radioInner} />
+                        )}
+                      </View>
+                      <Text
+                        style={[
+                          styles.choiceText,
+                          selectedOptions[option.key] === choice.value &&
+                            styles.choiceTextSelected,
+                        ]}
+                      >
+                        {choice.label}
+                      </Text>
+                      {choice.price > 0 && (
+                        <Text
+                          style={[
+                            styles.choicePrice,
+                            selectedOptions[option.key] === choice.value &&
+                              styles.choicePriceSelected,
+                          ]}
+                        >
+                          +{choice.price} FCFA
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  ))}
+                  
+                  {/* Type multiple - choix multiples (suppléments) */}
+                  {option.type === 'multiple' && option.choices?.map((choice) => {
+                    const currentSelections = selectedOptions[option.key] || [];
+                    const isSelected = currentSelections.includes(choice.value);
+                    
+                    return (
                       <TouchableOpacity
                         key={choice.value}
                         style={[
                           styles.choiceButton,
-                          selectedOptions[option.key] === choice.value &&
-                            styles.choiceButtonSelected,
+                          isSelected && styles.choiceButtonSelected,
                         ]}
-                        onPress={() =>
+                        onPress={() => {
+                          const newSelections = isSelected
+                            ? currentSelections.filter(v => v !== choice.value)
+                            : [...currentSelections, choice.value];
                           setSelectedOptions({
                             ...selectedOptions,
-                            [option.key]: choice.value,
-                          })
-                        }
+                            [option.key]: newSelections,
+                          });
+                        }}
                       >
+                        <View style={[styles.checkbox, isSelected && styles.checkboxSelected]}>
+                          {isSelected && (
+                            <Ionicons name="checkmark" size={14} color={COLORS.white} />
+                          )}
+                        </View>
                         <Text
                           style={[
                             styles.choiceText,
-                            selectedOptions[option.key] === choice.value &&
-                              styles.choiceTextSelected,
+                            isSelected && styles.choiceTextSelected,
                           ]}
                         >
                           {choice.label}
                         </Text>
-                        {choice.price && (
+                        {choice.price > 0 && (
                           <Text
                             style={[
                               styles.choicePrice,
-                              selectedOptions[option.key] === choice.value &&
-                                styles.choicePriceSelected,
+                              isSelected && styles.choicePriceSelected,
                             ]}
                           >
                             +{choice.price} FCFA
                           </Text>
                         )}
                       </TouchableOpacity>
-                    ))
-                  ) : (
-                    <Text style={styles.comingSoon}>Bientôt disponible</Text>
-                  )}
+                    );
+                  })}
                 </View>
               ))}
             </View>
@@ -197,7 +319,7 @@ export default function CustomizeDishScreen({ navigation, route }) {
           <View style={styles.totalBox}>
             <Text style={styles.totalLabel}>Total</Text>
             <Text style={styles.totalValue}>
-              {(dish.price || 0) * quantity} FCFA
+              {totalPrice.toLocaleString('fr-FR')} FCFA
             </Text>
           </View>
           <TouchableOpacity style={styles.addButton} onPress={handleAddToCart}>
@@ -311,22 +433,65 @@ const styles = StyleSheet.create({
   optionGroup: {
     marginBottom: 24,
   },
+  optionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   optionLabel: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 12,
+  },
+  requiredBadge: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.primary,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
   },
   choiceButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
     padding: 16,
     borderRadius: 12,
     borderWidth: 2,
     borderColor: COLORS.border,
     marginBottom: 8,
     backgroundColor: COLORS.background,
+  },
+  radioOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: COLORS.primary,
+  },
+  checkbox: {
+    width: 22,
+    height: 22,
+    borderRadius: 6,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  checkboxSelected: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
   },
   choiceButtonSelected: {
     borderColor: COLORS.primary,
@@ -339,6 +504,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   choiceText: {
+    flex: 1,
     fontSize: 16,
     color: COLORS.text,
   },

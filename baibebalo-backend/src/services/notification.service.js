@@ -342,13 +342,61 @@ class NotificationService {
         },
         channel: 'orders',
       },
+      order_cancelled: {
+        title: '❌ Commande annulée',
+        body: `Votre commande ${order.order_number} a été annulée.`,
+        type: 'order_update',
+        data: {
+          order_id: order.id,
+          order_number: order.order_number,
+          status: 'cancelled',
+        },
+        channel: 'orders',
+      },
+      // Rappels
+      cart_reminder: {
+        title: '🛒 Panier en attente',
+        body: 'Vous avez des articles dans votre panier. Finalisez votre commande !',
+        type: 'reminder',
+        data: {},
+        channel: 'reminders',
+      },
+      reorder_suggestion: {
+        title: '🍽️ Envie de recommander ?',
+        body: `Recommandez votre plat préféré chez ${order?.restaurant_name || 'votre restaurant favori'} !`,
+        type: 'reminder',
+        data: {
+          restaurant_id: order?.restaurant_id,
+        },
+        channel: 'reminders',
+      },
+      // Promotions
+      promotion: {
+        title: order?.title || '🎁 Offre spéciale !',
+        body: order?.message || 'Découvrez nos offres exclusives.',
+        type: 'promotion',
+        data: {
+          promo_code: order?.promo_code,
+          discount: order?.discount,
+        },
+        channel: 'promotions',
+      },
+      loyalty_reward: {
+        title: '🏆 Récompense fidélité !',
+        body: `Vous avez gagné ${order?.points || 0} points de fidélité.`,
+        type: 'loyalty',
+        data: {
+          points: order?.points,
+        },
+        channel: 'rewards',
+      },
     };
 
     return templates[eventType] || {
       title: 'Mise à jour de commande',
-      body: `Votre commande ${order.order_number} a été mise à jour.`,
+      body: `Votre commande ${order?.order_number || ''} a été mise à jour.`,
       type: 'order_update',
-      data: { order_id: order.id },
+      data: { order_id: order?.id },
     };
   }
 
@@ -359,28 +407,72 @@ class NotificationService {
     const templates = {
       new_order: {
         title: '🔔 Nouvelle commande !',
-        body: `Commande ${order.order_number} - ${order.total} FCFA. Acceptez rapidement !`,
+        body: `Commande ${order?.order_number} - ${order?.total || 0} FCFA. Acceptez rapidement !`,
         type: 'new_order',
         data: {
-          order_id: order.id,
-          order_number: order.order_number,
-          total: order.total.toString(),
+          order_id: order?.id,
+          order_number: order?.order_number,
+          total: String(order?.total || 0),
         },
         channel: 'orders',
       },
       order_cancelled: {
         title: '❌ Commande annulée',
-        body: `La commande ${order.order_number} a été annulée par le client.`,
+        body: `La commande ${order?.order_number} a été annulée par le client.`,
         type: 'order_cancelled',
         data: {
-          order_id: order.id,
-          order_number: order.order_number,
+          order_id: order?.id,
+          order_number: order?.order_number,
         },
         channel: 'orders',
       },
+      urgent_order_pending: {
+        title: '⚠️ URGENT - Commande en attente !',
+        body: `La commande ${order?.order_number} attend depuis ${order?.wait_minutes || 5} min. Acceptez-la maintenant !`,
+        type: 'urgent',
+        data: {
+          order_id: order?.id,
+          order_number: order?.order_number,
+        },
+        channel: 'urgent',
+      },
+      delivery_arrived: {
+        title: '🚴 Livreur arrivé',
+        body: `Le livreur est arrivé pour récupérer la commande ${order?.order_number}.`,
+        type: 'delivery_update',
+        data: {
+          order_id: order?.id,
+          order_number: order?.order_number,
+        },
+        channel: 'orders',
+      },
+      order_picked_up: {
+        title: '📦 Commande récupérée',
+        body: `Le livreur a récupéré la commande ${order?.order_number}.`,
+        type: 'delivery_update',
+        data: {
+          order_id: order?.id,
+          order_number: order?.order_number,
+        },
+        channel: 'orders',
+      },
+      payout_processed: {
+        title: '💰 Paiement envoyé',
+        body: `Un virement de ${order?.amount || 0} FCFA a été envoyé sur votre compte.`,
+        type: 'payment',
+        data: {
+          amount: order?.amount,
+        },
+        channel: 'payments',
+      },
     };
 
-    return templates[eventType];
+    return templates[eventType] || {
+      title: 'Notification',
+      body: 'Vous avez une nouvelle notification.',
+      type: 'general',
+      data: {},
+    };
   }
 
   /**
@@ -390,28 +482,72 @@ class NotificationService {
     const templates = {
       new_delivery_available: {
         title: '🚴 Nouvelle livraison disponible',
-        body: `${order.restaurant_name} - ${order.total} FCFA. Acceptez vite !`,
+        body: `${order?.restaurant_name || 'Restaurant'} - ${order?.delivery_fee || order?.total || 0} FCFA. Acceptez vite !`,
         type: 'new_delivery',
         data: {
-          order_id: order.id,
-          order_number: order.order_number,
-          restaurant_name: order.restaurant_name,
+          order_id: order?.id,
+          order_number: order?.order_number,
+          restaurant_name: order?.restaurant_name,
         },
         channel: 'deliveries',
       },
       order_ready_for_pickup: {
         title: '📦 Commande prête',
-        body: `La commande ${order.order_number} est prête à récupérer chez ${order.restaurant_name}.`,
+        body: `La commande ${order?.order_number} est prête à récupérer chez ${order?.restaurant_name}.`,
         type: 'order_ready',
         data: {
-          order_id: order.id,
-          order_number: order.order_number,
+          order_id: order?.id,
+          order_number: order?.order_number,
         },
         channel: 'deliveries',
       },
+      order_cancelled: {
+        title: '❌ Commande annulée',
+        body: `La commande ${order?.order_number} a été annulée.`,
+        type: 'order_cancelled',
+        data: {
+          order_id: order?.id,
+          order_number: order?.order_number,
+        },
+        channel: 'deliveries',
+      },
+      delivery_completed: {
+        title: '✅ Livraison terminée',
+        body: `Bien joué ! Vous avez gagné ${order?.earnings || 0} FCFA.`,
+        type: 'delivery_completed',
+        data: {
+          order_id: order?.id,
+          earnings: order?.earnings,
+        },
+        channel: 'deliveries',
+      },
+      bonus_reached: {
+        title: '🎉 Bonus atteint !',
+        body: `Félicitations ! Vous avez débloqué un bonus de ${order?.bonus_amount || 0} FCFA.`,
+        type: 'bonus',
+        data: {
+          bonus_amount: order?.bonus_amount,
+          bonus_type: order?.bonus_type,
+        },
+        channel: 'bonuses',
+      },
+      daily_target_reached: {
+        title: '🏆 Objectif atteint !',
+        body: `Bravo ! Vous avez atteint votre objectif quotidien de ${order?.target_deliveries || 10} livraisons.`,
+        type: 'achievement',
+        data: {
+          deliveries_count: order?.deliveries_count,
+        },
+        channel: 'achievements',
+      },
     };
 
-    return templates[eventType];
+    return templates[eventType] || {
+      title: 'Notification',
+      body: 'Vous avez une nouvelle notification.',
+      type: 'general',
+      data: {},
+    };
   }
 
   /**

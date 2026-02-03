@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#1dc962",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .checkbox-custom {
+            --checkbox-tick-svg: url('data:image/svg+xml,%3csvg viewBox=%270 0 16 16%27 fill=%27rgb(14,27,19)%27 xmlns=%27http://www.w3.org/2000/svg%27%3e%3cpath d=%27M12.207 4.793a1 1 0 010 1.414l-5 5a1 1 0 01-1.414 0l-2-2a1 1 0 011.414-1.414L6.5 9.086l4.293-4.293a1 1 0 011.414 0z%27/%3e%3c/svg%3e');
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark text-[#0e1b13] dark:text-white min-h-screen flex flex-col">
+<!-- TopAppBar -->
+<header class="sticky top-0 z-10 bg-background-light dark:bg-background-dark border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto w-full">
+<button aria-label="Retour" class="text-[#0e1b13] dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</button>
+<h1 class="text-[#0e1b13] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Vérifier la commande</h1>
+</div>
+</header>
+<main class="flex-1 max-w-md mx-auto w-full pb-32">
+<!-- HeadlineText -->
+<div class="pt-6">
+<h3 class="text-[#0e1b13] dark:text-white tracking-light text-2xl font-bold leading-tight px-4 text-left pb-2">Check-list de ramassage</h3>
+<p class="px-4 text-sm text-gray-500 dark:text-gray-400">Assurez-vous que tous les éléments sont présents avant de partir.</p>
+</div>
+<div class="h-6"></div>
+<!-- Checklists -->
+<div class="px-4 checkbox-custom">
+<div class="bg-white dark:bg-[#1a2e22] rounded-xl overflow-hidden border border-gray-100 dark:border-gray-800 shadow-sm">
+<label class="flex items-center gap-x-4 px-4 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#233a2b] transition-colors border-b border-gray-100 dark:border-gray-800">
+<span class="flex-1 text-[#0e1b13] dark:text-white text-base font-medium">Nombre de sacs correct</span>
+<input class="h-6 w-6 rounded-lg border-[#d1e6d9] dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" style="background-image: var(--checkbox-tick-svg)" type="checkbox"/>
+</label>
+<label class="flex items-center gap-x-4 px-4 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#233a2b] transition-colors border-b border-gray-100 dark:border-gray-800">
+<span class="flex-1 text-[#0e1b13] dark:text-white text-base font-medium">Commande bien fermée</span>
+<input class="h-6 w-6 rounded-lg border-[#d1e6d9] dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" style="background-image: var(--checkbox-tick-svg)" type="checkbox"/>
+</label>
+<label class="flex items-center gap-x-4 px-4 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#233a2b] transition-colors border-b border-gray-100 dark:border-gray-800">
+<span class="flex-1 text-[#0e1b13] dark:text-white text-base font-medium">Boissons incluses</span>
+<input class="h-6 w-6 rounded-lg border-[#d1e6d9] dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" style="background-image: var(--checkbox-tick-svg)" type="checkbox"/>
+</label>
+<label class="flex items-center gap-x-4 px-4 py-4 cursor-pointer hover:bg-gray-50 dark:hover:bg-[#233a2b] transition-colors">
+<span class="flex-1 text-[#0e1b13] dark:text-white text-base font-medium">Couverts et serviettes</span>
+<input class="h-6 w-6 rounded-lg border-[#d1e6d9] dark:border-gray-600 border-2 bg-transparent text-primary checked:bg-primary checked:border-primary focus:ring-0 focus:ring-offset-0 focus:outline-none transition-all" style="background-image: var(--checkbox-tick-svg)" type="checkbox"/>
+</label>
+</div>
+</div>
+<div class="h-8"></div>
+<!-- Take Photo Button -->
+<div class="px-4">
+<div class="p-4 bg-primary/10 dark:bg-primary/5 rounded-xl border-2 border-dashed border-primary/30 flex flex-col items-center gap-3">
+<p class="text-sm font-medium text-primary text-center">Une photo du reçu ou des sacs est requise</p>
+<button class="w-full flex cursor-pointer items-center justify-center overflow-hidden rounded-lg h-12 px-5 bg-[#e8f3ec] dark:bg-[#1dc96220] text-[#0e1b13] dark:text-primary gap-2 text-base font-bold leading-normal tracking-[0.015em] border border-primary/20">
+<span class="material-symbols-outlined text-primary">photo_camera</span>
+<span class="truncate">PRENDRE PHOTO</span>
+</button>
+</div>
+</div>
+</main>
+<!-- Bottom Actions -->
+<footer class="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800 p-4 pb-8">
+<div class="max-w-md mx-auto">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 px-5 bg-primary text-white text-base font-bold leading-normal tracking-[0.015em] shadow-lg shadow-primary/20 active:scale-[0.98] transition-transform">
+<span class="truncate uppercase">Commande récupérée</span>
+</button>
+</div>
+</footer>
+</body></html>

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Detailed Statistics - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#137fec",
+                        "background-light": "#f6f7f8",
+                        "background-dark": "#101922",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-white selection:bg-primary/30">
+<div class="relative flex h-screen w-full flex-col bg-background-light dark:bg-background-dark overflow-hidden mx-auto max-w-[430px]">
+<!-- TopAppBar -->
+<header class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between sticky top-0 z-10 border-b border-gray-200 dark:border-gray-800">
+<div class="text-gray-900 dark:text-white flex size-12 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined" data-icon="arrow_back">arrow_back</span>
+</div>
+<h2 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Detailed Statistics</h2>
+<div class="size-12 shrink-0 flex items-center justify-end">
+<span class="material-symbols-outlined text-gray-900 dark:text-white" data-icon="more_vert">more_vert</span>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto pb-24">
+<!-- SegmentedButtons -->
+<div class="flex px-4 py-3 sticky top-0 bg-background-light dark:bg-background-dark z-10">
+<div class="flex h-10 flex-1 items-center justify-center rounded-lg bg-gray-200 dark:bg-[#233648] p-1 shadow-inner">
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary dark:has-[:checked]:text-white text-gray-500 dark:text-[#92adc9] text-sm font-medium transition-all">
+<span class="truncate">Today</span>
+<input class="invisible w-0" name="period" type="radio" value="Today"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary dark:has-[:checked]:text-white text-gray-500 dark:text-[#92adc9] text-sm font-medium transition-all">
+<span class="truncate">Week</span>
+<input checked="" class="invisible w-0" name="period" type="radio" value="Week"/>
+</label>
+<label class="flex cursor-pointer h-full grow items-center justify-center overflow-hidden rounded-lg px-2 has-[:checked]:bg-white dark:has-[:checked]:bg-background-dark has-[:checked]:shadow-sm has-[:checked]:text-primary dark:has-[:checked]:text-white text-gray-500 dark:text-[#92adc9] text-sm font-medium transition-all">
+<span class="truncate">Month</span>
+<input class="invisible w-0" name="period" type="radio" value="Month"/>
+</label>
+</div>
+</div>
+<!-- Stats Grid -->
+<div class="grid grid-cols-2 gap-3 p-4">
+<div class="flex flex-col gap-2 rounded-xl p-4 border border-gray-200 dark:border-[#324d67] bg-white dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-gray-600 dark:text-[#92adc9] text-xs font-medium uppercase tracking-wider">Total Revenue</p>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="payments">payments</span>
+</div>
+<p class="text-gray-900 dark:text-white tracking-tight text-xl font-bold leading-tight">€4,520.00</p>
+<div class="flex items-center gap-1 text-[#0bda5b]">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<p class="text-xs font-medium leading-normal">+12.5%</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-4 border border-gray-200 dark:border-[#324d67] bg-white dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-gray-600 dark:text-[#92adc9] text-xs font-medium uppercase tracking-wider">Total Orders</p>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<p class="text-gray-900 dark:text-white tracking-tight text-xl font-bold leading-tight">142</p>
+<div class="flex items-center gap-1 text-[#0bda5b]">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<p class="text-xs font-medium leading-normal">+5.2%</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-4 border border-gray-200 dark:border-[#324d67] bg-white dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-gray-600 dark:text-[#92adc9] text-xs font-medium uppercase tracking-wider">Acceptance Rate</p>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="check_circle">check_circle</span>
+</div>
+<p class="text-gray-900 dark:text-white tracking-tight text-xl font-bold leading-tight">98.5%</p>
+<div class="flex items-center gap-1 text-[#0bda5b]">
+<span class="material-symbols-outlined text-sm" data-icon="trending_up">trending_up</span>
+<p class="text-xs font-medium leading-normal">+0.5%</p>
+</div>
+</div>
+<div class="flex flex-col gap-2 rounded-xl p-4 border border-gray-200 dark:border-[#324d67] bg-white dark:bg-transparent shadow-sm">
+<div class="flex justify-between items-start">
+<p class="text-gray-600 dark:text-[#92adc9] text-xs font-medium uppercase tracking-wider">Avg Prep Time</p>
+<span class="material-symbols-outlined text-primary text-lg" data-icon="timer">timer</span>
+</div>
+<p class="text-gray-900 dark:text-white tracking-tight text-xl font-bold leading-tight">14 min</p>
+<div class="flex items-center gap-1 text-[#fa6238]">
+<span class="material-symbols-outlined text-sm" data-icon="trending_down">trending_down</span>
+<p class="text-xs font-medium leading-normal">-2.0%</p>
+</div>
+</div>
+</div>
+<!-- SectionHeader -->
+<div class="flex items-center justify-between px-4 pb-2 pt-6">
+<h3 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Statistiques par plat</h3>
+<span class="text-primary text-sm font-medium">Tout voir</span>
+</div>
+<!-- ListItems -->
+<div class="px-2">
+<div class="flex items-center gap-4 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 min-h-[72px] py-2 justify-between rounded-lg transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border border-gray-200 dark:border-gray-700" data-alt="Close up of a juicy wagyu burger" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBI-kb9WesP9d1rRv6aUIruDm7g-oMcK-X00FIuH7Q-HY_CptKgMW-qdfWG7sVjXdtpGOoksmOBxIx9f-4M_ldxlkfZMGaZ12yQ6gyJJckuf28ZeIhAderxxxKMJkflfYD0P-a6FKlCg6w0XY1OhjhVPkRyNaPvomDqVziq2rgvWqnOWjREgPM9PsWFoiXuUbjClSUPSpinqFtK1ZN9bRZ4Nu39t7_Ic5Ui6DUahWtyuu2_DgW9AkzdT3WWWRYobudDJNUenF-ie7t5");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-semibold leading-normal line-clamp-1">Wagyu Burger</p>
+<p class="text-gray-500 dark:text-[#92adc9] text-xs font-medium leading-normal">45 vendus</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-gray-900 dark:text-white text-base font-bold leading-normal">€810</p>
+<p class="text-[#0bda5b] text-[10px] font-bold">+8%</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 min-h-[72px] py-2 justify-between rounded-lg transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border border-gray-200 dark:border-gray-700" data-alt="Plate of fresh truffle pasta" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuBxdecyxbT_rOYkH8Aw2LQOxwqkseKvnk2uO4Fvf97eMO9IRsHfbdM8Ily222eqoHNW56xlbJuL14ZLkwAJUQCChj7uI6f5v-leijrGCQBYC8QmblgqgSUWhUiXPTHbppcEbAJ8F7X1I8pECuwu01hB9gYwZWNb4N1Um08OfcwmICg-1FP_jwVawA3K4iQjjXVDCt4u9BYQ6G3T2uzA44cFVTUsiOK8--aMD3NKIUaUXhfvmZhTV1Ava97Gjxf3CXPHZbaUgQ9dS_g_");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-semibold leading-normal line-clamp-1">Truffle Pasta</p>
+<p class="text-gray-500 dark:text-[#92adc9] text-xs font-medium leading-normal">38 vendus</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-gray-900 dark:text-white text-base font-bold leading-normal">€684</p>
+<p class="text-[#0bda5b] text-[10px] font-bold">+12%</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 min-h-[72px] py-2 justify-between rounded-lg transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border border-gray-200 dark:border-gray-700" data-alt="Grilled salmon with vegetables" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuALh-XWpzLS1-ARfy5Zc9Oj-DLWLApY1S6AlVxkmF0tqsa-ee9d8o4A2qfbmRRcPTpwUaej4kLGajVSTjxRBVvuXnfUNiawwkTQG8Pzr5bnYFUHtKaV1iCvpjnsTRGNTRICedO-tqlK0EkFt3TI5uqgenF-fOcQesa77xC93QhHo-ZC7P3zkZmFOp2xUS5U4b_IvxYzsLGj0P5UOdBYirRhURMTo23YTKzm6DysHqgrTW6e7dLNGMiR7VRquMDefGdnAmdBS6F9dKQQ");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-semibold leading-normal line-clamp-1">Miso Salmon</p>
+<p class="text-gray-500 dark:text-[#92adc9] text-xs font-medium leading-normal">31 vendus</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-gray-900 dark:text-white text-base font-bold leading-normal">€651</p>
+<p class="text-[#fa6238] text-[10px] font-bold">-3%</p>
+</div>
+</div>
+<div class="flex items-center gap-4 bg-white dark:bg-transparent hover:bg-gray-50 dark:hover:bg-gray-800/50 px-3 min-h-[72px] py-2 justify-between rounded-lg transition-colors">
+<div class="flex items-center gap-4">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-12 w-12 border border-gray-200 dark:border-gray-700" data-alt="Fresh caesar salad" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuAO4oRACkuAx5WlxG0Y6nGzARK1-aHA86UFg_qX9BMIPBCq2BzLY8xmm3dcQ0tlwV-I6pT2yDAAdQfldSp058sOKTBxWRXz-l5YGLjb_r6rqZFE8r518ohxsVYVOoX9nxzV65FcUkAGn-ZAzbcBtrkQkgcMKXZ5QphEdf4Z8shu4rQKeKqjcFrA_4to6BRz66stffb3RPj3-oXFVW8Ngrxk7sRBaKtsn6r8RNAjjLIMjOJuVjgjPU74aNArG1V1M4W5NMFhdhh2nv6o");'></div>
+<div class="flex flex-col justify-center">
+<p class="text-gray-900 dark:text-white text-base font-semibold leading-normal line-clamp-1">Caesar Salad</p>
+<p class="text-gray-500 dark:text-[#92adc9] text-xs font-medium leading-normal">28 vendus</p>
+</div>
+</div>
+<div class="shrink-0 text-right">
+<p class="text-gray-900 dark:text-white text-base font-bold leading-normal">€392</p>
+<p class="text-[#0bda5b] text-[10px] font-bold">+5%</p>
+</div>
+</div>
+</div>
+</main>
+<!-- Footer Action Button -->
+<footer class="absolute bottom-0 left-0 right-0 p-4 bg-background-light dark:bg-background-dark border-t border-gray-200 dark:border-gray-800">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-[0.98] transition-transform">
+<span class="material-symbols-outlined" data-icon="ios_share">ios_share</span>
+                Exporter les statistiques
+            </button>
+</footer>
+</div>
+</body></html>

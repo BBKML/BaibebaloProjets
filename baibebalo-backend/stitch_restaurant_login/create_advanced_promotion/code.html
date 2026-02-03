@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Créer une promotion avancée - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans", "sans-serif"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .ios-shadow {
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+        }
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen text-[#1c110d] dark:text-white transition-colors duration-300">
+<!-- Top Navigation Bar -->
+<header class="sticky top-0 z-50 bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md border-b border-gray-200 dark:border-gray-800">
+<div class="flex items-center p-4 justify-between max-w-md mx-auto">
+<button class="flex items-center justify-center p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 transition-colors">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios_new</span>
+</button>
+<h1 class="text-lg font-bold tracking-tight text-center flex-1">Nouvelle Promotion</h1>
+<div class="w-10"></div> <!-- Spacer for symmetry -->
+</div>
+</header>
+<main class="max-w-md mx-auto pb-32 px-4">
+<!-- Preview Section -->
+<div class="mt-6 mb-8">
+<h3 class="text-xs font-bold uppercase tracking-wider text-gray-500 dark:text-gray-400 mb-3 px-1">Aperçu client</h3>
+<div class="bg-white dark:bg-[#2d1e18] p-4 rounded-xl ios-shadow border border-gray-100 dark:border-gray-800">
+<div class="flex items-center gap-4">
+<div class="w-16 h-16 rounded-lg bg-primary/10 flex items-center justify-center overflow-hidden">
+<img alt="Plat du restaurant" class="w-full h-full object-cover" data-alt="Delicious restaurant food plate top view" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC7TMrNA4fspGvDQlfTsxz9KuctZyZdI_kE96J1IESo3VFAJT8ROlicAS3AcvFdefbqBch-la5g5z9uPxo--iKafKjms4TNN8VfuiKm80Ju49NubizRTKzsmFU3SprdcNjhUX1_9MJr8FmkAvIcx9p1ShZ1RDIdHlMuNe4t350qrCQOOYINHF1455TvnyipIdfu5j5IT_R3Jcg--Nda48PM8ZUUfbLftbDeBH5Wgf9r0AZI2BX4uuc2j6XmBIFzxZg5JhhzDyuVD1lR"/>
+</div>
+<div class="flex-1">
+<div class="inline-flex items-center px-2 py-0.5 rounded bg-primary text-white text-[10px] font-bold uppercase mb-1">
+                            OFFRE SPÉCIALE
+                        </div>
+<h4 class="font-bold text-sm">Le Royal Burger Deluxe</h4>
+<p class="text-xs text-primary font-medium">-15% sur votre commande</p>
+</div>
+<div class="flex flex-col items-end">
+<span class="text-xs text-gray-400">Expire le</span>
+<span class="text-xs font-semibold">30 Oct.</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Promotion Type Selection -->
+<section class="mb-8">
+<h3 class="text-lg font-bold mb-4">Type de promotion</h3>
+<div class="grid grid-cols-3 gap-3">
+<label class="relative group cursor-pointer">
+<input checked="" class="peer hidden" name="promo_type" type="radio"/>
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#2d1e18] peer-checked:border-primary peer-checked:bg-primary/5 transition-all text-center h-full ios-shadow">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl">percent</span>
+<span class="text-xs font-semibold">Réduction</span>
+</div>
+</label>
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="promo_type" type="radio"/>
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#2d1e18] peer-checked:border-primary peer-checked:bg-primary/5 transition-all text-center h-full ios-shadow">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl">local_shipping</span>
+<span class="text-xs font-semibold">Livraison</span>
+</div>
+</label>
+<label class="relative group cursor-pointer">
+<input class="peer hidden" name="promo_type" type="radio"/>
+<div class="flex flex-col items-center justify-center p-4 rounded-xl border-2 border-transparent bg-white dark:bg-[#2d1e18] peer-checked:border-primary peer-checked:bg-primary/5 transition-all text-center h-full ios-shadow">
+<span class="material-symbols-outlined text-primary mb-2 text-3xl">featured_seasonal_and_gifts</span>
+<span class="text-xs font-semibold">Cadeau</span>
+</div>
+</label>
+</div>
+</section>
+<!-- Conditions Section -->
+<section class="space-y-6 mb-8">
+<h3 class="text-lg font-bold">Conditions et montant</h3>
+<!-- Amount Input -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-gray-600 dark:text-gray-300">Montant minimum de commande</label>
+<div class="relative flex items-stretch">
+<input class="w-full bg-white dark:bg-[#2d1e18] border border-gray-200 dark:border-gray-800 rounded-lg p-4 focus:ring-primary focus:border-primary text-lg font-semibold outline-none transition-all pr-12" placeholder="0.00" type="number" value="25.00"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">€</div>
+</div>
+</div>
+<!-- Promotion Value -->
+<div class="flex flex-col gap-2">
+<label class="text-sm font-medium text-gray-600 dark:text-gray-300">Valeur de la réduction</label>
+<div class="relative flex items-stretch">
+<input class="w-full bg-white dark:bg-[#2d1e18] border border-gray-200 dark:border-gray-800 rounded-lg p-4 focus:ring-primary focus:border-primary text-lg font-semibold outline-none transition-all pr-12" placeholder="0" type="number" value="15"/>
+<div class="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 font-bold">%</div>
+</div>
+</div>
+</section>
+<!-- Duration Section -->
+<section class="space-y-6 mb-8">
+<h3 class="text-lg font-bold">Période de validité</h3>
+<div class="grid grid-cols-2 gap-4">
+<div class="flex flex-col gap-2">
+<label class="text-xs font-medium text-gray-500 uppercase">Date de début</label>
+<div class="flex items-center bg-white dark:bg-[#2d1e18] border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+<span class="material-symbols-outlined text-gray-400 mr-2 text-xl">calendar_today</span>
+<input class="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 w-full" type="date" value="2023-10-24"/>
+</div>
+</div>
+<div class="flex flex-col gap-2">
+<label class="text-xs font-medium text-gray-500 uppercase">Date de fin</label>
+<div class="flex items-center bg-white dark:bg-[#2d1e18] border border-gray-200 dark:border-gray-800 rounded-lg p-3">
+<span class="material-symbols-outlined text-gray-400 mr-2 text-xl">event_busy</span>
+<input class="bg-transparent border-none p-0 text-sm font-medium focus:ring-0 w-full" type="date" value="2023-10-31"/>
+</div>
+</div>
+</div>
+</section>
+<!-- Notification Toggle -->
+<section class="mb-8 p-4 bg-primary/5 dark:bg-primary/10 rounded-xl border border-primary/20">
+<div class="flex items-center justify-between">
+<div class="flex-1 pr-4">
+<div class="flex items-center gap-2 mb-1">
+<span class="material-symbols-outlined text-primary text-xl">notifications_active</span>
+<h4 class="font-bold text-sm">Notifier les abonnés</h4>
+</div>
+<p class="text-xs text-gray-600 dark:text-gray-400">Envoyer une notification push à vos 1,240 clients fidèles.</p>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer" type="checkbox" value=""/>
+<div class="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
+</label>
+</div>
+</section>
+</main>
+<!-- Bottom Action Button -->
+<div class="fixed bottom-0 left-0 right-0 p-4 bg-background-light/95 dark:bg-background-dark/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-50">
+<div class="max-w-md mx-auto">
+<button class="w-full bg-primary hover:bg-primary/90 text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/30 flex items-center justify-center gap-2 transition-transform active:scale-95">
+<span>Créer la promotion</span>
+<span class="material-symbols-outlined">rocket_launch</span>
+</button>
+<p class="text-[10px] text-center mt-3 text-gray-400 uppercase tracking-widest font-medium">BAIBEBALO Marketing Suite</p>
+</div>
+</div>
+</body></html>

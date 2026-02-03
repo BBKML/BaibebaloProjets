@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#13ec5b",
+                        "background-light": "#f6f8f6",
+                        "background-dark": "#102216",
+                    },
+                    fontFamily: {
+                        "display": ["Inter"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .camera-overlay {
+            background: rgba(0, 0, 0, 0.4);
+        }
+        .guide-frame {
+            border: 2px solid #13ec5b;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display">
+<div class="relative flex h-screen w-full flex-col overflow-hidden">
+<!-- Live Camera Viewport Placeholder -->
+<div class="absolute inset-0 z-0">
+<img class="h-full w-full object-cover" data-alt="Perspective view of a package on a doorstep" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB_PHu6jEAK5MsuqTT6MsEdRJN0tmzFcsrVQ-2cFX6QQ4iKCCXJv1Al6epD_Dk6n0SziqUWGHMidTOMPRffd_HHeyxR4B1jeiYfnAVw0aqEvfNWLaAGwhMPcRAa_R5oGfP-UFxHzl42FDAtI8hjgrl7TgNNTZb_qwVzd4cHTTyzexGUdsOyQ0LnBL6XBRrY26zF5-bhZXdV57U8hC72fLrTXSSVAWmGf_dQ9cMsgHFNbuCmnrR2shDxopO_aFJUKA9tpHRjbV490PC2"/>
+</div>
+<!-- Camera Interface Overlays -->
+<div class="relative z-10 flex h-full flex-col justify-between">
+<!-- Top Bar -->
+<div class="flex items-center justify-between p-4 pt-8">
+<button class="flex size-10 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md">
+<span class="material-symbols-outlined">flash_on</span>
+</button>
+<div class="flex items-center gap-4">
+<button class="text-white text-base font-bold leading-normal tracking-[0.015em] drop-shadow-md">
+                        Ignorer
+                    </button>
+</div>
+</div>
+<!-- Instruction & Guide Frame -->
+<div class="flex flex-col items-center justify-center px-6">
+<div class="bg-black/30 backdrop-blur-sm rounded-xl px-4 py-2 mb-8">
+<h3 class="text-white text-center text-lg font-bold leading-tight">
+                        Prenez une photo de la commande remise
+                    </h3>
+</div>
+<!-- Central Guide Frame -->
+<div class="relative w-full aspect-[4/3] max-w-sm">
+<div class="guide-frame w-full h-full rounded-xl flex items-center justify-center">
+<div class="absolute -top-1 -left-1 w-6 h-6 border-t-4 border-l-4 border-primary rounded-tl-lg"></div>
+<div class="absolute -top-1 -right-1 w-6 h-6 border-t-4 border-r-4 border-primary rounded-tr-lg"></div>
+<div class="absolute -bottom-1 -left-1 w-6 h-6 border-b-4 border-l-4 border-primary rounded-bl-lg"></div>
+<div class="absolute -bottom-1 -right-1 w-6 h-6 border-b-4 border-r-4 border-primary rounded-br-lg"></div>
+<span class="material-symbols-outlined text-primary/50 text-5xl">center_focus_weak</span>
+</div>
+</div>
+<p class="text-white text-sm font-medium leading-normal mt-8 px-4 text-center drop-shadow-md">
+                    Cadrez le colis dans le rectangle central
+                </p>
+</div>
+<!-- Bottom Controls -->
+<div class="bg-gradient-to-t from-black/80 to-transparent pt-20 pb-10">
+<div class="flex items-center justify-around px-8">
+<!-- Gallery View -->
+<button class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md">
+<span class="material-symbols-outlined">image</span>
+</button>
+<!-- Shutter Button -->
+<div class="flex flex-col items-center gap-3">
+<button class="group flex items-center justify-center rounded-full size-20 border-4 border-white p-1">
+<div class="w-full h-full bg-primary rounded-full flex items-center justify-center group-active:scale-95 transition-transform">
+<span class="material-symbols-outlined text-background-dark text-4xl">photo_camera</span>
+</div>
+</button>
+<span class="text-white text-xs font-bold tracking-widest uppercase">PRENDRE LA PHOTO</span>
+</div>
+<!-- Flip Camera -->
+<button class="flex size-12 shrink-0 items-center justify-center rounded-full bg-white/10 text-white backdrop-blur-md">
+<span class="material-symbols-outlined">flip_camera_ios</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Safe Area Indicator (iOS Style) -->
+<div class="absolute bottom-1 left-1/2 -translate-x-1/2 w-32 h-1 bg-white/30 rounded-full z-20"></div>
+</div>
+</body></html>

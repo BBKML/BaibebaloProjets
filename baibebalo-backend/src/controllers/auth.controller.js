@@ -32,23 +32,31 @@ class AuthController {
       logger.info('CODE OTP GÉNÉRÉ', { phone, code, expiresIn: '5 minutes' });
 
       // Envoyer par SMS uniquement (WhatsApp désactivé)
-      // WhatsApp est désactivé, on envoie seulement par SMS
-      const smsResult = await smsService.sendOTP(phone, code);
-      const smsOk = smsResult?.success === true;
+      let smsOk = false;
+      try {
+        const smsResult = await smsService.sendOTP(phone, code);
+        smsOk = smsResult?.success === true;
+      } catch (smsError) {
+        logger.warn('Échec envoi SMS OTP', { error: smsError.message });
+      }
 
-      if (!smsOk) {
-        const smsError = smsResult?.error || smsResult?.message || 'Échec envoi OTP';
-        throw new Error(smsError);
+      // En mode développement, on continue même si le SMS échoue
+      const isDev = process.env.NODE_ENV === 'development';
+      
+      if (!smsOk && !isDev) {
+        throw new Error('Échec envoi OTP par SMS');
       }
 
       res.json({
         success: true,
-        message: 'Code OTP envoyé par SMS',
+        message: smsOk ? 'Code OTP envoyé par SMS' : 'Code OTP généré (mode dev - voir logs)',
         data: {
           channels: {
             sms: smsOk,
-            whatsapp: false, // WhatsApp désactivé
+            whatsapp: false,
           },
+          // En dev, on renvoie le code pour faciliter les tests
+          ...(isDev && { debug_otp: code }),
         },
       });
     } catch (error) {
@@ -82,7 +90,7 @@ class AuthController {
    */
   async verifyOTP(req, res, next) {
     try {
-      const { phone, code, first_name, last_name } = req.body;
+      const { phone, code, first_name, last_name, role } = req.body;
 
       // Vérifier l'OTP
       const otp = await authService.verifyOTP(phone, code);
@@ -98,6 +106,98 @@ class AuthController {
         });
       }
 
+      // Si c'est un livreur, vérifier s'il existe dans delivery_persons
+      if (role === 'delivery') {
+        const deliveryResult = await query(
+          'SELECT * FROM delivery_persons WHERE phone = $1',
+          [phone]
+        );
+
+        if (deliveryResult.rows.length > 0) {
+          // Livreur existant - vérifier son statut
+          const delivery = deliveryResult.rows[0];
+          
+          if (delivery.status === 'pending') {
+            // Compte en attente de validation
+            return res.json({
+              success: true,
+              message: 'Compte en attente de validation',
+              data: {
+                user: {
+                  id: delivery.id,
+                  phone: delivery.phone,
+                  first_name: delivery.first_name,
+                  last_name: delivery.last_name,
+                  status: delivery.status,
+                  validation_status: 'pending',
+                },
+                isNewUser: false,
+                needsValidation: true,
+              },
+            });
+          }
+
+          if (delivery.status !== 'active') {
+            return res.status(403).json({
+              success: false,
+              error: {
+                code: 'ACCOUNT_NOT_ACTIVE',
+                message: 'Votre compte n\'est pas encore activé',
+                status: delivery.status,
+              },
+            });
+          }
+
+          // Livreur actif - générer les tokens
+          const accessToken = generateAccessToken({
+            id: delivery.id,
+            phone: delivery.phone,
+            type: 'delivery_person',
+          });
+
+          const refreshToken = generateRefreshToken({
+            id: delivery.id,
+            phone: delivery.phone,
+            type: 'delivery_person',
+          });
+
+          logger.info('OTP vérifié avec succès', { phone, type: 'delivery_login' });
+
+          return res.json({
+            success: true,
+            message: 'Connexion réussie',
+            data: {
+              user: {
+                id: delivery.id,
+                phone: delivery.phone,
+                first_name: delivery.first_name,
+                last_name: delivery.last_name,
+                status: delivery.status,
+                vehicle_type: delivery.vehicle_type,
+                average_rating: delivery.average_rating,
+                total_deliveries: delivery.total_deliveries,
+              },
+              token: accessToken,
+              accessToken,
+              refreshToken,
+              isNewUser: false,
+            },
+          });
+        } else {
+          // Nouveau livreur - OTP validé, peut procéder à l'inscription
+          logger.info('OTP vérifié avec succès', { phone, type: 'delivery_registration' });
+          return res.json({
+            success: true,
+            message: 'OTP vérifié. Veuillez compléter votre inscription.',
+            data: {
+              isNewUser: true,
+              phone,
+            },
+          });
+        }
+      }
+
+      // Flow standard pour les clients
       // Trouver ou créer l'utilisateur
       const { user, isNew } = await authService.findOrCreateUser(phone, {
         first_name,
@@ -116,6 +216,8 @@ class AuthController {
         phone: user.phone,
         type: 'client',
       });
+
+      logger.info('OTP vérifié avec succès', { phone, type: 'login' });
 
       res.json({
         success: true,
@@ -155,41 +257,128 @@ class AuthController {
    */
   async partnerLogin(req, res, next) {
     try {
-      const { email, password } = req.body;
+      // Accepter soit email soit phone (selon le design HTML qui utilise phone)
+      const email = req.body?.email?.trim().toLowerCase();
+      const phone = req.body?.phone?.trim();
+      const identifier = phone || email; // Priorité au phone si fourni
+      const password = req.body?.password;
 
-      // Trouver le restaurant
-      const result = await query(
-        'SELECT * FROM restaurants WHERE email = $1',
-        [email]
-      );
+      // Log pour débogage
+      logger.debug('Tentative de connexion restaurant', {
+        email: email || 'MANQUANT',
+        phone: phone || 'MANQUANT',
+        identifier: identifier || 'MANQUANT',
+        identifierLength: identifier?.length,
+        passwordProvided: !!password,
+        passwordLength: password?.length,
+        bodyKeys: Object.keys(req.body || {}),
+      });
 
-      if (result.rows.length === 0) {
+      if (!identifier || !password) {
+        logger.warn('Connexion restaurant: champs manquants', {
+          identifier: !!identifier,
+          password: !!password,
+        });
         return res.status(401).json({
           success: false,
           error: {
             code: 'INVALID_CREDENTIALS',
-            message: 'Email ou mot de passe incorrect',
+            message: 'Numéro de téléphone (ou email) et mot de passe requis',
+          },
+        });
+      }
+
+      // Trouver le restaurant par phone ou email
+      // Si c'est un numéro (commence par + ou contient que des chiffres), chercher par phone
+      // Sinon, chercher par email
+      const isPhone = /^[\+]?[0-9\s\-\(\)]+$/.test(identifier);
+      let result;
+      
+      if (isPhone) {
+        // Nettoyer le numéro de téléphone (supprimer espaces, tirets, parenthèses, +225)
+        let cleanPhone = identifier.replace(/[\s\-\(\)]/g, '');
+        // Supprimer le préfixe +225 ou 225 si présent
+        cleanPhone = cleanPhone.replace(/^\+?225/, '');
+        // Si le numéro commence par 0, le garder, sinon ajouter 0
+        if (!cleanPhone.startsWith('0') && cleanPhone.length === 9) {
+          cleanPhone = '0' + cleanPhone;
+        }
+        
+        // Chercher avec différentes variantes du numéro
+        result = await query(
+          `SELECT * FROM restaurants 
+           WHERE REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+225', '') = $1
+              OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(phone, ' ', ''), '-', ''), '(', ''), ')', ''), '+225', '') = $2
+              OR phone = $3`,
+          [cleanPhone, '0' + cleanPhone.replace(/^0/, ''), identifier]
+        );
+      } else {
+        // Chercher par email
+        result = await query(
+          'SELECT * FROM restaurants WHERE LOWER(TRIM(email)) = $1',
+          [identifier]
+        );
+      }
+
+      if (result.rows.length === 0) {
+        logger.warn('Connexion restaurant: identifiant non trouvé', { 
+          identifier,
+          isPhone,
+        });
+        return res.status(401).json({
+          success: false,
+          error: {
+            code: 'INVALID_CREDENTIALS',
+            message: 'Numéro de téléphone (ou email) ou mot de passe incorrect',
           },
         });
       }
 
       const restaurant = result.rows[0];
 
+      // Log pour débogage
+      logger.debug('Restaurant trouvé', {
+        restaurantId: restaurant.id,
+        restaurantEmail: restaurant.email,
+        restaurantStatus: restaurant.status,
+        hasPasswordHash: !!restaurant.password_hash,
+      });
+
+      // Nettoyer le mot de passe (supprimer les espaces avant/après)
+      const cleanPassword = password.trim();
+      
       // Vérifier le mot de passe
-      const isValid = await bcrypt.compare(password, restaurant.password_hash);
+      const isValid = await bcrypt.compare(cleanPassword, restaurant.password_hash);
+      
+      logger.debug('Vérification mot de passe', {
+        isValid,
+        passwordLength: password.length,
+        cleanPasswordLength: cleanPassword.length,
+        hashLength: restaurant.password_hash?.length,
+        passwordChars: password.split('').map((c, i) => `${i}:${c.charCodeAt(0)}`).join(','),
+      });
       
       if (!isValid) {
+        logger.warn('Connexion restaurant: mot de passe incorrect', {
+          identifier,
+          restaurantId: restaurant.id,
+          passwordProvided: !!password,
+        });
         return res.status(401).json({
           success: false,
           error: {
             code: 'INVALID_CREDENTIALS',
-            message: 'Email ou mot de passe incorrect',
+            message: 'Numéro de téléphone (ou email) ou mot de passe incorrect',
           },
         });
       }
 
       // Vérifier que le restaurant est actif
       if (restaurant.status !== 'active') {
+        logger.warn('Connexion restaurant: compte non actif', {
+          identifier,
+          status: restaurant.status,
+        });
         return res.status(403).json({
           success: false,
           error: {
@@ -228,6 +417,340 @@ class AuthController {
       });
     } catch (error) {
       logger.error('Erreur partnerLogin', { error: error.message });
+      next(error);
+    }
+  }
+
+  /**
+   * Mot de passe oublié partenaire - Étape 1: Envoyer OTP
+   */
+  async partnerForgotPassword(req, res, next) {
+    try {
+      const { phone } = req.body;
+
+      if (!phone) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'PHONE_REQUIRED', message: 'Numéro de téléphone requis' },
+        });
+      }
+
+      // Normaliser le numéro de téléphone pour la recherche
+      let cleanPhone = phone.trim().replace(/\s+/g, '');
+      
+      // Générer les variantes possibles du numéro
+      const phoneVariants = [cleanPhone];
+      
+      // Si commence par +225, ajouter sans le +225
+      if (cleanPhone.startsWith('+225')) {
+        phoneVariants.push(cleanPhone.replace('+225', ''));
+        phoneVariants.push(cleanPhone.replace('+2250', '0')); // +2250xxx -> 0xxx
+      }
+      // Si commence par 225, ajouter avec + et sans
+      else if (cleanPhone.startsWith('225')) {
+        phoneVariants.push('+' + cleanPhone);
+        phoneVariants.push(cleanPhone.substring(3)); // 225xxx -> xxx
+      }
+      // Si commence par 0, ajouter avec +225
+      else if (cleanPhone.startsWith('0')) {
+        phoneVariants.push('+225' + cleanPhone); // 07xx -> +22507xx
+      }
+      // Sinon (juste les chiffres), ajouter les préfixes
+      else {
+        phoneVariants.push('+225' + cleanPhone);
+        phoneVariants.push('+2250' + cleanPhone);
+        phoneVariants.push('0' + cleanPhone);
+      }
+
+      logger.debug('Recherche restaurant avec variantes', { phoneVariants });
+
+      // Vérifier que le restaurant existe avec l'une des variantes
+      const result = await query(
+        'SELECT id, name, email, phone FROM restaurants WHERE phone = ANY($1)',
+        [phoneVariants]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { 
+            code: 'RESTAURANT_NOT_FOUND', 
+            message: 'Aucun compte restaurant trouvé avec ce numéro' 
+          },
+        });
+      }
+
+      const restaurant = result.rows[0];
+      // Utiliser le numéro tel qu'il est stocké dans la base
+      const storedPhone = restaurant.phone;
+
+      // Générer un OTP
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+      // Supprimer les anciens OTP pour ce numéro
+      await query(
+        "DELETE FROM otp_codes WHERE phone = $1 AND type = 'password_reset'",
+        [storedPhone]
+      );
+
+      // Sauvegarder le nouvel OTP
+      await query(
+        `INSERT INTO otp_codes (phone, code, expires_at, type, attempts)
+         VALUES ($1, $2, $3, 'password_reset', 0)`,
+        [storedPhone, otp, expiresAt]
+      );
+
+      // Envoyer l'OTP par SMS
+      const smsService = require('../services/sms.service');
+      try {
+        await smsService.sendOTP(storedPhone, otp);
+        logger.info('OTP de réinitialisation envoyé', { phone: storedPhone, restaurantId: restaurant.id });
+      } catch (smsError) {
+        logger.warn('Échec envoi SMS OTP reset', { error: smsError.message });
+        // En développement, on log le code pour les tests
+        if (process.env.NODE_ENV === 'development') {
+          logger.info('🔐 Code OTP (dev): ' + otp);
+        }
+      }
+
+      res.json({
+        success: true,
+        message: 'Code de vérification envoyé par SMS',
+        data: {
+          phone: storedPhone, // Retourner le numéro normalisé
+          restaurant_name: restaurant.name,
+          expires_in: 600, // 10 minutes en secondes
+          // En dev, on renvoie le code pour faciliter les tests
+          ...(process.env.NODE_ENV === 'development' && { debug_otp: otp }),
+        },
+      });
+    } catch (error) {
+      logger.error('Erreur partnerForgotPassword', { error: error.message });
+      next(error);
+    }
+  }
+
+  /**
+   * Mot de passe oublié partenaire - Étape 2: Vérifier OTP
+   */
+  async partnerVerifyResetOtp(req, res, next) {
+    try {
+      const { phone, otp } = req.body;
+
+      if (!phone || !otp) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'MISSING_FIELDS', message: 'Téléphone et code OTP requis' },
+        });
+      }
+
+      // Normaliser le numéro de téléphone
+      let cleanPhone = phone.trim().replace(/\s+/g, '');
+      const phoneVariants = [cleanPhone];
+      if (cleanPhone.startsWith('+225')) {
+        phoneVariants.push(cleanPhone.replace('+225', ''));
+        phoneVariants.push(cleanPhone.replace('+2250', '0'));
+      } else if (cleanPhone.startsWith('225')) {
+        phoneVariants.push('+' + cleanPhone);
+        phoneVariants.push(cleanPhone.substring(3));
+      } else if (cleanPhone.startsWith('0')) {
+        phoneVariants.push('+225' + cleanPhone);
+      } else {
+        phoneVariants.push('+225' + cleanPhone);
+        phoneVariants.push('+2250' + cleanPhone);
+        phoneVariants.push('0' + cleanPhone);
+      }
+
+      // Récupérer l'OTP
+      const result = await query(
+        `SELECT * FROM otp_codes 
+         WHERE phone = ANY($1) AND type = 'password_reset' AND is_used = false
+         ORDER BY created_at DESC LIMIT 1`,
+        [phoneVariants]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'OTP_NOT_FOUND', message: 'Aucune demande de réinitialisation trouvée' },
+        });
+      }
+
+      const otpRecord = result.rows[0];
+
+      // Vérifier expiration
+      if (new Date() > new Date(otpRecord.expires_at)) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'OTP_EXPIRED', message: 'Le code a expiré. Veuillez en demander un nouveau.' },
+        });
+      }
+
+      // Vérifier le nombre de tentatives
+      if (otpRecord.attempts >= 5) {
+        return res.status(429).json({
+          success: false,
+          error: { code: 'TOO_MANY_ATTEMPTS', message: 'Trop de tentatives. Veuillez en demander un nouveau code.' },
+        });
+      }
+
+      // Vérifier le code
+      if (otpRecord.code !== otp.trim()) {
+        // Incrémenter les tentatives
+        await query(
+          'UPDATE otp_codes SET attempts = attempts + 1 WHERE id = $1',
+          [otpRecord.id]
+        );
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_OTP', message: 'Code incorrect' },
+        });
+      }
+
+      // Générer un token temporaire pour la réinitialisation (6 chiffres)
+      const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Utiliser le numéro tel qu'il est stocké dans l'OTP
+      const storedPhone = otpRecord.phone;
+
+      // Marquer l'OTP comme utilisé et sauvegarder le token
+      await query(
+        `UPDATE otp_codes SET is_used = true WHERE id = $1`,
+        [otpRecord.id]
+      );
+
+      // Stocker le reset token avec le numéro stocké (pas celui fourni par l'utilisateur)
+      await query(
+        `INSERT INTO otp_codes (phone, code, expires_at, type, is_used)
+         VALUES ($1, $2, $3, 'reset_token', false)`,
+        [storedPhone, resetToken, new Date(Date.now() + 15 * 60 * 1000)]
+      );
+
+      logger.info('OTP de réinitialisation vérifié', { phone: storedPhone });
+
+      res.json({
+        success: true,
+        message: 'Code vérifié avec succès',
+        data: {
+          reset_token: resetToken,
+          expires_in: 900, // 15 minutes
+        },
+      });
+    } catch (error) {
+      logger.error('Erreur partnerVerifyResetOtp', { error: error.message });
+      next(error);
+    }
+  }
+
+  /**
+   * Mot de passe oublié partenaire - Étape 3: Réinitialiser mot de passe
+   */
+  async partnerResetPassword(req, res, next) {
+    try {
+      const { phone, reset_token, new_password } = req.body;
+
+      if (!phone || !reset_token || !new_password) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'MISSING_FIELDS', message: 'Tous les champs sont requis' },
+        });
+      }
+
+      // Vérifier la longueur du mot de passe
+      if (new_password.length < 6) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'WEAK_PASSWORD', message: 'Le mot de passe doit contenir au moins 6 caractères' },
+        });
+      }
+
+      // Normaliser le numéro de téléphone
+      let cleanPhone = phone.trim().replace(/\s+/g, '');
+      const phoneVariants = [cleanPhone];
+      if (cleanPhone.startsWith('+225')) {
+        phoneVariants.push(cleanPhone.replace('+225', ''));
+        phoneVariants.push(cleanPhone.replace('+2250', '0'));
+      } else if (cleanPhone.startsWith('225')) {
+        phoneVariants.push('+' + cleanPhone);
+        phoneVariants.push(cleanPhone.substring(3));
+      } else if (cleanPhone.startsWith('0')) {
+        phoneVariants.push('+225' + cleanPhone);
+      } else {
+        phoneVariants.push('+225' + cleanPhone);
+        phoneVariants.push('+2250' + cleanPhone);
+        phoneVariants.push('0' + cleanPhone);
+      }
+
+      // Vérifier le token de réinitialisation
+      const result = await query(
+        `SELECT * FROM otp_codes 
+         WHERE phone = ANY($1) AND type = 'reset_token' AND code = $2 AND is_used = false
+         ORDER BY created_at DESC LIMIT 1`,
+        [phoneVariants, reset_token]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_TOKEN', message: 'Token de réinitialisation invalide' },
+        });
+      }
+
+      const tokenRecord = result.rows[0];
+      // Utiliser le numéro tel qu'il est stocké dans le token
+      const storedPhone = tokenRecord.phone;
+
+      // Vérifier expiration du token
+      if (new Date() > new Date(tokenRecord.expires_at)) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'TOKEN_EXPIRED', message: 'Le token a expiré. Veuillez recommencer.' },
+        });
+      }
+
+      // Hasher le nouveau mot de passe
+      const passwordHash = await bcrypt.hash(new_password, 12);
+
+      // Mettre à jour le mot de passe du restaurant avec le numéro stocké
+      const updateResult = await query(
+        'UPDATE restaurants SET password_hash = $1, updated_at = NOW() WHERE phone = $2 RETURNING id, name',
+        [passwordHash, storedPhone]
+      );
+
+      if (updateResult.rows.length === 0) {
+        logger.error('Restaurant non trouvé pour mise à jour mot de passe', { phone: storedPhone });
+        return res.status(404).json({
+          success: false,
+          error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+        });
+      }
+
+      logger.info('Mot de passe mis à jour', { 
+        restaurantId: updateResult.rows[0].id, 
+        restaurantName: updateResult.rows[0].name 
+      });
+
+      // Marquer le token comme utilisé
+      await query(
+        'UPDATE otp_codes SET is_used = true WHERE id = $1',
+        [tokenRecord.id]
+      );
+
+      // Nettoyer les anciens codes pour ce numéro
+      await query(
+        "DELETE FROM otp_codes WHERE phone = $1 AND type IN ('password_reset', 'reset_token') AND is_used = true",
+        [storedPhone]
+      );
+
+      logger.info('Mot de passe restaurant réinitialisé', { phone: phone.trim() });
+
+      res.json({
+        success: true,
+        message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.',
+      });
+    } catch (error) {
+      logger.error('Erreur partnerResetPassword', { error: error.message });
       next(error);
     }
   }

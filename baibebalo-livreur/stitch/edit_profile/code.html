@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Profile - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#19e66b",
+                        "background-light": "#f6f8f7",
+                        "background-dark": "#112117",
+                    },
+                    fontFamily: {
+                        "display": ["Inter", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark min-h-screen font-display">
+<!-- Header / TopAppBar -->
+<header class="sticky top-0 z-50 bg-white dark:bg-background-dark border-b border-gray-100 dark:border-gray-800 px-4 py-4">
+<div class="flex items-center justify-between max-w-md mx-auto">
+<button class="text-gray-900 dark:text-white flex items-center justify-center p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+<span class="material-symbols-outlined">arrow_back_ios</span>
+</button>
+<h1 class="text-gray-900 dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Modifier le Profil</h1>
+<div class="w-10"></div> <!-- Spacer for centering -->
+</div>
+</header>
+<main class="max-w-md mx-auto pb-32">
+<!-- Profile Header / Picture -->
+<div class="flex flex-col items-center py-8">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-32 w-32 border-4 border-white dark:border-gray-800 shadow-sm" data-alt="Photo de profil du livreur BAIBEBALO" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuCg2jIRDewZQHOpzU7VpctGLSHAw-LFXf96wyQcWUyUWz1SqbEd7M4cVCBN9R6lzCBu0xVlZDluD9eKaL62OcT8AMJ9DjoSbgJCvI2LljqSxMMQy4irtczeaiyn4GxlORAzMHlXkb4eu5WS_KxazSt8RH0v0zHYVxT5yt9eSiS3tM8YUnBjgXBTFUdtWv3eqqlwfy78uxv_WFJv--_CL-OGOVyeRqugXy-IPPFB7XD1vhCWSAJKTEb-mhcfxmKqHMnNIuxWm4AJUmfy");'>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-white p-2 rounded-full shadow-lg border-2 border-white dark:border-gray-800 flex items-center justify-center">
+<span class="material-symbols-outlined text-sm">edit</span>
+</button>
+</div>
+<p class="mt-4 text-primary font-semibold text-sm uppercase tracking-wide">Changer la photo</p>
+</div>
+<!-- Form Fields -->
+<div class="px-6 space-y-2">
+<!-- Nom -->
+<div class="flex flex-col w-full">
+<label class="text-gray-600 dark:text-gray-400 text-sm font-medium pb-1 ml-1">Nom</label>
+<input class="form-input flex w-full rounded-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-14 px-4 text-base transition-all" placeholder="Votre nom" type="text" value="Traoré"/>
+</div>
+<!-- Prénom -->
+<div class="flex flex-col w-full">
+<label class="text-gray-600 dark:text-gray-400 text-sm font-medium pb-1 ml-1">Prénom</label>
+<input class="form-input flex w-full rounded-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-14 px-4 text-base transition-all" placeholder="Votre prénom" type="text" value="Moussa"/>
+</div>
+<!-- Email -->
+<div class="flex flex-col w-full">
+<label class="text-gray-600 dark:text-gray-400 text-sm font-medium pb-1 ml-1">Email</label>
+<input class="form-input flex w-full rounded-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-14 px-4 text-base transition-all" placeholder="votre@email.com" type="email" value="moussa.traore@baibebalo.com"/>
+</div>
+<!-- Téléphone -->
+<div class="flex flex-col w-full">
+<label class="text-gray-600 dark:text-gray-400 text-sm font-medium pb-1 ml-1">Téléphone</label>
+<input class="form-input flex w-full rounded-xl text-gray-900 dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary/50 border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900 h-14 px-4 text-base transition-all" placeholder="+225..." type="tel" value="+225 07 08 09 10 11"/>
+</div>
+<!-- Change Password Link -->
+<div class="pt-4 pb-8">
+<button class="text-primary font-semibold text-sm flex items-center gap-2 hover:opacity-80 transition-opacity">
+<span class="material-symbols-outlined text-lg">lock</span>
+                    Changer le mot de passe
+                </button>
+</div>
+<!-- Submit Button -->
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-md active:scale-[0.98] transition-all uppercase tracking-wider">
+                Enregistrer les modifications
+            </button>
+</div>
+</main>
+<!-- Bottom Navigation -->
+<nav class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-gray-100 dark:border-gray-800 pb-safe shadow-[0_-4px_10px_rgba(0,0,0,0.03)]">
+<div class="max-w-md mx-auto flex justify-around items-center py-3">
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="text-[10px] font-medium">Accueil</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">assignment</span>
+<span class="text-[10px] font-medium">Tâches</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-primary" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="text-[10px] font-medium">Profil</span>
+</a>
+<a class="flex flex-col items-center gap-1 text-gray-400" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-medium">Réglages</span>
+</a>
+</div>
+</nav>
+<!-- Safe area padding for iOS -->
+<div class="h-8 bg-white dark:bg-background-dark w-full fixed bottom-0"></div>
+</body></html>

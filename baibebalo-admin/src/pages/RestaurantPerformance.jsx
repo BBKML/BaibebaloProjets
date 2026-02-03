@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { formatCurrency } from '../utils/format';
 import BarChart from '../components/charts/BarChart';
@@ -10,6 +11,7 @@ import { analyticsAPI } from '../api/analytics';
 import { dashboardAPI } from '../api/dashboard';
 
 const RestaurantPerformance = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState('30d');
   const [dateRange, setDateRange] = useState({ start: null, end: null });
 
@@ -97,13 +99,22 @@ const RestaurantPerformance = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
-              Restaurant Performance Dashboard
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 max-w-2xl">
-              Analyse comparative des revenus, de la vitesse et des métriques de satisfaction à travers le réseau.
-            </p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Retour"
+            >
+              <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+            </button>
+            <div>
+              <h1 className="text-4xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
+                Restaurant Performance Dashboard
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 max-w-2xl">
+                Analyse comparative des revenus, de la vitesse et des métriques de satisfaction à travers le réseau.
+              </p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative hidden lg:block">

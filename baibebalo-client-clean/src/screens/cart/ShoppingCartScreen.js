@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,58 @@ import {
   TouchableOpacity,
   Image,
   TextInput,
+  Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
+import { getSuggestedItems } from '../../api/restaurants';
+
+// Configuration des seuils (doit correspondre au backend)
+const FREE_DELIVERY_THRESHOLD = 20000; // FCFA
+const BUNDLE_DISCOUNT_PERCENT = 5; // %
 
 export default function ShoppingCartScreen({ navigation }) {
-  const { items, restaurantName, getTotal, updateQuantity, removeItem, clearCart } = useCartStore();
+  const { items, restaurantName, restaurantId, getTotal, updateQuantity, removeItem, clearCart, addItem } = useCartStore();
+  const [suggestions, setSuggestions] = useState([]);
+  const [suggestionTips, setSuggestionTips] = useState(null);
+  const [promoCode, setPromoCode] = useState('');
+  const [promoApplied, setPromoApplied] = useState(false);
+  const insets = useSafeAreaInsets();
 
   const total = getTotal();
-  const deliveryFee = 1000;
+  
+  // Calcul du seuil de livraison gratuite
+  const freeDeliveryThreshold = suggestionTips?.free_delivery_threshold || FREE_DELIVERY_THRESHOLD;
+  const isFreeDelivery = total >= freeDeliveryThreshold;
+  const amountToFreeDelivery = Math.max(0, freeDeliveryThreshold - total);
+  
+  // Frais de livraison (0 si seuil atteint)
+  const deliveryFee = isFreeDelivery ? 0 : 500;
   const finalTotal = total + deliveryFee;
+
+  useEffect(() => {
+    if (restaurantId && items.length > 0) {
+      loadSuggestions();
+    }
+  }, [restaurantId, items]);
+
+  const loadSuggestions = async () => {
+    try {
+      // Utiliser le nouvel endpoint de suggestions intelligentes
+      const cartItemIds = items.map(item => item.id || item.menu_item_id);
+      const response = await getSuggestedItems(restaurantId, cartItemIds, 5);
+      const data = response.data?.data || response.data || {};
+      
+      setSuggestions(data.suggestions || []);
+      setSuggestionTips(data.tips || null);
+    } catch (error) {
+      console.error('Erreur lors du chargement des suggestions:', error);
+      setSuggestions([]);
+    }
+  };
 
   const handleCheckout = () => {
     if (items.length === 0) return;
@@ -28,6 +69,7 @@ export default function ShoppingCartScreen({ navigation }) {
 
   return (
     <View style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={18} color={COLORS.text} />
@@ -38,20 +80,25 @@ export default function ShoppingCartScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
-        {items.length === 0 ? (
-          <View style={styles.emptyContainer}>
-            <Ionicons name="cart-outline" size={64} color={COLORS.textLight} />
-            <Text style={styles.emptyText}>Votre panier est vide</Text>
-            <TouchableOpacity
-              style={styles.browseButton}
-              onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
-            >
-              <Text style={styles.browseButtonText}>Parcourir les restaurants</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <>
+      {/* Content */}
+      {items.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Ionicons name="cart-outline" size={64} color={COLORS.textLight} />
+          <Text style={styles.emptyText}>Votre panier est vide</Text>
+          <TouchableOpacity
+            style={styles.browseButton}
+            onPress={() => navigation.navigate('MainTabs', { screen: 'Home' })}
+          >
+            <Text style={styles.browseButtonText}>Parcourir les restaurants</Text>
+          </TouchableOpacity>
+        </View>
+      ) : (
+        <>
+          <ScrollView 
+            style={styles.content}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={false}
+          >
             {restaurantName && (
               <View style={styles.restaurantHeader}>
                 <Text style={styles.restaurantName}>{restaurantName}</Text>
@@ -106,6 +153,109 @@ export default function ShoppingCartScreen({ navigation }) {
               </View>
             ))}
 
+            {/* Bannière livraison gratuite */}
+            {!isFreeDelivery && amountToFreeDelivery > 0 && (
+              <View style={styles.freeDeliveryBanner}>
+                <Ionicons name="bicycle" size={20} color={COLORS.primary} />
+                <Text style={styles.freeDeliveryText}>
+                  Ajoutez <Text style={styles.freeDeliveryAmount}>{amountToFreeDelivery.toLocaleString('fr-FR')} FCFA</Text> pour la livraison gratuite
+                </Text>
+              </View>
+            )}
+            
+            {/* Badge livraison gratuite débloquée */}
+            {isFreeDelivery && (
+              <View style={styles.freeDeliveryUnlocked}>
+                <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
+                <Text style={styles.freeDeliveryUnlockedText}>Livraison gratuite débloquée !</Text>
+              </View>
+            )}
+
+            {/* Suggestions intelligentes */}
+            {suggestions.length > 0 && (
+              <View style={styles.suggestionsCard}>
+                <Text style={styles.suggestionsTitle}>Suggestions pour vous</Text>
+                {suggestionTips?.bundle_message && (
+                  <View style={styles.bundleTip}>
+                    <Ionicons name="pricetag" size={14} color={COLORS.primary} />
+                    <Text style={styles.bundleTipText}>{suggestionTips.bundle_message}</Text>
+                  </View>
+                )}
+                <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.suggestionsList}>
+                  {suggestions.map((suggestion) => (
+                    <TouchableOpacity
+                      key={suggestion.id}
+                      style={styles.suggestionItem}
+                      onPress={() => {
+                        if (restaurantId && restaurantName) {
+                          addItem(
+                            {
+                              id: suggestion.id,
+                              name: suggestion.name,
+                              price: suggestion.effective_price || suggestion.price,
+                              image_url: suggestion.image_url || suggestion.photo,
+                              customizations: {},
+                            },
+                            restaurantId,
+                            restaurantName
+                          );
+                        }
+                      }}
+                    >
+                      {suggestion.image_url || suggestion.photo ? (
+                        <Image
+                          source={{ uri: suggestion.image_url || suggestion.photo }}
+                          style={styles.suggestionImage}
+                        />
+                      ) : (
+                        <View style={styles.suggestionImagePlaceholder}>
+                          <Ionicons name="restaurant" size={24} color={COLORS.textLight} />
+                        </View>
+                      )}
+                      {suggestion.suggestion_reason && (
+                        <Text style={styles.suggestionReason} numberOfLines={1}>
+                          {suggestion.suggestion_reason}
+                        </Text>
+                      )}
+                      <Text style={styles.suggestionName} numberOfLines={2}>
+                        {suggestion.name}
+                      </Text>
+                      <View style={styles.suggestionPriceRow}>
+                        <Text style={styles.suggestionPrice}>
+                          {parseFloat(suggestion.effective_price || suggestion.price || 0).toLocaleString('fr-FR')} FCFA
+                        </Text>
+                        {suggestion.is_promotional && suggestion.price !== suggestion.effective_price && (
+                          <Text style={styles.suggestionOldPrice}>
+                            {parseFloat(suggestion.price || 0).toLocaleString('fr-FR')}
+                          </Text>
+                        )}
+                      </View>
+                      <TouchableOpacity
+                        style={styles.suggestionAddButton}
+                        onPress={() => {
+                          if (restaurantId && restaurantName) {
+                            addItem(
+                              {
+                                id: suggestion.id,
+                                name: suggestion.name,
+                                price: suggestion.effective_price || suggestion.price,
+                                image_url: suggestion.image_url || suggestion.photo,
+                                customizations: {},
+                              },
+                              restaurantId,
+                              restaurantName
+                            );
+                          }
+                        }}
+                      >
+                        <Ionicons name="add" size={16} color={COLORS.white} />
+                      </TouchableOpacity>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            )}
+
             <View style={styles.promoCard}>
               <Text style={styles.promoLabel}>Code Promo</Text>
               <View style={styles.promoRow}>
@@ -115,12 +265,37 @@ export default function ShoppingCartScreen({ navigation }) {
                     placeholder="Entrez votre code"
                     placeholderTextColor={COLORS.textLight}
                     style={styles.promoTextInput}
+                    value={promoCode}
+                    onChangeText={setPromoCode}
+                    editable={!promoApplied}
                   />
                 </View>
-                <TouchableOpacity style={styles.applyButton}>
-                  <Text style={styles.applyButtonText}>Appliquer</Text>
+                <TouchableOpacity 
+                  style={[styles.applyButton, promoApplied && styles.applyButtonApplied]}
+                  onPress={() => {
+                    if (promoApplied) {
+                      setPromoApplied(false);
+                      setPromoCode('');
+                    } else if (promoCode.trim()) {
+                      // TODO: Valider le code promo avec l'API
+                      // Pour l'instant, on simule juste l'application
+                      setPromoApplied(true);
+                      Alert.alert('Code promo appliqué', 'Le code promo a été appliqué avec succès.');
+                    } else {
+                      Alert.alert('Code promo requis', 'Veuillez entrer un code promo.');
+                    }
+                  }}
+                >
+                  <Text style={styles.applyButtonText}>
+                    {promoApplied ? 'Retirer' : 'Appliquer'}
+                  </Text>
                 </TouchableOpacity>
               </View>
+              {promoApplied && (
+                <Text style={styles.promoAppliedText}>
+                  ✓ Code promo appliqué: {promoCode}
+                </Text>
+              )}
             </View>
 
             <View style={styles.summary}>
@@ -143,20 +318,20 @@ export default function ShoppingCartScreen({ navigation }) {
                 </Text>
               </View>
             </View>
-          </>
-        )}
-      </ScrollView>
+          </ScrollView>
 
-      {items.length > 0 && (
-        <View style={styles.footer}>
-          <TouchableOpacity
-            style={styles.checkoutButton}
-            onPress={handleCheckout}
-          >
-            <Text style={styles.checkoutButtonText}>Valider la commande</Text>
-            <Ionicons name="bag-handle" size={18} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
+          {/* Bouton Fixe en Bas - TOUJOURS VISIBLE */}
+          <View style={[styles.fixedFooter, { bottom: insets.bottom + 80 }]}>
+            <TouchableOpacity
+              style={styles.checkoutButton}
+              onPress={handleCheckout}
+              activeOpacity={0.7}
+            >
+              <Text style={styles.checkoutButtonText}>Valider la commande</Text>
+              <Ionicons name="arrow-forward-circle" size={22} color={COLORS.white} />
+            </TouchableOpacity>
+          </View>
+        </>
       )}
     </View>
   );
@@ -171,7 +346,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     paddingHorizontal: 16,
-    paddingVertical: 12,
+    paddingVertical: 16,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
@@ -205,6 +380,9 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  scrollContent: {
+    paddingBottom: 140, // Espace pour le bouton fixe + safe area
+  },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -233,6 +411,7 @@ const styles = StyleSheet.create({
     padding: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
+    marginBottom: 8,
   },
   restaurantName: {
     fontSize: 16,
@@ -357,19 +536,29 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
+  applyButtonApplied: {
+    backgroundColor: COLORS.error || '#FF3B30',
+  },
   applyButtonText: {
     color: COLORS.white,
     fontWeight: '700',
     fontSize: 12,
   },
+  promoAppliedText: {
+    marginTop: 8,
+    fontSize: 12,
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
   summary: {
     backgroundColor: COLORS.white,
     padding: 16,
     marginTop: 16,
+    marginHorizontal: 16,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: COLORS.border,
-    marginHorizontal: 16,
+    marginBottom: 16,
   },
   summaryRow: {
     flexDirection: 'row',
@@ -390,6 +579,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.border,
     paddingTop: 12,
     marginTop: 8,
+    marginBottom: 0,
   },
   totalLabel: {
     fontSize: 18,
@@ -401,24 +591,182 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.primary,
   },
-  footer: {
+  // BOUTON FIXE EN BAS
+  fixedFooter: {
+    position: 'absolute',
+    bottom: 80,
+    left: 0,
+    right: 0,
     backgroundColor: COLORS.white,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 12,
+    paddingBottom: 20,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 20,
   },
   checkoutButton: {
     backgroundColor: COLORS.primary,
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 18,
+    borderRadius: 14,
     alignItems: 'center',
     flexDirection: 'row',
     justifyContent: 'center',
-    gap: 8,
+    gap: 12,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   checkoutButtonText: {
     color: COLORS.white,
+    fontSize: 17,
+    fontWeight: '700',
+    letterSpacing: 0.5,
+  },
+  suggestionsCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 16,
+    marginTop: 8,
+    marginHorizontal: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  suggestionsTitle: {
     fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  suggestionsList: {
+    flexDirection: 'row',
+  },
+  suggestionItem: {
+    width: 140,
+    marginRight: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    padding: 12,
+    position: 'relative',
+  },
+  suggestionImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: COLORS.border,
+    marginBottom: 8,
+  },
+  suggestionImagePlaceholder: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    backgroundColor: COLORS.border,
+    marginBottom: 8,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  suggestionName: {
+    fontSize: 13,
     fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+    minHeight: 32,
+  },
+  suggestionPrice: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: 8,
+  },
+  suggestionAddButton: {
+    position: 'absolute',
+    bottom: 8,
+    right: 8,
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  suggestionReason: {
+    fontSize: 10,
+    color: COLORS.primary,
+    fontWeight: '600',
+    marginBottom: 4,
+    textTransform: 'uppercase',
+  },
+  suggestionPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 8,
+  },
+  suggestionOldPrice: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    textDecorationLine: 'line-through',
+  },
+  // Bannière livraison gratuite
+  freeDeliveryBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary + '15',
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+    borderStyle: 'dashed',
+  },
+  freeDeliveryText: {
+    fontSize: 13,
+    color: COLORS.text,
+    marginLeft: 10,
+    flex: 1,
+  },
+  freeDeliveryAmount: {
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  freeDeliveryUnlocked: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.success + '15',
+    borderRadius: 12,
+    padding: 12,
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: COLORS.success + '30',
+  },
+  freeDeliveryUnlockedText: {
+    fontSize: 13,
+    color: COLORS.success,
+    fontWeight: '600',
+    marginLeft: 10,
+  },
+  bundleTip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primary + '10',
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 12,
+    alignSelf: 'flex-start',
+  },
+  bundleTipText: {
+    fontSize: 11,
+    color: COLORS.primary,
+    fontWeight: '600',
+    marginLeft: 6,
   },
 });

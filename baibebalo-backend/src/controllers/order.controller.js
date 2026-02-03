@@ -1,6 +1,7 @@
 const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const crypto = require('crypto');
+const config = require('../config');
 const mapsService = require('../services/maps.service');
 const notificationService = require('../services/notification.service');
 
@@ -19,6 +20,163 @@ const generateOrderNumber = () => {
  */
 const calculateDeliveryFee = (distance) => {
   return mapsService.calculateDeliveryFee(distance);
+};
+
+/**
+ * Calculer les frais de livraison et de service
+ * API pour le client avant de créer la commande
+ */
+exports.calculateFees = async (req, res) => {
+  try {
+    const { restaurant_id, delivery_address_id, subtotal: rawSubtotal } = req.body;
+    const subtotal = Number(rawSubtotal);
+    if (Number.isNaN(subtotal) || subtotal < 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Sous-total invalide' },
+      });
+    }
+    const userId = req.user.id;
+
+    // 1. Récupérer les coordonnées du restaurant
+    const restaurantResult = await query(
+      'SELECT latitude, longitude, name, delivery_radius FROM restaurants WHERE id = $1',
+      [restaurant_id]
+    );
+
+    if (restaurantResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+      });
+    }
+
+    const restaurant = restaurantResult.rows[0];
+
+    // 2. Récupérer les coordonnées de l'adresse de livraison
+    const addressResult = await query(
+      'SELECT latitude, longitude, address_line as address FROM addresses WHERE id = $1 AND user_id = $2',
+      [delivery_address_id, userId]
+    );
+
+    if (addressResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ADDRESS_NOT_FOUND', message: 'Adresse non trouvée' },
+      });
+    }
+
+    const address = addressResult.rows[0];
+
+    // 3. Calculer la distance
+    let distance = 0;
+    let deliveryFee = 500; // Minimum par défaut
+
+    if (restaurant.latitude && restaurant.longitude && address.latitude && address.longitude) {
+      distance = mapsService.calculateDistance(
+        parseFloat(restaurant.latitude),
+        parseFloat(restaurant.longitude),
+        parseFloat(address.latitude),
+        parseFloat(address.longitude)
+      );
+
+      // Rayon max = choix du restaurant (BDD), sinon limite plateforme (config)
+      const platformMaxKm = config.business.maxDeliveryDistance ?? 10;
+      const maxRadius = Number(restaurant.delivery_radius) || platformMaxKm;
+      if (distance > maxRadius) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'OUT_OF_DELIVERY_RANGE',
+            message: `L'adresse est trop loin (${distance.toFixed(1)} km). Distance maximale: ${maxRadius} km`,
+          },
+        });
+      }
+
+      // Calculer les frais de livraison de base
+      deliveryFee = calculateDeliveryFee(distance);
+    }
+
+    // === SEUIL DE LIVRAISON GRATUITE ===
+    // Si le sous-total dépasse le seuil, la livraison est gratuite
+    const freeDeliveryThreshold = config.business.freeDeliveryThreshold || 5000;
+    const freeDeliveryEnabled = config.business.freeDeliveryEnabled !== false;
+    let freeDeliveryApplied = false;
+    let originalDeliveryFee = deliveryFee;
+    let amountToFreeDelivery = 0;
+
+    if (freeDeliveryEnabled && subtotal >= freeDeliveryThreshold) {
+      freeDeliveryApplied = true;
+      deliveryFee = 0;
+    } else if (freeDeliveryEnabled) {
+      amountToFreeDelivery = freeDeliveryThreshold - subtotal;
+    }
+
+    // Frais de service désactivés (0 %) — uniquement frais livraison + commission restaurant
+    const serviceFee = 0;
+    const serviceFeePercentDisplay = 0;
+
+    // Rayon max livraison = restaurant (BDD), sinon config (ex. 10 km)
+    const platformMaxKm = config.business.maxDeliveryDistance ?? 10;
+    const deliveryRadiusKm = Number(restaurant.delivery_radius) || platformMaxKm;
+
+    // Total = sous-total + frais de livraison (pas de frais de service)
+    const total = subtotal + deliveryFee;
+
+    logger.info('Calcul des frais:', {
+      userId,
+      restaurantId: restaurant_id,
+      distance: distance.toFixed(2),
+      subtotal,
+      deliveryFee,
+      total,
+      freeDeliveryApplied,
+    });
+
+    // Obtenir les détails du tarif de livraison
+    const deliveryFeeDetails = mapsService.getDeliveryFeeDetails(distance);
+
+    res.json({
+      success: true,
+      data: {
+        subtotal: subtotal,
+        delivery_fee: deliveryFee,
+        service_fee: serviceFee,
+        total: total,
+        distance_km: parseFloat(distance.toFixed(2)),
+        delivery_radius_km: deliveryRadiusKm,
+        service_fee_percent: serviceFeePercentDisplay,
+        restaurant_name: restaurant.name,
+        delivery_address: address.address,
+        // Détails du tarif de livraison
+        delivery_details: {
+          original_fee: originalDeliveryFee,
+          label: deliveryFeeDetails.label,
+          description: deliveryFeeDetails.description,
+        },
+        // Informations sur la livraison gratuite
+        free_delivery: {
+          enabled: freeDeliveryEnabled,
+          threshold: freeDeliveryThreshold,
+          applied: freeDeliveryApplied,
+          original_fee: originalDeliveryFee,
+          savings: freeDeliveryApplied ? originalDeliveryFee : 0,
+          amount_remaining: amountToFreeDelivery > 0 ? amountToFreeDelivery : 0,
+          message: freeDeliveryApplied 
+            ? 'Livraison gratuite appliquée !' 
+            : amountToFreeDelivery > 0 
+              ? `Ajoutez ${amountToFreeDelivery} FCFA pour la livraison gratuite`
+              : null,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur calculateFees:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'CALCULATION_ERROR', message: 'Erreur lors du calcul des frais' },
+    });
+  }
 };
 
 /**
@@ -78,7 +236,17 @@ exports.createOrder = async (req, res) => {
         }
 
         const menuItem = menuItemResult.rows[0];
-        let itemPrice = parseFloat(menuItem.price);
+        
+        // Utiliser le prix promotionnel si la promotion est active
+        const now = new Date();
+        const isPromotionActive = menuItem.is_promotional && 
+          menuItem.promotional_price &&
+          (!menuItem.promotion_start || new Date(menuItem.promotion_start) <= now) &&
+          (!menuItem.promotion_end || new Date(menuItem.promotion_end) >= now);
+        
+        let itemPrice = isPromotionActive 
+          ? parseFloat(menuItem.promotional_price) 
+          : parseFloat(menuItem.price);
 
         // Calculer le prix avec les options sélectionnées
         if (item.selected_options) {
@@ -132,6 +300,10 @@ exports.createOrder = async (req, res) => {
           latitude: parseFloat(addressResult.rows[0].latitude),
           longitude: parseFloat(addressResult.rows[0].longitude),
         };
+      } else if (resolvedDeliveryAddress) {
+        // S'assurer que les coordonnées sont des nombres
+        resolvedDeliveryAddress.latitude = parseFloat(resolvedDeliveryAddress.latitude);
+        resolvedDeliveryAddress.longitude = parseFloat(resolvedDeliveryAddress.longitude);
       }
 
       if (!resolvedDeliveryAddress) {
@@ -144,39 +316,132 @@ exports.createOrder = async (req, res) => {
         });
       }
 
-      if (!resolvedDeliveryAddress.latitude || !resolvedDeliveryAddress.longitude) {
+      // Convertir les coordonnées en nombres si elles sont des strings
+      const lat = parseFloat(resolvedDeliveryAddress.latitude);
+      const lon = parseFloat(resolvedDeliveryAddress.longitude);
+
+      if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
         return res.status(400).json({
           success: false,
           error: {
             code: 'DELIVERY_COORDINATES_REQUIRED',
-            message: 'Coordonnées GPS de livraison requises',
+            message: 'Coordonnées GPS de livraison requises et valides',
           },
         });
       }
 
       // 4. Calculer les frais de livraison (distance)
+      const restaurantLat = parseFloat(restaurant.latitude);
+      const restaurantLon = parseFloat(restaurant.longitude);
+      const deliveryRadius = parseFloat(restaurant.delivery_radius) || 10; // Par défaut 10km
+      
       const distance = await calculateDistance(
-        restaurant.latitude,
-        restaurant.longitude,
-        resolvedDeliveryAddress.latitude,
-        resolvedDeliveryAddress.longitude
+        restaurantLat,
+        restaurantLon,
+        lat,
+        lon
       );
 
-      if (distance > restaurant.delivery_radius) {
+      logger.debug('Vérification zone de livraison', {
+        restaurantId: restaurant.id,
+        restaurantCoords: `${restaurantLat}, ${restaurantLon}`,
+        deliveryCoords: `${lat}, ${lon}`,
+        distance: `${distance} km`,
+        deliveryRadius: `${deliveryRadius} km`,
+        isWithinRange: distance <= deliveryRadius,
+      });
+
+      if (distance > deliveryRadius) {
         return res.status(400).json({
           success: false,
           error: {
             code: 'OUT_OF_DELIVERY_RANGE',
-            message: `Adresse hors de la zone de livraison (${restaurant.delivery_radius}km max)`,
+            message: `Adresse hors de la zone de livraison (${deliveryRadius}km max). Distance: ${distance.toFixed(2)}km`,
           },
         });
       }
 
-      const delivery_fee = calculateDeliveryFee(distance);
+      let delivery_fee = calculateDeliveryFee(distance);
+      let originalDeliveryFee = delivery_fee;
+      let freeDeliveryApplied = false;
+
+      // === SEUIL DE LIVRAISON GRATUITE ===
+      // Si le sous-total dépasse le seuil, la livraison est gratuite
+      const freeDeliveryThreshold = config.business.freeDeliveryThreshold || 5000;
+      const freeDeliveryEnabled = config.business.freeDeliveryEnabled !== false;
+      
+      if (freeDeliveryEnabled && subtotal >= freeDeliveryThreshold) {
+        freeDeliveryApplied = true;
+        delivery_fee = 0;
+        logger.info(`Livraison gratuite appliquée: sous-total ${subtotal} >= seuil ${freeDeliveryThreshold}`);
+      }
+
+      // === DÉTECTION ET CALCUL DE LA RÉDUCTION BUNDLE ===
+      // Si le panier contient un plat ET une boisson, appliquer une réduction
+      let bundleDiscount = 0;
+      let bundleApplied = false;
+      const bundleDiscountEnabled = config.business.bundleDiscountEnabled !== false;
+      const bundleDiscountPercent = config.business.bundleDiscountPercent || 5;
+      const bundleDrinkCategories = config.business.bundleDrinkCategories || ['boissons', 'drinks', 'beverages', 'sodas', 'jus'];
+      const bundleFoodCategories = config.business.bundleFoodCategories || ['plats', 'plat principal', 'entrées', 'grillades', 'poissons', 'viandes'];
+
+      if (bundleDiscountEnabled && orderItems.length >= 2) {
+        // Récupérer les catégories des items
+        const itemCategories = await Promise.all(orderItems.map(async (item) => {
+          const catResult = await client.query(
+            'SELECT name FROM menu_categories WHERE id = $1',
+            [item.menu_item_snapshot.category_id]
+          );
+          return catResult.rows[0]?.name?.toLowerCase() || '';
+        }));
+
+        // Vérifier si on a au moins un plat ET au moins une boisson
+        const hasFood = itemCategories.some(cat => 
+          bundleFoodCategories.some(food => cat.includes(food.toLowerCase()))
+        );
+        const hasDrink = itemCategories.some(cat => 
+          bundleDrinkCategories.some(drink => cat.includes(drink.toLowerCase()))
+        );
+
+        if (hasFood && hasDrink) {
+          bundleApplied = true;
+          bundleDiscount = Math.round(subtotal * bundleDiscountPercent / 100);
+          logger.info(`Réduction bundle appliquée: ${bundleDiscountPercent}% soit ${bundleDiscount} FCFA (plat + boisson détecté)`);
+        }
+      }
 
       // 5. Appliquer le code promo si fourni
       let discount = 0;
       let promo_code_id = null;
+      let referralDiscount = 0;
+      let isFirstOrderReferee = false;
+
+      // === VÉRIFIER SI C'EST UN FILLEUL EFFECTUANT SA PREMIÈRE COMMANDE ===
+      // Les filleuls bénéficient de 50% de réduction sur leur première commande
+      const userOrdersCount = await client.query(
+        'SELECT COUNT(*) FROM orders WHERE user_id = $1 AND status != $2',
+        [req.user.id, 'cancelled']
+      );
+      
+      const isFirstOrder = parseInt(userOrdersCount.rows[0].count) === 0;
+      
+      if (isFirstOrder) {
+        // Vérifier si l'utilisateur a été parrainé
+        const referralCheck = await client.query(
+          `SELECT r.*, u.id as referrer_id 
+           FROM referrals r
+           JOIN users u ON r.referrer_id = u.id
+           WHERE r.referee_id = $1 AND r.status = 'pending'`,
+          [req.user.id]
+        );
+        
+        if (referralCheck.rows.length > 0) {
+          isFirstOrderReferee = true;
+          // Appliquer 50% de réduction pour le filleul
+          referralDiscount = subtotal * 0.5;
+          logger.info(`Réduction filleul appliquée: 50% soit ${referralDiscount} FCFA pour utilisateur ${req.user.id}`);
+        }
+      }
 
       if (promo_code) {
         const promoResult = await client.query(
@@ -221,32 +486,66 @@ exports.createOrder = async (req, res) => {
         }
       }
 
-      // 6. Calculer la commission restaurant
-      const commission = (subtotal * restaurant.commission_rate) / 100;
+      // Prendre la réduction la plus avantageuse (code promo OU réduction filleul)
+      if (referralDiscount > discount) {
+        discount = referralDiscount;
+        promo_code_id = null; // Pas de code promo utilisé
+        logger.info(`Réduction filleul (${referralDiscount}) plus avantageuse que code promo (${discount})`);
+      }
+
+      // 6. Calculer la commission Baibebalo (taux du restaurant, défaut 15 %)
+      const commissionRate = (restaurant.commission_rate != null && restaurant.commission_rate !== '')
+        ? Number(restaurant.commission_rate)
+        : 15.0;
+      const commission = Math.round((subtotal * commissionRate) / 100 * 100) / 100;
+
+      // Ajouter la réduction bundle au discount total
+      const totalDiscount = discount + bundleDiscount;
 
       // 7. Calculer le total
-      const total = subtotal + delivery_fee - discount;
+      // Total = Sous-total + Frais de livraison - Réduction (promo + bundle)
+      const total = Math.max(0, subtotal + delivery_fee - totalDiscount);
 
       // 8. Créer la commande
       const order_number = generateOrderNumber();
 
+      // S'assurer que delivery_address a les coordonnées en nombres
+      const deliveryAddressForDB = {
+        ...resolvedDeliveryAddress,
+        latitude: lat,
+        longitude: lon,
+      };
+
+      // Métadonnées des réductions appliquées
+      const discountMetadata = {
+        promo_discount: discount - bundleDiscount - (isFirstOrderReferee ? referralDiscount : 0),
+        bundle_discount: bundleDiscount,
+        bundle_applied: bundleApplied,
+        referral_discount: isFirstOrderReferee ? referralDiscount : 0,
+        free_delivery_applied: freeDeliveryApplied,
+        original_delivery_fee: originalDeliveryFee,
+        delivery_savings: freeDeliveryApplied ? originalDeliveryFee : 0,
+      };
+
       const orderResult = await client.query(
         `INSERT INTO orders (
           order_number, user_id, restaurant_id,
-          subtotal, delivery_fee, discount, commission, total,
+          subtotal, delivery_fee, discount, commission, commission_rate, total,
           delivery_address, special_instructions,
           payment_method, payment_status, status,
-          promo_code_id, estimated_delivery_time
+          promo_code_id, estimated_delivery_time, delivery_distance
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *`,
         [
           order_number, req.user.id, restaurant_id,
-          subtotal, delivery_fee, discount, commission, total,
-          JSON.stringify(resolvedDeliveryAddress), special_instructions,
+          subtotal, delivery_fee, totalDiscount, commission, commissionRate, total,
+          JSON.stringify({ ...deliveryAddressForDB, discount_metadata: discountMetadata }), 
+          special_instructions,
           payment_method, payment_method === 'cash' ? 'pending' : 'pending',
           'new', promo_code_id,
-          30 // Estimation par défaut
+          30, // Estimation par défaut
+          distance, // Stocker la distance pour les statistiques
         ]
       );
 
@@ -290,7 +589,7 @@ exports.createOrder = async (req, res) => {
       // 10. Créer la transaction
       await client.query(
         `INSERT INTO transactions (
-          order_id, type, amount, 
+          order_id, transaction_type, amount, 
           from_user_type, from_user_id,
           to_user_type, to_user_id,
           status, payment_method
@@ -306,39 +605,66 @@ exports.createOrder = async (req, res) => {
 
       // 11. Envoyer les notifications
       const io = req.app.get('io');
+      const partnersIo = req.app.get('partnersIo');
       const smsService = require('../services/sms.service');
       const { notifyNewOrder } = require('../utils/socket');
 
-      // Notifier le restaurant
-      io.to(`restaurant_${restaurant_id}`).emit('new_order', {
-        order_id: order.id,
-        order_number: order.order_number,
-        total: order.total,
-      });
+      // Notifier le restaurant via le namespace partners
+      if (partnersIo) {
+        partnersIo.to(`restaurant_${restaurant_id}`).emit('new_order', {
+          orderId: order.id,
+          order_id: order.id,
+          order_number: order.order_number,
+          total: order.total,
+          customer_name: deliveryAddressData.full_name || user.name || 'Client',
+          items_count: items.length,
+          created_at: order.created_at,
+        });
+        logger.info('📱 Notification new_order envoyée au restaurant', { 
+          restaurantId: restaurant_id,
+          orderId: order.id 
+        });
+      }
 
       // Notifier les admins du dashboard
       notifyNewOrder(io, order);
 
-      await smsService.sendNotification(
-        restaurant.phone,
-        'new_order_restaurant',
-        {
-          orderNumber: order.order_number,
-          total: order.total,
+      // Notifier le restaurant par SMS
+      if (restaurant.phone) {
+        try {
+          await smsService.sendRestaurantNotification(
+            restaurant.phone,
+            order.order_number,
+            order.total
+          );
+        } catch (smsError) {
+          logger.warn('Échec envoi SMS restaurant (createOrder)', { 
+            error: smsError.message,
+            restaurantId: restaurant.id 
+          });
         }
-      );
+      }
 
-      // Notifier le client
+      // Notifier le client par SMS
       const userResult = await client.query(
         'SELECT phone FROM users WHERE id = $1',
         [req.user.id]
       );
 
-      await smsService.sendNotification(
-        userResult.rows[0].phone,
-        'order_confirmed',
-        { orderNumber: order.order_number }
-      );
+      if (userResult.rows[0]?.phone) {
+        try {
+          await smsService.sendOrderNotification(
+            userResult.rows[0].phone,
+            order.order_number,
+            'accepted'
+          );
+        } catch (smsError) {
+          logger.warn('Échec envoi SMS client (createOrder)', { 
+            error: smsError.message,
+            userId: req.user.id 
+          });
+        }
+      }
 
       try {
         await notificationService.sendOrderNotification(order.id, 'restaurant', 'new_order');
@@ -346,6 +672,74 @@ exports.createOrder = async (req, res) => {
       } catch (notificationError) {
         logger.warn('Notification push ignorée (createOrder)', { error: notificationError.message });
       }
+
+      // === TRAITEMENT DU PARRAINAGE ===
+      // Si c'est la première commande d'un filleul, créditer le parrain
+      if (isFirstOrderReferee) {
+        try {
+          // Récupérer le parrainage en attente
+          const referralResult = await client.query(
+            `SELECT r.*, u.first_name as referrer_name
+             FROM referrals r
+             JOIN users u ON r.referrer_id = u.id
+             WHERE r.referee_id = $1 AND r.status = 'pending'`,
+            [req.user.id]
+          );
+          
+          if (referralResult.rows.length > 0) {
+            const referral = referralResult.rows[0];
+            const referrerReward = 500; // Bonus parrain: 500 FCFA
+            
+            // Marquer le parrainage comme complété
+            await client.query(
+              `UPDATE referrals 
+               SET status = 'completed', completed_at = NOW(), first_order_id = $1
+               WHERE id = $2`,
+              [order.id, referral.id]
+            );
+            
+            // Créditer le parrain (500 FCFA en points ou solde)
+            await client.query(
+              `UPDATE users 
+               SET loyalty_points = COALESCE(loyalty_points, 0) + $1
+               WHERE id = $2`,
+              [referrerReward, referral.referrer_id]
+            );
+            
+            // Enregistrer la transaction de bonus parrain
+            await client.query(
+              `INSERT INTO loyalty_transactions (
+                user_id, points, type, description, created_at
+              ) VALUES ($1, $2, $3, $4, NOW())`,
+              [
+                referral.referrer_id,
+                referrerReward,
+                'referral_bonus',
+                `Bonus parrainage - Première commande de votre filleul`,
+              ]
+            );
+            
+            logger.info(`Parrainage complété: parrain ${referral.referrer_id} reçoit ${referrerReward} points`);
+            
+            // Notification au parrain
+            try {
+              await notificationService.sendToUser(referral.referrer_id, 'client', {
+                title: '🎉 Bonus de parrainage !',
+                body: `Votre filleul a passé sa première commande. Vous recevez ${referrerReward} points !`,
+                type: 'referral_bonus',
+                data: { points: referrerReward },
+                channel: 'rewards',
+              });
+            } catch (e) {
+              // Ignorer l'erreur de notification
+            }
+          }
+        } catch (referralError) {
+          logger.warn('Erreur traitement parrainage:', referralError.message);
+          // Ne pas bloquer la commande si le parrainage échoue
+        }
+      }
+      // === FIN TRAITEMENT PARRAINAGE ===
 
       logger.info(`Commande créée: ${order.order_number}`);
 
@@ -364,12 +758,14 @@ exports.createOrder = async (req, res) => {
       });
     });
   } catch (error) {
-    logger.error('Erreur createOrder:', error);
+    logger.error('Erreur createOrder:', { message: error.message, stack: error.stack, code: error.code, detail: error.detail });
+    const isDev = process.env.NODE_ENV !== 'production';
     res.status(500).json({
       success: false,
       error: {
         code: 'ORDER_CREATION_ERROR',
         message: 'Erreur lors de la création de la commande',
+        ...(isDev && { debug: error.message, detail: error.detail }),
       },
     });
   }
@@ -439,13 +835,45 @@ exports.getOrderById = async (req, res) => {
       });
     }
 
-    // Récupérer les items
+    // Récupérer les items avec les noms depuis le snapshot
     const itemsResult = await query(
-      'SELECT * FROM order_items WHERE order_id = $1',
+      `SELECT oi.*, 
+              COALESCE(oi.menu_item_snapshot->>'name', mi.name) as item_name,
+              COALESCE((oi.menu_item_snapshot->>'price')::numeric, mi.price, oi.unit_price) as item_price
+       FROM order_items oi
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       WHERE oi.order_id = $1`,
       [id]
     );
 
-    order.items = itemsResult.rows;
+    // Formater les items pour le frontend
+    const formattedItems = itemsResult.rows.map(item => {
+      const snapshot = typeof item.menu_item_snapshot === 'string' 
+        ? JSON.parse(item.menu_item_snapshot) 
+        : item.menu_item_snapshot;
+      
+      return {
+        ...item,
+        name: item.item_name || snapshot?.name || 'Article',
+        price: Number.parseFloat(item.unit_price || item.item_price || snapshot?.price || 0),
+        menu_item: snapshot ? {
+          name: snapshot.name,
+          price: snapshot.price,
+          image_url: snapshot.photo || snapshot.image_url,
+        } : null,
+      };
+    });
+
+    // Formater l'adresse de livraison si elle est en JSON
+    if (order.delivery_address && typeof order.delivery_address === 'string') {
+      try {
+        order.delivery_address = JSON.parse(order.delivery_address);
+      } catch (e) {
+        // Garder la valeur string si le parsing échoue
+      }
+    }
+
+    order.items = formattedItems;
 
     res.json({
       success: true,
@@ -511,7 +939,7 @@ exports.cancelOrder = async (req, res) => {
       if (order.payment_status === 'paid') {
         await client.query(
           `INSERT INTO transactions (
-            order_id, type, amount,
+            order_id, transaction_type, amount,
             from_user_type, from_user_id,
             to_user_type, to_user_id,
             status
@@ -528,10 +956,16 @@ exports.cancelOrder = async (req, res) => {
 
       // Notifier les parties
       const io = req.app.get('io');
-      io.to(`restaurant_${order.restaurant_id}`).emit('order_cancelled', {
-        order_id: order.id,
-        reason,
-      });
+      const partnersIo = req.app.get('partnersIo');
+      
+      // Notifier le restaurant via partnersIo
+      if (partnersIo) {
+        partnersIo.to(`restaurant_${order.restaurant_id}`).emit('order_cancelled', {
+          orderId: order.id,
+          order_id: order.id,
+          reason,
+        });
+      }
 
       try {
         await notificationService.sendOrderNotification(order.id, 'restaurant', 'order_cancelled');
@@ -658,6 +1092,54 @@ exports.reviewOrder = async (req, res) => {
             order.delivery_person_id
           ]
         );
+
+        // === BONUS NOTE PARFAITE (5 étoiles) ===
+        // Si le livreur reçoit 5/5, il gagne un bonus de 100 FCFA
+        if (delivery_rating === 5) {
+          const config = require('../config');
+          const perfectRatingBonus = config.business.deliveryBonusPerfectRatingAmount || 100;
+
+          await client.query(
+            `UPDATE delivery_persons 
+             SET total_earnings = total_earnings + $1,
+                 available_balance = available_balance + $1
+             WHERE id = $2`,
+            [perfectRatingBonus, order.delivery_person_id]
+          );
+
+          // Enregistrer la transaction de bonus
+          await client.query(
+            `INSERT INTO transactions (
+              order_id, transaction_type, amount,
+              from_user_type, from_user_id,
+              to_user_type, to_user_id,
+              status, payment_method, metadata
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+            [
+              order.id, 'bonus_perfect_rating', perfectRatingBonus,
+              'platform', null,
+              'delivery', order.delivery_person_id,
+              'completed', 'internal',
+              JSON.stringify({ rating: 5, order_number: order.order_number }),
+            ]
+          );
+
+          logger.info(`Bonus note parfaite attribué au livreur ${order.delivery_person_id}: +${perfectRatingBonus} FCFA`);
+
+          // Notification au livreur
+          try {
+            await notificationService.sendToUser(order.delivery_person_id, 'delivery', {
+              title: '⭐ Note parfaite !',
+              body: `Félicitations ! Vous avez reçu 5 étoiles. Bonus de ${perfectRatingBonus} FCFA crédité !`,
+              type: 'bonus_perfect_rating',
+              data: { bonus: perfectRatingBonus, rating: 5 },
+              channel: 'rewards',
+            });
+          } catch (e) {
+            // Ignorer l'erreur de notification
+          }
+        }
       }
 
       logger.info(`Avis créé pour commande: ${order.order_number}`);
@@ -724,13 +1206,24 @@ exports.acceptOrder = async (req, res) => {
         [order.user_id]
       );
 
-      const smsService = require('../services/sms.service');
-      await smsService.sendNotification(
-        userResult.rows[0].phone,
-        'order_ready',
-        { orderNumber: order.order_number }
-      );
+      // Notifier le client par SMS
+      if (userResult.rows[0]?.phone) {
+        try {
+          const smsService = require('../services/sms.service');
+          await smsService.sendOrderNotification(
+            userResult.rows[0].phone,
+            order.order_number,
+            'accepted'
+          );
+        } catch (smsError) {
+          logger.warn('Échec envoi SMS client (acceptOrder)', { 
+            error: smsError.message,
+            orderId: id 
+          });
+        }
+      }
 
+      // Push notification au client
       try {
         await notificationService.sendOrderNotification(order.id, 'client', 'order_confirmed');
       } catch (notificationError) {
@@ -817,7 +1310,7 @@ exports.markOrderReady = async (req, res) => {
 
     const result = await query(
       `UPDATE orders 
-       SET status = 'ready', prepared_at = NOW()
+       SET status = 'ready', ready_at = NOW()
        WHERE id = $1 AND restaurant_id = $2 AND status = 'preparing'
        RETURNING *`,
       [id, req.user.id]
@@ -831,18 +1324,95 @@ exports.markOrderReady = async (req, res) => {
     }
 
     const order = result.rows[0];
-
-    // Notifier le livreur si déjà assigné
     const io = req.app.get('io');
+    const partnersIo = req.app.get('partnersIo');
+
+    // Récupérer les infos du restaurant pour les livreurs
+    const restaurantResult = await query(
+      'SELECT name, address, latitude, longitude FROM restaurants WHERE id = $1',
+      [order.restaurant_id]
+    );
+    const restaurant = restaurantResult.rows[0];
+
+    // Notifier le client via WebSocket
+    io.to(`order_${id}`).emit('order_status_changed', {
+      order_id: id,
+      status: 'ready',
+      message: 'Votre commande est prête !',
+    });
+
+    // Notifier les admins
+    const { notifyOrderStatusChange } = require('../utils/socket');
+    notifyOrderStatusChange(io, id, 'ready');
+
+    // Si livreur déjà assigné, le notifier
     if (order.delivery_person_id) {
-      io.to(`delivery_${order.delivery_person_id}`).emit('order_ready', {
-        order_id: id,
-      });
+      if (partnersIo) {
+        partnersIo.to(`delivery_${order.delivery_person_id}`).emit('order_ready', {
+          order_id: id,
+          order_number: order.order_number,
+          restaurant_name: restaurant?.name,
+          restaurant_address: restaurant?.address,
+        });
+      }
+      
+      // Push notification au livreur assigné
+      try {
+        await notificationService.sendOrderNotification(order.id, 'delivery', 'order_ready_for_pickup');
+      } catch (err) {
+        logger.warn('Push livreur ignorée', { error: err.message });
+      }
+    } else {
+      // Pas de livreur assigné - Alerter les livreurs disponibles dans la zone
+      const availableDeliveryPersons = await query(
+        `SELECT id, fcm_token FROM delivery_persons 
+         WHERE status = 'active' 
+           AND delivery_status = 'available'
+           AND fcm_token IS NOT NULL
+         LIMIT 20`
+      );
+
+      if (availableDeliveryPersons.rows.length > 0) {
+        // Notifier via WebSocket tous les livreurs disponibles
+        if (partnersIo) {
+          partnersIo.emit('new_delivery_available', {
+            order_id: id,
+            order_number: order.order_number,
+            restaurant_name: restaurant?.name,
+            restaurant_address: restaurant?.address,
+            restaurant_lat: restaurant?.latitude,
+            restaurant_lng: restaurant?.longitude,
+            delivery_fee: order.delivery_fee,
+            total: order.total,
+          });
+        }
+
+        // Push notification à tous les livreurs disponibles
+        for (const dp of availableDeliveryPersons.rows) {
+          try {
+            await notificationService.sendToUser(dp.id, 'delivery', {
+              title: '🚴 Nouvelle livraison disponible',
+              body: `${restaurant?.name} - ${order.delivery_fee} FCFA`,
+              type: 'new_delivery',
+              data: {
+                order_id: id,
+                order_number: order.order_number,
+                restaurant_name: restaurant?.name,
+              },
+              channel: 'deliveries',
+            });
+          } catch (err) {
+            logger.warn(`Push livreur ${dp.id} ignorée`, { error: err.message });
+          }
+        }
+
+        logger.info(`Alerte envoyée à ${availableDeliveryPersons.rows.length} livreurs disponibles`);
+      }
     }
 
+    // Push notification au client
     try {
       await notificationService.sendOrderNotification(order.id, 'client', 'order_ready');
-      await notificationService.sendOrderNotification(order.id, 'delivery', 'order_ready_for_pickup');
     } catch (notificationError) {
       logger.warn('Notification push ignorée (markOrderReady)', { error: notificationError.message });
     }
@@ -852,6 +1422,12 @@ exports.markOrderReady = async (req, res) => {
     res.json({
       success: true,
       message: 'Commande marquée comme prête',
+      data: {
+        available_delivery_persons: order.delivery_person_id ? 0 : (await query(
+          `SELECT COUNT(*) FROM delivery_persons 
+           WHERE status = 'active' AND delivery_status = 'available'`
+        )).rows[0].count,
+      },
     });
   } catch (error) {
     logger.error('Erreur markOrderReady:', error);
@@ -869,10 +1445,12 @@ exports.trackOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await query(
-      `SELECT o.*, r.name as restaurant_name, 
+      `SELECT o.*, r.name as restaurant_name, r.address as restaurant_address,
+              r.latitude as restaurant_latitude, r.longitude as restaurant_longitude,
               d.first_name as delivery_first_name, d.last_name as delivery_last_name,
               d.phone as delivery_phone, d.current_latitude, d.current_longitude,
-              d.vehicle_type, d.vehicle_plate
+              d.vehicle_type, d.vehicle_plate, d.profile_photo as delivery_photo,
+              d.average_rating as delivery_rating
        FROM orders o
        LEFT JOIN restaurants r ON o.restaurant_id = r.id
        LEFT JOIN delivery_persons d ON o.delivery_person_id = d.id
@@ -994,12 +1572,15 @@ exports.reportIssue = async (req, res) => {
 exports.markOrderPreparing = async (req, res) => {
   try {
     const { id } = req.params;
+    const { estimated_time } = req.body;
+    
     const result = await query(
       `UPDATE orders 
-       SET status = 'preparing', preparing_at = NOW()
+       SET status = 'preparing', preparing_at = NOW(),
+           estimated_delivery_time = COALESCE($3, estimated_delivery_time)
        WHERE id = $1 AND restaurant_id = $2 AND status = 'accepted'
        RETURNING *`,
-      [id, req.user.id]
+      [id, req.user.id, estimated_time]
     );
 
     if (result.rows.length === 0) {
@@ -1009,6 +1590,21 @@ exports.markOrderPreparing = async (req, res) => {
       });
     }
 
+    const order = result.rows[0];
+
+    // WebSocket - notifier le client
+    const io = req.app.get('io');
+    io.to(`order_${id}`).emit('order_status_changed', {
+      order_id: id,
+      status: 'preparing',
+      estimated_time: order.estimated_delivery_time,
+    });
+
+    // Notifier les admins
+    const { notifyOrderStatusChange } = require('../utils/socket');
+    notifyOrderStatusChange(io, id, 'preparing');
+
+    // Push notification
     try {
       await notificationService.sendOrderNotification(id, 'client', 'order_preparing');
     } catch (notificationError) {
@@ -1147,16 +1743,102 @@ exports.confirmDelivery = async (req, res) => {
  */
 exports.initiatePayment = async (req, res) => {
   try {
-    // TODO: Implémenter l'initiation du paiement
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const { id } = req.params;
+    const { payment_method, phone_number, return_url } = req.body;
+
+    // Récupérer la commande
+    const orderResult = await query(
+      `SELECT o.*, u.phone as user_phone 
+       FROM orders o
+       JOIN users u ON o.user_id = u.id
+       WHERE o.id = $1 AND o.user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
+      });
+    }
+
+    const order = orderResult.rows[0];
+
+    // Vérifier que le paiement n'a pas déjà été effectué
+    if (order.payment_status === 'paid') {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'ALREADY_PAID', message: 'Cette commande a déjà été payée' },
+      });
+    }
+
+    const phoneToUse = phone_number || order.user_phone;
+    let paymentResult;
+
+    switch (payment_method) {
+      case 'orange_money': {
+        const orangeMoneyService = require('../services/payment/orange-money.service');
+        paymentResult = await orangeMoneyService.initiatePayment(
+          order.order_number,
+          Math.round(order.total),
+          phoneToUse,
+          return_url
+        );
+        break;
+      }
+
+      case 'mtn_money': {
+        const mtnMomoService = require('../services/payment/mtn-momo.service');
+        paymentResult = await mtnMomoService.requestPayment(
+          order.order_number,
+          Math.round(order.total),
+          phoneToUse,
+          `Paiement commande BAIBEBALO #${order.order_number}`
+        );
+        break;
+      }
+
+      case 'moov_money': {
+        // Moov Money non implémenté pour le moment
+        return res.status(501).json({
+          success: false,
+          error: { code: 'NOT_IMPLEMENTED', message: 'Moov Money sera bientôt disponible' },
+        });
+      }
+
+      default:
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_PAYMENT_METHOD', message: 'Méthode de paiement non supportée' },
+        });
+    }
+
+    // Enregistrer la référence de paiement
+    await query(
+      `UPDATE orders SET 
+        payment_reference = $1,
+        payment_status = 'pending'
+       WHERE id = $2`,
+      [paymentResult.transactionId || paymentResult.referenceId, id]
+    );
+
+    logger.info(`Paiement ${payment_method} initié pour commande ${order.order_number}`);
+
+    res.json({
+      success: true,
+      message: 'Paiement initié avec succès',
+      data: {
+        payment_url: paymentResult.paymentUrl,
+        transaction_id: paymentResult.transactionId || paymentResult.referenceId,
+        payment_method,
+        amount: order.total,
+      },
     });
   } catch (error) {
     logger.error('Erreur initiatePayment:', error);
     res.status(500).json({
       success: false,
-      error: { code: 'PAYMENT_ERROR', message: 'Erreur lors de l\'initiation du paiement' },
+      error: { code: 'PAYMENT_ERROR', message: error.message || 'Erreur lors de l\'initiation du paiement' },
     });
   }
 };
@@ -1166,10 +1848,92 @@ exports.initiatePayment = async (req, res) => {
  */
 exports.checkPaymentStatus = async (req, res) => {
   try {
-    // TODO: Implémenter la vérification
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const { id } = req.params;
+
+    // Récupérer la commande avec la référence de paiement
+    const orderResult = await query(
+      `SELECT o.*, o.payment_reference, o.payment_status, o.payment_method
+       FROM orders o
+       WHERE o.id = $1 AND o.user_id = $2`,
+      [id, req.user.id]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
+      });
+    }
+
+    const order = orderResult.rows[0];
+
+    // Si déjà payée, retourner directement
+    if (order.payment_status === 'paid') {
+      return res.json({
+        success: true,
+        data: {
+          status: 'paid',
+          order_id: id,
+          amount: order.total,
+        },
+      });
+    }
+
+    // Si pas de référence de paiement, retourner en attente
+    if (!order.payment_reference) {
+      return res.json({
+        success: true,
+        data: {
+          status: 'pending',
+          order_id: id,
+          message: 'Paiement non initié',
+        },
+      });
+    }
+
+    // Vérifier le statut auprès du provider
+    let paymentStatus;
+    const paymentMethod = order.payment_method;
+
+    try {
+      if (paymentMethod === 'orange_money') {
+        const orangeMoneyService = require('../services/payment/orange-money.service');
+        paymentStatus = await orangeMoneyService.checkPaymentStatus(order.payment_reference);
+      } else if (paymentMethod === 'mtn_money') {
+        const mtnMomoService = require('../services/payment/mtn-momo.service');
+        paymentStatus = await mtnMomoService.checkPaymentStatus(order.payment_reference);
+      }
+    } catch (providerError) {
+      logger.warn('Erreur vérification provider:', providerError.message);
+      // Retourner le statut actuel de la DB si le provider ne répond pas
+    }
+
+    // Mettre à jour si payé
+    if (paymentStatus?.status === 'SUCCESS' || paymentStatus?.status === 'SUCCESSFUL') {
+      await query(
+        `UPDATE orders SET payment_status = 'paid', paid_at = NOW() WHERE id = $1`,
+        [id]
+      );
+
+      return res.json({
+        success: true,
+        data: {
+          status: 'paid',
+          order_id: id,
+          amount: order.total,
+          paid_at: new Date(),
+        },
+      });
+    }
+
+    res.json({
+      success: true,
+      data: {
+        status: paymentStatus?.status?.toLowerCase() || order.payment_status || 'pending',
+        order_id: id,
+        amount: order.total,
+        payment_reference: order.payment_reference,
+      },
     });
   } catch (error) {
     logger.error('Erreur checkPaymentStatus:', error);
@@ -1195,6 +1959,281 @@ exports.searchOrders = async (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'FETCH_ERROR', message: 'Erreur lors de la recherche' },
+    });
+  }
+};
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * CHAT CLIENT ↔ RESTAURANT
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * Récupérer les messages d'une commande
+ */
+exports.getOrderMessages = async (req, res) => {
+  try {
+    const { id: orderId } = req.params;
+    const userId = req.user.id;
+    const userType = req.user.type;
+
+    // Vérifier l'accès à la commande
+    let orderQuery;
+    if (userType === 'restaurant') {
+      orderQuery = await query(
+        `SELECT o.id, o.user_id, o.restaurant_id, r.name as restaurant_name,
+                u.first_name as customer_first_name, u.last_name as customer_last_name
+         FROM orders o
+         JOIN restaurants r ON o.restaurant_id = r.id
+         JOIN users u ON o.user_id = u.id
+         WHERE o.id = $1 AND r.owner_id = $2`,
+        [orderId, userId]
+      );
+    } else {
+      orderQuery = await query(
+        `SELECT o.id, o.user_id, o.restaurant_id, r.name as restaurant_name,
+                u.first_name as customer_first_name, u.last_name as customer_last_name
+         FROM orders o
+         JOIN restaurants r ON o.restaurant_id = r.id
+         JOIN users u ON o.user_id = u.id
+         WHERE o.id = $1 AND o.user_id = $2`,
+        [orderId, userId]
+      );
+    }
+
+    if (orderQuery.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée ou accès refusé' },
+      });
+    }
+
+    const order = orderQuery.rows[0];
+
+    // Récupérer les messages
+    const messagesResult = await query(
+      `SELECT id, sender_type, message, created_at, read_at
+       FROM order_messages
+       WHERE order_id = $1
+       ORDER BY created_at ASC`,
+      [orderId]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        order: {
+          id: order.id,
+          restaurant_name: order.restaurant_name,
+          customer_name: `${order.customer_first_name} ${order.customer_last_name || ''}`.trim(),
+        },
+        messages: messagesResult.rows,
+        unread_count: messagesResult.rows.filter(m => 
+          !m.read_at && 
+          ((userType === 'restaurant' && m.sender_type === 'customer') ||
+           (userType !== 'restaurant' && m.sender_type === 'restaurant'))
+        ).length,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getOrderMessages:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des messages' },
+    });
+  }
+};
+
+/**
+ * Envoyer un message sur une commande
+ */
+exports.sendOrderMessage = async (req, res) => {
+  try {
+    const { id: orderId } = req.params;
+    const { message } = req.body;
+    const userId = req.user.id;
+    const userType = req.user.type;
+
+    // Vérifier l'accès à la commande
+    let orderQuery;
+    let senderType;
+    
+    if (userType === 'restaurant') {
+      orderQuery = await query(
+        `SELECT o.id, o.user_id, o.restaurant_id, o.status, r.name as restaurant_name,
+                u.fcm_token as customer_fcm_token, u.first_name as customer_first_name
+         FROM orders o
+         JOIN restaurants r ON o.restaurant_id = r.id
+         JOIN users u ON o.user_id = u.id
+         WHERE o.id = $1 AND r.owner_id = $2`,
+        [orderId, userId]
+      );
+      senderType = 'restaurant';
+    } else {
+      orderQuery = await query(
+        `SELECT o.id, o.user_id, o.restaurant_id, o.status, r.name as restaurant_name,
+                r.owner_id as restaurant_owner_id
+         FROM orders o
+         JOIN restaurants r ON o.restaurant_id = r.id
+         WHERE o.id = $1 AND o.user_id = $2`,
+        [orderId, userId]
+      );
+      senderType = 'customer';
+    }
+
+    if (orderQuery.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée ou accès refusé' },
+      });
+    }
+
+    const order = orderQuery.rows[0];
+
+    // Vérifier que la commande est en cours (pas livrée/annulée depuis trop longtemps)
+    const inactiveStatuses = ['delivered', 'cancelled'];
+    if (inactiveStatuses.includes(order.status)) {
+      // Permettre les messages jusqu'à 24h après la livraison/annulation
+      const orderResult = await query(
+        'SELECT updated_at FROM orders WHERE id = $1',
+        [orderId]
+      );
+      const updatedAt = new Date(orderResult.rows[0]?.updated_at);
+      const hoursSince = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60);
+      
+      if (hoursSince > 24) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'ORDER_CLOSED', message: 'La discussion est fermée pour cette commande' },
+        });
+      }
+    }
+
+    // Insérer le message
+    const insertResult = await query(
+      `INSERT INTO order_messages (order_id, sender_type, sender_id, message)
+       VALUES ($1, $2, $3, $4)
+       RETURNING id, sender_type, message, created_at`,
+      [orderId, senderType, userId, message]
+    );
+
+    const newMessage = insertResult.rows[0];
+
+    // Émettre via WebSocket
+    const io = req.app.get('io');
+    if (io) {
+      // Notifier la room de la commande
+      io.to(`order_${orderId}`).emit('new_order_message', {
+        order_id: orderId,
+        message: newMessage,
+      });
+
+      // Notifier le restaurant si c'est un message client
+      if (senderType === 'customer') {
+        io.of('/partners').to(`restaurant_${order.restaurant_id}`).emit('new_customer_message', {
+          order_id: orderId,
+          message: newMessage,
+        });
+      }
+    }
+
+    // Envoyer notification push
+    try {
+      if (senderType === 'customer' && order.restaurant_owner_id) {
+        // Notification au restaurant
+        const ownerResult = await query(
+          'SELECT fcm_token FROM users WHERE id = $1',
+          [order.restaurant_owner_id]
+        );
+        if (ownerResult.rows[0]?.fcm_token) {
+          await notificationService.sendPushNotification(
+            ownerResult.rows[0].fcm_token,
+            'Nouveau message client',
+            message.substring(0, 100),
+            { type: 'order_message', order_id: orderId }
+          );
+        }
+      } else if (senderType === 'restaurant' && order.customer_fcm_token) {
+        // Notification au client
+        await notificationService.sendPushNotification(
+          order.customer_fcm_token,
+          `Message de ${order.restaurant_name}`,
+          message.substring(0, 100),
+          { type: 'order_message', order_id: orderId }
+        );
+      }
+    } catch (notifError) {
+      logger.warn('Erreur notification message:', notifError.message);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: { message: newMessage },
+    });
+  } catch (error) {
+    logger.error('Erreur sendOrderMessage:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'SEND_ERROR', message: 'Erreur lors de l\'envoi du message' },
+    });
+  }
+};
+
+/**
+ * Marquer les messages comme lus
+ */
+exports.markMessagesRead = async (req, res) => {
+  try {
+    const { id: orderId } = req.params;
+    const userId = req.user.id;
+    const userType = req.user.type;
+
+    // Vérifier l'accès à la commande
+    let orderQuery;
+    let targetSenderType;
+    
+    if (userType === 'restaurant') {
+      orderQuery = await query(
+        `SELECT o.id FROM orders o
+         JOIN restaurants r ON o.restaurant_id = r.id
+         WHERE o.id = $1 AND r.owner_id = $2`,
+        [orderId, userId]
+      );
+      targetSenderType = 'customer'; // Marquer les messages du client comme lus
+    } else {
+      orderQuery = await query(
+        'SELECT id FROM orders WHERE id = $1 AND user_id = $2',
+        [orderId, userId]
+      );
+      targetSenderType = 'restaurant'; // Marquer les messages du restaurant comme lus
+    }
+
+    if (orderQuery.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée ou accès refusé' },
+      });
+    }
+
+    // Marquer les messages comme lus
+    const updateResult = await query(
+      `UPDATE order_messages
+       SET read_at = NOW()
+       WHERE order_id = $1 AND sender_type = $2 AND read_at IS NULL
+       RETURNING id`,
+      [orderId, targetSenderType]
+    );
+
+    res.json({
+      success: true,
+      data: { marked_read: updateResult.rowCount },
+    });
+  } catch (error) {
+    logger.error('Erreur markMessagesRead:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' },
     });
   }
 };

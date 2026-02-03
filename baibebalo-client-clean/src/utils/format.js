@@ -61,3 +61,36 @@ export const truncate = (text, maxLength = 50) => {
   if (text.length <= maxLength) return text;
   return `${text.slice(0, maxLength)}...`;
 };
+
+/**
+ * Calculer le sous-total d'une commande à partir des items
+ */
+export const calculateOrderSubtotal = (order) => {
+  if (!order) return 0;
+  // Si subtotal existe, l'utiliser
+  if (order.subtotal) return Number.parseFloat(order.subtotal);
+  // Sinon, calculer à partir des items
+  if (!order.items) return 0;
+  return order.items.reduce((sum, item) => {
+    // Le backend retourne unit_price dans order_items
+    const itemPrice = item.unit_price || item.price || item.menu_item?.price || item.menu_item_snapshot?.price || 0;
+    const itemQuantity = item.quantity || 1;
+    return sum + Number.parseFloat(itemPrice) * itemQuantity;
+  }, 0);
+};
+
+/**
+ * Calculer le total d'une commande (sous-total + frais de livraison + taxes)
+ */
+export const calculateOrderTotal = (order) => {
+  if (!order) return 0;
+  // Si total existe, l'utiliser (priorité)
+  if (order.total) return Number.parseFloat(order.total);
+  // Sinon, si total_amount existe, l'utiliser
+  if (order.total_amount) return Number.parseFloat(order.total_amount);
+  // Sinon, calculer
+  const subtotal = calculateOrderSubtotal(order);
+  const deliveryFee = Number.parseFloat(order.delivery_fee || 0);
+  const taxes = Number.parseFloat(order.taxes || 0);
+  return subtotal + deliveryFee + taxes;
+};

@@ -5,12 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import driversAPI from '../api/drivers';
 import TableSkeleton from '../components/common/TableSkeleton';
+import { getImageUrl } from '../utils/url';
 
 const Drivers = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -42,9 +45,15 @@ const Drivers = () => {
 
   // Charger les livreurs
   const { data, isLoading, error } = useQuery({
-    queryKey: ['drivers', { status: statusFilter, search: searchQuery, page: 1, limit: 100 }],
-    queryFn: () => driversAPI.getDrivers({ status: statusFilter, search: searchQuery, page: 1, limit: 100 }),
+    queryKey: ['drivers', { status: statusFilter, search: searchQuery, page, limit }],
+    queryFn: () => driversAPI.getDrivers({ status: statusFilter, search: searchQuery, page, limit }),
   });
+
+  // Reset page quand on change de filtre
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    setPage(1);
+  };
 
   // Mutation pour créer un livreur
   const createMutation = useMutation({
@@ -88,7 +97,9 @@ const Drivers = () => {
   });
 
   const drivers = data?.data?.delivery_persons || [];
-  const totalDrivers = data?.data?.pagination?.total || 0;
+  const pagination = data?.data?.pagination || {};
+  const totalDrivers = pagination.total || 0;
+  const totalPages = pagination.pages || 1;
   const activeDrivers = drivers.filter((d) => d.status === 'active').length;
 
   // Les données sont déjà filtrées par l'API
@@ -253,7 +264,7 @@ const Drivers = () => {
         <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
           <div className="flex border-b border-slate-200 dark:border-slate-700 px-4 overflow-x-auto">
             <button
-              onClick={() => setActiveTab('all')}
+              onClick={() => handleTabChange('all')}
               className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
                 activeTab === 'all'
                   ? 'border-primary text-primary'
@@ -267,7 +278,7 @@ const Drivers = () => {
               </span>
             </button>
             <button
-              onClick={() => setActiveTab('active')}
+              onClick={() => handleTabChange('active')}
               className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
                 activeTab === 'active'
                   ? 'border-primary text-primary'
@@ -278,7 +289,7 @@ const Drivers = () => {
               Actifs
             </button>
             <button
-              onClick={() => setActiveTab('offline')}
+              onClick={() => handleTabChange('offline')}
               className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
                 activeTab === 'offline'
                   ? 'border-primary text-primary'
@@ -289,7 +300,7 @@ const Drivers = () => {
               Hors ligne
             </button>
             <button
-              onClick={() => setActiveTab('suspended')}
+              onClick={() => handleTabChange('suspended')}
               className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
                 activeTab === 'suspended'
                   ? 'border-primary text-primary'
@@ -377,18 +388,48 @@ const Drivers = () => {
                           }}
                         >
                           <div className="flex items-center gap-3">
-                            {driver.photo ? (
-                              <div
-                                className="size-10 rounded-full bg-cover bg-center"
-                                style={{ backgroundImage: `url(${driver.photo})` }}
+                            {(driver.profile_picture || driver.photo) ? (
+                              <img
+                                src={getImageUrl(driver.profile_picture || driver.photo)}
+                                alt={fullName}
+                                className="size-10 rounded-full object-cover"
+                                onError={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextSibling.style.display = 'flex';
+                                }}
                               />
-                            ) : (
-                              <div className="size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 font-black text-xs">
-                                {initials || '?'}
-                              </div>
-                            )}
+                            ) : null}
+                            <div 
+                              className="size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 font-black text-xs"
+                              style={{ display: (driver.profile_picture || driver.photo) ? 'none' : 'flex' }}
+                            >
+                              {initials || '?'}
+                            </div>
                             <div>
-                              <div className="text-sm font-bold text-slate-900 dark:text-white">{fullName}</div>
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-bold text-slate-900 dark:text-white">{fullName}</span>
+                                {/* Indicateur de disponibilité */}
+                                <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                  driver.delivery_status === 'available' 
+                                    ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400'
+                                    : driver.delivery_status === 'busy'
+                                    ? 'bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400'
+                                    : driver.delivery_status === 'on_break'
+                                    ? 'bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400'
+                                    : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'
+                                }`}>
+                                  <span className={`w-1.5 h-1.5 rounded-full ${
+                                    driver.delivery_status === 'available' ? 'bg-emerald-500 animate-pulse' 
+                                    : driver.delivery_status === 'busy' ? 'bg-amber-500'
+                                    : driver.delivery_status === 'on_break' ? 'bg-blue-500'
+                                    : 'bg-slate-400'
+                                  }`}></span>
+                                  {driver.delivery_status === 'available' ? 'Disponible' 
+                                    : driver.delivery_status === 'busy' ? 'Occupé'
+                                    : driver.delivery_status === 'on_break' ? 'Pause'
+                                    : 'Hors ligne'}
+                                </span>
+                              </div>
                               <div className="text-xs text-slate-500 dark:text-slate-400">{driver.id?.substring(0, 8)}...</div>
                             </div>
                           </div>
@@ -588,6 +629,88 @@ const Drivers = () => {
               </tbody>
             </table>
           </div>
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="px-6 py-4 bg-slate-50 dark:bg-slate-800/50 border-t border-slate-200 dark:border-slate-700 flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <span className="text-sm text-slate-600 dark:text-slate-400">
+                  Page {page} sur {totalPages}
+                </span>
+                <select
+                  value={limit}
+                  onChange={(e) => {
+                    setLimit(parseInt(e.target.value));
+                    setPage(1);
+                  }}
+                  className="px-3 py-1.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm"
+                >
+                  <option value={10}>10 par page</option>
+                  <option value={20}>20 par page</option>
+                  <option value={50}>50 par page</option>
+                  <option value={100}>100 par page</option>
+                </select>
+              </div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setPage(1)}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">first_page</span>
+                </button>
+                <button
+                  onClick={() => setPage(Math.max(1, page - 1))}
+                  disabled={page === 1}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">chevron_left</span>
+                </button>
+                
+                {/* Numéros de pages */}
+                {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                  let pageNum;
+                  if (totalPages <= 5) {
+                    pageNum = i + 1;
+                  } else if (page <= 3) {
+                    pageNum = i + 1;
+                  } else if (page >= totalPages - 2) {
+                    pageNum = totalPages - 4 + i;
+                  } else {
+                    pageNum = page - 2 + i;
+                  }
+                  return (
+                    <button
+                      key={pageNum}
+                      onClick={() => setPage(pageNum)}
+                      className={`px-3 py-1.5 text-sm font-medium rounded-lg transition-colors ${
+                        page === pageNum
+                          ? 'bg-primary text-white'
+                          : 'border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700'
+                      }`}
+                    >
+                      {pageNum}
+                    </button>
+                  );
+                })}
+                
+                <button
+                  onClick={() => setPage(Math.min(totalPages, page + 1))}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">chevron_right</span>
+                </button>
+                <button
+                  onClick={() => setPage(totalPages)}
+                  disabled={page === totalPages}
+                  className="px-3 py-1.5 text-sm font-medium rounded-lg border border-slate-200 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <span className="material-symbols-outlined text-base">last_page</span>
+                </button>
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Modal Créer Livreur */}

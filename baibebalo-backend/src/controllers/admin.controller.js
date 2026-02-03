@@ -141,24 +141,24 @@ exports.getDashboard = async (req, res) => {
     `);
 
     // Calculer les pourcentages de changement
-    const todayRevenue = parseFloat(todayStats.rows[0].today_revenue || 0);
-    const yesterdayRevenue = parseFloat(yesterdayStats.rows[0].yesterday_revenue || 0);
+    const todayRevenue = Number.parseFloat(todayStats.rows[0].today_revenue || 0);
+    const yesterdayRevenue = Number.parseFloat(yesterdayStats.rows[0].yesterday_revenue || 0);
     const revenueChange = yesterdayRevenue > 0 
       ? ((todayRevenue - yesterdayRevenue) / yesterdayRevenue * 100).toFixed(1)
       : 0;
 
-    const todayOrders = parseInt(todayStats.rows[0].completed_orders || 0);
-    const yesterdayOrders = parseInt(yesterdayStats.rows[0].completed_orders || 0);
+    const todayOrders = Number.parseInt(todayStats.rows[0].completed_orders || 0);
+    const yesterdayOrders = Number.parseInt(yesterdayStats.rows[0].completed_orders || 0);
     const ordersChange = yesterdayOrders > 0
       ? ((todayOrders - yesterdayOrders) / yesterdayOrders * 100).toFixed(1)
       : 0;
 
-    const newUsersTodayCount = parseInt(newUsersToday.rows[0].count || 0);
-    const newUsersYesterdayCount = parseInt(newUsersYesterday.rows[0].count || 0);
+    const newUsersTodayCount = Number.parseInt(newUsersToday.rows[0].count || 0);
+    const newUsersYesterdayCount = Number.parseInt(newUsersYesterday.rows[0].count || 0);
 
     const satisfactionData = avgSatisfaction.rows[0];
-    const currentSatisfaction = parseFloat(satisfactionData.avg_rating || 0);
-    const previousSatisfaction = parseFloat(satisfactionData.previous_avg || currentSatisfaction);
+    const currentSatisfaction = Number.parseFloat(satisfactionData.avg_rating || 0);
+    const previousSatisfaction = Number.parseFloat(satisfactionData.previous_avg || currentSatisfaction);
     const satisfactionChange = previousSatisfaction > 0
       ? ((currentSatisfaction - previousSatisfaction) / previousSatisfaction * 100).toFixed(1)
       : 0;
@@ -170,31 +170,31 @@ exports.getDashboard = async (req, res) => {
         yesterday: yesterdayStats.rows[0],
         global: globalStats.rows[0],
         comparisons: {
-          revenue_change: parseFloat(revenueChange),
-          orders_change: parseFloat(ordersChange),
+          revenue_change: Number.parseFloat(revenueChange),
+          orders_change: Number.parseFloat(ordersChange),
           new_users_today: newUsersTodayCount,
           new_users_yesterday: newUsersYesterdayCount,
           satisfaction: {
             current: currentSatisfaction,
             previous: previousSatisfaction,
-            change: parseFloat(satisfactionChange),
-            total_reviews: parseInt(satisfactionData.total_reviews || 0),
+            change: Number.parseFloat(satisfactionChange),
+            total_reviews: Number.parseInt(satisfactionData.total_reviews || 0),
           },
         },
         pending: {
-          restaurants: parseInt(pendingRestaurants.rows[0].count),
-          delivery_persons: parseInt(pendingDelivery.rows[0].count),
-          tickets: parseInt(openTickets.rows[0].count),
+          restaurants: Number.parseInt(pendingRestaurants.rows[0].count),
+          delivery_persons: Number.parseInt(pendingDelivery.rows[0].count),
+          tickets: Number.parseInt(openTickets.rows[0].count),
         },
         history: ordersHistory.rows,
         category_distribution: categoryDistribution.rows.map(row => ({
           category: row.category,
-          orders_count: parseInt(row.orders_count),
-          revenue: parseFloat(row.revenue || 0),
+          orders_count: Number.parseInt(row.orders_count),
+          revenue: Number.parseFloat(row.revenue || 0),
         })),
         hourly_activity: hourlyActivity.rows.map(row => ({
-          hour: parseInt(row.hour),
-          orders_count: parseInt(row.orders_count),
+          hour: Number.parseInt(row.hour),
+          orders_count: Number.parseInt(row.orders_count),
         })),
       },
     });
@@ -240,33 +240,47 @@ exports.getUsers = async (req, res) => {
       queryText += ` AND status = $${paramIndex}`;
       values.push(status);
       paramIndex++;
+    } else {
+      queryText += ` AND status != 'deleted'`;
     }
 
     if (search) {
-      queryText += ` AND (first_name ILIKE $${paramIndex} OR last_name ILIKE $${paramIndex} OR phone ILIKE $${paramIndex})`;
+      queryText += ` AND (first_name ILIKE $${paramIndex} OR last_name ILIKE $${paramIndex} OR phone ILIKE $${paramIndex} OR email ILIKE $${paramIndex})`;
       values.push(`%${search}%`);
       paramIndex++;
     }
 
     queryText += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
-    values.push(limit, offset);
+    values.push(Number.parseInt(limit, 10), offset);
 
     const result = await query(queryText, values);
 
-    const countQuery = status 
-      ? 'SELECT COUNT(*) FROM users WHERE status = $1'
-      : 'SELECT COUNT(*) FROM users';
-    const countResult = await query(countQuery, status ? [status] : []);
+    let countText = 'SELECT COUNT(*) FROM users WHERE 1=1';
+    const countValues = [];
+    let countIndex = 1;
+    if (status) {
+      countText += ` AND status = $${countIndex}`;
+      countValues.push(status);
+      countIndex++;
+    } else {
+      countText += ` AND status != 'deleted'`;
+    }
+    if (search) {
+      countText += ` AND (first_name ILIKE $${countIndex} OR last_name ILIKE $${countIndex} OR phone ILIKE $${countIndex} OR email ILIKE $${countIndex})`;
+      countValues.push(`%${search}%`);
+    }
+    const countResult = await query(countText, countValues);
+    const total = Number.parseInt(countResult.rows[0].count, 10);
 
     res.json({
       success: true,
       data: {
         users: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
-          pages: Math.ceil(countResult.rows[0].count / limit),
+          page: Number.parseInt(page, 10),
+          limit: Number.parseInt(limit, 10),
+          total,
+          pages: Math.ceil(total / limit) || 1,
         },
       },
     });
@@ -398,9 +412,9 @@ exports.getRestaurants = async (req, res) => {
           return r;
         }),
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
+          total: Number.parseInt(countResult.rows[0].count),
           pages: Math.ceil(countResult.rows[0].count / limit),
         },
       },
@@ -457,7 +471,7 @@ exports.approveRestaurant = async (req, res) => {
       // Envoyer email de confirmation (si le service existe)
       try {
         const emailService = require('../services/email.service');
-        if (emailService && emailService.sendRestaurantApproval) {
+        if (emailService?.sendRestaurantApproval) {
           await emailService.sendRestaurantApproval(restaurant);
         }
       } catch (emailError) {
@@ -615,7 +629,7 @@ exports.getDeliveryPersons = async (req, res) => {
     }
 
     const countResult = await query(countQuery, countValues);
-    const total = parseInt(countResult.rows[0].count);
+    const total = Number.parseInt(countResult.rows[0].count);
 
     res.json({
       success: true,
@@ -626,8 +640,8 @@ exports.getDeliveryPersons = async (req, res) => {
           return rest;
         }),
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total: total,
           pages: Math.ceil(total / limit),
         },
@@ -738,13 +752,13 @@ exports.getOrders = async (req, res) => {
 
     if (amount_min) {
       queryText += ` AND o.total >= $${paramIndex}`;
-      values.push(parseFloat(amount_min));
+      values.push(Number.parseFloat(amount_min));
       paramIndex++;
     }
 
     if (amount_max) {
       queryText += ` AND o.total <= $${paramIndex}`;
-      values.push(parseFloat(amount_max));
+      values.push(Number.parseFloat(amount_max));
       paramIndex++;
     }
 
@@ -787,9 +801,9 @@ exports.getOrders = async (req, res) => {
       data: {
         orders: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
+          total: Number.parseInt(countResult.rows[0].count),
           pages: Math.ceil(countResult.rows[0].count / limit),
         },
       },
@@ -809,7 +823,7 @@ exports.getOrders = async (req, res) => {
 exports.getRealTimeOrders = async (req, res) => {
   try {
     const { status, amount_min, amount_max, zone } = req.query;
-    const limit = parseInt(req.query.limit || 20);
+    const limit = Number.parseInt(req.query.limit || 20);
 
     let queryText = `
       SELECT 
@@ -873,12 +887,12 @@ exports.getRealTimeOrders = async (req, res) => {
             id: order.id,
             order_number: order.order_number,
             status: order.status,
-            total: parseFloat(order.total || 0),
+            total: Number.parseFloat(order.total || 0),
             placed_at: order.placed_at,
             restaurant: {
               name: order.restaurant_name,
               location: order.restaurant_lat && order.restaurant_lng 
-                ? { lat: parseFloat(order.restaurant_lat), lng: parseFloat(order.restaurant_lng) }
+                ? { lat: Number.parseFloat(order.restaurant_lat), lng: Number.parseFloat(order.restaurant_lng) }
                 : null,
             },
             client: {
@@ -889,7 +903,7 @@ exports.getRealTimeOrders = async (req, res) => {
               name: order.delivery_name,
             } : null,
             delivery_location: deliveryAddr.latitude && deliveryAddr.longitude
-              ? { lat: parseFloat(deliveryAddr.latitude), lng: parseFloat(deliveryAddr.longitude) }
+              ? { lat: Number.parseFloat(deliveryAddr.latitude), lng: Number.parseFloat(deliveryAddr.longitude) }
               : null,
             zone: deliveryAddr.district || deliveryAddr.address_line || null,
           };
@@ -974,33 +988,33 @@ exports.getGeographicData = async (req, res) => {
             id: order.id,
             order_number: order.order_number,
             status: order.status,
-            total: parseFloat(order.total || 0),
+            total: Number.parseFloat(order.total || 0),
             restaurant: {
               name: order.restaurant_name,
               location: order.restaurant_lat && order.restaurant_lng
-                ? { lat: parseFloat(order.restaurant_lat), lng: parseFloat(order.restaurant_lng) }
+                ? { lat: Number.parseFloat(order.restaurant_lat), lng: Number.parseFloat(order.restaurant_lng) }
                 : null,
             },
             delivery_location: deliveryAddr.latitude && deliveryAddr.longitude
-              ? { lat: parseFloat(deliveryAddr.latitude), lng: parseFloat(deliveryAddr.longitude) }
+              ? { lat: Number.parseFloat(deliveryAddr.latitude), lng: Number.parseFloat(deliveryAddr.longitude) }
               : null,
             zone: deliveryAddr.district || deliveryAddr.address_line || null,
           };
         }),
         hot_zones: hotZones.rows.map(zone => ({
           zone: zone.zone,
-          orders_count: parseInt(zone.orders_count),
+          orders_count: Number.parseInt(zone.orders_count),
           center: {
-            lat: parseFloat(zone.center_lat || 0),
-            lng: parseFloat(zone.center_lng || 0),
+            lat: Number.parseFloat(zone.center_lat || 0),
+            lng: Number.parseFloat(zone.center_lng || 0),
           },
         })),
         restaurants: restaurants.rows.map(restaurant => ({
           id: restaurant.id,
           name: restaurant.name,
           location: {
-            lat: parseFloat(restaurant.latitude),
-            lng: parseFloat(restaurant.longitude),
+            lat: Number.parseFloat(restaurant.latitude),
+            lng: Number.parseFloat(restaurant.longitude),
           },
           status: restaurant.status,
         })),
@@ -1047,7 +1061,7 @@ exports.getSystemAlerts = async (req, res) => {
           AND updated_at < NOW() - INTERVAL '2 hours'
       `);
       
-      if (offlineDrivers.rows[0] && parseInt(offlineDrivers.rows[0].count) > 0) {
+      if (offlineDrivers.rows[0] && Number.parseInt(offlineDrivers.rows[0].count) > 0) {
         alerts.push({
           id: 'offline_drivers',
           type: 'warning',
@@ -1081,7 +1095,7 @@ exports.getSystemAlerts = async (req, res) => {
       `);
 
       rejectedOrders.rows.forEach((row) => {
-        const rejectionRate = (parseInt(row.rejected_today) / parseInt(row.total_today) * 100).toFixed(1);
+        const rejectionRate = (Number.parseInt(row.rejected_today) / Number.parseInt(row.total_today) * 100).toFixed(1);
         alerts.push({
           id: `rejected_orders_${row.restaurant_id}`,
           type: 'warning',
@@ -1104,7 +1118,7 @@ exports.getSystemAlerts = async (req, res) => {
         WHERE status = 'pending'
       `);
 
-      if (pendingRestaurants.rows[0] && parseInt(pendingRestaurants.rows[0].count) > 0) {
+      if (pendingRestaurants.rows[0] && Number.parseInt(pendingRestaurants.rows[0].count) > 0) {
         alerts.push({
           id: 'pending_restaurants',
           type: 'info',
@@ -1127,7 +1141,7 @@ exports.getSystemAlerts = async (req, res) => {
         WHERE status = 'pending'
       `);
 
-      if (pendingDrivers.rows[0] && parseInt(pendingDrivers.rows[0].count) > 0) {
+      if (pendingDrivers.rows[0] && Number.parseInt(pendingDrivers.rows[0].count) > 0) {
         alerts.push({
           id: 'pending_drivers',
           type: 'info',
@@ -1151,7 +1165,7 @@ exports.getSystemAlerts = async (req, res) => {
           AND placed_at < NOW() - INTERVAL '5 minutes'
       `);
 
-      if (pendingOrders.rows[0] && parseInt(pendingOrders.rows[0].count) > 0) {
+      if (pendingOrders.rows[0] && Number.parseInt(pendingOrders.rows[0].count) > 0) {
         alerts.push({
           id: 'pending_orders',
           type: 'warning',
@@ -1176,7 +1190,7 @@ exports.getSystemAlerts = async (req, res) => {
                OR preparing_at IS NULL AND placed_at < NOW() - INTERVAL '45 minutes')
       `);
 
-      if (longPreparingOrders.rows[0] && parseInt(longPreparingOrders.rows[0].count) > 0) {
+      if (longPreparingOrders.rows[0] && Number.parseInt(longPreparingOrders.rows[0].count) > 0) {
         alerts.push({
           id: 'long_preparing_orders',
           type: 'warning',
@@ -1201,7 +1215,7 @@ exports.getSystemAlerts = async (req, res) => {
                OR ready_at IS NULL AND placed_at < NOW() - INTERVAL '15 minutes')
       `);
 
-      if (readyOrders.rows[0] && parseInt(readyOrders.rows[0].count) > 0) {
+      if (readyOrders.rows[0] && Number.parseInt(readyOrders.rows[0].count) > 0) {
         alerts.push({
           id: 'ready_orders_waiting',
           type: 'warning',
@@ -1226,7 +1240,7 @@ exports.getSystemAlerts = async (req, res) => {
                OR delivering_at IS NULL AND placed_at < NOW() - INTERVAL '60 minutes')
       `);
 
-      if (longDeliveringOrders.rows[0] && parseInt(longDeliveringOrders.rows[0].count) > 0) {
+      if (longDeliveringOrders.rows[0] && Number.parseInt(longDeliveringOrders.rows[0].count) > 0) {
         alerts.push({
           id: 'long_delivering_orders',
           type: 'error',
@@ -1251,7 +1265,7 @@ exports.getSystemAlerts = async (req, res) => {
           AND placed_at < NOW() - INTERVAL '30 minutes'
       `);
 
-      if (pendingPayments.rows[0] && parseInt(pendingPayments.rows[0].count) > 0) {
+      if (pendingPayments.rows[0] && Number.parseInt(pendingPayments.rows[0].count) > 0) {
         alerts.push({
           id: 'pending_payments',
           type: 'warning',
@@ -1280,19 +1294,19 @@ exports.getSystemAlerts = async (req, res) => {
       `);
 
       const active = activeOrders.rows[0];
-      const totalActive = parseInt(active.new_count || 0) + 
-                         parseInt(active.accepted_count || 0) + 
-                         parseInt(active.preparing_count || 0) + 
-                         parseInt(active.ready_count || 0) + 
-                         parseInt(active.delivering_count || 0);
+      const totalActive = Number.parseInt(active.new_count || 0) + 
+                         Number.parseInt(active.accepted_count || 0) + 
+                         Number.parseInt(active.preparing_count || 0) + 
+                         Number.parseInt(active.ready_count || 0) + 
+                         Number.parseInt(active.delivering_count || 0);
 
       if (totalActive > 0) {
         const statusBreakdown = [];
-        if (parseInt(active.new_count || 0) > 0) statusBreakdown.push(`${active.new_count} nouvelle(s)`);
-        if (parseInt(active.accepted_count || 0) > 0) statusBreakdown.push(`${active.accepted_count} acceptée(s)`);
-        if (parseInt(active.preparing_count || 0) > 0) statusBreakdown.push(`${active.preparing_count} en préparation`);
-        if (parseInt(active.ready_count || 0) > 0) statusBreakdown.push(`${active.ready_count} prête(s)`);
-        if (parseInt(active.delivering_count || 0) > 0) statusBreakdown.push(`${active.delivering_count} en livraison`);
+        if (Number.parseInt(active.new_count || 0) > 0) statusBreakdown.push(`${active.new_count} nouvelle(s)`);
+        if (Number.parseInt(active.accepted_count || 0) > 0) statusBreakdown.push(`${active.accepted_count} acceptée(s)`);
+        if (Number.parseInt(active.preparing_count || 0) > 0) statusBreakdown.push(`${active.preparing_count} en préparation`);
+        if (Number.parseInt(active.ready_count || 0) > 0) statusBreakdown.push(`${active.ready_count} prête(s)`);
+        if (Number.parseInt(active.delivering_count || 0) > 0) statusBreakdown.push(`${active.delivering_count} en livraison`);
 
         alerts.push({
           id: 'active_orders_summary',
@@ -1317,7 +1331,7 @@ exports.getSystemAlerts = async (req, res) => {
           AND priority = 'urgent'
       `);
 
-      if (openTickets.rows[0] && parseInt(openTickets.rows[0].count) > 0) {
+      if (openTickets.rows[0] && Number.parseInt(openTickets.rows[0].count) > 0) {
         alerts.push({
           id: 'urgent_tickets',
           type: 'error',
@@ -1709,16 +1723,24 @@ exports.getAnalytics = async (req, res) => {
     `);
 
     // Calculer les pourcentages pour les méthodes de paiement
-    const totalOrders = parseInt(stats.total_orders) || 1;
+    const totalOrders = Number.parseInt(stats.total_orders) || 1;
     const paymentMethodsFormatted = paymentMethods.rows.map((row, index) => {
       const colors = ['#0ca3e9', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6'];
+      let paymentName = row.name;
+      if (row.name === 'cash') {
+        paymentName = 'Espèces';
+      } else if (row.name === 'orange_money') {
+        paymentName = 'Orange Money';
+      } else if (row.name === 'mtn_money') {
+        paymentName = 'MTN Money';
+      } else if (row.name === 'moov_money') {
+        paymentName = 'Moov Money';
+      } else if (row.name === 'waves') {
+        paymentName = 'Waves';
+      }
       return {
-        name: row.name === 'cash' ? 'Espèces' : 
-              row.name === 'orange_money' ? 'Orange Money' :
-              row.name === 'mtn_money' ? 'MTN Money' :
-              row.name === 'moov_money' ? 'Moov Money' :
-              row.name === 'waves' ? 'Waves' : row.name,
-        value: Math.round((parseInt(row.count) / totalOrders) * 100),
+        name: paymentName,
+        value: Math.round((Number.parseInt(row.count) / totalOrders) * 100),
         color: colors[index % colors.length],
       };
     });
@@ -1748,29 +1770,92 @@ exports.getAnalytics = async (req, res) => {
 
     const prevStats = previousPeriod.rows[0] || { total_orders: 0, active_users: 0 };
     const ordersChange = prevStats.total_orders > 0
-      ? ((parseInt(stats.total_orders) - parseInt(prevStats.total_orders)) / parseInt(prevStats.total_orders)) * 100
+      ? ((Number.parseInt(stats.total_orders) - Number.parseInt(prevStats.total_orders)) / Number.parseInt(prevStats.total_orders)) * 100
       : 0;
     const usersChange = prevStats.active_users > 0
-      ? ((parseInt(stats.active_users) - parseInt(prevStats.active_users)) / parseInt(prevStats.active_users)) * 100
+      ? ((Number.parseInt(stats.active_users) - Number.parseInt(prevStats.active_users)) / Number.parseInt(prevStats.active_users)) * 100
       : 0;
+
+    // === TAUX DE RÉTENTION ===
+    // Clients qui ont commandé 2+ fois / Total clients actifs × 100
+    const retentionData = await query(`
+      SELECT 
+        COUNT(DISTINCT user_id) as total_active_clients,
+        COUNT(DISTINCT user_id) FILTER (WHERE order_count >= 2) as returning_clients
+      FROM (
+        SELECT user_id, COUNT(*) as order_count
+        FROM orders
+        WHERE placed_at >= NOW() - INTERVAL '${interval}'
+        AND status = 'delivered'
+        GROUP BY user_id
+      ) user_orders
+    `);
+    const retentionStats = retentionData.rows[0] || { total_active_clients: 0, returning_clients: 0 };
+    const totalActiveClients = Number.parseInt(retentionStats.total_active_clients) || 0;
+    const returningClients = Number.parseInt(retentionStats.returning_clients) || 0;
+    const retentionRate = totalActiveClients > 0 
+      ? ((returningClients / totalActiveClients) * 100).toFixed(1)
+      : 0;
+
+    // === VALEUR VIE CLIENT (LTV) ===
+    // LTV = Panier moyen × Fréquence de commande × Durée de vie estimée
+    const ltvData = await query(`
+      SELECT 
+        AVG(total_spent) as avg_total_spent,
+        AVG(order_count) as avg_order_count,
+        AVG(EXTRACT(EPOCH FROM (NOW() - first_order)) / 86400 / 30) as avg_months_active
+      FROM (
+        SELECT 
+          user_id,
+          SUM(total) as total_spent,
+          COUNT(*) as order_count,
+          MIN(placed_at) as first_order
+        FROM orders
+        WHERE status = 'delivered'
+        GROUP BY user_id
+        HAVING COUNT(*) >= 1
+      ) user_stats
+    `);
+    const ltvStats = ltvData.rows[0] || {};
+    const avgOrderValue = Number.parseFloat(stats.avg_order_value) || 0;
+    const avgOrdersPerMonth = Number.parseFloat(ltvStats.avg_order_count) / Math.max(1, Number.parseFloat(ltvStats.avg_months_active) || 1);
+    const estimatedLifetimeMonths = 12; // Durée de vie estimée: 12 mois
+    const ltv = avgOrderValue * avgOrdersPerMonth * estimatedLifetimeMonths;
+
+    // === PANIER MOYEN ===
+    const averageOrderValue = Number.parseFloat(stats.avg_order_value) || 0;
 
     res.json({
       success: true,
       data: {
-        total_gmv: parseFloat(stats.revenue) || 0,
-        total_orders: parseInt(stats.total_orders) || 0,
-        active_users: parseInt(stats.active_users) || 0,
-        conversion_rate: parseFloat(conversionRate.toFixed(1)) || 0,
-        orders_change: parseFloat(ordersChange.toFixed(1)) || 0,
-        users_change: parseFloat(usersChange.toFixed(1)) || 0,
+        total_gmv: Number.parseFloat(stats.revenue) || 0,
+        total_orders: Number.parseInt(stats.total_orders) || 0,
+        active_users: Number.parseInt(stats.active_users) || 0,
+        conversion_rate: Number.parseFloat(conversionRate.toFixed(1)) || 0,
+        orders_change: Number.parseFloat(ordersChange.toFixed(1)) || 0,
+        users_change: Number.parseFloat(usersChange.toFixed(1)) || 0,
         conversion_change: 0, // À calculer si nécessaire
+        // Nouvelles métriques
+        average_order_value: Math.round(averageOrderValue),
+        retention: {
+          rate: Number.parseFloat(retentionRate),
+          total_clients: totalActiveClients,
+          returning_clients: returningClients,
+          new_clients: totalActiveClients - returningClients,
+        },
+        ltv: {
+          value: Math.round(ltv),
+          avg_orders_per_month: Number.parseFloat(avgOrdersPerMonth.toFixed(2)),
+          estimated_lifetime_months: estimatedLifetimeMonths,
+          avg_order_value: Math.round(avgOrderValue),
+        },
         revenue_data: revenueByMonth.rows.map(row => ({
           month: row.month,
-          revenue: parseFloat(row.revenue) || 0,
+          revenue: Number.parseFloat(row.revenue) || 0,
         })),
         order_data: ordersByDay.rows.map(row => ({
           name: row.day,
-          value: parseInt(row.value) || 0,
+          value: Number.parseInt(row.value) || 0,
         })),
         payment_methods: paymentMethodsFormatted,
       },
@@ -1781,6 +1866,112 @@ exports.getAnalytics = async (req, res) => {
       stack: error.stack,
       period: req.query.period,
     });
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
+ * Obtenir les statistiques globales de notes (restaurants et livreurs)
+ * Inclut la note moyenne et la répartition par niveau (1-5 étoiles)
+ */
+exports.getGlobalRatings = async (req, res) => {
+  try {
+    const { period = 'month' } = req.query;
+    
+    let dateFilter = '';
+    switch (period) {
+      case 'week':
+        dateFilter = "AND o.placed_at >= NOW() - INTERVAL '7 days'";
+        break;
+      case 'month':
+        dateFilter = "AND o.placed_at >= NOW() - INTERVAL '30 days'";
+        break;
+      case 'year':
+        dateFilter = "AND o.placed_at >= NOW() - INTERVAL '1 year'";
+        break;
+      default:
+        dateFilter = '';
+    }
+
+    // Statistiques de notes des restaurants
+    const restaurantRatings = await query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE restaurant_rating IS NOT NULL) as total_reviews,
+        COALESCE(AVG(restaurant_rating), 0) as avg_rating,
+        COUNT(*) FILTER (WHERE restaurant_rating = 5) as five_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 4) as four_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 3) as three_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 2) as two_star,
+        COUNT(*) FILTER (WHERE restaurant_rating = 1) as one_star
+      FROM orders o
+      WHERE restaurant_rating IS NOT NULL ${dateFilter}
+    `);
+
+    // Statistiques de notes des livreurs
+    const deliveryRatings = await query(`
+      SELECT 
+        COUNT(*) FILTER (WHERE delivery_rating IS NOT NULL) as total_reviews,
+        COALESCE(AVG(delivery_rating), 0) as avg_rating,
+        COUNT(*) FILTER (WHERE delivery_rating = 5) as five_star,
+        COUNT(*) FILTER (WHERE delivery_rating = 4) as four_star,
+        COUNT(*) FILTER (WHERE delivery_rating = 3) as three_star,
+        COUNT(*) FILTER (WHERE delivery_rating = 2) as two_star,
+        COUNT(*) FILTER (WHERE delivery_rating = 1) as one_star
+      FROM orders o
+      WHERE delivery_rating IS NOT NULL ${dateFilter}
+    `);
+
+    // Fonction pour calculer la distribution avec pourcentages
+    const calculateDistribution = (data) => {
+      const total = parseInt(data.total_reviews) || 0;
+      const stars = {
+        5: parseInt(data.five_star) || 0,
+        4: parseInt(data.four_star) || 0,
+        3: parseInt(data.three_star) || 0,
+        2: parseInt(data.two_star) || 0,
+        1: parseInt(data.one_star) || 0,
+      };
+      
+      return {
+        total_reviews: total,
+        avg_rating: parseFloat(parseFloat(data.avg_rating).toFixed(2)) || 0,
+        distribution: Object.keys(stars).reduce((acc, key) => {
+          acc[key] = {
+            count: stars[key],
+            percent: total > 0 ? Math.round((stars[key] / total) * 100) : 0,
+          };
+          return acc;
+        }, {}),
+      };
+    };
+
+    const restaurantStats = calculateDistribution(restaurantRatings.rows[0]);
+    const deliveryStats = calculateDistribution(deliveryRatings.rows[0]);
+
+    // Statistiques globales combinées
+    const totalReviews = restaurantStats.total_reviews + deliveryStats.total_reviews;
+    const combinedAvg = totalReviews > 0
+      ? ((restaurantStats.avg_rating * restaurantStats.total_reviews) + 
+         (deliveryStats.avg_rating * deliveryStats.total_reviews)) / totalReviews
+      : 0;
+
+    res.json({
+      success: true,
+      data: {
+        period,
+        global: {
+          total_reviews: totalReviews,
+          avg_rating: parseFloat(combinedAvg.toFixed(2)),
+        },
+        restaurants: restaurantStats,
+        delivery: deliveryStats,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getGlobalRatings:', error);
     res.status(500).json({
       success: false,
       error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
@@ -1873,6 +2064,263 @@ exports.getRestaurantById = async (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
+ * Mettre à jour la commission d'un restaurant (admin uniquement)
+ */
+exports.updateRestaurantCommission = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { commission_rate } = req.body;
+
+    if (commission_rate === undefined || commission_rate === null) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MISSING_FIELD', message: 'commission_rate requis' },
+      });
+    }
+
+    const rate = parseFloat(commission_rate);
+    if (Number.isNaN(rate) || rate < 0 || rate > 100) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_RATE', message: 'La commission doit être entre 0 et 100' },
+      });
+    }
+
+    const result = await query(
+      'UPDATE restaurants SET commission_rate = $1, updated_at = NOW() WHERE id = $2 RETURNING id, commission_rate',
+      [rate, id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+      });
+    }
+
+    logger.info(`Commission restaurant ${id} mise à jour à ${rate}% par admin ${req.user?.id}`);
+    res.json({
+      success: true,
+      message: 'Commission appliquée',
+      data: { restaurant: { id, commission_rate: result.rows[0].commission_rate } },
+    });
+  } catch (error) {
+    logger.error('Erreur updateRestaurantCommission:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' },
+    });
+  }
+};
+
+/**
+ * Obtenir les statistiques détaillées d'un restaurant spécifique
+ */
+exports.getRestaurantStatistics = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { period = '30d' } = req.query;
+
+    // Vérifier que le restaurant existe
+    const restaurantResult = await query('SELECT * FROM restaurants WHERE id = $1', [id]);
+    if (restaurantResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+      });
+    }
+
+    const restaurant = restaurantResult.rows[0];
+
+    // Définir l'intervalle
+    let interval;
+    switch (period) {
+      case '7d': interval = '7 days'; break;
+      case '30d': interval = '30 days'; break;
+      case '90d': interval = '90 days'; break;
+      case '1y': interval = '365 days'; break;
+      default: interval = '30 days';
+    }
+
+    // KPIs principaux
+    const kpisResult = await query(`
+      SELECT 
+        COUNT(o.id) as total_orders,
+        COUNT(o.id) FILTER (WHERE o.status = 'delivered') as delivered_orders,
+        COUNT(o.id) FILTER (WHERE o.status = 'cancelled') as cancelled_orders,
+        COUNT(o.id) FILTER (WHERE o.status IN ('new', 'accepted', 'preparing', 'ready', 'delivering')) as pending_orders,
+        COALESCE(SUM(o.subtotal) FILTER (WHERE o.status = 'delivered'), 0) as total_revenue,
+        COALESCE(AVG(o.subtotal) FILTER (WHERE o.status = 'delivered'), 0) as avg_order_value,
+        COALESCE(AVG(EXTRACT(EPOCH FROM (o.ready_at - o.accepted_at))/60) FILTER (WHERE o.status = 'delivered'), 0) as avg_prep_time_minutes
+      FROM orders o
+      WHERE o.restaurant_id = $1 AND o.placed_at >= NOW() - INTERVAL '${interval}'
+    `, [id]);
+
+    // Revenus par jour (30 derniers jours)
+    const dailyRevenueResult = await query(`
+      SELECT 
+        DATE(o.placed_at) as day,
+        COALESCE(SUM(o.subtotal) FILTER (WHERE o.status = 'delivered'), 0) as revenue,
+        COUNT(o.id) FILTER (WHERE o.status = 'delivered') as orders_count
+      FROM orders o
+      WHERE o.restaurant_id = $1 AND o.placed_at >= NOW() - INTERVAL '30 days'
+      GROUP BY DATE(o.placed_at)
+      ORDER BY day DESC
+    `, [id]);
+
+    // Top plats
+    const topDishesResult = await query(`
+      SELECT 
+        oi.menu_item_name as name,
+        COUNT(oi.id) as orders_count,
+        COALESCE(SUM(oi.quantity * oi.unit_price), 0) as total_revenue
+      FROM order_items oi
+      JOIN orders o ON oi.order_id = o.id
+      WHERE o.restaurant_id = $1 
+        AND o.status = 'delivered' 
+        AND o.placed_at >= NOW() - INTERVAL '${interval}'
+      GROUP BY oi.menu_item_name
+      ORDER BY orders_count DESC
+      LIMIT 5
+    `, [id]);
+
+    // Commandes par heure et jour de la semaine (heatmap)
+    const heatmapResult = await query(`
+      SELECT 
+        EXTRACT(DOW FROM o.placed_at) as day_of_week,
+        EXTRACT(HOUR FROM o.placed_at) as hour,
+        COUNT(o.id) as orders_count
+      FROM orders o
+      WHERE o.restaurant_id = $1 
+        AND o.status = 'delivered' 
+        AND o.placed_at >= NOW() - INTERVAL '${interval}'
+      GROUP BY EXTRACT(DOW FROM o.placed_at), EXTRACT(HOUR FROM o.placed_at)
+      ORDER BY day_of_week, hour
+    `, [id]);
+
+    // Avis récents
+    const reviewsResult = await query(`
+      SELECT 
+        COUNT(o.id) as total_reviews,
+        COALESCE(AVG(o.restaurant_rating), 0) as avg_rating,
+        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 5) as five_star,
+        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 4) as four_star,
+        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 3) as three_star,
+        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 2) as two_star,
+        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 1) as one_star
+      FROM orders o
+      WHERE o.restaurant_id = $1 
+        AND o.restaurant_rating IS NOT NULL
+        AND o.placed_at >= NOW() - INTERVAL '${interval}'
+    `, [id]);
+
+    // Comparaison avec le mois précédent
+    const previousPeriodResult = await query(`
+      SELECT 
+        COALESCE(SUM(o.subtotal) FILTER (WHERE o.status = 'delivered'), 0) as prev_revenue,
+        COUNT(o.id) FILTER (WHERE o.status = 'delivered') as prev_orders
+      FROM orders o
+      WHERE o.restaurant_id = $1 
+        AND o.placed_at >= NOW() - INTERVAL '60 days'
+        AND o.placed_at < NOW() - INTERVAL '30 days'
+    `, [id]);
+
+    const kpis = kpisResult.rows[0];
+    const prevPeriod = previousPeriodResult.rows[0];
+
+    // Calculer les tendances
+    const currentRevenue = parseFloat(kpis.total_revenue) || 0;
+    const prevRevenue = parseFloat(prevPeriod.prev_revenue) || 0;
+    const revenueTrend = prevRevenue > 0 ? ((currentRevenue - prevRevenue) / prevRevenue * 100).toFixed(1) : 0;
+
+    const currentOrders = parseInt(kpis.delivered_orders) || 0;
+    const prevOrders = parseInt(prevPeriod.prev_orders) || 0;
+    const ordersTrend = prevOrders > 0 ? ((currentOrders - prevOrders) / prevOrders * 100).toFixed(1) : 0;
+
+    // Formater le heatmap pour le frontend
+    const days = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
+    const heatmap = days.map((dayName, dayIndex) => {
+      const dayData = { day: dayName };
+      for (let hour = 10; hour <= 22; hour++) {
+        const entry = heatmapResult.rows.find(
+          r => parseInt(r.day_of_week) === dayIndex && parseInt(r.hour) === hour
+        );
+        dayData[hour] = entry ? parseInt(entry.orders_count) : 0;
+      }
+      return dayData;
+    });
+
+    // Calculer les pourcentages pour les top plats
+    const maxOrders = topDishesResult.rows.length > 0 
+      ? Math.max(...topDishesResult.rows.map(d => parseInt(d.orders_count))) 
+      : 1;
+    const topDishes = topDishesResult.rows.map(dish => ({
+      name: dish.name,
+      orders: parseInt(dish.orders_count),
+      revenue: parseFloat(dish.total_revenue),
+      percentage: Math.round((parseInt(dish.orders_count) / maxOrders) * 100),
+    }));
+
+    res.json({
+      success: true,
+      data: {
+        restaurant: {
+          id: restaurant.id,
+          name: restaurant.name,
+          status: restaurant.status,
+          average_rating: restaurant.average_rating,
+        },
+        period,
+        kpis: {
+          total_orders: parseInt(kpis.total_orders) || 0,
+          delivered_orders: parseInt(kpis.delivered_orders) || 0,
+          cancelled_orders: parseInt(kpis.cancelled_orders) || 0,
+          pending_orders: parseInt(kpis.pending_orders) || 0,
+          total_revenue: currentRevenue,
+          avg_order_value: parseFloat(kpis.avg_order_value) || 0,
+          avg_prep_time_minutes: parseFloat(kpis.avg_prep_time_minutes) || 0,
+          revenue_trend: parseFloat(revenueTrend),
+          orders_trend: parseFloat(ordersTrend),
+        },
+        daily_revenue: dailyRevenueResult.rows.map(r => ({
+          day: r.day,
+          revenue: parseFloat(r.revenue) || 0,
+          orders: parseInt(r.orders_count) || 0,
+        })),
+        top_dishes: topDishes,
+        heatmap,
+        reviews: {
+          total: parseInt(reviewsResult.rows[0].total_reviews) || 0,
+          avg_rating: parseFloat(reviewsResult.rows[0].avg_rating) || 0,
+          distribution: (() => {
+            const total = parseInt(reviewsResult.rows[0].total_reviews) || 0;
+            const fiveStar = parseInt(reviewsResult.rows[0].five_star) || 0;
+            const fourStar = parseInt(reviewsResult.rows[0].four_star) || 0;
+            const threeStar = parseInt(reviewsResult.rows[0].three_star) || 0;
+            const twoStar = parseInt(reviewsResult.rows[0].two_star) || 0;
+            const oneStar = parseInt(reviewsResult.rows[0].one_star) || 0;
+            
+            return {
+              5: { count: fiveStar, percent: total > 0 ? Math.round((fiveStar / total) * 100) : 0 },
+              4: { count: fourStar, percent: total > 0 ? Math.round((fourStar / total) * 100) : 0 },
+              3: { count: threeStar, percent: total > 0 ? Math.round((threeStar / total) * 100) : 0 },
+              2: { count: twoStar, percent: total > 0 ? Math.round((twoStar / total) * 100) : 0 },
+              1: { count: oneStar, percent: total > 0 ? Math.round((oneStar / total) * 100) : 0 },
+            };
+          })(),
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getRestaurantStatistics:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des statistiques' },
     });
   }
 };
@@ -2016,7 +2464,7 @@ exports.getSuspendedRestaurants = async (req, res) => {
       ['suspended']
     );
 
-    const total = parseInt(countResult.rows[0].count);
+    const total = Number.parseInt(countResult.rows[0].count);
 
     res.json({
       success: true,
@@ -2027,8 +2475,8 @@ exports.getSuspendedRestaurants = async (req, res) => {
           return rest;
         }),
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total: total,
           pages: Math.ceil(total / limit),
         },
@@ -2104,6 +2552,214 @@ exports.reactivateRestaurant = async (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la réactivation' },
+    });
+  }
+};
+
+/**
+ * Supprimer un restaurant
+ */
+exports.deleteRestaurant = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    return await transaction(async (client) => {
+      // Vérifier que le restaurant existe
+      const restaurantResult = await client.query(
+        'SELECT * FROM restaurants WHERE id = $1',
+        [id]
+      );
+
+      if (restaurantResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+        });
+      }
+
+      const restaurant = restaurantResult.rows[0];
+
+      // Vérifier qu'il n'y a pas de commandes en cours
+      const activeOrdersResult = await client.query(
+        `SELECT COUNT(*) FROM orders WHERE restaurant_id = $1 AND status IN ('new', 'accepted', 'preparing', 'ready', 'delivering')`,
+        [id]
+      );
+
+      if (parseInt(activeOrdersResult.rows[0].count) > 0) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'ACTIVE_ORDERS', message: 'Le restaurant a des commandes en cours. Impossible de supprimer.' },
+        });
+      }
+
+      // Supprimer le restaurant (les cascades s'occupent du reste)
+      await client.query('DELETE FROM restaurants WHERE id = $1', [id]);
+
+      // Log de l'action
+      await client.query(`
+        INSERT INTO audit_logs (user_type, user_id, action, resource_type, resource_id, old_values)
+        VALUES ($1, $2, $3, $4, $5, $6)
+      `, [
+        'admin',
+        req.user.id,
+        'delete_restaurant',
+        'restaurant',
+        id,
+        JSON.stringify({ name: restaurant.name, owner_id: restaurant.owner_id }),
+      ]);
+
+      logger.info('Restaurant supprimé', { restaurantId: id, adminId: req.user.id });
+
+      res.json({
+        success: true,
+        message: 'Restaurant supprimé avec succès',
+      });
+    });
+  } catch (error) {
+    logger.error('Erreur deleteRestaurant:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'DELETE_ERROR', message: 'Erreur lors de la suppression' },
+    });
+  }
+};
+
+/**
+ * Demander des corrections à un restaurant
+ */
+exports.requestRestaurantCorrections = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MESSAGE_REQUIRED', message: 'Message requis' },
+      });
+    }
+
+    const restaurantResult = await query(
+      'SELECT * FROM restaurants WHERE id = $1',
+      [id]
+    );
+
+    if (restaurantResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'RESTAURANT_NOT_FOUND', message: 'Restaurant non trouvé' },
+      });
+    }
+
+    const restaurant = restaurantResult.rows[0];
+
+    // Créer une notification pour le propriétaire du restaurant
+    await query(`
+      INSERT INTO notifications (user_id, user_type, type, title, message, data)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [
+      restaurant.owner_id,
+      'restaurant',
+      'correction_request',
+      'Corrections demandées pour votre restaurant',
+      message,
+      JSON.stringify({ restaurant_id: id, admin_id: req.user.id }),
+    ]);
+
+    // Log de l'action
+    await query(`
+      INSERT INTO audit_logs (user_type, user_id, action, resource_type, resource_id, new_values)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [
+      'admin',
+      req.user.id,
+      'request_corrections',
+      'restaurant',
+      id,
+      JSON.stringify({ message }),
+    ]);
+
+    logger.info('Demande de corrections envoyée', { restaurantId: id, adminId: req.user.id });
+
+    res.json({
+      success: true,
+      message: 'Demande de corrections envoyée au restaurant',
+    });
+  } catch (error) {
+    logger.error('Erreur requestRestaurantCorrections:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'REQUEST_ERROR', message: 'Erreur lors de l\'envoi de la demande' },
+    });
+  }
+};
+
+/**
+ * Demander des informations complémentaires à un livreur
+ */
+exports.requestDeliveryPersonInfo = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { message } = req.body;
+
+    if (!message || !message.trim()) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'MESSAGE_REQUIRED', message: 'Message requis' },
+      });
+    }
+
+    const driverResult = await query(
+      'SELECT * FROM delivery_persons WHERE id = $1',
+      [id]
+    );
+
+    if (driverResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'DRIVER_NOT_FOUND', message: 'Livreur non trouvé' },
+      });
+    }
+
+    const driver = driverResult.rows[0];
+
+    // Créer une notification pour le livreur
+    await query(`
+      INSERT INTO notifications (user_id, user_type, type, title, message, data)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [
+      id,
+      'delivery',
+      'info_request',
+      'Informations complémentaires demandées',
+      message,
+      JSON.stringify({ admin_id: req.user.id }),
+    ]);
+
+    // Log de l'action
+    await query(`
+      INSERT INTO audit_logs (user_type, user_id, action, resource_type, resource_id, new_values)
+      VALUES ($1, $2, $3, $4, $5, $6)
+    `, [
+      'admin',
+      req.user.id,
+      'request_info',
+      'delivery_person',
+      id,
+      JSON.stringify({ message }),
+    ]);
+
+    logger.info('Demande d\'informations envoyée', { driverId: id, adminId: req.user.id });
+
+    res.json({
+      success: true,
+      message: 'Demande d\'informations envoyée au livreur',
+    });
+  } catch (error) {
+    logger.error('Erreur requestDeliveryPersonInfo:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'REQUEST_ERROR', message: 'Erreur lors de l\'envoi de la demande' },
     });
   }
 };
@@ -2198,15 +2854,15 @@ exports.getProblematicOrders = async (req, res) => {
     }
 
     const countResult = await query(countQuery, countValues);
-    const total = parseInt(countResult.rows[0].count);
+    const total = Number.parseInt(countResult.rows[0].count);
 
     res.json({
       success: true,
       data: {
         orders: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total: total,
           pages: Math.ceil(total / limit),
         },
@@ -2311,7 +2967,7 @@ exports.getRefunds = async (req, res) => {
     }
 
     const countResult = await query(countQuery, countValues);
-    const total = parseInt(countResult.rows[0].count);
+    const total = Number.parseInt(countResult.rows[0].count);
 
     // Statistiques
     const statsResult = await query(`
@@ -2331,8 +2987,8 @@ exports.getRefunds = async (req, res) => {
       data: {
         refunds: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total: total,
           pages: Math.ceil(total / limit),
         },
@@ -2486,7 +3142,23 @@ exports.rejectRefund = async (req, res) => {
 };
 
 /**
- * Obtenir un livreur par ID
+ * Construire une URL absolue pour un document (photo, CNI, etc.) stocké en BDD.
+ * Accepte un chemin relatif (uploads/... ou /uploads/...) ou une URL complète.
+ */
+function buildDocumentUrl(value, req) {
+  if (value == null || typeof value !== 'string' || !value.trim()) return null;
+  const host = req.get('x-forwarded-host') || req.get('host') || 'localhost:' + (process.env.PORT || 5000);
+  const protocol = req.get('x-forwarded-proto') || req.protocol || 'http';
+  const base = (protocol === 'https' ? 'https' : 'http') + '://' + host;
+  const baseClean = base.replace(/\/api\/v\d+\/?$/i, '').replace(/\/$/, '');
+  if (value.startsWith('http://') || value.startsWith('https://')) return value;
+  const path = value.startsWith('/') ? value : '/' + value;
+  return baseClean + path;
+}
+
+/**
+ * Obtenir un livreur par ID (profil complet : infos, documents, stats, livraisons récentes)
+ * Les champs photo et documents sont renvoyés avec des URLs absolues pour que l'admin puisse les afficher.
  */
 exports.getDeliveryPersonById = async (req, res) => {
   try {
@@ -2498,7 +3170,76 @@ exports.getDeliveryPersonById = async (req, res) => {
         error: { code: 'DELIVERY_NOT_FOUND', message: 'Livreur non trouvé' },
       });
     }
-    res.json({ success: true, data: { delivery_person: result.rows[0] } });
+    const row = result.rows[0];
+    const r = row;
+    const doc = (v) => buildDocumentUrl(v, req);
+    const deliveryPerson = {
+      id: r.id,
+      phone: r.phone,
+      first_name: r.first_name,
+      last_name: r.last_name,
+      email: r.email,
+      address: r.address,
+      vehicle_type: r.vehicle_type,
+      vehicle_plate: r.vehicle_plate,
+      vehicle_color: r.vehicle_color,
+      vehicle_brand: r.vehicle_brand,
+      mobile_money_number: r.mobile_money_number,
+      mobile_money_provider: r.mobile_money_provider,
+      status: r.status,
+      delivery_status: r.delivery_status,
+      suspension_reason: r.suspension_reason,
+      rejection_reason: r.rejection_reason,
+      created_at: r.created_at,
+      updated_at: r.updated_at,
+      last_location_update: r.last_location_update,
+      average_rating: r.average_rating != null ? parseFloat(r.average_rating) : null,
+      total_deliveries: r.total_deliveries != null ? parseInt(r.total_deliveries, 10) : null,
+      total_earnings: r.total_earnings != null ? parseFloat(r.total_earnings) : null,
+      profile_picture: doc(r.photo || r.profile_picture || r.profile_photo) || (r.photo || r.profile_picture || r.profile_photo),
+      photo: doc(r.photo) || r.photo,
+      id_card: doc(r.id_card) || r.id_card,
+      id_card_front: doc(r.id_card_recto || r.id_card_front || r.id_card) || (r.id_card_recto || r.id_card_front || r.id_card),
+      id_card_back: doc(r.id_card_verso || r.id_card_back) || (r.id_card_verso || r.id_card_back),
+      driver_license: doc(r.driver_license) || r.driver_license,
+      driver_license_front: doc(r.driver_license_recto || r.driver_license_front || r.driver_license) || (r.driver_license_recto || r.driver_license_front || r.driver_license),
+      driver_license_back: doc(r.driver_license_verso || r.driver_license_back) || (r.driver_license_verso || r.driver_license_back),
+      vehicle_registration: doc(r.vehicle_registration) || r.vehicle_registration,
+      vehicle_registration_front: doc(r.vehicle_registration_recto || r.vehicle_registration_front || r.vehicle_registration) || (r.vehicle_registration_recto || r.vehicle_registration_front || r.vehicle_registration),
+      vehicle_registration_back: doc(r.vehicle_registration_verso || r.vehicle_registration_back) || (r.vehicle_registration_verso || r.vehicle_registration_back),
+      insurance_document: doc(r.insurance_document) || r.insurance_document,
+      vehicle_photo: doc(r.vehicle_photo) || r.vehicle_photo,
+      current_latitude: r.current_latitude != null ? parseFloat(r.current_latitude) : null,
+      current_longitude: r.current_longitude != null ? parseFloat(r.current_longitude) : null,
+    };
+
+    const [recentResult] = await Promise.all([
+      query(
+        `SELECT o.id, o.order_number, o.status, o.delivery_fee, o.delivered_at, o.created_at,
+                r.name AS restaurant_name
+         FROM orders o
+         LEFT JOIN restaurants r ON r.id = o.restaurant_id
+         WHERE o.delivery_person_id = $1
+         ORDER BY COALESCE(o.delivered_at, o.created_at) DESC
+         LIMIT 20`,
+        [id]
+      ),
+    ]);
+
+    const stats = {
+      total_earnings: parseFloat(row.total_earnings) || 0,
+      total_deliveries: parseInt(row.total_deliveries, 10) || 0,
+      average_rating: parseFloat(row.average_rating) || 0,
+    };
+
+    res.json({
+      success: true,
+      data: {
+        delivery_person: deliveryPerson,
+        stats,
+        recent_deliveries: recentResult.rows,
+      },
+    });
   } catch (error) {
     logger.error('Erreur getDeliveryPersonById:', error);
     res.status(500).json({
@@ -2711,7 +3452,7 @@ exports.createDeliveryPerson = async (req, res) => {
       }
 
       // Hasher le mot de passe
-      const passwordHash = await bcrypt.hash(password, parseInt(process.env.BCRYPT_ROUNDS || 10));
+      const passwordHash = await bcrypt.hash(password, Number.parseInt(process.env.BCRYPT_ROUNDS || 10));
 
       // Créer le livreur
       // Note: La table delivery_persons n'a pas de colonne email dans le schéma actuel
@@ -2888,10 +3629,10 @@ exports.updateDeliveryPerson = async (req, res) => {
           status: oldDelivery.status,
         }),
         JSON.stringify({
-          first_name: first_name !== undefined ? first_name : oldDelivery.first_name,
-          last_name: last_name !== undefined ? last_name : oldDelivery.last_name,
-          vehicle_type: vehicle_type !== undefined ? vehicle_type : oldDelivery.vehicle_type,
-          status: status !== undefined ? status : oldDelivery.status,
+          first_name: first_name ?? oldDelivery.first_name,
+          last_name: last_name ?? oldDelivery.last_name,
+          vehicle_type: vehicle_type ?? oldDelivery.vehicle_type,
+          status: status ?? oldDelivery.status,
         })
       ]);
 
@@ -2947,7 +3688,7 @@ exports.deleteDeliveryPerson = async (req, res) => {
         [id, 'delivering', 'ready']
       );
 
-      const activeOrdersCount = parseInt(activeOrdersResult.rows[0].count);
+      const activeOrdersCount = Number.parseInt(activeOrdersResult.rows[0].count);
 
       if (activeOrdersCount > 0) {
         return res.status(400).json({
@@ -3373,7 +4114,7 @@ exports.getDeliveryPayments = async (req, res) => {
     }
 
     const countResult = await query(countQuery, countValues);
-    const total = parseInt(countResult.rows[0].count);
+    const total = Number.parseInt(countResult.rows[0].count);
 
     // Statistiques globales
     let statsQuery = `
@@ -3422,15 +4163,15 @@ exports.getDeliveryPayments = async (req, res) => {
     `);
 
     const statistics = statsResult.rows[0] || {};
-    statistics.total_paid_24h = parseFloat(last24hResult.rows[0]?.total_paid_24h || 0);
+    statistics.total_paid_24h = Number.parseFloat(last24hResult.rows[0]?.total_paid_24h || 0);
 
     res.json({
       success: true,
       data: {
         payments: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total: total,
           pages: Math.ceil(total / limit),
         },
@@ -3499,7 +4240,7 @@ exports.getRestaurantPayments = async (req, res) => {
 
     if (min_amount) {
       queryText += ` AND t.amount >= $${paramIndex}`;
-      values.push(parseFloat(min_amount));
+      values.push(Number.parseFloat(min_amount));
       paramIndex++;
     }
 
@@ -3551,7 +4292,7 @@ exports.getRestaurantPayments = async (req, res) => {
 
     if (min_amount) {
       countQuery += ` AND t.amount >= $${countParamIndex}`;
-      countValues.push(parseFloat(min_amount));
+      countValues.push(Number.parseFloat(min_amount));
       countParamIndex++;
     }
 
@@ -3568,15 +4309,15 @@ exports.getRestaurantPayments = async (req, res) => {
     }
 
     const countResult = await query(countQuery, countValues);
-    const total = parseInt(countResult.rows[0].count);
+    const total = Number.parseInt(countResult.rows[0].count);
 
     res.json({
       success: true,
       data: {
         payments: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
           total: total,
           pages: Math.ceil(total / limit),
         },
@@ -3680,9 +4421,9 @@ exports.getTransactions = async (req, res) => {
       data: {
         transactions: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
+          total: Number.parseInt(countResult.rows[0].count),
           pages: Math.ceil(countResult.rows[0].count / limit),
         },
       },
@@ -3783,9 +4524,9 @@ exports.getPayoutRequests = async (req, res) => {
       data: {
         payouts: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
+          total: Number.parseInt(countResult.rows[0].count),
           pages: Math.ceil(countResult.rows[0].count / limit),
         },
       },
@@ -3811,6 +4552,138 @@ exports.rejectPayout = async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur rejectPayout:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors du rejet' },
+    });
+  }
+};
+
+/**
+ * Liste des remises espèces (livreurs remettent l'argent à l'agence ou dépôt sur compte)
+ */
+exports.getCashRemittances = async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status, delivery_person_id } = req.query;
+    const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
+    let q = `
+      SELECT r.*, dp.first_name || ' ' || dp.last_name as delivery_name, dp.phone as delivery_phone,
+             (SELECT COUNT(*) FROM cash_remittance_orders WHERE remittance_id = r.id) as orders_count,
+             (SELECT COALESCE(json_agg(json_build_object('order_id', o.id, 'order_number', o.order_number, 'order_total', cro.order_total)), '[]')
+              FROM cash_remittance_orders cro JOIN orders o ON o.id = cro.order_id WHERE cro.remittance_id = r.id) as orders
+      FROM cash_remittances r
+      JOIN delivery_persons dp ON r.delivery_person_id = dp.id
+      WHERE 1=1
+    `;
+    const params = [];
+    let idx = 1;
+    if (status) {
+      params.push(status);
+      q += ` AND r.status = $${idx++}`;
+    }
+    if (delivery_person_id) {
+      params.push(delivery_person_id);
+      q += ` AND r.delivery_person_id = $${idx++}`;
+    }
+    q += ` ORDER BY r.created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
+    params.push(parseInt(limit, 10), offset);
+    const result = await query(q, params);
+    let countQ = 'SELECT COUNT(*) FROM cash_remittances r WHERE 1=1';
+    const countParams = [];
+    let cidx = 1;
+    if (status) {
+      countParams.push(status);
+      countQ += ` AND r.status = $${cidx++}`;
+    }
+    if (delivery_person_id) {
+      countParams.push(delivery_person_id);
+      countQ += ` AND r.delivery_person_id = $${cidx++}`;
+    }
+    const countResult = await query(countQ, countParams);
+    res.json({
+      success: true,
+      data: {
+        remittances: result.rows,
+        pagination: {
+          page: parseInt(page, 10),
+          limit: parseInt(limit, 10),
+          total: parseInt(countResult.rows[0].count, 10),
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getCashRemittances:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
+ * Confirmer une remise espèces (argent reçu à l'agence ou vérification du dépôt)
+ */
+exports.confirmCashRemittance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { notes } = req.body;
+    const rem = await query('SELECT * FROM cash_remittances WHERE id = $1 AND status = $2', [id, 'pending']);
+    if (rem.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Remise introuvable ou déjà traitée' },
+      });
+    }
+    const remittance = rem.rows[0];
+    await query(
+      `UPDATE cash_remittances SET status = 'completed', processed_by = $1, processed_at = NOW(), notes = COALESCE($2, notes) WHERE id = $3`,
+      [req.user.id, notes || null, id]
+    );
+    await query(
+      `UPDATE orders SET cash_remittance_id = $1 WHERE id IN (SELECT order_id FROM cash_remittance_orders WHERE remittance_id = $2)`,
+      [id, id]
+    );
+    logger.info(`Remise espèces ${id} confirmée par admin ${req.user.id}`);
+    res.json({
+      success: true,
+      message: 'Remise espèces validée. L\'argent est enregistré.',
+      data: { remittance_id: id, amount: remittance.amount },
+    });
+  } catch (error) {
+    logger.error('Erreur confirmCashRemittance:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la validation' },
+    });
+  }
+};
+
+/**
+ * Rejeter une remise espèces
+ */
+exports.rejectCashRemittance = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { reason } = req.body;
+    const rem = await query('SELECT * FROM cash_remittances WHERE id = $1 AND status = $2', [id, 'pending']);
+    if (rem.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'NOT_FOUND', message: 'Remise introuvable ou déjà traitée' },
+      });
+    }
+    await query(
+      `UPDATE cash_remittances SET status = 'rejected', processed_by = $1, processed_at = NOW(), notes = $2 WHERE id = $3`,
+      [req.user.id, reason || null, id]
+    );
+    logger.info(`Remise espèces ${id} rejetée par admin ${req.user.id}`);
+    res.json({
+      success: true,
+      message: 'Remise rejetée. Le livreur peut déclarer à nouveau ces commandes.',
+      data: { remittance_id: id },
+    });
+  } catch (error) {
+    logger.error('Erreur rejectCashRemittance:', error);
     res.status(500).json({
       success: false,
       error: { code: 'UPDATE_ERROR', message: 'Erreur lors du rejet' },
@@ -3852,9 +4725,9 @@ exports.getCommissionSettings = async (req, res) => {
 
     // Valeurs par défaut si non définies
     const defaultSettings = {
-      default_commission_rate: { value: 15.0, description: 'Taux de commission par défaut (%)' },
-      restaurant_commission_rate: { value: 15.0, description: 'Taux de commission pour les restaurants (%)' },
-      delivery_commission_rate: { value: 30.0, description: 'Taux de commission pour les livreurs (%)' },
+      default_commission_rate: { value: 15, description: 'Taux de commission par défaut (%)' },
+      restaurant_commission_rate: { value: 15, description: 'Taux de commission pour les restaurants (%)' },
+      delivery_commission_rate: { value: 30, description: 'Taux de commission pour les livreurs (%)' },
       min_commission_amount: { value: 0, description: 'Montant minimum de commission (FCFA)' },
       max_commission_amount: { value: null, description: 'Montant maximum de commission (FCFA)' },
       commission_calculation_method: { value: 'percentage', description: 'Méthode de calcul (percentage ou fixed)' },
@@ -3897,14 +4770,14 @@ exports.updateCommissionSettings = async (req, res) => {
     }
 
     // Clés de commission valides
-    const validKeys = [
+    const validKeys = new Set([
       'default_commission_rate',
       'restaurant_commission_rate',
       'delivery_commission_rate',
       'min_commission_amount',
       'max_commission_amount',
       'commission_calculation_method',
-    ];
+    ]);
 
     // Descriptions par défaut
     const descriptions = {
@@ -3921,7 +4794,7 @@ exports.updateCommissionSettings = async (req, res) => {
 
       for (const [key, value] of Object.entries(settings)) {
         // Vérifier que la clé est valide
-        if (!validKeys.includes(key)) {
+        if (!validKeys.has(key)) {
           continue;
         }
 
@@ -3932,8 +4805,8 @@ exports.updateCommissionSettings = async (req, res) => {
 
         // Validation spécifique selon le type
         if (key.includes('rate') || key.includes('amount')) {
-          const numValue = typeof value === 'string' ? parseFloat(value) : value;
-          if (isNaN(numValue) || numValue < 0) {
+          const numValue = typeof value === 'string' ? Number.parseFloat(value) : value;
+          if (Number.isNaN(numValue) || numValue < 0) {
             return res.status(400).json({
               success: false,
               error: {
@@ -4102,9 +4975,9 @@ exports.getPromotions = async (req, res) => {
       data: {
         promotions: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
+          total: Number.parseInt(countResult.rows[0].count),
           pages: Math.ceil(countResult.rows[0].count / limit),
         },
       },
@@ -4381,11 +5254,10 @@ exports.getRevenue = async (req, res) => {
     `);
     const useCommissionCol = hasCommissionCol.rows[0].exists;
     
-    // Revenus par période
-    // Note: Utiliser la colonne commission si elle existe, sinon calculer depuis subtotal * commission_rate
+    // Revenus par période : commission enregistrée sur la commande, sinon calcul avec le taux du restaurant
     const commissionCalc = useCommissionCol
-      ? `COALESCE(o.commission, o.subtotal * COALESCE(r.commission_rate, 15.0) / 100.0)`
-      : `o.subtotal * COALESCE(r.commission_rate, 15.0) / 100.0`;
+      ? `COALESCE(o.commission, o.subtotal * COALESCE(o.commission_rate, r.commission_rate, 15.0) / 100.0)`
+      : `o.subtotal * COALESCE(o.commission_rate, r.commission_rate, 15.0) / 100.0`;
     
     const revenueByPeriod = await query(`
       SELECT 
@@ -4488,8 +5360,8 @@ exports.getRevenue = async (req, res) => {
         return {
           date: row.period,
           month: label,
-          revenue: parseFloat(row.revenue || 0),
-          orders: parseInt(row.completed_orders || 0),
+          revenue: Number.parseFloat(row.revenue || 0),
+          orders: Number.parseInt(row.completed_orders || 0),
         };
       })
       .reverse(); // Inverser pour avoir les dates croissantes
@@ -4528,8 +5400,8 @@ exports.getRevenue = async (req, res) => {
         return {
           date: row.period,
           month: date.toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-          revenue: parseFloat(row.revenue || 0),
-          orders: parseInt(row.completed_orders || 0),
+          revenue: Number.parseFloat(row.revenue || 0),
+          orders: Number.parseInt(row.completed_orders || 0),
         };
       });
     }
@@ -4606,7 +5478,7 @@ exports.getSalesReport = async (req, res) => {
     if (date_from && date_to) {
       dateFilter = `WHERE o.placed_at >= $${paramIndex} AND o.placed_at <= $${paramIndex + 1}`;
       values.push(date_from, date_to);
-      paramIndex += 2;
+      // paramIndex sera utilisé dans les requêtes suivantes si nécessaire
     } else {
       switch (period) {
         case '7d':
@@ -4739,7 +5611,7 @@ exports.getUsersReport = async (req, res) => {
       }
       if (interval) {
         // Utiliser NOW() - INTERVAL avec échappement correct
-        dateFilter = `WHERE u.created_at >= NOW() - INTERVAL '${interval.replace(/'/g, "''")}'`;
+        dateFilter = `WHERE u.created_at >= NOW() - INTERVAL '${interval.replaceAll("'", "''")}'`;
       }
     }
 
@@ -4852,7 +5724,7 @@ exports.getRestaurantsReport = async (req, res) => {
     if (date_from && date_to) {
       dateFilter = `AND o.placed_at >= $${paramIndex} AND o.placed_at <= $${paramIndex + 1}`;
       values.push(date_from, date_to);
-      paramIndex += 2;
+      // paramIndex sera utilisé dans les requêtes suivantes si nécessaire
     } else {
       let interval;
       switch (period) {
@@ -4976,7 +5848,7 @@ exports.getDeliveriesReport = async (req, res) => {
     if (date_from && date_to) {
       dateFilter = `AND o.delivered_at >= $${paramIndex} AND o.delivered_at <= $${paramIndex + 1}`;
       values.push(date_from, date_to);
-      paramIndex += 2;
+      // paramIndex sera utilisé dans les requêtes suivantes si nécessaire
     } else {
       let interval;
       switch (period) {
@@ -5129,16 +6001,21 @@ exports.createSupportTicket = async (req, res) => {
     }
 
     return await transaction(async (client) => {
+      const ticketNumberResult = await client.query(
+        'SELECT generate_ticket_number() AS ticket_number'
+      );
+      const ticketNumber = ticketNumberResult.rows?.[0]?.ticket_number;
+
       // Créer le ticket
       const result = await client.query(
         `INSERT INTO support_tickets (
-          subject, message, priority, category,
-          user_type, user_id, order_id,
-          status, created_by_admin_id
+          ticket_number, subject, description, priority, category,
+          user_type, user_id, order_id, status
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, 'open', $8)
-        RETURNING id, ticket_number, subject, message, priority, category, status, created_at`,
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'open')
+        RETURNING id, ticket_number, subject, description, priority, category, status, created_at`,
         [
+          ticketNumber,
           subject,
           message,
           priority,
@@ -5146,16 +6023,23 @@ exports.createSupportTicket = async (req, res) => {
           user_type || null,
           user_id || null,
           order_id || null,
-          req.user.id,
         ]
       );
 
-      // Créer le premier message du ticket
-      await client.query(
-        `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message, is_internal)
-         VALUES ($1, 'admin', $2, $3, false)`,
-        [result.rows[0].id, req.user.id, message]
-      );
+      const hasIsInternal = await client.query(`
+        SELECT EXISTS (
+          SELECT 1 FROM information_schema.columns 
+          WHERE table_name = 'ticket_messages' 
+          AND column_name = 'is_internal'
+        ) as exists
+      `);
+      const hasIsInternalCol = hasIsInternal.rows?.[0]?.exists === true;
+      const insertMessageQuery = hasIsInternalCol
+        ? `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message, is_internal)
+           VALUES ($1, 'admin', $2, $3, false)`
+        : `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message)
+           VALUES ($1, 'admin', $2, $3)`;
+      await client.query(insertMessageQuery, [result.rows[0].id, req.user.id, message]);
 
       // Log l'action
       await client.query(`
@@ -5291,9 +6175,9 @@ exports.getSupportTickets = async (req, res) => {
       data: {
         tickets: result.rows,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
-          total: parseInt(countResult.rows[0].count),
+          page: Number.parseInt(page),
+          limit: Number.parseInt(limit),
+          total: Number.parseInt(countResult.rows[0].count),
           pages: Math.ceil(countResult.rows[0].count / limit),
         },
       },
@@ -5484,6 +6368,41 @@ exports.replyToTicket = async (req, res) => {
       );
 
       logger.info(`Message ajouté au ticket ${id} par admin ${req.user.id}`);
+
+      // Émettre une notification Socket.IO pour le restaurant
+      const io = req.app.get('io');
+      const partnersIo = req.app.get('partnersIo');
+      
+      if (io) {
+        // Notifier le dashboard admin (pour mise à jour en temps réel)
+        io.to('admin_dashboard').emit('ticket_reply_sent', {
+          ticket_id: id,
+          message: messageResult.rows[0],
+          ticket_status: newStatus,
+        });
+      }
+      
+      if (partnersIo) {
+        // Notifier le restaurant via le namespace partenaires
+        partnersIo.to(`support_ticket_${id}`).emit('new_support_reply', {
+          ticket_id: id,
+          message: {
+            ...messageResult.rows[0],
+            sender_type: 'admin',
+          },
+        });
+        
+        // Notifier la room du restaurant
+        partnersIo.to(`restaurant_${ticket.user_id}`).emit('support_notification', {
+          type: 'new_message',
+          ticket_id: id,
+          ticket_number: ticket.ticket_number,
+          title: 'Nouvelle réponse du support',
+          body: message.substring(0, 100),
+        });
+        
+        logger.debug('Notification Socket.IO envoyée au restaurant pour réponse support');
+      }
 
       return res.json({
         success: true,
@@ -5708,7 +6627,9 @@ exports.updateAppSettings = async (req, res) => {
         try {
           jsonValue = typeof value === 'string' ? JSON.parse(value) : value;
         } catch (e) {
-          jsonValue = value; // Si ce n'est pas du JSON, on le garde tel quel
+          // Si ce n'est pas du JSON, on le garde tel quel
+          logger.warn('Valeur non-JSON ignorée lors du parsing:', e.message);
+          jsonValue = value;
         }
 
         // Mettre à jour ou créer le paramètre
@@ -6225,6 +7146,23 @@ exports.uploadProfilePicture = async (req, res) => {
 
     const { uploadService } = require('../services/upload.service');
     const config = require('../config');
+    const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+    const normalizeLocalUrl = (url) => {
+      if (!url) return url;
+      try {
+        const parsed = new URL(url);
+        if (['localhost', '127.0.0.1'].includes(parsed.hostname)) {
+          return `${requestBaseUrl}${parsed.pathname}`;
+        }
+      } catch (error) {
+        logger.warn('Erreur lors de la normalisation de l\'URL:', error.message);
+        if (url.startsWith('/')) {
+          return `${requestBaseUrl}${url}`;
+        }
+        return url;
+      }
+      return url;
+    };
 
     return await transaction(async (client) => {
       // Vérifier le provider d'upload
@@ -6249,14 +7187,19 @@ exports.uploadProfilePicture = async (req, res) => {
         uploadResult = await uploadService.uploadToCloudinary(req.file, 'admin-profiles');
       } else {
         // Upload local (pour développement)
-        uploadResult = await uploadService.uploadToLocal(req.file, 'admin-profiles');
+        uploadResult = await uploadService.uploadToLocal(
+          req.file,
+          'admin-profiles',
+          { baseUrl: requestBaseUrl }
+        );
       }
       
       // Mettre à jour la photo de profil
       // TODO: Supprimer l'ancienne photo du stockage si elle existe
+      const publicUrl = normalizeLocalUrl(uploadResult.url);
       await client.query(
         'UPDATE admins SET profile_picture = $1, updated_at = NOW() WHERE id = $2',
-        [uploadResult.url, req.user.id]
+        [publicUrl, req.user.id]
       );
 
       // TODO: Supprimer l'ancienne photo de S3 si elle existe
@@ -6275,7 +7218,7 @@ exports.uploadProfilePicture = async (req, res) => {
         success: true,
         message: 'Photo de profil mise à jour avec succès',
         data: {
-          profile_picture: uploadResult.url,
+          profile_picture: publicUrl,
           admin: {
             ...updatedAdmin.rows[0],
             profile_picture: uploadResult.url,
@@ -6392,7 +7335,7 @@ exports.getDeliveryLeaderboard = async (req, res) => {
       GROUP BY dp.id, dp.first_name, dp.last_name, dp.photo, dp.vehicle_type, dp.average_rating
       ORDER BY deliveries_count DESC, earnings DESC, avg_delivery_time_minutes ASC
       LIMIT $1`,
-      [parseInt(limit)]
+      [Number.parseInt(limit)]
     );
 
     // Ajouter le rang
@@ -6409,7 +7352,7 @@ exports.getDeliveryLeaderboard = async (req, res) => {
       data: {
         leaderboard,
         period,
-        limit: parseInt(limit),
+        limit: Number.parseInt(limit),
         generated_at: new Date().toISOString(),
       },
     });
@@ -6458,8 +7401,8 @@ exports.exportOrders = async (req, res) => {
         o.delivery_fee,
         o.discount,
         COALESCE(o.tax, 0) as tax,
-        (o.subtotal * COALESCE(r.commission_rate, 15.0) / 100.0) as commission,
-        COALESCE(r.commission_rate, 15.0) as commission_rate,
+        COALESCE(o.commission, o.subtotal * COALESCE(o.commission_rate, r.commission_rate, 15.0) / 100.0) as commission,
+        COALESCE(o.commission_rate, r.commission_rate, 15.0) as commission_rate,
         o.total,
         o.status,
         o.payment_method,
@@ -6512,13 +7455,13 @@ exports.exportOrders = async (req, res) => {
 
     if (amount_min) {
       queryText += ` AND o.total >= $${paramIndex}`;
-      values.push(parseFloat(amount_min));
+      values.push(Number.parseFloat(amount_min));
       paramIndex++;
     }
 
     if (amount_max) {
       queryText += ` AND o.total <= $${paramIndex}`;
-      values.push(parseFloat(amount_max));
+      values.push(Number.parseFloat(amount_max));
       paramIndex++;
     }
 
@@ -6545,7 +7488,7 @@ exports.exportOrders = async (req, res) => {
       });
     }
     
-    if (!result || !result.rows || result.rows.length === 0) {
+    if (!result?.rows?.length) {
       return res.status(404).json({
         success: false,
         error: { code: 'NO_DATA', message: 'Aucune commande à exporter pour cette période' },
@@ -6560,9 +7503,9 @@ exports.exportOrders = async (req, res) => {
       // S'assurer que commission est un nombre
       if (order.commission === null || order.commission === undefined) {
         const commissionRate = order.commission_rate || 15.0;
-        order.commission = parseFloat(((order.subtotal || 0) * commissionRate) / 100.0);
+        order.commission = Number.parseFloat(((order.subtotal || 0) * commissionRate) / 100.0);
       } else {
-        order.commission = parseFloat(order.commission) || 0;
+        order.commission = Number.parseFloat(order.commission) || 0;
       }
       return order;
     });
@@ -6575,7 +7518,11 @@ exports.exportOrders = async (req, res) => {
       logger.info('Export result generated successfully', { 
         contentType: exportResult.contentType,
         filename: exportResult.filename,
-        contentLength: exportResult.content ? (typeof exportResult.content === 'string' ? exportResult.content.length : exportResult.content.byteLength) : 0
+        contentLength: exportResult.content 
+          ? (typeof exportResult.content === 'string' 
+            ? exportResult.content.length 
+            : exportResult.content.byteLength)
+          : 0
       });
     } catch (exportError) {
       logger.error('Error in exportOrders utility:', {
@@ -6664,30 +7611,41 @@ exports.bulkActionUsers = async (req, res) => {
         case 'delete':
           // Soft delete
           statusValue = 'deleted';
-          updateQuery = 'UPDATE users SET status = $1, deleted_at = NOW() WHERE id = ANY($2::uuid[])';
+          updateQuery = 'UPDATE users SET status = $1 WHERE id = ANY($2::uuid[])';
           break;
       }
 
       const result = await client.query(updateQuery, [statusValue, user_ids]);
 
-      // Logger l'action
-      for (const userId of user_ids) {
-        await client.query(`
-          INSERT INTO activity_logs (user_id, user_type, action, details)
-          VALUES ($1, $2, $3, $4)
-        `, [
-          req.user.id,
-          'admin',
-          `bulk_${action}_user`,
-          JSON.stringify({ user_id: userId, reason }),
-        ]);
+      // Logger l'action (optionnel : si activity_logs indisponible, on continue)
+      try {
+        for (const userId of user_ids) {
+          await client.query(`
+            INSERT INTO activity_logs (user_id, user_type, action, details)
+            VALUES ($1, $2, $3, $4)
+          `, [
+            req.user.id,
+            'admin',
+            `bulk_${action}_user`,
+            JSON.stringify({ user_id: userId, reason }),
+          ]);
+        }
+      } catch (logErr) {
+        logger.warn('bulkActionUsers: activity_logs insert failed (action still applied)', { err: logErr.message });
       }
 
       logger.info(`Action en masse ${action} effectuée sur ${result.rowCount} utilisateurs par admin ${req.user.id}`);
 
+      let actionLabel = 'supprimé(s)';
+      if (action === 'suspend') {
+        actionLabel = 'suspendu(s)';
+      } else if (action === 'activate') {
+        actionLabel = 'activé(s)';
+      }
+
       res.json({
         success: true,
-        message: `${result.rowCount} utilisateur(s) ${action === 'suspend' ? 'suspendu(s)' : action === 'activate' ? 'activé(s)' : 'supprimé(s)'}`,
+        message: `${result.rowCount} utilisateur(s) ${actionLabel}`,
         data: {
           affected_count: result.rowCount,
           action,
@@ -6695,10 +7653,15 @@ exports.bulkActionUsers = async (req, res) => {
       });
     });
   } catch (error) {
-    logger.error('Erreur bulkActionUsers:', error);
+    logger.error('Erreur bulkActionUsers:', { message: error.message, code: error.code, detail: error.detail });
+    const isDev = process.env.NODE_ENV !== 'production';
     res.status(500).json({
       success: false,
-      error: { code: 'BULK_ACTION_ERROR', message: 'Erreur lors de l\'action en masse' },
+      error: {
+        code: 'BULK_ACTION_ERROR',
+        message: 'Erreur lors de l\'action en masse',
+        ...(isDev && { debug: error.message, detail: error.detail }),
+      },
     });
   }
 };
@@ -6744,6 +7707,7 @@ exports.getExpenses = async (req, res) => {
       `);
     } catch (error) {
       // Si la table n'existe pas, calculer depuis transactions de type 'expense'
+      logger.warn('Table expenses non disponible, calcul depuis transactions:', error.message);
       expensesResult = await query(`
         SELECT 
           COALESCE(SUM(amount), 0) as total_expenses,
@@ -6767,14 +7731,15 @@ exports.getExpenses = async (req, res) => {
         ORDER BY amount DESC
       `);
     } catch (error) {
+      logger.warn('Table expense_categories non disponible:', error.message);
       categoriesResult = { rows: [] };
     }
 
     res.json({
       success: true,
       data: {
-        total_expenses: parseFloat(expensesResult.rows[0].total_expenses || 0),
-        expense_count: parseInt(expensesResult.rows[0].expense_count || 0),
+        total_expenses: Number.parseFloat(expensesResult.rows[0].total_expenses || 0),
+        expense_count: Number.parseInt(expensesResult.rows[0].expense_count || 0),
         by_category: categoriesResult.rows,
         period,
       },
@@ -6853,26 +7818,58 @@ exports.getFinancialOverview = async (req, res) => {
       }
     }
 
-    const totalExpenses = parseFloat(expensesResult.rows[0].total_expenses || 0);
-    const totalRevenue = parseFloat(overview.rows[0].total_revenue || 0);
-    const commissionCollected = parseFloat(overview.rows[0].commission_collected || 0);
-    const deliveryFees = parseFloat(overview.rows[0].delivery_fees || 0);
+    const totalExpenses = Number.parseFloat(expensesResult.rows[0].total_expenses || 0);
+    const totalRevenue = Number.parseFloat(overview.rows[0].total_revenue || 0);
+    const commissionCollected = Number.parseFloat(overview.rows[0].commission_collected || 0);
+    const deliveryFees = Number.parseFloat(overview.rows[0].delivery_fees || 0);
+    const completedOrders = Number.parseInt(overview.rows[0].completed_orders || 0);
     
-    // Bénéfice net = Revenus (commissions + frais de livraison) - Dépenses
-    const netProfit = (commissionCollected + deliveryFees) - totalExpenses;
-    const profitMargin = totalRevenue > 0 ? ((netProfit / totalRevenue) * 100).toFixed(2) : 0;
+    // === CALCUL CORRECT DES REVENUS PLATEFORME ===
+    // 1. Commissions restaurants (15% par défaut)
+    const platformCommissionRevenue = commissionCollected;
+    
+    // 2. Part plateforme sur frais de livraison (30%)
+    // Les livreurs gardent 70%, la plateforme garde 30%
+    const config = require('../config');
+    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70);
+    const platformDeliveryRevenue = deliveryFees * (platformDeliveryPercent / 100);
+    
+    // 3. Revenu total de la plateforme
+    const platformTotalRevenue = platformCommissionRevenue + platformDeliveryRevenue;
+    
+    // 4. Bénéfice net = Revenus plateforme - Dépenses
+    const netProfit = platformTotalRevenue - totalExpenses;
+    const profitMargin = platformTotalRevenue > 0 ? ((netProfit / platformTotalRevenue) * 100).toFixed(2) : 0;
+    
+    // 5. Panier moyen
+    const averageOrderValue = completedOrders > 0 ? (totalRevenue / completedOrders) : 0;
 
     res.json({
       success: true,
       data: {
         overview: overview.rows[0],
         pending_payouts: pendingPayouts.rows[0],
+        // Revenus détaillés de la plateforme
+        platform_revenue: {
+          commission_from_restaurants: platformCommissionRevenue,
+          commission_from_delivery: platformDeliveryRevenue,
+          total: platformTotalRevenue,
+          breakdown: {
+            restaurants_percent: platformTotalRevenue > 0 ? Math.round((platformCommissionRevenue / platformTotalRevenue) * 100) : 0,
+            delivery_percent: platformTotalRevenue > 0 ? Math.round((platformDeliveryRevenue / platformTotalRevenue) * 100) : 0,
+          },
+        },
+        // Ce que les livreurs ont gagné (70% des frais)
+        delivery_payouts: deliveryFees * ((config.business.deliveryPersonPercentage || 70) / 100),
+        // Ce que les restaurants ont reçu (CA - commission)
+        restaurant_payouts: totalRevenue - commissionCollected,
         expenses: {
           total: totalExpenses,
           period,
         },
         net_profit: netProfit,
-        profit_margin: profitMargin,
+        profit_margin: Number.parseFloat(profitMargin),
+        average_order_value: Math.round(averageOrderValue),
       },
     });
   } catch (error) {
@@ -6963,6 +7960,7 @@ exports.submitQuiz = async (req, res) => {
         SELECT * FROM training_quizzes WHERE id = $1 AND is_active = true
       `, [quiz_id]);
     } catch (error) {
+      logger.error('Erreur lors de la récupération du quiz:', error.message);
       return res.status(404).json({
         success: false,
         error: { code: 'QUIZ_NOT_FOUND', message: 'Quiz non trouvé' },
@@ -7027,7 +8025,7 @@ exports.submitQuiz = async (req, res) => {
       });
     } catch (error) {
       // Si la table n'existe pas, retourner juste le résultat sans l'enregistrer
-      logger.warn('Table quiz_results non disponible, résultat non enregistré');
+      logger.warn('Table quiz_results non disponible, résultat non enregistré:', error.message);
       res.json({
         success: true,
         data: {
@@ -7046,6 +8044,194 @@ exports.submitQuiz = async (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'QUIZ_ERROR', message: 'Erreur lors de la soumission du quiz' },
+    });
+  }
+};
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * NOTIFICATIONS PUSH
+ * ═══════════════════════════════════════════════════════════
+ */
+
+const notificationService = require('../services/notification.service');
+
+/**
+ * Envoyer une notification à un utilisateur spécifique
+ */
+exports.sendNotification = async (req, res) => {
+  try {
+    const { user_id, user_type, title, message, type, data } = req.body;
+
+    if (!user_id || !user_type || !title || !message) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'user_id, user_type, title et message sont requis' },
+      });
+    }
+
+    if (!['user', 'client', 'restaurant', 'delivery', 'delivery_person'].includes(user_type)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_USER_TYPE', message: 'Type d\'utilisateur invalide' },
+      });
+    }
+
+    const result = await notificationService.sendToUser(user_id, user_type, {
+      title,
+      body: message,
+      type: type || 'admin',
+      data: data || {},
+    });
+
+    logger.info(`Notification envoyée à ${user_type} ${user_id} par admin ${req.user.id}`);
+
+    res.json({
+      success: true,
+      data: { result },
+    });
+  } catch (error) {
+    logger.error('Erreur sendNotification:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'NOTIFICATION_ERROR', message: 'Erreur lors de l\'envoi de la notification' },
+    });
+  }
+};
+
+/**
+ * Envoyer une notification à plusieurs utilisateurs
+ */
+exports.broadcastNotification = async (req, res) => {
+  try {
+    const { user_ids, user_type, title, message, type, data } = req.body;
+
+    if (!user_ids || !Array.isArray(user_ids) || user_ids.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'Liste d\'utilisateurs requise' },
+      });
+    }
+
+    if (!user_type || !title || !message) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'user_type, title et message sont requis' },
+      });
+    }
+
+    const result = await notificationService.sendToMultiple(user_ids, user_type, {
+      title,
+      body: message,
+      type: type || 'admin',
+      data: data || {},
+    });
+
+    logger.info(`Broadcast notification à ${user_ids.length} ${user_type}(s) par admin ${req.user.id}`, result);
+
+    res.json({
+      success: true,
+      data: {
+        total: result.total,
+        successful: result.successful,
+        failed: result.failed,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur broadcastNotification:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'BROADCAST_ERROR', message: 'Erreur lors de l\'envoi des notifications' },
+    });
+  }
+};
+
+/**
+ * Envoyer une notification promotionnelle à tous les clients
+ */
+exports.sendPromotionalNotification = async (req, res) => {
+  try {
+    const { title, message, promo_code, target_segment, data } = req.body;
+
+    if (!title || !message) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_INPUT', message: 'title et message sont requis' },
+      });
+    }
+
+    // Construire la requête en fonction du segment cible
+    let queryText = 'SELECT id FROM users WHERE status = $1 AND fcm_token IS NOT NULL';
+    const queryParams = ['active'];
+
+    // Segments disponibles : all, new (< 30 jours), active (commande < 30 jours), inactive (pas de commande > 30 jours)
+    if (target_segment === 'new') {
+      queryText += ' AND created_at > NOW() - INTERVAL \'30 days\'';
+    } else if (target_segment === 'active') {
+      queryText += ` AND id IN (
+        SELECT DISTINCT user_id FROM orders 
+        WHERE created_at > NOW() - INTERVAL '30 days'
+      )`;
+    } else if (target_segment === 'inactive') {
+      queryText += ` AND id NOT IN (
+        SELECT DISTINCT user_id FROM orders 
+        WHERE created_at > NOW() - INTERVAL '30 days'
+      )`;
+    }
+    // target_segment === 'all' ou undefined : tous les utilisateurs actifs
+
+    const usersResult = await query(queryText, queryParams);
+    const userIds = usersResult.rows.map(u => u.id);
+
+    if (userIds.length === 0) {
+      return res.json({
+        success: true,
+        data: {
+          total: 0,
+          successful: 0,
+          failed: 0,
+          message: 'Aucun utilisateur correspondant au segment',
+        },
+      });
+    }
+
+    const notificationData = {
+      ...(data || {}),
+      type: 'promotion',
+    };
+
+    if (promo_code) {
+      notificationData.promo_code = promo_code;
+    }
+
+    const result = await notificationService.sendToMultiple(userIds, 'user', {
+      title,
+      body: message,
+      type: 'promotion',
+      data: notificationData,
+      channel: 'promotions',
+    });
+
+    logger.info(`Notification promotionnelle envoyée à ${userIds.length} clients par admin ${req.user.id}`, {
+      segment: target_segment || 'all',
+      promo_code,
+      result,
+    });
+
+    res.json({
+      success: true,
+      data: {
+        total: result.total,
+        successful: result.successful,
+        failed: result.failed,
+        segment: target_segment || 'all',
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur sendPromotionalNotification:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'PROMOTIONAL_ERROR', message: 'Erreur lors de l\'envoi des notifications promotionnelles' },
     });
   }
 };

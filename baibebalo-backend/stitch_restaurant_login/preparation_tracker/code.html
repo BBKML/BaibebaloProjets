@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#f56e3d",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#221510",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .active-icon {
+            font-variation-settings: 'FILL' 1, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1c110d] dark:text-[#fcf9f8] antialiased">
+<!-- Top Navigation Bar -->
+<div class="fixed top-0 left-0 right-0 z-50 bg-background-light/90 dark:bg-background-dark/90 backdrop-blur-md">
+<div class="flex items-center p-4 pb-2 justify-between max-w-md mx-auto">
+<div class="text-[#1c110d] dark:text-white flex size-12 shrink-0 items-center justify-start">
+<span class="material-symbols-outlined cursor-pointer">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-12">Commande #4829</h2>
+</div>
+</div>
+<main class="pt-20 pb-40 max-w-md mx-auto min-h-screen px-4">
+<!-- Timer Section -->
+<div class="flex flex-col items-center justify-center py-6">
+<h2 class="text-[#1c110d] dark:text-white tracking-light text-[28px] font-bold leading-tight text-center pb-4">Temps écoulé</h2>
+<div class="flex gap-4 w-full">
+<div class="flex grow basis-0 flex-col items-stretch gap-2">
+<div class="flex h-20 grow items-center justify-center rounded-xl px-3 bg-[#f4eae7] dark:bg-primary/20 border-2 border-primary/10">
+<p class="text-primary text-3xl font-bold tabular-nums">00</p>
+</div>
+<div class="flex items-center justify-center"><p class="text-[#1c110d] dark:text-white/70 text-sm font-medium">Heures</p></div>
+</div>
+<div class="flex grow basis-0 flex-col items-stretch gap-2">
+<div class="flex h-20 grow items-center justify-center rounded-xl px-3 bg-[#f4eae7] dark:bg-primary/20 border-2 border-primary/10">
+<p class="text-primary text-3xl font-bold tabular-nums">12</p>
+</div>
+<div class="flex items-center justify-center"><p class="text-[#1c110d] dark:text-white/70 text-sm font-medium">Minutes</p></div>
+</div>
+<div class="flex grow basis-0 flex-col items-stretch gap-2">
+<div class="flex h-20 grow items-center justify-center rounded-xl px-3 bg-[#f4eae7] dark:bg-primary/20 border-2 border-primary/10">
+<p class="text-primary text-3xl font-bold tabular-nums">45</p>
+</div>
+<div class="flex items-center justify-center"><p class="text-[#1c110d] dark:text-white/70 text-sm font-medium">Secondes</p></div>
+</div>
+</div>
+</div>
+<!-- Progress Timeline -->
+<div class="bg-white dark:bg-white/5 rounded-2xl p-6 mb-8 shadow-sm">
+<div class="grid grid-cols-[40px_1fr] gap-x-2">
+<!-- Step 1: Received -->
+<div class="flex flex-col items-center gap-1 pt-1">
+<div class="text-green-600">
+<span class="material-symbols-outlined active-icon">check_circle</span>
+</div>
+<div class="w-[2px] bg-green-600/30 h-8"></div>
+</div>
+<div class="flex flex-1 flex-col pb-6">
+<p class="text-[#1c110d] dark:text-white text-base font-bold">Commande Reçue</p>
+<p class="text-[#9c5f49] dark:text-white/60 text-sm">14:20</p>
+</div>
+<!-- Step 2: Accepted -->
+<div class="flex flex-col items-center gap-1">
+<div class="text-green-600">
+<span class="material-symbols-outlined active-icon">check_circle</span>
+</div>
+<div class="w-[2px] bg-primary h-8"></div>
+</div>
+<div class="flex flex-1 flex-col pb-6">
+<p class="text-[#1c110d] dark:text-white text-base font-bold">Acceptée</p>
+<p class="text-[#9c5f49] dark:text-white/60 text-sm">14:22</p>
+</div>
+<!-- Step 3: Preparing (Active) -->
+<div class="flex flex-col items-center gap-1">
+<div class="text-primary">
+<span class="material-symbols-outlined active-icon">restaurant</span>
+</div>
+</div>
+<div class="flex flex-1 flex-col">
+<p class="text-primary text-base font-bold">En préparation</p>
+<p class="text-primary/70 text-sm font-medium">En cours...</p>
+</div>
+</div>
+</div>
+<!-- Checklist Section -->
+<div class="mb-6">
+<div class="flex items-center justify-between mb-4">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold">Articles à préparer</h3>
+<span class="bg-primary/10 text-primary text-xs font-bold px-2 py-1 rounded-full uppercase tracking-wider">3 Articles</span>
+</div>
+<div class="space-y-3">
+<!-- Item 1 -->
+<label class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl border border-transparent active:scale-[0.98] transition-all cursor-pointer">
+<input class="size-6 rounded border-gray-300 text-primary focus:ring-primary dark:bg-background-dark dark:border-white/20" type="checkbox"/>
+<div class="flex flex-1 flex-col">
+<p class="text-base font-bold text-[#1c110d] dark:text-white">2x Burger Signature BAIBEBALO</p>
+<p class="text-sm text-gray-500 dark:text-white/50">Cuisson saignante, sans oignons</p>
+</div>
+</label>
+<!-- Item 2 -->
+<label class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl border border-transparent active:scale-[0.98] transition-all cursor-pointer">
+<input class="size-6 rounded border-gray-300 text-primary focus:ring-primary dark:bg-background-dark dark:border-white/20" type="checkbox"/>
+<div class="flex flex-1 flex-col">
+<p class="text-base font-bold text-[#1c110d] dark:text-white">1x Frites Maison (Large)</p>
+<p class="text-sm text-gray-500 dark:text-white/50">Sauce cocktail à part</p>
+</div>
+</label>
+<!-- Item 3 -->
+<label class="flex items-center gap-4 bg-white dark:bg-white/5 p-4 rounded-xl border border-transparent active:scale-[0.98] transition-all cursor-pointer">
+<input checked="" class="size-6 rounded border-gray-300 text-primary focus:ring-primary dark:bg-background-dark dark:border-white/20" type="checkbox"/>
+<div class="flex flex-1 flex-col">
+<p class="text-base font-bold text-[#1c110d] dark:text-white line-through opacity-50">1x Coca-Cola 33cl</p>
+<p class="text-sm text-gray-400 dark:text-white/30 line-through">Bien frais</p>
+</div>
+</label>
+</div>
+</div>
+</main>
+<!-- Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 bg-white dark:bg-background-dark border-t border-gray-100 dark:border-white/10 p-4 pb-8 z-50">
+<div class="max-w-md mx-auto flex flex-col gap-3">
+<button class="w-full flex items-center justify-center gap-2 py-3 text-primary font-bold bg-primary/10 rounded-xl active:opacity-70 transition-opacity">
+<span class="material-symbols-outlined text-sm">edit_calendar</span>
+                Modifier le temps
+            </button>
+<button class="w-full py-4 bg-primary text-white font-bold rounded-xl shadow-lg shadow-primary/30 active:scale-[0.97] transition-all text-lg uppercase tracking-wide">
+                COMMANDE PRÊTE
+            </button>
+</div>
+</div>
+</body></html>

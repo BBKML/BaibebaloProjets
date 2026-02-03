@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+<html class="light" lang="fr"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Review Response Modal - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:ital,wght@0,100..900;1,100..900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body {
+            font-family: 'Work Sans', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-slate-200 dark:bg-zinc-950 flex items-end justify-center min-h-screen">
+<!-- Modal Container (Bottom Sheet Style for iOS) -->
+<div class="relative flex h-[92vh] w-full max-w-md flex-col bg-background-light dark:bg-background-dark rounded-t-xl overflow-hidden shadow-2xl">
+<!-- BottomSheetHandle -->
+<div class="flex flex-col items-stretch bg-background-light dark:bg-background-dark">
+<button class="flex h-5 w-full items-center justify-center">
+<div class="h-1.5 w-12 rounded-full bg-primary/20 dark:bg-primary/40 mt-2"></div>
+</button>
+</div>
+<!-- TopAppBar -->
+<div class="flex items-center bg-background-light dark:bg-background-dark p-4 pb-2 justify-between">
+<div class="text-zinc-800 dark:text-zinc-100 flex size-12 shrink-0 items-center">
+<span class="material-symbols-outlined cursor-pointer">close</span>
+</div>
+<h2 class="text-zinc-900 dark:text-zinc-50 text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Répondre à l'avis</h2>
+<div class="flex w-12 items-center justify-end">
+<p class="text-primary text-base font-bold leading-normal tracking-[0.015em] shrink-0 cursor-pointer">Aide</p>
+</div>
+</div>
+<div class="flex-1 overflow-y-auto">
+<!-- Review Card -->
+<div class="p-4">
+<div class="flex items-stretch justify-between gap-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900/50 p-4">
+<div class="flex flex-[2_2_0px] flex-col gap-3">
+<div class="flex flex-col gap-1">
+<div class="flex justify-between items-center">
+<p class="text-zinc-500 dark:text-zinc-400 text-xs font-normal">Il y a 2 jours</p>
+<div class="flex text-primary">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: 'FILL' 1">star</span>
+<span class="material-symbols-outlined text-sm">star</span>
+</div>
+</div>
+<p class="text-zinc-900 dark:text-zinc-50 text-base font-bold leading-tight">Jean Dupont</p>
+<p class="text-zinc-700 dark:text-zinc-300 text-sm font-normal leading-relaxed italic">
+                                "La cuisine était excellente, mais le service un peu lent ce soir-là. Nous reviendrons quand même !"
+                            </p>
+</div>
+</div>
+</div>
+</div>
+<!-- Section Header: Templates -->
+<div class="flex items-center justify-between px-4 pt-4 pb-2">
+<h3 class="text-zinc-900 dark:text-zinc-50 text-lg font-bold leading-tight tracking-[-0.015em]">Modèles de réponse</h3>
+<span class="material-symbols-outlined text-primary text-xl">auto_awesome</span>
+</div>
+<!-- Chips: Response Categories -->
+<div class="flex gap-3 px-4 py-2 overflow-x-auto no-scrollbar">
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-primary/10 border border-primary/20 px-4 cursor-pointer hover:bg-primary/20 transition-colors">
+<p class="text-primary text-sm font-medium">Remerciements</p>
+</div>
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-zinc-200 dark:bg-zinc-800 px-4 cursor-pointer hover:bg-zinc-300 transition-colors">
+<p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium">Excuses service</p>
+</div>
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-zinc-200 dark:bg-zinc-800 px-4 cursor-pointer hover:bg-zinc-300 transition-colors">
+<p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium">Invitation</p>
+</div>
+<div class="flex h-9 shrink-0 items-center justify-center gap-x-2 rounded-full bg-zinc-200 dark:bg-zinc-800 px-4 cursor-pointer hover:bg-zinc-300 transition-colors">
+<p class="text-zinc-800 dark:text-zinc-200 text-sm font-medium">Professionnel</p>
+</div>
+</div>
+<!-- Response Input Area -->
+<div class="px-4 pt-6">
+<label class="block text-zinc-900 dark:text-zinc-50 text-sm font-bold mb-2">Votre réponse</label>
+<textarea class="w-full min-h-[200px] p-4 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 focus:ring-2 focus:ring-primary focus:border-transparent outline-none text-zinc-800 dark:text-zinc-100 text-base leading-relaxed resize-none" placeholder="Bonjour Jean, merci pour votre retour constructif..."></textarea>
+<div class="flex justify-between mt-2">
+<p class="text-zinc-400 text-xs italic">La réponse sera publiée sur Google &amp; TripAdvisor.</p>
+<p class="text-zinc-400 text-xs">0 / 4000</p>
+</div>
+</div>
+</div>
+<!-- Footer Action Button -->
+<div class="p-4 border-t border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-950 pb-8">
+<button class="flex w-full cursor-pointer items-center justify-center overflow-hidden rounded-xl h-14 bg-primary text-white text-base font-bold shadow-lg shadow-primary/20 hover:bg-primary/90 active:scale-[0.98] transition-all">
+<span class="truncate">Publier la réponse</span>
+<span class="material-symbols-outlined ml-2 text-xl">send</span>
+</button>
+</div>
+</div>
+<style>
+        /* Hide scrollbar for Chrome, Safari and Opera */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        /* Hide scrollbar for IE, Edge and Firefox */
+        .no-scrollbar {
+            -ms-overflow-style: none;  /* IE and Edge */
+            scrollbar-width: none;  /* Firefox */
+        }
+    </style>
+</body></html>

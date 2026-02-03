@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import Layout from '../components/layout/Layout';
 import { formatCurrency } from '../utils/format';
@@ -8,6 +9,7 @@ import { analyticsAPI } from '../api/analytics';
 import { dashboardAPI } from '../api/dashboard';
 
 const FunnelConversion = () => {
+  const navigate = useNavigate();
   const [period, setPeriod] = useState('30');
   const periodParam = period === '7' ? '7d' : period === '30' ? '30d' : '90d';
 
@@ -29,65 +31,49 @@ const FunnelConversion = () => {
     queryFn: () => dashboardAPI.getDashboard(),
   });
 
-  // Calculer les données du funnel depuis les données réelles
+  // Données du funnel depuis les APIs (réelles)
   const stats = usersData?.data?.statistics || {};
   const analytics = analyticsData?.data || {};
   const globalStats = dashboardData?.data?.global || {};
+  const retention = analytics.retention || {};
 
-  // Calculer les valeurs du funnel
   const totalUsers = parseInt(stats.total_users || globalStats.total_users || 0);
   const activeUsers = parseInt(stats.active_users || analytics.active_users || 0);
   const totalOrders = parseInt(analytics.total_orders || globalStats.total_orders || 0);
-  
-  // Estimation des visiteurs (10x les utilisateurs inscrits)
-  const visitors = totalUsers * 10;
-  // Inscriptions = total utilisateurs
+  // Clients avec au moins 1 commande (période)
+  const usersWithFirstOrder = parseInt(retention.total_clients ?? analytics.active_users ?? 0);
+  // Clients avec 2+ commandes (répétées)
+  const usersWithRepeatOrders = parseInt(retention.returning_clients ?? 0);
+
+  // Visiteurs : estimation (pas de tracking), sinon = inscriptions pour éviter division par zéro
+  const visitors = Math.max(totalUsers * 10, totalUsers || 1);
   const registrations = totalUsers;
-  // Première commande = utilisateurs avec au moins une commande (estimation: 50% des utilisateurs)
-  const firstOrder = Math.floor(totalUsers * 0.5);
-  // Commandes répétées = utilisateurs avec plus d'une commande (estimation: 30% des utilisateurs)
-  const repeatOrders = Math.floor(totalUsers * 0.3);
-  // Clients actifs = utilisateurs actifs
+  // Première commande = utilisateurs ayant passé au moins une commande (réel)
+  const firstOrder = usersWithFirstOrder;
+  // Commandes répétées = utilisateurs avec 2+ commandes (réel)
+  const repeatOrders = usersWithRepeatOrders;
+  // Clients actifs = utilisateurs ayant commandé dans la période (réel)
   const activeClients = activeUsers;
 
-  // Calculer les pourcentages
+  // Pourcentages du funnel (éviter division par zéro)
+  const safePct = (num, denom) => (denom > 0 ? Math.min(100, Math.round((num / denom) * 100)) : 0);
   const funnelSteps = [
-    { 
-      label: 'Visiteurs', 
-      value: visitors, 
-      percentage: 100, 
-      color: 'bg-primary' 
-    },
-    { 
-      label: 'Inscriptions', 
-      value: registrations, 
-      percentage: Math.round((registrations / visitors) * 100), 
-      color: 'bg-blue-500' 
-    },
-    { 
-      label: 'Première Commande', 
-      value: firstOrder, 
-      percentage: Math.round((firstOrder / visitors) * 100), 
-      color: 'bg-purple-500' 
-    },
-    { 
-      label: 'Commandes Répétées', 
-      value: repeatOrders, 
-      percentage: Math.round((repeatOrders / visitors) * 100), 
-      color: 'bg-emerald-500' 
-    },
-    { 
-      label: 'Clients Actifs', 
-      value: activeClients, 
-      percentage: Math.round((activeClients / visitors) * 100), 
-      color: 'bg-green-600' 
-    },
+    { label: 'Visiteurs', value: visitors, percentage: 100, color: 'bg-primary' },
+    { label: 'Inscriptions', value: registrations, percentage: safePct(registrations, visitors), color: 'bg-blue-500' },
+    { label: 'Première Commande', value: firstOrder, percentage: safePct(firstOrder, visitors), color: 'bg-purple-500' },
+    { label: 'Commandes Répétées', value: repeatOrders, percentage: safePct(repeatOrders, visitors), color: 'bg-emerald-500' },
+    { label: 'Clients Actifs', value: activeClients, percentage: safePct(activeClients, visitors), color: 'bg-green-600' },
   ];
 
-  // Calculer les KPIs
+  // KPIs (éviter Infinity / division par zéro)
   const totalRegistrations = registrations;
-  const conversionRate = analytics.conversion_rate || (firstOrder > 0 ? ((activeClients / firstOrder) * 100).toFixed(1) : 0);
-  const avgCustomerValue = analytics.avg_order_value || 0;
+  const conversionRate = (() => {
+    const rate = analytics.conversion_rate;
+    if (rate != null && !Number.isNaN(Number(rate))) return Number(rate);
+    if (totalUsers > 0 && firstOrder >= 0) return Number(((firstOrder / totalUsers) * 100).toFixed(1));
+    return 0;
+  })();
+  const avgCustomerValue = analytics.average_order_value ?? analytics.avg_order_value ?? 0;
   
   // Calculer les changements (mockés pour l'instant)
   const registrationsChange = 5.2; // TODO: Calculer depuis les données
@@ -124,11 +110,20 @@ const FunnelConversion = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
-              Funnel de Conversion Analytics
-            </h1>
-            <p className="text-xs text-slate-400 mt-1">Dernière mise à jour: Aujourd'hui, 10:45</p>
+          <div className="flex items-center gap-4">
+            <button
+              onClick={() => navigate(-1)}
+              className="p-2 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              title="Retour"
+            >
+              <span className="material-symbols-outlined text-slate-600 dark:text-slate-400">arrow_back</span>
+            </button>
+            <div>
+              <h1 className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                Funnel de Conversion Analytics
+              </h1>
+              <p className="text-xs text-slate-400 mt-1">Dernière mise à jour: Aujourd'hui, 10:45</p>
+            </div>
           </div>
           <div className="flex items-center gap-4">
             <div className="relative hidden md:block">
@@ -231,7 +226,7 @@ const FunnelConversion = () => {
                 {isLoadingAnalytics ? (
                   <span className="text-slate-400">...</span>
                 ) : (
-                  `${parseFloat(conversionRate).toFixed(1)}%`
+                  `${Number.isFinite(Number(conversionRate)) ? Number(conversionRate).toFixed(1) : '0.0'}%`
                 )}
               </h3>
               <span className="text-emerald-500 text-sm font-bold flex items-center mb-1">
@@ -322,18 +317,21 @@ const FunnelConversion = () => {
               {funnelSteps.map((step, index) => {
                 if (index === 0) return null;
                 const previousStep = funnelSteps[index - 1];
-                const conversionRate = ((step.value / previousStep.value) * 100).toFixed(1);
-                
+                const prevVal = previousStep.value || 0;
+                const stepVal = step.value || 0;
+                const pct = prevVal > 0 ? Math.min(100, Number(((stepVal / prevVal) * 100).toFixed(1))) : 0;
+                const displayPct = prevVal === 0 ? 'N/A' : `${pct}%`;
+                const barWidth = prevVal === 0 ? 0 : pct;
                 return (
                   <div key={`conversion-${index}-${step.label}`}>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="text-slate-500">{previousStep.label} → {step.label}</span>
-                      <span className="font-bold text-slate-900 dark:text-white">{conversionRate}%</span>
+                      <span className="font-bold text-slate-900 dark:text-white">{displayPct}</span>
                     </div>
                     <div className="w-full bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                       <div
                         className="bg-primary h-full rounded-full"
-                        style={{ width: `${conversionRate}%` }}
+                        style={{ width: `${barWidth}%` }}
                       />
                     </div>
                   </div>
@@ -348,14 +346,16 @@ const FunnelConversion = () => {
               {funnelSteps.map((step, index) => {
                 if (index === 0) return null;
                 const previousStep = funnelSteps[index - 1];
-                const loss = previousStep.value - step.value;
-                const lossPercentage = ((loss / previousStep.value) * 100).toFixed(1);
-                
+                const prevVal = previousStep.value || 0;
+                const stepVal = step.value || 0;
+                const loss = Math.max(0, prevVal - stepVal);
+                const lossPct = prevVal > 0 ? Math.min(100, Math.round((loss / prevVal) * 1000) / 10) : 0;
+                const displayPct = prevVal === 0 ? 'N/A' : `${lossPct}%`;
                 return (
                   <div key={`loss-${index}-${step.label}`} className="p-3 bg-slate-50 dark:bg-slate-800 rounded-lg">
                     <div className="flex justify-between items-center mb-1">
                       <span className="text-sm font-semibold text-slate-900 dark:text-white">{step.label}</span>
-                      <span className="text-xs font-bold text-rose-500">{lossPercentage}%</span>
+                      <span className="text-xs font-bold text-rose-500">{displayPct}</span>
                     </div>
                     <p className="text-xs text-slate-500">{loss.toLocaleString('fr-FR')} utilisateurs perdus</p>
                   </div>

@@ -124,15 +124,25 @@ const coordinatesValidator = [
  */
 const optionalCoordinatesValidator = [
   body('latitude')
-    .optional({ nullable: true })
-    .isFloat({ min: -90, max: 90 })
-    .withMessage('Latitude invalide (-90 à 90)')
-    .toFloat(),
+    .optional({ values: 'null' })
+    .custom((value) => {
+      if (value === null || value === undefined || value === '') return true;
+      const lat = parseFloat(value);
+      if (isNaN(lat) || lat < -90 || lat > 90) {
+        throw new Error('Latitude invalide (-90 à 90)');
+      }
+      return true;
+    }),
   body('longitude')
-    .optional({ nullable: true })
-    .isFloat({ min: -180, max: 180 })
-    .withMessage('Longitude invalide (-180 à 180)')
-    .toFloat(),
+    .optional({ values: 'null' })
+    .custom((value) => {
+      if (value === null || value === undefined || value === '') return true;
+      const lng = parseFloat(value);
+      if (isNaN(lng) || lng < -180 || lng > 180) {
+        throw new Error('Longitude invalide (-180 à 180)');
+      }
+      return true;
+    }),
 ];
 
 /**
@@ -292,8 +302,8 @@ const createAddressValidators = [
     .trim()
     .notEmpty()
     .withMessage('L\'adresse est requise')
-    .isLength({ min: 5, max: 500 })
-    .withMessage('L\'adresse doit contenir entre 5 et 500 caractères'),
+    .isLength({ min: 2, max: 500 })
+    .withMessage('L\'adresse doit contenir entre 2 et 500 caractères'),
   body('district')
     .optional()
     .trim()
@@ -435,7 +445,7 @@ const registerRestaurantValidators = [
   body('cuisine_type')
     .optional()
     .trim()
-    .isIn(['Sénoufo', 'Ivoirienne', 'Africaine', 'Internationale', 'Fast-food', 'Grillades', 'Pizza', 'Asiatique'])
+    .isIn(['Sénoufo', 'Ivoirienne', 'Africaine', 'Internationale', 'Fast-food', 'Grillades', 'Pizza', 'Asiatique', 'Européenne', 'Autre'])
     .withMessage('Type de cuisine invalide'),
   body('description')
     .optional()
@@ -446,8 +456,8 @@ const registerRestaurantValidators = [
     .trim()
     .notEmpty()
     .withMessage('L\'adresse est requise')
-    .isLength({ min: 10, max: 500 })
-    .withMessage('L\'adresse doit contenir entre 10 et 500 caractères'),
+    .isLength({ min: 3, max: 500 })
+    .withMessage('L\'adresse doit contenir entre 3 et 500 caractères'),
   body('district')
     .optional()
     .trim()
@@ -461,12 +471,29 @@ const registerRestaurantValidators = [
     .toFloat(),
   body('mobile_money_number')
     .optional()
-    .matches(/^\+225(0[157]|[4-7])\d{8}$/)
+    .trim()
+    .isLength({ min: 8, max: 20 })
     .withMessage('Numéro Mobile Money invalide'),
   body('mobile_money_provider')
     .optional()
-    .isIn(['orange_money', 'mtn_money', 'moov_money'])
+    .trim()
+    .isIn(['Orange Money', 'MTN Mobile Money', 'Moov Money', 'orange_money', 'mtn_money', 'moov_money'])
     .withMessage('Opérateur Mobile Money invalide'),
+  body('account_holder_name')
+    .optional()
+    .trim()
+    .isLength({ max: 255 })
+    .withMessage('Nom du titulaire trop long'),
+  body('bank_rib')
+    .optional()
+    .trim()
+    .isLength({ max: 100 })
+    .withMessage('RIB trop long'),
+  body('landmark')
+    .optional()
+    .trim()
+    .isLength({ max: 500 })
+    .withMessage('Points de repère trop longs'),
   validate,
 ];
 
@@ -500,34 +527,64 @@ const createMenuItemValidators = [
     .toInt(),
   body('options')
     .optional()
-    .isObject()
-    .withMessage('Options invalides'),
+    .customSanitizer(value => {
+      // Si c'est une chaîne JSON, la parser
+      if (typeof value === 'string') {
+        try {
+          return JSON.parse(value);
+        } catch (e) {
+          return {};
+        }
+      }
+      return value || {};
+    }),
   body('tags')
     .optional()
-    .isArray()
-    .withMessage('Tags doit être un tableau'),
+    .customSanitizer(value => {
+      // Si c'est une chaîne JSON, la parser
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+      return Array.isArray(value) ? value : [];
+    }),
   body('allergens')
     .optional()
-    .isArray()
-    .withMessage('Allergènes doit être un tableau'),
+    .customSanitizer(value => {
+      // Si c'est une chaîne JSON, la parser
+      if (typeof value === 'string') {
+        try {
+          const parsed = JSON.parse(value);
+          return Array.isArray(parsed) ? parsed : [];
+        } catch (e) {
+          return [];
+        }
+      }
+      return Array.isArray(value) ? value : [];
+    }),
   body('stock_quantity')
-    .optional()
+    .optional({ nullable: true, checkFalsy: true })
     .isInt({ min: 0 })
-    .withMessage('Quantité en stock invalide')
+    .withMessage('Quantité en stock invalide (doit être >= 0)')
     .toInt(),
   validate,
 ];
 
 /**
  * Validators pour l'inscription livreur
+ * NOTE: Authentification uniquement par OTP - pas de mot de passe requis
  */
 const registerDeliveryValidators = [
   phoneValidator,
+  // Mot de passe optionnel (authentification par OTP uniquement)
   body('password')
+    .optional()
     .isLength({ min: 8, max: 128 })
-    .withMessage('Le mot de passe doit contenir au moins 8 caractères')
-    .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/)
-    .withMessage('Le mot de passe doit contenir au moins une majuscule, une minuscule et un chiffre'),
+    .withMessage('Le mot de passe doit contenir au moins 8 caractères'),
   body('first_name')
     .trim()
     .notEmpty()

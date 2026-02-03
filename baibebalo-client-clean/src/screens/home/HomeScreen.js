@@ -10,128 +10,148 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
-import { getRestaurants } from '../../api/restaurants';
+import { getRestaurants, getActivePromotions, getCategories } from '../../api/restaurants';
 import useCartStore from '../../store/cartStore';
 
 export default function HomeScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
+  const [promoCards, setPromoCards] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const insets = useSafeAreaInsets();
   const { getItemCount } = useCartStore();
 
   useEffect(() => {
-    loadRestaurants();
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      // Charger toutes les données en parallèle
+      const [restaurantsRes, promotionsRes, categoriesRes] = await Promise.all([
+        getRestaurants({ search: searchQuery || undefined }).catch(() => ({ data: { restaurants: [] } })),
+        getActivePromotions().catch(() => ({ data: { promotions: [] } })),
+        getCategories().catch(() => ({ data: { categories: [] } })),
+      ]);
+
+      setRestaurants(restaurantsRes.data?.restaurants || []);
+      
+      // Mapper les promotions depuis l'API
+      const apiPromotions = promotionsRes.data?.promotions || [];
+      const mappedPromotions = apiPromotions.slice(0, 2).map((promo) => ({
+        id: promo.id || `promo-${Date.now()}`,
+        title: promo.title || 'Promotion spéciale',
+        subtitle: promo.subtitle || 'Découvrez nos offres',
+        cta: promo.restaurant ? 'Voir le restaurant' : 'Commander maintenant',
+        image: promo.restaurant?.banner || 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600',
+        accent: COLORS.primary,
+        restaurantId: promo.restaurant?.id,
+        code: promo.code,
+      }));
+      
+      // Fallback si aucune promotion
+      if (mappedPromotions.length === 0) {
+        setPromoCards([
+          {
+            id: 'welcome',
+            title: '-30% de réduction',
+            subtitle: 'Sur votre première commande avec BAIBEBALO',
+            cta: 'Commander maintenant',
+            image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600',
+            accent: COLORS.primary,
+          },
+        ]);
+      } else {
+        setPromoCards(mappedPromotions);
+      }
+
+      // Mapper les catégories depuis l'API
+      const apiCategories = categoriesRes.data?.categories || [];
+      if (apiCategories.length > 0) {
+        setCategories(apiCategories);
+      } else {
+        // Fallback si aucune catégorie (ne devrait pas arriver)
+        setCategories([
+          {
+            id: 'restaurants',
+            label: 'Restaurants',
+            image: 'https://cdn-icons-png.flaticon.com/128/3448/3448609.png',
+            restaurant_count: 0,
+          },
+        ]);
+      }
+    } catch (error) {
+      console.error('Erreur lors du chargement des données:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const loadRestaurants = async () => {
     try {
-      setLoading(true);
       const response = await getRestaurants({
         search: searchQuery || undefined,
       });
       setRestaurants(response.data?.restaurants || []);
     } catch (error) {
       console.error('Erreur lors du chargement des restaurants:', error);
-    } finally {
-      setLoading(false);
     }
   };
-
-  const promoCards = [
-    {
-      id: 'welcome',
-      title: '-30% de réduction',
-      subtitle: 'Sur votre première commande avec BAIBEBALO',
-      cta: 'Commander maintenant',
-      image: 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600',
-      accent: COLORS.primary,
-    },
-    {
-      id: 'weekend',
-      title: 'Weekend Spécial',
-      subtitle: 'Frais de livraison offerts sur les restaurants locaux',
-      cta: 'Voir les offres',
-      image: 'https://images.unsplash.com/photo-1504674900247-0877df9cc836?w=600',
-      accent: COLORS.accent,
-    },
-  ];
-
-  const categories = [
-    {
-      id: 'restaurants',
-      label: 'Restaurants',
-      image: 'https://images.unsplash.com/photo-1548365328-8b849e6f6f7f?w=200',
-    },
-    {
-      id: 'fast',
-      label: 'Fast-Food',
-      image: 'https://images.unsplash.com/photo-1550547660-d9450f859349?w=200',
-    },
-    {
-      id: 'pizza',
-      label: 'Pizza',
-      image: 'https://images.unsplash.com/photo-1565299585323-38d6b0865b47?w=200',
-    },
-    {
-      id: 'grillades',
-      label: 'Grillades',
-      image: 'https://images.unsplash.com/photo-1495147466023-ac5c588e2e94?w=200',
-    },
-    {
-      id: 'light',
-      label: 'Plats légers',
-      image: 'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?w=200',
-    },
-    {
-      id: 'grocery',
-      label: 'Épicerie',
-      image: 'https://images.unsplash.com/photo-1542838132-92c53300491e?w=200',
-    },
-    {
-      id: 'pharmacy',
-      label: 'Pharmacie',
-      image: 'https://images.unsplash.com/photo-1587370560942-ad2a04eabb6d?w=200',
-    },
-    {
-      id: 'parcel',
-      label: 'Livraison colis',
-      image: 'https://images.unsplash.com/photo-1529070538774-1843cb3265df?w=200',
-    },
-  ];
 
   const bestDishes = (restaurants || []).slice(0, 6).map((restaurant, index) => ({
     id: `dish-${restaurant.id || index}`,
     name: restaurant.speciality || 'Plat populaire',
     price: restaurant.average_price || 3500,
     restaurantName: restaurant.name || 'Restaurant',
-    image: restaurant.image_url || 'https://via.placeholder.com/120',
+    image: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/120',
   }));
 
   const recommendations = (restaurants || []).slice(0, 4).map((restaurant, index) => ({
     id: `reco-${restaurant.id || index}`,
     name: restaurant.name || 'Restaurant recommandé',
     subtitle: restaurant.cuisine_type || 'Cuisine variée',
-    image: restaurant.image_url || 'https://via.placeholder.com/160',
+    image: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/160',
   }));
+
+  const isRestaurantClosed = (restaurant) => {
+    return restaurant.is_closed || restaurant.status === 'closed' || restaurant.is_open === false;
+  };
 
   const renderRestaurant = ({ item }) => (
     <TouchableOpacity
-      style={styles.restaurantCard}
+      style={[styles.restaurantCard, isRestaurantClosed(item) && styles.restaurantCardClosed]}
       onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.id })}
     >
       <View style={styles.restaurantImageWrapper}>
         <Image
-          source={{ uri: item.image_url || 'https://via.placeholder.com/300' }}
-          style={styles.restaurantImage}
+          source={{ uri: item.banner || item.logo || item.image_url || 'https://via.placeholder.com/300' }}
+          style={[styles.restaurantImage, isRestaurantClosed(item) && styles.restaurantImageClosed]}
         />
         <View style={styles.ratingBadge}>
           <Ionicons name="star" size={12} color={COLORS.warning} />
           <Text style={styles.ratingBadgeText}>{item.rating || '4.5'}</Text>
         </View>
+        {/* Badge Fermé */}
+        {isRestaurantClosed(item) && (
+          <View style={styles.closedBadge}>
+            <Ionicons name="time-outline" size={14} color={COLORS.white} />
+            <Text style={styles.closedBadgeText}>Fermé</Text>
+          </View>
+        )}
       </View>
       <View style={styles.restaurantInfo}>
-        <Text style={styles.restaurantName}>{item.name}</Text>
+        <View style={styles.restaurantNameRow}>
+          <Text style={styles.restaurantName}>{item.name}</Text>
+          {isRestaurantClosed(item) && (
+            <View style={styles.closedTag}>
+              <Text style={styles.closedTagText}>Fermé</Text>
+            </View>
+          )}
+        </View>
         <Text style={styles.cuisine} numberOfLines={1}>
           {item.cuisine_type || 'Cuisine variée'}
         </Text>
@@ -139,7 +159,7 @@ export default function HomeScreen({ navigation }) {
           <View style={styles.metaItem}>
             <Ionicons name="time-outline" size={12} color={COLORS.primary} />
             <Text style={styles.metaText}>
-              {item.estimated_delivery_time || '30-45'} min
+              {isRestaurantClosed(item) ? 'Réouvre bientôt' : `${item.estimated_delivery_time || '30-45'} min`}
             </Text>
           </View>
           <View style={styles.metaItem}>
@@ -180,7 +200,10 @@ export default function HomeScreen({ navigation }) {
                   </View>
                 </View>
               </View>
-              <TouchableOpacity style={styles.notificationButton}>
+              <TouchableOpacity 
+                style={styles.notificationButton}
+                onPress={() => navigation.navigate('Settings', { screen: 'NotificationPreferences' })}
+              >
                 <Ionicons name="notifications-outline" size={22} color={COLORS.text} />
               </TouchableOpacity>
             </View>
@@ -206,7 +229,18 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.promoTag}>Offre spéciale</Text>
                     <Text style={styles.promoTitle}>{card.title}</Text>
                     <Text style={styles.promoSubtitle}>{card.subtitle}</Text>
-                    <TouchableOpacity style={styles.promoButton}>
+                    <TouchableOpacity 
+                      style={styles.promoButton}
+                      onPress={() => {
+                        if (card.restaurantId) {
+                          // Naviguer vers le restaurant spécifique si la promotion est liée
+                          navigation.navigate('RestaurantDetail', { restaurantId: card.restaurantId });
+                        } else {
+                          // Sinon, naviguer vers la recherche
+                          navigation.navigate('Search');
+                        }
+                      }}
+                    >
                       <Text style={styles.promoButtonText}>{card.cta}</Text>
                     </TouchableOpacity>
                   </View>
@@ -302,7 +336,10 @@ export default function HomeScreen({ navigation }) {
         </TouchableOpacity>
       )}
 
-      <TouchableOpacity style={styles.mapButton}>
+      <TouchableOpacity 
+        style={styles.mapButton}
+        onPress={() => navigation.navigate('MapLocationSelector')}
+      >
         <Ionicons name="map" size={16} color={COLORS.primary} />
         <Text style={styles.mapButtonText}>Voir Carte</Text>
       </TouchableOpacity>
@@ -384,7 +421,7 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
   },
   listContent: {
-    paddingBottom: 120,
+    paddingBottom: 140, // Espace pour les boutons flottants + safe area
   },
   promoRow: {
     paddingHorizontal: 16,
@@ -685,5 +722,47 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.textSecondary,
     marginTop: 2,
+  },
+  // Styles pour les restaurants fermés
+  restaurantCardClosed: {
+    opacity: 0.8,
+  },
+  restaurantImageClosed: {
+    opacity: 0.6,
+  },
+  closedBadge: {
+    position: 'absolute',
+    top: '50%',
+    left: '50%',
+    transform: [{ translateX: -45 }, { translateY: -15 }],
+    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  closedBadgeText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  restaurantNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  closedTag: {
+    backgroundColor: COLORS.error + '20',
+    paddingHorizontal: 8,
+    paddingVertical: 2,
+    borderRadius: 10,
+  },
+  closedTagText: {
+    color: COLORS.error,
+    fontSize: 10,
+    fontWeight: 'bold',
   },
 });

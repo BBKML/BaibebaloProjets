@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Edit Restaurant Profile</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .form-input:focus {
+            border-color: #fa6c38 !important;
+            box-shadow: 0 0 0 1px #fa6c38 !important;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background-light dark:bg-background-dark font-display text-[#1c110d] dark:text-[#f8f6f5] min-h-screen">
+<!-- Top Navigation Bar -->
+<div class="sticky top-0 z-50 bg-background-light dark:bg-background-dark border-b border-[#e9d5ce] dark:border-[#3d2a23]">
+<div class="flex items-center p-4 h-14 justify-between max-w-md mx-auto">
+<button class="text-[#9e5e47] text-base font-medium">Cancel</button>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center">Edit Profile</h2>
+<div class="w-12"></div> <!-- Spacer for symmetry -->
+</div>
+</div>
+<div class="max-w-md mx-auto pb-24">
+<!-- Media Section: Banner and Logo -->
+<div class="relative">
+<!-- Header Image (Banner) -->
+<div class="@container">
+<div class="relative group">
+<div class="w-full bg-center bg-no-repeat bg-cover min-h-[180px] bg-[#e9d5ce]" data-alt="Modern restaurant interior banner image" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuC5lHQGodIsz140_eFXwUg4yiTinwfId8V1Xq8AIrQuyiAsVdlGVo6ge_UPgfx_HM4EcBqHHXfyzY4f6amCczKbg2m5nMLP3jxBcsiPUwj73_AmrNOFLa6DKMZeU3TEVqm30BUtz_6HjFhuJp947wswJWhxSH_NT-O7PD7nXatTPoqfZXkbqUb7iY0f0vox78SUR_OpOATAw3spDVsPiElrk5A_YFtLJvzaNQM214hRTfqcgUiNTmm15QYPXuZ-4dpmv-45Ps97cuEV");'>
+<div class="absolute inset-0 bg-black/20 flex items-center justify-center">
+<button class="bg-white/80 dark:bg-black/50 p-2 rounded-full backdrop-blur-sm">
+<span class="material-symbols-outlined text-primary">photo_camera</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+<!-- Profile Header (Logo) -->
+<div class="absolute -bottom-12 left-4">
+<div class="relative">
+<div class="bg-center bg-no-repeat aspect-square bg-cover rounded-full h-24 w-24 border-4 border-background-light dark:border-background-dark shadow-lg bg-[#f4eae6]" data-alt="Restaurant circular brand logo" style='background-image: url("https://lh3.googleusercontent.com/aida-public/AB6AXuApeabP1KSRWVTQjTAbw236awbcoNk3B2lNl1Vx-PrnlbivJTisfSA-hrvw8JL4Jx8-BqBvEipo13SoME8tKnxk4cpKaMDdu6cQd9XAPbqd3ufJPRFeZKFSli4ILiRIcHLbr__AnwsSMFayQDnxZ3G2vMFhZsnt5u2l7anQfQ-ZrbvSlzUtpOEt9JiDSe8Jp5P4tepEaYlas3IlKCVvymwzeZ7P_HK7vi5hfijXdKk7wPK1lLM6zMTrA6gxYciJhgt5r6U7-ELySkgJ");'>
+</div>
+<button class="absolute bottom-0 right-0 bg-primary text-white p-1.5 rounded-full border-2 border-white shadow-sm">
+<span class="material-symbols-outlined text-sm block" style="font-size: 18px;">add_a_photo</span>
+</button>
+</div>
+</div>
+</div>
+<div class="mt-14 px-4 space-y-6">
+<!-- Section Header: General Information -->
+<div>
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pt-4">General Information</h3>
+<p class="text-[#9e5e47] text-sm font-normal">Details about your restaurant visible to customers.</p>
+</div>
+<!-- Text Fields -->
+<div class="space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-semibold leading-normal">Restaurant Name</label>
+<input class="form-input flex w-full rounded-lg text-[#1c110d] border border-[#e9d5ce] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a23] dark:text-white h-12 px-4 text-base font-normal" placeholder="Enter name" type="text" value="BAIBEBALO Bistro"/>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-semibold leading-normal">Type of Establishment</label>
+<div class="relative">
+<select class="form-input appearance-none flex w-full rounded-lg text-[#1c110d] border border-[#e9d5ce] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a23] dark:text-white h-12 px-4 text-base font-normal focus:ring-primary">
+<option>Casual Dining</option>
+<option selected="">Fine Dining</option>
+<option>Bakery &amp; Cafe</option>
+<option>Fast Food</option>
+</select>
+<span class="material-symbols-outlined absolute right-3 top-3 text-[#9e5e47] pointer-events-none">expand_more</span>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-semibold leading-normal">Description</label>
+<textarea class="form-input flex w-full rounded-lg text-[#1c110d] border border-[#e9d5ce] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a23] dark:text-white min-h-[120px] p-4 text-base font-normal resize-none" placeholder="Describe your restaurant's story and menu...">Experience authentic mediterranean flavors with a modern twist. Located in the heart of the city, BAIBEBALO offers a unique culinary journey with seasonal ingredients and a curated wine list.</textarea>
+<p class="text-right text-xs text-[#9e5e47]">184 / 500</p>
+</div>
+</div>
+<!-- Section Header: Contact Details -->
+<div class="pt-4 border-t border-[#e9d5ce] dark:border-[#3d2a23]">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em]">Contact &amp; Location</h3>
+</div>
+<div class="space-y-4">
+<div class="flex flex-col gap-1.5">
+<label class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-semibold leading-normal">Phone Number</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-[#9e5e47] text-xl">call</span>
+<input class="form-input flex w-full rounded-lg text-[#1c110d] border border-[#e9d5ce] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a23] dark:text-white h-12 pl-11 pr-4 text-base font-normal" type="tel" value="+1 (555) 000-1234"/>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-semibold leading-normal">Email Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-[#9e5e47] text-xl">mail</span>
+<input class="form-input flex w-full rounded-lg text-[#1c110d] border border-[#e9d5ce] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a23] dark:text-white h-12 pl-11 pr-4 text-base font-normal" type="email" value="hello@baibebalo.com"/>
+</div>
+</div>
+<div class="flex flex-col gap-1.5">
+<label class="text-[#1c110d] dark:text-[#f8f6f5] text-sm font-semibold leading-normal">Address</label>
+<div class="relative">
+<span class="material-symbols-outlined absolute left-3 top-3 text-[#9e5e47] text-xl">location_on</span>
+<input class="form-input flex w-full rounded-lg text-[#1c110d] border border-[#e9d5ce] bg-white dark:bg-[#2d1b14] dark:border-[#3d2a23] dark:text-white h-12 pl-11 pr-4 text-base font-normal" type="text" value="123 Gastronomy St, Suite 100"/>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Fixed Bottom Action Bar -->
+<div class="fixed bottom-0 left-0 right-0 bg-background-light dark:bg-background-dark p-4 border-t border-[#e9d5ce] dark:border-[#3d2a23] z-50">
+<div class="max-w-md mx-auto">
+<button class="flex w-full items-center justify-center rounded-xl h-12 bg-primary text-white text-base font-bold transition-all active:scale-[0.98]">
+                Save Changes
+            </button>
+</div>
+</div>
+</body></html>

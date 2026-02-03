@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Report a Problem - BAIBEBALO</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#fa6c38",
+                        "background-light": "#f8f6f5",
+                        "background-dark": "#23150f",
+                    },
+                    fontFamily: {
+                        "display": ["Work Sans"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-display bg-background-light dark:bg-background-dark text-[#1c110d] dark:text-white min-h-screen">
+<!-- TopAppBar -->
+<div class="sticky top-0 z-10 flex items-center bg-background-light/80 dark:bg-background-dark/80 backdrop-blur-md p-4 pb-2 justify-between border-b border-[#e9d5ce] dark:border-[#3d2a23]">
+<div class="text-[#1c110d] dark:text-white flex size-10 shrink-0 items-center justify-start cursor-pointer">
+<span class="material-symbols-outlined text-2xl">arrow_back_ios</span>
+</div>
+<h2 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] flex-1 text-center pr-10">Report a Problem</h2>
+</div>
+<main class="max-w-[480px] mx-auto pb-10">
+<!-- HeadlineText -->
+<div class="px-4">
+<h3 class="text-[#1c110d] dark:text-white tracking-light text-2xl font-bold leading-tight pb-2 pt-6">Help us improve BAIBEBALO</h3>
+<!-- BodyText -->
+<p class="text-[#1c110d] dark:text-gray-300 text-base font-normal leading-normal pb-3 pt-1">Please provide details about the issue you encountered while using the app.</p>
+</div>
+<!-- Priority Selector (Custom Component) -->
+<div class="px-4 pt-4">
+<p class="text-[#1c110d] dark:text-white text-base font-medium leading-normal pb-3">Urgency</p>
+<div class="flex gap-2 p-1 bg-gray-100 dark:bg-[#3d2a23] rounded-xl">
+<button class="flex-1 py-2 text-sm font-medium rounded-lg bg-white dark:bg-[#52392f] shadow-sm text-primary">Low</button>
+<button class="flex-1 py-2 text-sm font-medium rounded-lg text-gray-500 dark:text-gray-400">Medium</button>
+<button class="flex-1 py-2 text-sm font-medium rounded-lg text-gray-500 dark:text-gray-400">High</button>
+</div>
+</div>
+<!-- TextField -->
+<div class="flex flex-wrap items-end gap-4 px-4 py-6">
+<label class="flex flex-col min-w-40 flex-1">
+<p class="text-[#1c110d] dark:text-white text-base font-medium leading-normal pb-2">Description</p>
+<textarea class="form-input flex w-full min-w-0 flex-1 resize-none overflow-hidden rounded-xl text-[#1c110d] dark:text-white focus:outline-0 focus:ring-2 focus:ring-primary border border-[#e9d5ce] dark:border-[#3d2a23] bg-white dark:bg-[#2e1c14] focus:border-primary min-h-40 placeholder:text-[#9e5e47] p-[15px] text-base font-normal leading-normal" placeholder="Tell us what happened... (e.g. App crashed when checking out)"></textarea>
+</label>
+</div>
+<!-- SectionHeader & File Picker (Custom Component) -->
+<div class="px-4">
+<h3 class="text-[#1c110d] dark:text-white text-lg font-bold leading-tight tracking-[-0.015em] pb-3">Attachments (Optional)</h3>
+<div class="grid grid-cols-3 gap-3">
+<div class="aspect-square flex flex-col items-center justify-center border-2 border-dashed border-[#e9d5ce] dark:border-[#3d2a23] rounded-xl bg-white dark:bg-[#2e1c14] cursor-pointer hover:bg-primary/5 transition-colors group">
+<span class="material-symbols-outlined text-primary text-3xl mb-1 group-hover:scale-110 transition-transform">add_a_photo</span>
+<span class="text-xs text-gray-500 dark:text-gray-400">Add Photo</span>
+</div>
+<!-- Mockup of an attached image -->
+<div class="relative aspect-square rounded-xl overflow-hidden border border-[#e9d5ce] dark:border-[#3d2a23]">
+<img class="w-full h-full object-cover" data-alt="Screenshot of an app error message" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDhkvP1iHUNn20u1iJJ1r9EdbQxkGx0EetgLBI2JBt-KUDUQuFtJWxUszGzEm4mjo_u2SQXCnZOIIXnDW5JNb06yz4Fb6dwNdohjKNI3UovMdEH4jqwHNciYYtTVEzkRnLQOWM7OVApXcOqC8XLexGmoo2HdJqtAR1z4CiUEyE6whEDFZOXko92jPUKrwi9df3Ft3jUwRTm0U40AKfYWEF3TQihjluKbWWEV9W5iBUAmTUHYVDJTpj8dTwWBr-3dcaRgj-BWryyQlhe"/>
+<div class="absolute top-1 right-1 bg-black/50 rounded-full p-1 cursor-pointer">
+<span class="material-symbols-outlined text-white text-sm">close</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Submit Button -->
+<div class="px-4 pt-10 pb-10">
+<button class="w-full bg-primary text-white font-bold py-4 rounded-xl shadow-lg shadow-primary/20 hover:bg-opacity-90 active:scale-[0.98] transition-all">
+                Submit Report
+            </button>
+<p class="text-center text-xs text-gray-400 dark:text-gray-500 mt-4 px-6">
+                By submitting, you agree to share device logs with our technical team.
+            </p>
+</div>
+</main>
+<!-- Success Message Overlay (Hidden by default, shown here for design reference) -->
+<!-- Remove "hidden" to see the state -->
+<div class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm px-6">
+<div class="bg-white dark:bg-[#2e1c14] w-full max-w-[340px] rounded-3xl p-8 text-center shadow-2xl">
+<div class="w-20 h-20 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-6">
+<span class="material-symbols-outlined text-green-500 text-5xl">check_circle</span>
+</div>
+<h4 class="text-xl font-bold text-[#1c110d] dark:text-white mb-2">Report Sent</h4>
+<p class="text-gray-500 dark:text-gray-400 text-sm mb-8">Thank you! Our technical team has been notified and will look into this shortly.</p>
+<button class="w-full bg-[#1c110d] dark:bg-white text-white dark:text-[#1c110d] font-bold py-3 rounded-xl hover:opacity-90">
+                Back to Home
+            </button>
+</div>
+</div>
+</body></html>
