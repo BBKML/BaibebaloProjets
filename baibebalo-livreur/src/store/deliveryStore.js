@@ -99,21 +99,25 @@ const useDeliveryStore = create((set, get) => ({
       }
 
       // Mettre à jour l'historique récent
-      if (historyResponse?.success && historyResponse?.data?.deliveries) {
-        const deliveries = historyResponse.data.deliveries.map(d => ({
+      const rawDeliveries = historyResponse?.success && Array.isArray(historyResponse?.data?.deliveries)
+        ? historyResponse.data.deliveries
+        : [];
+      if (rawDeliveries.length > 0) {
+        const deliveries = rawDeliveries.map(d => ({
           id: d.id,
           time: new Date(d.delivered_at || d.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
           restaurant: d.restaurant_name || 'Restaurant',
-          destination: d.delivery_address?.address_line || 'Destination',
+          destination: (d.delivery_address && typeof d.delivery_address === 'object' ? d.delivery_address.address_line : null) || 'Destination',
           amount: d.delivery_fee || 0,
-          rating: d.delivery_rating || null,
+          rating: d.delivery_rating ?? null,
           date: formatRelativeDate(d.delivered_at || d.created_at),
         }));
+        const completedToday = rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length;
         set({ 
           recentDeliveries: deliveries,
           dailyGoal: {
             ...get().dailyGoal,
-            completed: deliveries.filter(d => isToday(d.delivered_at)).length,
+            completed: completedToday,
           },
         });
       }
@@ -121,7 +125,7 @@ const useDeliveryStore = create((set, get) => ({
       set({ isLoading: false });
     } catch (error) {
       console.error('Erreur loadDashboardData:', error);
-      set({ error: error.message, isLoading: false });
+      set({ error: error?.message || 'Erreur chargement', isLoading: false });
     }
   },
 

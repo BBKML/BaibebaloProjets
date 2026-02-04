@@ -44,6 +44,7 @@ const statusColors = {
   offline: COLORS.textLight,
   pause: COLORS.warning,
   on_delivery: COLORS.info,
+  busy: COLORS.info,
 };
 
 const statusLabels = {
@@ -51,6 +52,7 @@ const statusLabels = {
   offline: 'HORS LIGNE',
   pause: 'EN PAUSE',
   on_delivery: 'EN COURSE',
+  busy: 'EN COURSE',
 };
 
 export default function DeliveryHomeScreen({ navigation }) {
@@ -146,7 +148,9 @@ export default function DeliveryHomeScreen({ navigation }) {
     await setStatus(newStatus);
   };
 
-  const progressPercent = (dailyGoal.completed / dailyGoal.target) * 100;
+  const target = dailyGoal?.target ?? 10;
+  const completed = dailyGoal?.completed ?? 0;
+  const progressPercent = target > 0 ? (completed / target) * 100 : 0;
 
   const centerOnLocation = () => {
     mapRef.current?.animateToRegion({
@@ -226,9 +230,9 @@ export default function DeliveryHomeScreen({ navigation }) {
           <View style={styles.statusInfo}>
             <Text style={styles.statusLabel}>STATUT</Text>
             <View style={styles.statusRow}>
-              <View style={[styles.statusDot, { backgroundColor: statusColors[status] }]} />
-              <Text style={[styles.statusText, { color: statusColors[status] }]}>
-                {statusLabels[status]}
+              <View style={[styles.statusDot, { backgroundColor: statusColors[status] || statusColors.offline }]} />
+              <Text style={[styles.statusText, { color: statusColors[status] || statusColors.offline }]}>
+                {statusLabels[status] || 'HORS LIGNE'}
               </Text>
             </View>
           </View>
@@ -247,17 +251,17 @@ export default function DeliveryHomeScreen({ navigation }) {
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>GAINS</Text>
             <Text style={styles.statValue}>
-              {todayStats.earnings.toLocaleString()} F
+              {(Number(todayStats?.earnings) || 0).toLocaleString()} F
             </Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>COURSES</Text>
-            <Text style={styles.statValue}>{todayStats.deliveries}</Text>
+            <Text style={styles.statValue}>{Number(todayStats?.deliveries) || 0}</Text>
           </View>
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>NOTE</Text>
             <View style={styles.ratingContainer}>
-              <Text style={styles.statValue}>{todayStats.rating || '4.8'}</Text>
+              <Text style={styles.statValue}>{todayStats?.rating ?? '4.8'}</Text>
               <Ionicons name="star" size={16} color={COLORS.rating} />
             </View>
           </View>
@@ -269,22 +273,22 @@ export default function DeliveryHomeScreen({ navigation }) {
             <View>
               <Text style={styles.goalTitle}>Objectif quotidien</Text>
               <Text style={styles.goalSubtitle}>
-                Plus que {dailyGoal.target - dailyGoal.completed} courses !
+                Plus que {(dailyGoal?.target ?? 10) - (dailyGoal?.completed ?? 0)} courses !
               </Text>
             </View>
             <Text style={styles.goalProgress}>
-              {dailyGoal.completed}
-              <Text style={styles.goalTotal}>/{dailyGoal.target}</Text>
+              {dailyGoal?.completed ?? 0}
+              <Text style={styles.goalTotal}>/{dailyGoal?.target ?? 10}</Text>
             </Text>
           </View>
           <View style={styles.progressBarBg}>
             <View style={[styles.progressBarFill, { width: `${Math.min(progressPercent, 100)}%` }]} />
           </View>
-          {dailyGoal.completed >= dailyGoal.target && (
+          {(dailyGoal?.completed ?? 0) >= (dailyGoal?.target ?? 10) && (
             <View style={styles.bonusContainer}>
               <Ionicons name="gift" size={16} color={COLORS.success} />
               <Text style={styles.bonusText}>
-                Bonus de {dailyGoal.bonusAmount.toLocaleString()} FCFA débloqué !
+                Bonus de {(dailyGoal?.bonusAmount ?? 2000).toLocaleString()} FCFA débloqué !
               </Text>
             </View>
           )}
