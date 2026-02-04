@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
+import API_BASE_URL from '../../constants/api';
 import { restaurantAuth } from '../../api/auth';
 import Toast from 'react-native-toast-message';
 
@@ -74,7 +75,8 @@ export default function RegisterStep4Screen({ navigation, route }) {
       // D'abord tester la connexion au serveur
       console.log('🔍 Test connexion serveur...');
       try {
-        const testResponse = await fetch('http://192.168.1.8:5000/api/v1/health', {
+        const healthUrl = API_BASE_URL.replace('/api/v1', '') + '/health';
+        const testResponse = await fetch(healthUrl, {
           method: 'GET',
           timeout: 5000,
         });
@@ -83,7 +85,7 @@ export default function RegisterStep4Screen({ navigation, route }) {
         console.log('❌ Serveur inaccessible:', testError.message);
         Alert.alert(
           'Erreur de connexion',
-          'Impossible de joindre le serveur. Vérifiez que:\n\n1. Votre téléphone est sur le même WiFi\n2. Le backend est démarré\n3. L\'adresse IP est correcte (192.168.1.8)',
+          'Impossible de joindre le serveur. Vérifiez votre connexion internet ou que le backend est accessible.',
           [{ text: 'OK' }]
         );
         setLoading(false);

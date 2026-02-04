@@ -30,7 +30,7 @@ class SocketService {
       }
 
       // URL du serveur (enlever /api/v1)
-      const serverUrl = API_BASE_URL ? API_BASE_URL.replace('/api/v1', '') : 'http://192.168.1.8:5000';
+      const serverUrl = API_BASE_URL ? API_BASE_URL.replace('/api/v1', '') : 'https://baibebaloprojets.onrender.com';
       
       console.log('🔌 Connexion Socket.IO à:', serverUrl + '/partners');
 

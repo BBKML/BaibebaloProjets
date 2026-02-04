@@ -5,7 +5,7 @@ import * as Notifications from 'expo-notifications';
 import API_BASE_URL from '../constants/api';
 
 // URL du serveur Socket.IO (même base que l'API, sans /api/v1)
-const API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || (__DEV__ ? 'http://192.168.1.4:5000' : 'https://api.baibebalo.com');
+const API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || (__DEV__ ? 'http://192.168.1.4:5000' : 'https://baibebaloprojets.onrender.com');
 
 class SocketService {
   constructor() {

@@ -64,6 +64,16 @@ Les deux se connectent à votre dépôt GitHub et redéploient à chaque push.
 
 **Note Render free tier** : le service “s’endort” après ~15 min sans requête. La première requête après ça peut prendre 30–50 secondes (cold start). Pour des tests entre amis, c’est en général acceptable.
 
+#### Dépannage : `ENOTFOUND` sur le hostname de la base
+
+Si les logs affichent **`getaddrinfo ENOTFOUND dpg-xxxxx-a`** (hostname introuvable) :
+
+1. **Utiliser l'URL externe (External Database URL)** : Render → PostgreSQL → **Info** → copiez **External Database URL** (pas Internal). Le host doit être du type `dpg-xxxxx.region-postgres.render.com`. Remplacez `DATABASE_URL` dans le Web Service par cette URL, Save, puis redéployez.
+2. **Vérifier l'URL interne** : elle doit contenir un host complet (ex. `dpg-xxxxx-a.oregon-postgres.render.com`), pas seulement `dpg-xxxxx-a`.
+3. **Lier la base au Web Service** : page PostgreSQL → **Connect** → choisir le Web Service, puis redéployer.
+
+En général, **External Database URL** règle le problème.
+
 ---
 
 ### B. Admin sur Vercel (gratuit)

@@ -1,0 +1,39 @@
+# Build EAS Android (client) depuis Linux pour éviter l'erreur "tar exited with code 2" sous Windows
+# Déclenchement manuel : onglet Actions → EAS Build Client Android → Run workflow
+
+name: EAS Build Client Android
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: baibebalo-client-clean/package-lock.json
+
+      - name: Setup EAS
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies (client)
+        run: |
+          cd baibebalo-client-clean
+          npm ci
+
+      - name: EAS Build (Android preview)
+        run: |
+          cd baibebalo-client-clean
+          eas build --platform android --profile preview --non-interactive

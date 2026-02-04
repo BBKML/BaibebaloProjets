@@ -13,12 +13,12 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.baibebalo.ci/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://baibebaloprojets.onrender.com/api/v1"
       }
     },
     "production": {
       "env": {
-        "EXPO_PUBLIC_API_URL": "https://api.baibebalo.ci/api/v1"
+        "EXPO_PUBLIC_API_URL": "https://baibebaloprojets.onrender.com/api/v1"
       }
     }
   },

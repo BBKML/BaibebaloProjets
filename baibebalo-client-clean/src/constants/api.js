@@ -4,7 +4,7 @@ export const API_CONFIG = {
   // URL de base de l'API
   // Pour téléphone physique, utilisez l'IP de votre machine au lieu de localhost
   // Trouvez votre IP avec: ipconfig (Windows) ou ifconfig (Mac/Linux)
-  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.6:5000/api/v1',
+  BASE_URL: process.env.EXPO_PUBLIC_API_URL || 'https://baibebaloprojets.onrender.com/api/v1',
   
   // Timeout des requêtes
   TIMEOUT: 30000,

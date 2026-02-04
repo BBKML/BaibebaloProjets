@@ -1,0 +1,53 @@
+# Éviter l'échec "tar exited with non-zero code: 2" sur EAS (extraction Linux)
+# Exclure tout ce qui n'est pas nécessaire au build
+
+.git/
+.gitignore
+.expo/
+node_modules/
+android/
+ios/
+
+# Logs et debug
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+.metro-health-check*
+
+# Env (on utilise les variables EAS)
+.env
+.env.*
+!.env.example
+
+# Docs et tests (pas nécessaires au build)
+*.md
+__tests__/
+*.test.js
+*.spec.js
+App.test.js
+coverage/
+
+# Config éditeur / OS
+.vscode/
+.idea/
+.editorconfig
+.prettierrc*
+.eslintrc*
+.DS_Store
+Thumbs.db
+*.pem
+*.orig.*
+
+# Fichiers sensibles / clés
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+
+# Build / générés
+dist/
+web-build/
+expo-env.d.ts
+*.tsbuildinfo
