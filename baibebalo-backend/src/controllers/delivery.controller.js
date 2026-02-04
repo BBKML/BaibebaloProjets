@@ -78,7 +78,7 @@ exports.registerDeliveryPerson = async (req, res) => {
       },
     });
   } catch (error) {
-    logger.error('Erreur registerDeliveryPerson:', error);
+    logger.error('Erreur registerDeliveryPerson:', { message: error.message, stack: error.stack, code: error.code });
     res.status(500).json({
       success: false,
       error: {

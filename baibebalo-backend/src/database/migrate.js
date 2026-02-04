@@ -260,6 +260,9 @@ const migrations = [
   `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS vehicle_registration_front TEXT;`,
   `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS vehicle_registration_back TEXT;`,
 
+  // Livreur : authentification par OTP uniquement, pas de mot de passe requis
+  `ALTER TABLE delivery_persons ALTER COLUMN password_hash DROP NOT NULL;`,
+
   // ======================================
   // Migration 8: Table orders
   // ======================================
