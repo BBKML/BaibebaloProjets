@@ -17,6 +17,7 @@ import PropTypes from 'prop-types';
 import { COLORS } from '../../constants/colors';
 import useRestaurantStore from '../../store/restaurantStore';
 import { restaurantOrders } from '../../api/orders';
+import { getImageUrl } from '../../utils/url';
 import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
 
@@ -278,7 +279,7 @@ export default function OrdersScreen({ navigation }) {
 
           <View style={styles.orderBody}>
             {item.firstItemImage ? (
-              <Image source={{ uri: item.firstItemImage }} style={styles.orderImage} />
+              <Image source={{ uri: getImageUrl(item.firstItemImage) }} style={styles.orderImage} />
             ) : (
               <View style={[styles.orderImage, styles.orderImagePlaceholder]}>
                 <Ionicons name="fast-food-outline" size={24} color={COLORS.textLight} />

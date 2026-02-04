@@ -1,6 +1,18 @@
 const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const mapsService = require('../services/maps.service');
+const config = require('../config');
+
+/** Base URL publique de l'API (pour les images). Priorité : config, puis en-têtes proxy, puis req. */
+const getPublicBaseUrl = (req) => {
+  const fromConfig = config.urls?.apiBase || config.urls?.api;
+  if (fromConfig && !fromConfig.includes('localhost')) {
+    return fromConfig.replace(/\/api\/v\d+\/?$/i, '').replace(/\/+$/, '');
+  }
+  const host = req.get('x-forwarded-host') || req.get('host') || `localhost:${config.port || 5000}`;
+  const protocol = (req.get('x-forwarded-proto') || req.protocol || 'http').toLowerCase();
+  return `${protocol === 'https' ? 'https' : 'http'}://${host}`.replace(/\/+$/, '');
+};
 
 const hasTicketMessagesColumn = async (runner, columnName) => {
   const execute = typeof runner === 'function' ? runner : runner.query.bind(runner);
@@ -20,7 +32,7 @@ const hasTicketMessagesColumn = async (runner, columnName) => {
  */
 exports.getProfile = async (req, res) => {
   try {
-    const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+    const requestBaseUrl = getPublicBaseUrl(req);
     const normalizeUploadsPath = (path) => {
       if (!path) return path;
       return path.replace(/\/api\/v\d+(?=\/uploads)/i, '');
@@ -323,8 +335,7 @@ exports.uploadProfilePicture = async (req, res) => {
     }
 
     const { uploadService } = require('../services/upload.service');
-    const config = require('../config');
-    const requestBaseUrl = `${req.protocol}://${req.get('host')}`;
+    const requestBaseUrl = getPublicBaseUrl(req);
     const normalizeLocalUrl = (url) => {
       if (!url) return url;
       try {

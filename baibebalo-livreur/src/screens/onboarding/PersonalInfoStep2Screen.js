@@ -17,6 +17,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
+import { getImageUrl } from '../../utils/url';
 
 export default function PersonalInfoStep2Screen({ navigation }) {
   const { updateRegistrationData, registrationData } = useAuthStore();
@@ -150,7 +151,7 @@ export default function PersonalInfoStep2Screen({ navigation }) {
         <View style={styles.photoSection}>
           <TouchableOpacity style={styles.photoContainer} onPress={showImageOptions}>
             {profilePhoto ? (
-              <Image source={{ uri: profilePhoto }} style={styles.profileImage} />
+              <Image source={{ uri: getImageUrl(profilePhoto) || profilePhoto }} style={styles.profileImage} />
             ) : (
               <View style={styles.photoPlaceholder}>
                 <Ionicons name="camera" size={40} color={COLORS.primary} />

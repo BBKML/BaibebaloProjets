@@ -33,6 +33,9 @@ require('./jobs/cron');
 const app = express();
 const server = http.createServer(app);
 
+// Derrière un reverse proxy (Render, etc.) : utiliser X-Forwarded-Proto / Host pour les URLs publiques
+app.set('trust proxy', 1);
+
 // Configuration Socket.IO pour le temps réel
 const io = socketIo(server, {
   cors: {

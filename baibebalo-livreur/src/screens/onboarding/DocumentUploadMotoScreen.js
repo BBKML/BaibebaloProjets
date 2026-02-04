@@ -18,6 +18,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
+import { getImageUrl } from '../../utils/url';
 
 const documents = [
   { id: 'cni_recto', label: 'CNI / Passeport - Recto', icon: 'card-outline' },
@@ -204,7 +205,7 @@ export default function DocumentUploadMotoScreen({ navigation }) {
             >
               {uploadedDocs[doc.id] ? (
                 <Image 
-                  source={{ uri: uploadedDocs[doc.id] }} 
+                  source={{ uri: getImageUrl(uploadedDocs[doc.id]) || uploadedDocs[doc.id] }} 
                   style={styles.documentThumbnail}
                 />
               ) : (

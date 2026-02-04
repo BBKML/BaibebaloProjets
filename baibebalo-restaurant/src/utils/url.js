@@ -1,7 +1,11 @@
-import { API_CONFIG } from '../constants/api';
+/**
+ * Normalisation des URLs d'images (uploads) pour les afficher avec la bonne origine API.
+ * Utilisé pour logo, bannière, photos restaurant, photos menu, première image commande, etc.
+ */
+import API_BASE_URL from '../constants/api';
 
 const getApiOrigin = () => {
-  const base = API_CONFIG.BASE_URL || '';
+  const base = API_BASE_URL || '';
   const match = base.match(/^(https?:\/\/[^/]+)/i);
   if (match?.[1]) {
     return match[1];

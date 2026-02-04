@@ -18,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import { getProfile, updateProfile } from '../../api/delivery';
+import { getImageUrl } from '../../utils/url';
 import apiClient from '../../api/client';
 
 export default function EditProfileScreen({ navigation }) {
@@ -227,7 +228,7 @@ export default function EditProfileScreen({ navigation }) {
             {uploadingPhoto ? (
               <ActivityIndicator size="large" color={COLORS.primary} />
             ) : profilePhoto ? (
-              <Image source={{ uri: profilePhoto }} style={styles.photo} />
+              <Image source={{ uri: getImageUrl(profilePhoto) || profilePhoto }} style={styles.photo} />
             ) : (
               <Ionicons name="person" size={48} color={COLORS.primary} />
             )}

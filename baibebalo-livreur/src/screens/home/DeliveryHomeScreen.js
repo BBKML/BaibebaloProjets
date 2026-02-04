@@ -18,6 +18,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
 import { COLORS } from '../../constants/colors';
+import { getImageUrl } from '../../utils/url';
 import useAuthStore from '../../store/authStore';
 import useDeliveryStore from '../../store/deliveryStore';
 import socketService from '../../services/socketService';
@@ -190,7 +191,7 @@ export default function DeliveryHomeScreen({ navigation }) {
           <View style={styles.profileSection}>
             <View style={styles.avatarContainer}>
               {user?.profile_photo ? (
-                <Image source={{ uri: user.profile_photo }} style={styles.avatar} />
+                <Image source={{ uri: getImageUrl(user.profile_photo) }} style={styles.avatar} />
               ) : (
                 <View style={styles.avatarPlaceholder}>
                   <Ionicons name="person" size={20} color={COLORS.primary} />

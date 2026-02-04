@@ -12,6 +12,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { getImageUrl } from '../../utils/url';
 import useAuthStore from '../../store/authStore';
 
 export default function SettingsScreen({ navigation }) {
@@ -93,7 +94,7 @@ export default function SettingsScreen({ navigation }) {
         >
           <View style={styles.profileAvatar}>
             {user?.profile_photo ? (
-              <Image source={{ uri: user.profile_photo }} style={styles.avatar} />
+              <Image source={{ uri: getImageUrl(user.profile_photo) }} style={styles.avatar} />
             ) : (
               <Ionicons name="person" size={32} color={COLORS.primary} />
             )}

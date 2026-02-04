@@ -11,6 +11,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
+import { getImageUrl } from '../../utils/url';
 
 export default function WelcomeActivatedScreen({ navigation }) {
   const { user, setIsActivated } = useAuthStore();
@@ -36,7 +37,7 @@ export default function WelcomeActivatedScreen({ navigation }) {
         {/* Avatar */}
         <View style={styles.avatarContainer}>
           {user?.profile_photo ? (
-            <Image source={{ uri: user.profile_photo }} style={styles.avatar} />
+            <Image source={{ uri: getImageUrl(user.profile_photo) }} style={styles.avatar} />
           ) : (
             <View style={styles.avatarPlaceholder}>
               <Ionicons name="person" size={48} color={COLORS.primary} />

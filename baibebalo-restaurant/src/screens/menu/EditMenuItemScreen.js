@@ -19,6 +19,7 @@ import { COLORS } from '../../constants/colors';
 import { restaurantMenu } from '../../api/menu';
 import useRestaurantStore from '../../store/restaurantStore';
 import { Picker } from '@react-native-picker/picker';
+import { getImageUrl } from '../../utils/url';
 
 const PREPARATION_TIMES = [10, 15, 20, 30, 45, 60];
 
@@ -57,8 +58,8 @@ export default function EditMenuItemScreen({ navigation, route }) {
           description: item.description || '',
           price: item.price?.toString() || '',
           preparationTime: item.preparation_time || item.preparationTime || 20,
-          mainImage: (item.photo || item.image_url) ? { uri: item.photo || item.image_url } : null,
-          additionalImages: item.additional_images?.map((img) => ({ uri: img })) || [],
+          mainImage: (item.photo || item.image_url) ? { uri: getImageUrl(item.photo || item.image_url) } : null,
+          additionalImages: item.additional_images?.map((img) => ({ uri: getImageUrl(img) })) || [],
           stockStatus: item.stock_quantity === 0 
             ? 'out_of_stock' 
             : (item.stock_quantity ? 'limited' : 'in_stock'),
@@ -377,7 +378,7 @@ export default function EditMenuItemScreen({ navigation, route }) {
           <Text style={styles.label}>Photo principale</Text>
           {formData.mainImage ? (
             <View style={styles.imagePreview}>
-              <Image source={formData.mainImage} style={styles.image} />
+              <Image source={{ uri: getImageUrl(formData.mainImage?.uri) || formData.mainImage?.uri }} style={styles.image} />
               <TouchableOpacity
                 style={styles.removeImageButton}
                 onPress={() => removeImage('main')}
@@ -401,7 +402,7 @@ export default function EditMenuItemScreen({ navigation, route }) {
           <View style={styles.additionalImagesContainer}>
             {formData.additionalImages.map((image, index) => (
               <View key={`additional-image-${image.uri || index}`} style={styles.additionalImagePreview}>
-                <Image source={image} style={styles.additionalImage} />
+                <Image source={{ uri: getImageUrl(image?.uri) || image?.uri }} style={styles.additionalImage} />
                 <TouchableOpacity
                   style={styles.removeImageButton}
                   onPress={() => removeImage(index)}

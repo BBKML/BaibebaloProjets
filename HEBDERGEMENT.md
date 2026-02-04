@@ -60,7 +60,7 @@ Les deux se connectent à votre dépôt GitHub et redéploient à chaque push.
 6. **Récupérer l’URL de l’API**  
    En haut de la page du service : **URL** (ex. `https://baibebalo-api-xxxx.onrender.com`).  
    - Ouvrez `https://votre-url.onrender.com/health` dans le navigateur : vous devez voir `{"success":true,...}`.  
-   - **Important** : mettez cette URL dans `API_BASE_URL` dans les variables d’environnement du Web Service, puis **Save Changes** (et redéploiement si besoin).
+   - **Important** : mettez cette URL dans `API_BASE_URL` dans les variables d’environnement du Web Service, puis **Save Changes** (et redéploiement si besoin). Cette variable sert aussi à renvoyer les URLs des photos de profil aux apps (sans elle, les photos peuvent s'afficher dans l'admin mais pas dans l'app client).
 
 **Note Render free tier** : le service “s’endort” après ~15 min sans requête. La première requête après ça peut prendre 30–50 secondes (cold start). Pour des tests entre amis, c’est en général acceptable.
 

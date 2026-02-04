@@ -19,6 +19,7 @@ import { COLORS } from '../../constants/colors';
 import { restaurantMenu } from '../../api/menu';
 import useRestaurantStore from '../../store/restaurantStore';
 import { Picker } from '@react-native-picker/picker';
+import { getImageUrl } from '../../utils/url';
 
 const PREPARATION_TIMES = [10, 15, 20, 30, 45, 60];
 
@@ -279,7 +280,7 @@ export default function AddMenuItemScreen({ navigation, route }) {
           <Text style={styles.label}>Photo principale *</Text>
           {formData.mainImage ? (
             <View style={styles.imagePreview}>
-              <Image source={{ uri: formData.mainImage.uri }} style={styles.image} />
+              <Image source={{ uri: getImageUrl(formData.mainImage.uri) || formData.mainImage.uri }} style={styles.image} />
               <TouchableOpacity
                 style={styles.removeImageButton}
                 onPress={() => removeImage('main')}
@@ -304,7 +305,7 @@ export default function AddMenuItemScreen({ navigation, route }) {
           <View style={styles.additionalImagesContainer}>
             {formData.additionalImages.map((image, index) => (
               <View key={`additional-image-${image.uri || index}`} style={styles.additionalImagePreview}>
-                <Image source={{ uri: image.uri }} style={styles.additionalImage} />
+                <Image source={{ uri: getImageUrl(image.uri) || image.uri }} style={styles.additionalImage} />
                 <TouchableOpacity
                   style={styles.removeImageButton}
                   onPress={() => removeImage(index)}

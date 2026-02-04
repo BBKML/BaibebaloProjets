@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import { getProfile, updateProfile } from '../../api/delivery';
+import { getImageUrl } from '../../utils/url';
 import apiClient from '../../api/client';
 
 const DOCUMENTS = [
@@ -163,7 +164,7 @@ export default function UpdateDocumentsScreen({ navigation }) {
             >
               <View style={styles.documentLeft}>
                 {hasDocument && doc.id === 'profile_photo' ? (
-                  <Image source={{ uri: documents[doc.id] }} style={styles.documentPreview} />
+                  <Image source={{ uri: getImageUrl(documents[doc.id]) }} style={styles.documentPreview} />
                 ) : (
                   <View style={[styles.documentIcon, hasDocument && styles.documentIconSuccess]}>
                     <Ionicons 

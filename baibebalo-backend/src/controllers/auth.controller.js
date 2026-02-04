@@ -40,23 +40,26 @@ class AuthController {
         logger.warn('Échec envoi SMS OTP', { error: smsError.message });
       }
 
-      // En mode développement, on continue même si le SMS échoue
+      // En mode développement ou si SMS_PROVIDER=dev (sans Twilio), on continue même si le SMS n'est pas envoyé
       const isDev = process.env.NODE_ENV === 'development';
-      
-      if (!smsOk && !isDev) {
+      const smsProviderDev = process.env.SMS_PROVIDER === 'dev';
+      if (!smsOk && !isDev && !smsProviderDev) {
         throw new Error('Échec envoi OTP par SMS');
       }
 
+      // Pour les tests sans Twilio : renvoyer l'OTP dans la réponse si demandé (Render, etc.)
+      const allowOtpInResponse = isDev || process.env.DEBUG_OTP_RESPONSE === 'true';
+
       res.json({
         success: true,
-        message: smsOk ? 'Code OTP envoyé par SMS' : 'Code OTP généré (mode dev - voir logs)',
+        message: smsOk ? 'Code OTP envoyé par SMS' : 'Code OTP généré (voir logs ou réponse si DEBUG_OTP_RESPONSE activé)',
         data: {
           channels: {
             sms: smsOk,
             whatsapp: false,
           },
-          // En dev, on renvoie le code pour faciliter les tests
-          ...(isDev && { debug_otp: code }),
+          // En dev ou si DEBUG_OTP_RESPONSE=true (tests sans Twilio), renvoyer le code
+          ...(allowOtpInResponse && { debug_otp: code }),
         },
       });
     } catch (error) {

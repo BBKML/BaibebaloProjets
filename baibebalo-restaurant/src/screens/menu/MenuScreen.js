@@ -15,6 +15,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
 import useRestaurantStore from '../../store/restaurantStore';
+import { getImageUrl } from '../../utils/url';
 import { restaurantMenu } from '../../api/menu';
 
 export default function MenuScreen({ navigation, route }) {
@@ -202,7 +203,7 @@ export default function MenuScreen({ navigation, route }) {
                             <View style={styles.menuItemImageContainer}>
                               {item.photo || item.image_url || item.image ? (
                                 <Image 
-                                  source={{ uri: item.photo || item.image_url || item.image }} 
+                                  source={{ uri: getImageUrl(item.photo || item.image_url || item.image) }} 
                                   style={styles.menuItemImage}
                                   resizeMode="cover"
                                 />

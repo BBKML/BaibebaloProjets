@@ -18,6 +18,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import { restaurantApi } from '../../api/restaurant';
 import useAuthStore from '../../store/authStore';
+import { getImageUrl } from '../../utils/url';
 
 export default function EditRestaurantProfileScreen({ navigation }) {
   const { restaurant, updateRestaurant } = useAuthStore();
@@ -494,7 +495,7 @@ export default function EditRestaurantProfileScreen({ navigation }) {
           <Text style={styles.label}>Logo du restaurant</Text>
           <TouchableOpacity style={styles.imagePicker} onPress={() => pickImage('logo')}>
             {logo && logo.uri ? (
-              <Image source={{ uri: logo.uri }} style={styles.imagePreview} />
+              <Image source={{ uri: logo.isExisting ? getImageUrl(logo.uri) : logo.uri }} style={styles.imagePreview} />
             ) : (
               <View style={styles.imagePlaceholder}>
                 <Ionicons name="camera" size={32} color={COLORS.textSecondary} />
@@ -512,7 +513,7 @@ export default function EditRestaurantProfileScreen({ navigation }) {
           <Text style={styles.label}>Photo de bannière</Text>
           <TouchableOpacity style={styles.bannerPicker} onPress={() => pickImage('banner')}>
             {banner && banner.uri ? (
-              <Image source={{ uri: banner.uri }} style={styles.bannerPreview} />
+              <Image source={{ uri: banner.isExisting ? getImageUrl(banner.uri) : banner.uri }} style={styles.bannerPreview} />
             ) : (
               <View style={styles.bannerPlaceholder}>
                 <Ionicons name="image" size={32} color={COLORS.textSecondary} />
@@ -536,7 +537,7 @@ export default function EditRestaurantProfileScreen({ navigation }) {
             <View style={styles.photosGrid}>
               {photos.map((photo, index) => (
                 <View key={`photo-${photo.uri || photo.name || index}`} style={styles.photoItem}>
-                  <Image source={{ uri: photo.uri || photo }} style={styles.photoPreview} />
+                  <Image source={{ uri: (photo.isExisting ? getImageUrl(photo.uri || photo) : (photo.uri || photo)) }} style={styles.photoPreview} />
                   <TouchableOpacity
                     style={styles.removePhotoButton}
                     onPress={() => removePhoto(index)}
