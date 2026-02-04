@@ -1402,19 +1402,25 @@ exports.updateMenuItem = async (req, res) => {
       }
     }
     
-    // Gérer les autres champs
+    // Options / customization_options : la table menu_items n'a que la colonne "options"
+    const optionsValue = req.body.options ?? req.body.customization_options;
+    if (optionsValue !== undefined && optionsValue !== '' && optionsValue !== null && optionsValue !== 'null' && optionsValue !== 'undefined') {
+      const hasOptions = updates.some(u => u.startsWith('options ='));
+      if (!hasOptions) {
+        updates.push(`options = $${paramIndex++}`);
+        values.push(typeof optionsValue === 'string' ? optionsValue : JSON.stringify(optionsValue));
+      }
+    }
+
+    // Gérer les autres champs (sauf options/customization_options déjà traité)
     Object.keys(req.body).forEach(key => {
-      if (allowedFields.includes(key) && key !== 'photo') { // photo géré ci-dessus
+      if (allowedFields.includes(key) && key !== 'photo' && key !== 'options' && key !== 'customization_options') {
         const value = req.body[key];
         // Ignorer les valeurs vides/null pour ne pas écraser
         if (value === '' || value === null || value === undefined || value === 'null' || value === 'undefined') {
           return;
         }
-        if (key === 'options' || key === 'customization_options') {
-          updates.push(`${key} = $${paramIndex++}`);
-          // Pour JSONB, on doit passer un objet ou un string JSON valide
-          values.push(typeof value === 'string' ? value : JSON.stringify(value));
-        } else if (key === 'tags' && typeof value === 'string') {
+        if (key === 'tags' && typeof value === 'string') {
           updates.push(`${key} = $${paramIndex++}`);
           try {
             values.push(JSON.parse(value));
@@ -1487,7 +1493,7 @@ exports.updateMenuItem = async (req, res) => {
       data: { item: result.rows[0], menu_item: result.rows[0] },
     });
   } catch (error) {
-    logger.error('Erreur updateMenuItem:', error);
+    logger.error('Erreur updateMenuItem:', { message: error.message, code: error.code, stack: error.stack });
     res.status(500).json({
       success: false,
       error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' },
