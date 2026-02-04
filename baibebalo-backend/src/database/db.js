@@ -3,19 +3,30 @@ const config = require('../config');
 const logger = require('../utils/logger');
 
 // Créer le pool de connexions
-const pool = new Pool({
-  host: config.database.host,
-  port: config.database.port,
-  database: config.database.name,
-  user: config.database.user,
-  password: config.database.password,
-  max: config.database.max,
-  idleTimeoutMillis: config.database.idleTimeoutMillis,
-  connectionTimeoutMillis: config.database.connectionTimeoutMillis,
-  // Paramètres supplémentaires pour la production
-  ssl: config.env === 'production' ? { rejectUnauthorized: false } : false,
-  application_name: 'baibebalo-api',
-});
+// Si DATABASE_URL est défini (Render, Railway, etc.), l'utiliser en priorité
+const poolConfig = config.database.connectionString
+  ? {
+      connectionString: config.database.connectionString,
+      max: config.database.max,
+      idleTimeoutMillis: config.database.idleTimeoutMillis,
+      connectionTimeoutMillis: config.database.connectionTimeoutMillis,
+      ssl: config.env === 'production' ? { rejectUnauthorized: false } : false,
+      application_name: 'baibebalo-api',
+    }
+  : {
+      host: config.database.host,
+      port: config.database.port,
+      database: config.database.name,
+      user: config.database.user,
+      password: config.database.password,
+      max: config.database.max,
+      idleTimeoutMillis: config.database.idleTimeoutMillis,
+      connectionTimeoutMillis: config.database.connectionTimeoutMillis,
+      ssl: config.env === 'production' ? { rejectUnauthorized: false } : false,
+      application_name: 'baibebalo-api',
+    };
+
+const pool = new Pool(poolConfig);
 
 // Gestion des événements
 pool.on('connect', () => {
@@ -221,9 +232,14 @@ const testConnection = async (maxRetries = 5) => {
     } catch (error) {
       logger.error(`❌ Échec connexion PostgreSQL (tentative ${attempt}/${maxRetries})`, {
         error: error.message,
+        code: error.code,
         database: config.database.name,
         host: config.database.host,
       });
+      // Afficher en console pour Render / hébergeurs (en prod le logger ne sort pas en console)
+      if (process.env.NODE_ENV === 'production') {
+        console.error(`[DB] Connexion échouée (${attempt}/${maxRetries}):`, error.message, error.code || '');
+      }
 
       if (attempt === maxRetries) {
         return false;

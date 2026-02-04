@@ -15,6 +15,7 @@
     "admin:test": "node src/scripts/test-admin-login.js",
     "test": "jest --coverage",
     "test:watch": "jest --watch",
+    "test:smoke": "node scripts/smoke-test.js",
     "test:admin": "node test-admin-endpoints.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
@@ -97,8 +98,11 @@
   },
   "jest": {
     "testEnvironment": "node",
+    "testPathIgnorePatterns": ["/node_modules/", "/outputs/"],
+    "modulePathIgnorePatterns": ["<rootDir>/outputs"],
     "coveragePathIgnorePatterns": [
-      "/node_modules/"
+      "/node_modules/",
+      "/outputs/"
     ],
     "testMatch": [
       "**/__tests__/**/*.js",

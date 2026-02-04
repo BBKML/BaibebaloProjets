@@ -1,9 +1,8 @@
 // Configuration API
-// IMPORTANT: Mettez à jour cette URL avec votre IP locale pour le développement
-// Pour trouver votre IP: ipconfig (Windows) ou ifconfig (Mac/Linux)
-const API_BASE_URL = __DEV__ 
-  ? 'http://192.168.1.8:5000/api/v1' // ⚠️ IP mise à jour - votre IP locale actuelle
-  : 'https://api.baibebalo.com/api/v1';
+// En dev : EXPO_PUBLIC_API_URL dans .env, ou IP locale (téléphone = même WiFi)
+// En prod : EXPO_PUBLIC_API_URL au build (EAS) ou défaut ci-dessous
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
+  || (__DEV__ ? 'http://192.168.1.8:5000/api/v1' : 'https://api.baibebalo.com/api/v1');
 
 export const API_ENDPOINTS = {
   // Authentification

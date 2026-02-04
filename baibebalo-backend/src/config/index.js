@@ -20,13 +20,15 @@ const config = {
   // ================================
   // BASE DE DONNÉES
   // ================================
+  // DATABASE_URL : prioritaire (Render, Railway, etc.) — ex. postgresql://user:pass@host/dbname
   database: {
+    connectionString: process.env.DATABASE_URL || null,
     host: process.env.DB_HOST || 'localhost',
     port: parseInt(process.env.DB_PORT, 10) || 5432,
     name: process.env.DB_NAME || 'baibebalo',
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
-    ssl: process.env.DB_SSL === 'true',
+    ssl: process.env.DB_SSL === 'true' || (process.env.DATABASE_URL && process.env.NODE_ENV === 'production'),
     max: parseInt(process.env.DB_POOL_MAX, 10) || 20, // Taille max du pool
     idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT, 10) || 30000,
     connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 2000,

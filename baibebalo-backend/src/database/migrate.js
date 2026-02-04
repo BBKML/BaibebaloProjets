@@ -1088,10 +1088,19 @@ const countRecords = async (tableName) => {
 // Fonction pour exécuter les migrations
 const runMigrations = async () => {
   try {
+    // En production (ex. Render), DATABASE_URL doit être défini
+    if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) {
+      const msg = 'DATABASE_URL manquant. Définissez-la dans les variables d\'environnement (ex. Render → Environment).';
+      logger.error(msg);
+      console.error('[MIGRATE]', msg);
+      throw new Error(msg);
+    }
+
     logger.info('════════════════════════════════════════');
     logger.info('  DÉMARRAGE DES MIGRATIONS BAIBEBALO');
     logger.info('════════════════════════════════════════');
-    
+    console.log('[MIGRATE] Démarrage des migrations...');
+
     // Vérifier la connexion
     const isConnected = await require('./db').testConnection();
     if (!isConnected) {
@@ -1250,7 +1259,11 @@ if (require.main === module) {
         process.exit(0);
       })
       .catch((error) => {
-        logger.error('Échec des migrations', { error: error.message });
+        logger.error('Échec des migrations', { error: error.message, stack: error.stack });
+        // Afficher aussi sur la console pour que Render / hébergeurs affichent l'erreur
+        console.error('[MIGRATE] Échec:', error.message);
+        if (error.stack) console.error(error.stack);
+        if (error.code) console.error('[MIGRATE] Code:', error.code);
         process.exit(1);
       });
   }
