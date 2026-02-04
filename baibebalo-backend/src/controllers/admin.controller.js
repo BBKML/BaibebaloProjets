@@ -2173,10 +2173,10 @@ exports.getRestaurantStatistics = async (req, res) => {
       ORDER BY day DESC
     `, [id]);
 
-    // Top plats
+    // Top plats (order_items a "name", pas "menu_item_name")
     const topDishesResult = await query(`
       SELECT 
-        oi.menu_item_name as name,
+        COALESCE(oi.name, (oi.menu_item_snapshot->>'name'), 'Plat') as name,
         COUNT(oi.id) as orders_count,
         COALESCE(SUM(oi.quantity * oi.unit_price), 0) as total_revenue
       FROM order_items oi
@@ -2184,7 +2184,7 @@ exports.getRestaurantStatistics = async (req, res) => {
       WHERE o.restaurant_id = $1 
         AND o.status = 'delivered' 
         AND o.placed_at >= NOW() - INTERVAL '${interval}'
-      GROUP BY oi.menu_item_name
+      GROUP BY COALESCE(oi.name, (oi.menu_item_snapshot->>'name'), 'Plat')
       ORDER BY orders_count DESC
       LIMIT 5
     `, [id]);
