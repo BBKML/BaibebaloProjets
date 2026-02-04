@@ -2203,20 +2203,20 @@ exports.getRestaurantStatistics = async (req, res) => {
       ORDER BY day_of_week, hour
     `, [id]);
 
-    // Avis récents
+    // Avis récents (table reviews, pas orders)
     const reviewsResult = await query(`
       SELECT 
-        COUNT(o.id) as total_reviews,
-        COALESCE(AVG(o.restaurant_rating), 0) as avg_rating,
-        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 5) as five_star,
-        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 4) as four_star,
-        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 3) as three_star,
-        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 2) as two_star,
-        COUNT(o.id) FILTER (WHERE o.restaurant_rating = 1) as one_star
-      FROM orders o
-      WHERE o.restaurant_id = $1 
-        AND o.restaurant_rating IS NOT NULL
-        AND o.placed_at >= NOW() - INTERVAL '${interval}'
+        COUNT(r.id) as total_reviews,
+        COALESCE(AVG(r.restaurant_rating), 0) as avg_rating,
+        COUNT(r.id) FILTER (WHERE r.restaurant_rating = 5) as five_star,
+        COUNT(r.id) FILTER (WHERE r.restaurant_rating = 4) as four_star,
+        COUNT(r.id) FILTER (WHERE r.restaurant_rating = 3) as three_star,
+        COUNT(r.id) FILTER (WHERE r.restaurant_rating = 2) as two_star,
+        COUNT(r.id) FILTER (WHERE r.restaurant_rating = 1) as one_star
+      FROM reviews r
+      WHERE r.restaurant_id = $1 
+        AND r.restaurant_rating IS NOT NULL
+        AND r.created_at >= NOW() - INTERVAL '${interval}'
     `, [id]);
 
     // Comparaison avec le mois précédent
@@ -2230,8 +2230,8 @@ exports.getRestaurantStatistics = async (req, res) => {
         AND o.placed_at < NOW() - INTERVAL '30 days'
     `, [id]);
 
-    const kpis = kpisResult.rows[0];
-    const prevPeriod = previousPeriodResult.rows[0];
+    const kpis = kpisResult.rows[0] || {};
+    const prevPeriod = previousPeriodResult.rows[0] || {};
 
     // Calculer les tendances
     const currentRevenue = parseFloat(kpis.total_revenue) || 0;
@@ -2294,16 +2294,19 @@ exports.getRestaurantStatistics = async (req, res) => {
         })),
         top_dishes: topDishes,
         heatmap,
-        reviews: {
-          total: parseInt(reviewsResult.rows[0].total_reviews) || 0,
-          avg_rating: parseFloat(reviewsResult.rows[0].avg_rating) || 0,
+        reviews: (() => {
+          const r0 = reviewsResult.rows[0];
+          const total = parseInt(r0?.total_reviews) || 0;
+          const avgRating = parseFloat(r0?.avg_rating) || 0;
+          const fiveStar = parseInt(r0?.five_star) || 0;
+          const fourStar = parseInt(r0?.four_star) || 0;
+          const threeStar = parseInt(r0?.three_star) || 0;
+          const twoStar = parseInt(r0?.two_star) || 0;
+          const oneStar = parseInt(r0?.one_star) || 0;
+          return {
+          total,
+          avg_rating: avgRating,
           distribution: (() => {
-            const total = parseInt(reviewsResult.rows[0].total_reviews) || 0;
-            const fiveStar = parseInt(reviewsResult.rows[0].five_star) || 0;
-            const fourStar = parseInt(reviewsResult.rows[0].four_star) || 0;
-            const threeStar = parseInt(reviewsResult.rows[0].three_star) || 0;
-            const twoStar = parseInt(reviewsResult.rows[0].two_star) || 0;
-            const oneStar = parseInt(reviewsResult.rows[0].one_star) || 0;
             
             return {
               5: { count: fiveStar, percent: total > 0 ? Math.round((fiveStar / total) * 100) : 0 },
@@ -2313,11 +2316,12 @@ exports.getRestaurantStatistics = async (req, res) => {
               1: { count: oneStar, percent: total > 0 ? Math.round((oneStar / total) * 100) : 0 },
             };
           })(),
-        },
+        };
+        })(),
       },
     });
   } catch (error) {
-    logger.error('Erreur getRestaurantStatistics:', error);
+    logger.error('Erreur getRestaurantStatistics:', { message: error.message, code: error.code, stack: error.stack });
     res.status(500).json({
       success: false,
       error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des statistiques' },
