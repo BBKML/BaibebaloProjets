@@ -2,10 +2,13 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_BASE_URL from '../constants/api';
 
-// Créer une instance axios
+// Timeout plus long en production (Render cold start peut prendre 30–60 s)
+const isProduction = typeof API_BASE_URL === 'string' && API_BASE_URL.includes('render.com');
+const requestTimeout = isProduction ? 60000 : 30000;
+
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: requestTimeout,
   headers: {
     'Content-Type': 'application/json',
     'Cache-Control': 'no-cache',
@@ -40,23 +43,26 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Intercepteur pour gérer les réponses et erreurs
+// Intercepteur pour gérer les réponses et erreurs (éviter crash APK)
 apiClient.interceptors.response.use(
   (response) => {
-    console.log(`[API] ✓ ${response.config.url} - ${response.status}`);
+    console.log(`[API] ✓ ${response.config?.url} - ${response.status}`);
     return response;
   },
   async (error) => {
-    console.log(`[API] ✗ ${error.config?.url} - ${error.response?.status || 'Network Error'}`);
-    
-    if (error.response?.status === 401) {
-      // Token expiré - déconnecter
-      console.log('[API] Token expiré, déconnexion...');
-      await AsyncStorage.removeItem('delivery_token');
-      await AsyncStorage.removeItem('delivery_user');
-      // Le store gérera la redirection
+    const url = error.config?.url || '';
+    const status = error.response?.status;
+    const msg = error.code === 'ECONNABORTED' ? 'Timeout' : status || error.message || 'Network Error';
+    console.warn(`[API] ✗ ${url} - ${msg}`);
+    if (status === 401) {
+      try {
+        await AsyncStorage.removeItem('delivery_token');
+        await AsyncStorage.removeItem('delivery_user');
+      } catch (e) {
+        console.warn('[API] AsyncStorage clear error:', e?.message);
+      }
     }
-    return Promise.reject(error);
+    throw error;
   }
 );
 

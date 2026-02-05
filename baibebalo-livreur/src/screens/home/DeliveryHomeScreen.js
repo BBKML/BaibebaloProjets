@@ -66,6 +66,7 @@ export default function DeliveryHomeScreen({ navigation }) {
     unreadNotifications,
     loadDashboardData,
     isLoading,
+    error: dashboardError,
   } = useDeliveryStore();
   
   const mapRef = useRef(null);
@@ -78,13 +79,23 @@ export default function DeliveryHomeScreen({ navigation }) {
   // Retarder l’affichage de la carte pour que le reste de l’écran s’affiche d’abord (évite crash APK sur certains appareils)
   const [showMap, setShowMap] = useState(false);
 
-  // Charger les données et connecter au Socket au montage
+  // Charger les données et connecter au Socket au montage (try/catch pour éviter crash APK)
   useEffect(() => {
-    loadDashboardData();
-
-    // Afficher la carte après un court délai pour que stats / toggle soient visibles même si la carte plante
+    let cancelled = false;
+    (async () => {
+      try {
+        await loadDashboardData();
+      } catch (e) {
+        if (!cancelled) {
+          console.warn('[Home] loadDashboardData error:', e?.message || e);
+        }
+      }
+    })();
     const mapTimer = setTimeout(() => setShowMap(true), 1500);
-    return () => clearTimeout(mapTimer);
+    return () => {
+      cancelled = true;
+      clearTimeout(mapTimer);
+    };
   }, []);
 
   useEffect(() => {
@@ -149,7 +160,11 @@ export default function DeliveryHomeScreen({ navigation }) {
   // Rafraîchir les données
   const handleRefresh = async () => {
     setRefreshing(true);
-    await loadDashboardData();
+    try {
+      await loadDashboardData();
+    } catch (e) {
+      console.warn('[Home] refresh error:', e?.message || e);
+    }
     setRefreshing(false);
   };
 
@@ -173,8 +188,11 @@ export default function DeliveryHomeScreen({ navigation }) {
     }, 500);
   };
 
-  // Afficher le loading au premier chargement
-  if (isLoading && !refreshing && todayStats.earnings === 0) {
+  // Afficher le loading au premier chargement (accès sécurisé pour éviter crash APK)
+  const showInitialLoading = Boolean(
+    isLoading && !refreshing && (todayStats?.earnings ?? 0) === 0 && !dashboardError
+  );
+  if (showInitialLoading) {
     return (
       <SafeAreaView style={styles.container}>
         <StatusBar barStyle="dark-content" />
@@ -203,6 +221,17 @@ export default function DeliveryHomeScreen({ navigation }) {
           />
         }
       >
+        {/* Bandeau erreur réseau / API (évite crash, invite à réessayer) */}
+        {dashboardError ? (
+          <View style={styles.errorBanner}>
+            <Ionicons name="warning-outline" size={20} color={COLORS.white} />
+            <Text style={styles.errorBannerText}>
+              {dashboardError}
+            </Text>
+            <Text style={styles.errorBannerHint}>Tirez pour réessayer</Text>
+          </View>
+        ) : null}
+
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.profileSection}>
@@ -935,5 +964,30 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 14,
     color: COLORS.textSecondary,
+  },
+  errorBanner: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.error || '#c62828',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    marginHorizontal: 16,
+    marginTop: 8,
+    borderRadius: 8,
+    gap: 6,
+  },
+  errorBannerText: {
+    color: COLORS.white,
+    fontSize: 13,
+    fontWeight: '600',
+    flex: 1,
+  },
+  errorBannerHint: {
+    color: 'rgba(255,255,255,0.9)',
+    fontSize: 12,
+    width: '100%',
+    textAlign: 'center',
   },
 });
