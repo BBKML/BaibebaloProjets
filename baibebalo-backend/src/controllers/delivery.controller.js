@@ -2171,7 +2171,7 @@ exports.contactSupport = async (req, res) => {
       )
       VALUES (
         generate_ticket_number(), 'delivery', $1, $2,
-        'delivery', 'normal', $3, $4, 'open'
+        'delivery', 'medium', $3, $4, 'open'
       )
       RETURNING *`,
       [req.user.id, order_id || null, subject, message]
