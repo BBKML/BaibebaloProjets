@@ -880,83 +880,81 @@ exports.confirmDelivery = async (req, res) => {
 
 /**
  * Obtenir les gains du livreur
- * Résistant aux colonnes manquantes (balance vs available_balance) et table transactions absente
+ * - Requêtes transactions en PARALLÈLE (au lieu de séquentielles) pour réduire le temps total
+ * - Tout le bloc sous withTimeout pour éviter "- - ms - -" si une requête bloque
  */
 exports.getEarnings = async (req, res) => {
   try {
-    logger.info('getEarnings', { deliveryId: req.user?.id });
-    const deliveryResult = await withTimeout(
-      query(
+    const run = async () => {
+      const deliveryResult = await query(
         `SELECT total_earnings, total_deliveries, balance
          FROM delivery_persons WHERE id = $1`,
         [req.user.id]
-      )
-    );
+      );
 
-    if (deliveryResult.rows.length === 0) {
+      if (deliveryResult.rows.length === 0) {
+        return { notFound: true };
+      }
+
+      const delivery = deliveryResult.rows[0];
+      const uid = req.user.id;
+
+      const [todayResult, weekResult, monthResult] = await Promise.all([
+        query(
+          `SELECT COALESCE(SUM(amount), 0) as today_earnings
+           FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery'
+           AND transaction_type = 'delivery_fee'
+           AND created_at >= CURRENT_DATE`,
+          [uid]
+        ),
+        query(
+          `SELECT COALESCE(SUM(amount), 0) as week_earnings
+           FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery'
+           AND transaction_type = 'delivery_fee'
+           AND created_at >= DATE_TRUNC('week', CURRENT_DATE)`,
+          [uid]
+        ),
+        query(
+          `SELECT COALESCE(SUM(amount), 0) as month_earnings
+           FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery'
+           AND transaction_type = 'delivery_fee'
+           AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
+          [uid]
+        ),
+      ]);
+
+      const todayEarnings = parseFloat(todayResult.rows[0]?.today_earnings || 0);
+      const weekEarnings = parseFloat(weekResult.rows[0]?.week_earnings || 0);
+      const monthEarnings = parseFloat(monthResult.rows[0]?.month_earnings || 0);
+
+      return {
+        notFound: false,
+        data: {
+          available_balance: parseFloat(delivery.balance ?? 0),
+          total_earnings: parseFloat(delivery.total_earnings || 0),
+          total_deliveries: Number(delivery.total_deliveries) || 0,
+          today: todayEarnings,
+          this_week: weekEarnings,
+          this_month: monthEarnings,
+        },
+      };
+    };
+
+    const outcome = await withTimeout(run());
+
+    if (outcome.notFound) {
       return res.status(404).json({
         success: false,
         error: { code: 'DELIVERY_NOT_FOUND', message: 'Livreur non trouvé' },
       });
     }
 
-    const delivery = deliveryResult.rows[0];
-    let todayEarnings = 0;
-    let weekEarnings = 0;
-    let monthEarnings = 0;
-
-    try {
-      const todayResult = await query(
-        `SELECT COALESCE(SUM(amount), 0) as today_earnings
-         FROM transactions
-         WHERE to_user_id = $1 AND to_user_type = 'delivery'
-         AND transaction_type = 'delivery_fee'
-         AND created_at >= CURRENT_DATE`,
-        [req.user.id]
-      );
-      todayEarnings = parseFloat(todayResult.rows[0]?.today_earnings || 0);
-    } catch (e) {
-      logger.warn('getEarnings: transactions today', { error: e.message });
-    }
-
-    try {
-      const weekResult = await query(
-        `SELECT COALESCE(SUM(amount), 0) as week_earnings
-         FROM transactions
-         WHERE to_user_id = $1 AND to_user_type = 'delivery'
-         AND transaction_type = 'delivery_fee'
-         AND created_at >= DATE_TRUNC('week', CURRENT_DATE)`,
-        [req.user.id]
-      );
-      weekEarnings = parseFloat(weekResult.rows[0]?.week_earnings || 0);
-    } catch (e) {
-      logger.warn('getEarnings: transactions week', { error: e.message });
-    }
-
-    try {
-      const monthResult = await query(
-        `SELECT COALESCE(SUM(amount), 0) as month_earnings
-         FROM transactions
-         WHERE to_user_id = $1 AND to_user_type = 'delivery'
-         AND transaction_type = 'delivery_fee'
-         AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
-        [req.user.id]
-      );
-      monthEarnings = parseFloat(monthResult.rows[0]?.month_earnings || 0);
-    } catch (e) {
-      logger.warn('getEarnings: transactions month', { error: e.message });
-    }
-
     return res.json({
       success: true,
-      data: {
-        available_balance: parseFloat(delivery.balance ?? 0),
-        total_earnings: parseFloat(delivery.total_earnings || 0),
-        total_deliveries: Number(delivery.total_deliveries) || 0,
-        today: todayEarnings,
-        this_week: weekEarnings,
-        this_month: monthEarnings,
-      },
+      data: outcome.data,
     });
   } catch (error) {
     logger.error('Erreur getEarnings:', error);
