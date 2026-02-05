@@ -31,10 +31,22 @@
    - Réponse **503** + code `TIMEOUT` en cas de timeout handler.
 
 2. **App Livreur**
-   - **client.js** : timeout porté à **60 s** lorsque l’URL contient `render.com` (cold start).
-   - **client.js** : intercepteur de réponse renforcé (logs, gestion propre du 401, pas de crash si `AsyncStorage` échoue).
-   - **DeliveryHomeScreen** : accès sécurisé à `todayStats?.earnings` pour éviter un crash au rendu.
-   - **DeliveryHomeScreen** : chargement initial dans un `try/catch` et affichage d’un bandeau d’erreur si `dashboardError` est défini, avec invitation à « Tirer pour réessayer ».
+   - **client.js** : timeout **10 s** (éviter blocage ; erreur affichée gracieusement).
+   - **client.js** : intercepteur de réponse renforcé (logs, `error.userMessage` pour timeout, gestion 401).
+   - **DeliveryHomeScreen** : accès sécurisé à `todayStats?.earnings`, bandeau d’erreur « Tirer pour réessayer ».
+   - **deliveryStore** : en cas de timeout, message « Délai dépassé. Tirez pour réessayer. » sans crasher.
+
+### Mise à jour perf (routes <500ms) et GET /me
+
+3. **Backend – performances**
+   - **GET /delivery/me** : `getMyProfile` avec `SELECT` ciblé (pas `*`) pour réponse rapide.
+   - **getActiveOrders** : `SELECT` limité aux champs utiles (id, order_number, status, delivery_fee, restaurant_name, etc.).
+   - **getDeliveryHistory** : pagination `limit` 1–100, `page`/`limit` en entiers, `SELECT` ciblé.
+   - **Index PostgreSQL** (dans `migrate.js`) : `idx_orders_delivery_status`, `idx_orders_delivery_created`, `idx_transactions_to_date`. **Penser à exécuter les migrations** sur la base Render pour appliquer les index (`node src/database/migrate.js` ou script de déploiement).
+
+4. **Résumé**
+   - La route **GET /api/v1/delivery/me** existait déjà ; elle est maintenant optimisée.
+   - Timeout app : **10 s** avec message d’erreur explicite et pas de plantage.
 
 ---
 

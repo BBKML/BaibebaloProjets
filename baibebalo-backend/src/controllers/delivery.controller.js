@@ -1215,32 +1215,37 @@ exports.getMyCashRemittances = async (req, res) => {
 };
 
 /**
- * Obtenir l'historique des livraisons
+ * Obtenir l'historique des livraisons (pagination 1–100, champs ciblés, index composite)
  */
 exports.getDeliveryHistory = async (req, res) => {
   try {
-    logger.info('getDeliveryHistory', { deliveryId: req.user?.id });
-    const { page = 1, limit = 20, status } = req.query;
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    const status = req.query.status;
     const offset = (page - 1) * limit;
 
+    const values = [req.user.id];
+    let paramIdx = 2;
+
+    const selectFields = `o.id, o.order_number, o.status, o.delivery_fee, o.delivery_address,
+                         o.placed_at, o.delivered_at, o.created_at,
+                         r.name as restaurant_name,
+                         u.first_name as client_first_name`;
     let queryText = `
-      SELECT o.*, 
-             r.name as restaurant_name,
-             u.first_name as client_first_name
+      SELECT ${selectFields}
       FROM orders o
       LEFT JOIN restaurants r ON o.restaurant_id = r.id
       LEFT JOIN users u ON o.user_id = u.id
       WHERE o.delivery_person_id = $1
     `;
 
-    const values = [req.user.id];
-
     if (status) {
-      queryText += ' AND o.status = $2';
+      queryText += ` AND o.status = $${paramIdx}`;
       values.push(status);
+      paramIdx += 1;
     }
 
-    queryText += ` ORDER BY o.created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+    queryText += ` ORDER BY o.created_at DESC LIMIT $${paramIdx} OFFSET $${paramIdx + 1}`;
     values.push(limit, offset);
 
     const run = async () => {
@@ -1264,8 +1269,8 @@ exports.getDeliveryHistory = async (req, res) => {
       data: {
         deliveries,
         pagination: {
-          page: parseInt(page, 10) || 1,
-          limit: parseInt(limit, 10) || 20,
+          page,
+          limit,
           total,
           pages: limit > 0 ? Math.ceil(total / limit) : 0,
         },
@@ -1423,12 +1428,16 @@ exports.getCheckStatus = async (req, res) => {
 };
 
 /**
- * Obtenir le profil du livreur connecté
+ * Obtenir le profil du livreur connecté (réponse rapide <200ms, SELECT ciblé)
  */
 exports.getMyProfile = async (req, res) => {
   try {
     const result = await query(
-      'SELECT * FROM delivery_persons WHERE id = $1',
+      `SELECT id, phone, first_name, last_name, status, delivery_status,
+              vehicle_type, vehicle_plate, average_rating, total_deliveries,
+              profile_photo, mobile_money_number, mobile_money_provider,
+              current_latitude, current_longitude, created_at, updated_at
+       FROM delivery_persons WHERE id = $1`,
       [req.user.id]
     );
 
@@ -1439,13 +1448,13 @@ exports.getMyProfile = async (req, res) => {
       });
     }
 
-    res.json({
+    return res.json({
       success: true,
       data: { delivery_person: result.rows[0] },
     });
   } catch (error) {
     logger.error('Erreur getMyProfile:', error);
-    res.status(500).json({
+    return res.status(500).json({
       success: false,
       error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
     });
@@ -1547,17 +1556,18 @@ exports.updateMyProfile = async (req, res) => {
 };
 
 /**
- * Obtenir les commandes actives
+ * Obtenir les commandes actives (optimisé: champs ciblés + index delivery_person_id + status)
  */
 exports.getActiveOrders = async (req, res) => {
   try {
-    logger.info('getActiveOrders', { deliveryId: req.user?.id });
     const result = await withTimeout(
       query(
-        `SELECT o.*, r.name as restaurant_name
+        `SELECT o.id, o.order_number, o.status, o.restaurant_id, o.delivery_fee,
+                o.delivery_address, o.placed_at, o.ready_at, o.picked_up_at, o.delivering_at,
+                r.name as restaurant_name
          FROM orders o
          LEFT JOIN restaurants r ON o.restaurant_id = r.id
-         WHERE o.delivery_person_id = $1 
+         WHERE o.delivery_person_id = $1
          AND o.status IN ('ready', 'picked_up', 'delivering')
          ORDER BY o.created_at DESC`,
         [req.user.id]

@@ -2,9 +2,8 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_BASE_URL from '../constants/api';
 
-// Timeout plus long en production (Render cold start peut prendre 30–60 s)
-const isProduction = typeof API_BASE_URL === 'string' && API_BASE_URL.includes('render.com');
-const requestTimeout = isProduction ? 60000 : 30000;
+// Timeout 10s : éviter que l'app reste bloquée ; erreur gérée gracieusement (spinner + message)
+const requestTimeout = 10000;
 
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
@@ -52,8 +51,13 @@ apiClient.interceptors.response.use(
   async (error) => {
     const url = error.config?.url || '';
     const status = error.response?.status;
-    const msg = error.code === 'ECONNABORTED' ? 'Timeout' : status || error.message || 'Network Error';
+    const isTimeout = error.code === 'ECONNABORTED';
+    const msg = isTimeout ? 'Timeout' : status || error.message || 'Network Error';
     console.warn(`[API] ✗ ${url} - ${msg}`);
+    if (isTimeout) {
+      error.isTimeout = true;
+      error.userMessage = 'Délai dépassé. Tirez pour réessayer.';
+    }
     if (status === 401) {
       try {
         await AsyncStorage.removeItem('delivery_token');

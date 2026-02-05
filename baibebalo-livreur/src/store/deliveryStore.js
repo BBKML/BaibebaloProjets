@@ -65,10 +65,14 @@ const useDeliveryStore = create((set, get) => ({
     try {
       // Charger gains et statistiques en parallèle (chaque appel échoué retourne { success: false } pour éviter crash APK)
       const [earningsResponse, activeOrdersResponse, historyResponse] = await Promise.all([
-        getEarnings().catch(() => ({ success: false })),
-        getActiveOrders().catch(() => ({ success: false })),
-        getDeliveryHistory(1, 5, 'delivered').catch(() => ({ success: false })),
+        getEarnings().catch((e) => ({ success: false, _error: e })),
+        getActiveOrders().catch((e) => ({ success: false, _error: e })),
+        getDeliveryHistory(1, 5, 'delivered').catch((e) => ({ success: false, _error: e })),
       ]);
+      const firstError = earningsResponse?._error || activeOrdersResponse?._error || historyResponse?._error;
+      if (firstError) {
+        set({ error: firstError.userMessage || firstError?.message || 'Erreur chargement. Tirez pour réessayer.' });
+      }
 
       // Mettre à jour les gains
       if (earningsResponse?.success && earningsResponse?.data) {
@@ -122,7 +126,8 @@ const useDeliveryStore = create((set, get) => ({
 
     } catch (error) {
       console.error('Erreur loadDashboardData:', error);
-      set({ error: error?.message || 'Erreur chargement' });
+      const message = error?.userMessage || error?.message || 'Erreur chargement';
+      set({ error: message });
     } finally {
       set({ isLoading: false });
     }

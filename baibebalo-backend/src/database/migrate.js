@@ -311,6 +311,9 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_orders_number ON orders(order_number);`,
   `CREATE INDEX IF NOT EXISTS idx_orders_date ON orders(placed_at DESC);`,
   `CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);`,
+  // Index composites pour les routes livreur (perf <500ms)
+  `CREATE INDEX IF NOT EXISTS idx_orders_delivery_status ON orders(delivery_person_id, status) WHERE delivery_person_id IS NOT NULL;`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_delivery_created ON orders(delivery_person_id, created_at DESC) WHERE delivery_person_id IS NOT NULL;`,
 
   // ======================================
   // Migration 9: Table order_items
@@ -467,6 +470,7 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_transactions_from ON transactions(from_user_type, from_user_id);`,
   `CREATE INDEX IF NOT EXISTS idx_transactions_to ON transactions(to_user_type, to_user_id);`,
   `CREATE INDEX IF NOT EXISTS idx_transactions_date ON transactions(created_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_transactions_to_date ON transactions(to_user_type, to_user_id, created_at DESC);`,
 
   // ======================================
   // Migration 14: Table notifications
