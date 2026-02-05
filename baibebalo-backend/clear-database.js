@@ -22,7 +22,7 @@ async function clearDatabase() {
       'favorites',
       'loyalty_transactions',
       'notifications',
-      'support_messages',
+      'ticket_messages',
       'support_tickets',
       'promo_codes',
       'users',

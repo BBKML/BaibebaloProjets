@@ -2012,39 +2012,40 @@ exports.getStatistics = async (req, res) => {
 };
 
 /**
- * Obtenir les avis reçus par le livreur
+ * Obtenir les avis reçus par le livreur (depuis la table reviews)
  */
 exports.getMyReviews = async (req, res) => {
   try {
     const { page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
+    const limitNum = Math.min(parseInt(limit, 10) || 20, 100);
+    const pageNum = Math.max(1, parseInt(page, 10));
 
-    // Récupérer les commandes avec avis sur la livraison
+    // Récupérer les avis depuis la table reviews (delivery_rating, comment)
     const reviewsResult = await query(
       `SELECT 
-        o.id,
+        r.id,
         o.order_number,
-        o.delivery_rating as rating,
-        o.delivery_review as comment,
-        o.delivered_at as created_at,
+        r.delivery_rating as rating,
+        r.comment,
+        r.created_at,
         u.first_name as customer_name,
-        r.name as restaurant_name
-       FROM orders o
+        rest.name as restaurant_name
+       FROM reviews r
+       INNER JOIN orders o ON o.id = r.order_id
        LEFT JOIN users u ON o.user_id = u.id
-       LEFT JOIN restaurants r ON o.restaurant_id = r.id
-       WHERE o.delivery_person_id = $1 
-       AND o.status = 'delivered'
-       AND o.delivery_rating IS NOT NULL
-       ORDER BY o.delivered_at DESC
+       LEFT JOIN restaurants rest ON o.restaurant_id = rest.id
+       WHERE r.delivery_person_id = $1 
+       AND r.delivery_rating IS NOT NULL
+       ORDER BY r.created_at DESC
        LIMIT $2 OFFSET $3`,
-      [req.user.id, parseInt(limit), parseInt(offset)]
+      [req.user.id, limitNum, (pageNum - 1) * limitNum]
     );
 
     // Compter le total
     const countResult = await query(
-      `SELECT COUNT(*) FROM orders 
+      `SELECT COUNT(*) FROM reviews 
        WHERE delivery_person_id = $1 
-       AND status = 'delivered'
        AND delivery_rating IS NOT NULL`,
       [req.user.id]
     );
@@ -2054,9 +2055,8 @@ exports.getMyReviews = async (req, res) => {
       `SELECT 
         AVG(delivery_rating) as average_rating,
         COUNT(*) as total_reviews
-       FROM orders 
+       FROM reviews 
        WHERE delivery_person_id = $1 
-       AND status = 'delivered'
        AND delivery_rating IS NOT NULL`,
       [req.user.id]
     );
@@ -2081,10 +2081,10 @@ exports.getMyReviews = async (req, res) => {
           total_reviews: parseInt(avgResult.rows[0].total_reviews) || 0,
         },
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: pageNum,
+          limit: limitNum,
           total,
-          pages: Math.ceil(total / limit),
+          pages: Math.ceil(total / limitNum) || 1,
         },
       },
     });
@@ -2179,10 +2179,10 @@ exports.contactSupport = async (req, res) => {
 
     const ticket = result.rows[0];
 
-    // Ajouter le premier message dans support_messages
+    // Ajouter le premier message dans ticket_messages
     await query(
-      `INSERT INTO support_messages (ticket_id, sender_type, sender_id, message)
-       VALUES ($1, 'user', $2, $3)`,
+      `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message)
+       VALUES ($1, 'delivery', $2, $3)`,
       [ticket.id, req.user.id, message]
     );
 
@@ -2217,13 +2217,13 @@ exports.getSupportConversations = async (req, res) => {
   try {
     const result = await query(
       `SELECT t.*, 
-        (SELECT COUNT(*) FROM support_messages m WHERE m.ticket_id = t.id) as message_count,
-        (SELECT message FROM support_messages m WHERE m.ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_message,
-        (SELECT created_at FROM support_messages m WHERE m.ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_message_at,
-        (SELECT COUNT(*) FROM support_messages m WHERE m.ticket_id = t.id AND m.sender_type = 'support' AND m.read_at IS NULL) as unread_count
+        (SELECT COUNT(*) FROM ticket_messages m WHERE m.ticket_id = t.id) as message_count,
+        (SELECT message FROM ticket_messages m WHERE m.ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_message,
+        (SELECT created_at FROM ticket_messages m WHERE m.ticket_id = t.id ORDER BY created_at DESC LIMIT 1) as last_message_at,
+        0 as unread_count
        FROM support_tickets t
        WHERE t.user_id = $1 AND t.user_type = 'delivery'
-       ORDER BY COALESCE((SELECT created_at FROM support_messages m WHERE m.ticket_id = t.id ORDER BY created_at DESC LIMIT 1), t.created_at) DESC`,
+       ORDER BY COALESCE((SELECT created_at FROM ticket_messages m WHERE m.ticket_id = t.id ORDER BY created_at DESC LIMIT 1), t.created_at) DESC`,
       [req.user.id]
     );
 
@@ -2260,16 +2260,9 @@ exports.getSupportMessages = async (req, res) => {
       });
     }
 
-    // Récupérer les messages
+    // Récupérer les messages (table ticket_messages, pas de read_at)
     const messages = await query(
-      `SELECT * FROM support_messages WHERE ticket_id = $1 ORDER BY created_at ASC`,
-      [ticketId]
-    );
-
-    // Marquer les messages du support comme lus
-    await query(
-      `UPDATE support_messages SET read_at = NOW() 
-       WHERE ticket_id = $1 AND sender_type = 'support' AND read_at IS NULL`,
+      `SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY created_at ASC`,
       [ticketId]
     );
 
@@ -2321,8 +2314,8 @@ exports.sendSupportMessage = async (req, res) => {
 
     // Ajouter le message
     const result = await query(
-      `INSERT INTO support_messages (ticket_id, sender_type, sender_id, message)
-       VALUES ($1, 'user', $2, $3)
+      `INSERT INTO ticket_messages (ticket_id, sender_type, sender_id, message)
+       VALUES ($1, 'delivery', $2, $3)
        RETURNING *`,
       [ticketId, req.user.id, message]
     );
