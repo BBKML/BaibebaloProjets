@@ -58,79 +58,89 @@ const useDeliveryStore = create((set, get) => ({
   // === Actions API - Charger les données depuis le backend ===
   
   /**
-   * Charge toutes les données initiales depuis le backend
+   * Charge toutes les données initiales depuis le backend.
+   * Chaque requête met à jour l'UI dès qu'elle répond (chargement progressif, pas d'attente du plus lent).
    */
   loadDashboardData: async () => {
     set({ isLoading: true, error: null });
-    try {
-      // Charger gains et statistiques en parallèle (chaque appel échoué retourne { success: false } pour éviter crash APK)
-      const [earningsResponse, activeOrdersResponse, historyResponse] = await Promise.all([
-        getEarnings().catch((e) => ({ success: false, _error: e })),
-        getActiveOrders().catch((e) => ({ success: false, _error: e })),
-        getDeliveryHistory(1, 5, 'delivered').catch((e) => ({ success: false, _error: e })),
-      ]);
-      const firstError = earningsResponse?._error || activeOrdersResponse?._error || historyResponse?._error;
-      if (firstError) {
-        set({ error: firstError.userMessage || firstError?.message || 'Erreur chargement. Tirez pour réessayer.' });
-      }
+    const applyError = (e) => {
+      set({ error: e?.userMessage || e?.message || 'Erreur chargement. Tirez pour réessayer.' });
+    };
 
-      // Mettre à jour les gains
-      if (earningsResponse?.success && earningsResponse?.data) {
-        const data = earningsResponse.data;
+    let anyDone = false;
+    const clearLoadingOnce = () => {
+      if (!anyDone) {
+        anyDone = true;
+        set({ isLoading: false });
+      }
+    };
+
+    // Gains : mise à jour dès la réponse
+    getEarnings()
+      .then((earningsResponse) => {
+        if (earningsResponse?.success && earningsResponse?.data) {
+          const data = earningsResponse.data;
+          set({
+            earningsData: {
+              available_balance: data.available_balance || 0,
+              total_earnings: data.total_earnings || 0,
+              total_deliveries: data.total_deliveries || 0,
+              today: data.today || 0,
+              this_week: data.this_week || 0,
+              this_month: data.this_month || 0,
+            },
+            todayStats: {
+              ...get().todayStats,
+              earnings: data.today || 0,
+            },
+          });
+        }
+      })
+      .catch(applyError)
+      .finally(clearLoadingOnce);
+
+    // Commandes actives : mise à jour dès la réponse
+    getActiveOrders()
+      .then((activeOrdersResponse) => {
+        const orders = Array.isArray(activeOrdersResponse?.data?.orders) ? activeOrdersResponse.data.orders : [];
         set({
-          earningsData: {
-            available_balance: data.available_balance || 0,
-            total_earnings: data.total_earnings || 0,
-            total_deliveries: data.total_deliveries || 0,
-            today: data.today || 0,
-            this_week: data.this_week || 0,
-            this_month: data.this_month || 0,
-          },
-          todayStats: {
-            ...get().todayStats,
-            earnings: data.today || 0,
-          },
+          activeOrders: orders,
+          currentDelivery: orders.length > 0 ? orders[0] : null,
         });
-      }
+      })
+      .catch(() => {
+        set({ activeOrders: [], currentDelivery: null });
+      })
+      .finally(clearLoadingOnce);
 
-      // Mettre à jour les commandes actives (toujours un tableau pour éviter crash au rendu)
-      const orders = Array.isArray(activeOrdersResponse?.data?.orders) ? activeOrdersResponse.data.orders : [];
-      set({ 
-        activeOrders: orders,
-        currentDelivery: orders.length > 0 ? orders[0] : null,
-      });
-
-      // Mettre à jour l'historique récent
-      const rawDeliveries = Array.isArray(historyResponse?.data?.deliveries)
-        ? historyResponse.data.deliveries
-        : [];
-      if (rawDeliveries.length > 0) {
-        const deliveries = rawDeliveries.map(d => ({
-          id: d.id,
-          time: new Date(d.delivered_at || d.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-          restaurant: d.restaurant_name || 'Restaurant',
-          destination: (d.delivery_address && typeof d.delivery_address === 'object' ? d.delivery_address.address_line : null) || 'Destination',
-          amount: d.delivery_fee || 0,
-          rating: d.delivery_rating ?? null,
-          date: formatRelativeDate(d.delivered_at || d.created_at),
-        }));
-        const completedToday = rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length;
-        set({ 
-          recentDeliveries: deliveries,
-          dailyGoal: {
-            ...get().dailyGoal,
-            completed: completedToday,
-          },
-        });
-      }
-
-    } catch (error) {
-      console.error('Erreur loadDashboardData:', error);
-      const message = error?.userMessage || error?.message || 'Erreur chargement';
-      set({ error: message });
-    } finally {
-      set({ isLoading: false });
-    }
+    // Historique récent : mise à jour dès la réponse
+    getDeliveryHistory(1, 5, 'delivered')
+      .then((historyResponse) => {
+        const rawDeliveries = Array.isArray(historyResponse?.data?.deliveries)
+          ? historyResponse.data.deliveries
+          : [];
+        if (rawDeliveries.length > 0) {
+          const deliveries = rawDeliveries.map(d => ({
+            id: d.id,
+            time: new Date(d.delivered_at || d.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            restaurant: d.restaurant_name || 'Restaurant',
+            destination: (d.delivery_address && typeof d.delivery_address === 'object' ? d.delivery_address.address_line : null) || 'Destination',
+            amount: d.delivery_fee || 0,
+            rating: d.delivery_rating ?? null,
+            date: formatRelativeDate(d.delivered_at || d.created_at),
+          }));
+          const completedToday = rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length;
+          set({
+            recentDeliveries: deliveries,
+            dailyGoal: {
+              ...get().dailyGoal,
+              completed: completedToday,
+            },
+          });
+        }
+      })
+      .catch(() => {})
+      .finally(clearLoadingOnce);
   },
 
   /**

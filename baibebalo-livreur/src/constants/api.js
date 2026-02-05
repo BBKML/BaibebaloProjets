@@ -1,7 +1,8 @@
 // Configuration API pour l'application Livreur BAIBEBALO
-// En dev : EXPO_PUBLIC_API_URL dans .env, ou IP locale (téléphone = même WiFi), ou 10.0.2.2 (émulateur Android)
-const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
-  || (__DEV__ ? 'http://192.168.1.4:5000/api/v1' : 'https://baibebaloprojets.onrender.com/api/v1');
+// EAS build injecte EXPO_PUBLIC_API_URL depuis eas.json ; fallback pour dev et sécurité build
+const PRODUCTION_API_URL = 'https://baibebaloprojets.onrender.com/api/v1';
+const fromEnv = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL;
+const API_BASE_URL = fromEnv || (__DEV__ ? 'http://192.168.1.4:5000/api/v1' : PRODUCTION_API_URL) || PRODUCTION_API_URL;
 
 export const API_ENDPOINTS = {
   // Authentification Livreur

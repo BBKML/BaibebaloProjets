@@ -7,7 +7,11 @@
     "android": "expo start --android --offline",
     "ios": "expo start --ios --offline",
     "web": "expo start --web --offline",
-    "test:api": "node test-api-connection.js"
+    "test:api": "node test-api-connection.js",
+    "build:preview": "eas build --platform android --profile preview --non-interactive",
+    "build:production": "eas build --platform all --profile production --non-interactive",
+    "build:android:prod": "eas build --platform android --profile production --non-interactive",
+    "build:ios:prod": "eas build --platform ios --profile production --non-interactive"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

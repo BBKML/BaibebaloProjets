@@ -11,21 +11,11 @@ import Toast from 'react-native-toast-message';
  * Hook pour gérer les notifications push pour les livreurs
  */
 export const useNotifications = (isAuthenticated) => {
-  let navigation;
-  try {
-    navigation = useNavigation();
-  } catch (error) {
-    return;
-  }
-
+  const navigation = useNavigation();
   const notificationListener = useRef(null);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      return;
-    }
-
-    if (!navigation || !navigation.navigate) {
+    if (!isAuthenticated || !navigation?.navigate) {
       return;
     }
 
@@ -78,9 +68,7 @@ export const useNotifications = (isAuthenticated) => {
         notificationListener.current();
       }
     };
-  }, [isAuthenticated, navigation?.navigate]);
-
-  return {};
+  }, [isAuthenticated, navigation]);
 };
 
 /**

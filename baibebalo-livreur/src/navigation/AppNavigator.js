@@ -89,6 +89,14 @@ import NotificationCenterScreen from '../screens/notifications/NotificationCente
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
+// Pont pour les notifications : doit être rendu *dans* NavigationContainer pour que useNavigation() ne plante pas (build EAS)
+function NotificationBridge() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isActivated = useAuthStore((s) => s.isActivated);
+  useNotifications(isAuthenticated && isActivated);
+  return null;
+}
+
 // Navigation principale avec tabs
 function MainTabs() {
   const insets = useSafeAreaInsets();
@@ -184,9 +192,6 @@ export default function AppNavigator() {
   const navigationRef = useRef(null);
   const [previousAuth, setPreviousAuth] = useState(false);
 
-  // Initialiser les notifications push pour les livreurs
-  useNotifications(isAuthenticated && isActivated);
-
   useEffect(() => {
     const init = async () => {
       try {
@@ -247,6 +252,7 @@ export default function AppNavigator() {
 
   return (
     <NavigationContainer ref={navigationRef}>
+      <NotificationBridge />
       <Stack.Navigator 
         screenOptions={{ headerShown: false }}
         initialRouteName={getInitialRoute()}
