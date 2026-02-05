@@ -1,6 +1,7 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_BASE_URL from '../constants/api';
+import useAuthStore from '../store/authStore';
 
 // Timeout 10s : éviter que l'app reste bloquée ; erreur gérée gracieusement (spinner + message)
 const requestTimeout = 10000;
@@ -62,8 +63,9 @@ apiClient.interceptors.response.use(
       try {
         await AsyncStorage.removeItem('delivery_token');
         await AsyncStorage.removeItem('delivery_user');
+        useAuthStore.getState().logout();
       } catch (e) {
-        console.warn('[API] AsyncStorage clear error:', e?.message);
+        console.warn('[API] AsyncStorage / logout error:', e?.message);
       }
     }
     throw error;
