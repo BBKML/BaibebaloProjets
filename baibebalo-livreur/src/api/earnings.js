@@ -2,6 +2,17 @@ import apiClient from './client';
 import { API_ENDPOINTS } from '../constants/api';
 
 /**
+ * Dashboard en 1 appel : gains + commandes actives + historique récent (évite 3 requêtes)
+ * @param {{ signal?: AbortSignal }} [options]
+ */
+export const getDashboard = async (options = {}) => {
+  const response = await apiClient.get(API_ENDPOINTS.DELIVERY.DASHBOARD, {
+    ...(options.signal && { signal: options.signal }),
+  });
+  return response.data;
+};
+
+/**
  * Récupère le dashboard des gains
  * Retourne: available_balance, total_earnings, total_deliveries, today, this_week, this_month
  * @param {AbortSignal} [options.signal] - pour annuler la requête (ex. au démontage)
@@ -75,6 +86,7 @@ export const getMyCashRemittances = async (page = 1, limit = 20, status) => {
 };
 
 export default {
+  getDashboard,
   getEarnings,
   getDeliveryHistory,
   requestPayout,

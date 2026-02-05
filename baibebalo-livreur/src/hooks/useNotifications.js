@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import * as Notifications from 'expo-notifications';
 import {
   registerNotificationToken,
   setupNotificationListeners,
@@ -72,11 +71,12 @@ export const useNotifications = (isAuthenticated) => {
 };
 
 /**
- * Hook pour gérer les notifications en arrière-plan
+ * Hook pour gérer les notifications en arrière-plan (optionnel, déjà fait dans App.js)
  */
 export const useBackgroundNotifications = () => {
   useEffect(() => {
     try {
+      const Notifications = require('expo-notifications');
       Notifications.setNotificationHandler({
         handleNotification: async () => ({
           shouldShowAlert: true,
@@ -84,9 +84,7 @@ export const useBackgroundNotifications = () => {
           shouldSetBadge: true,
         }),
       });
-    } catch (error) {
-      // Erreur silencieuse en Expo Go
-    }
+    } catch (_) {}
   }, []);
 };
 

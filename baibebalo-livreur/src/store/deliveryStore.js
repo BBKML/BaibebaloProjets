@@ -1,7 +1,7 @@
 import { create } from 'zustand';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getProfile, updateDeliveryStatus, updateLocation } from '../api/delivery';
-import { getEarnings } from '../api/earnings';
+import { getDashboard, getEarnings } from '../api/earnings';
 import { getActiveOrders, getDeliveryHistory } from '../api/orders';
 
 /** Garde synchrone : un seul loadDashboardData à la fois (évite 2x orders/active + 2x history) */
@@ -73,10 +73,8 @@ const useDeliveryStore = create((set, get) => ({
   },
 
   /**
-   * Charge toutes les données initiales depuis le backend.
-   * - Un seul chargement à la fois (garde loadInProgress).
-   * - Chaque requête met à jour l'UI dès qu'elle répond (chargement progressif).
-   * - Annulable via cancelDashboardLoad() ou signal (ex. au démontage).
+   * Charge le dashboard en 1 seul appel (earnings + commandes actives + historique).
+   * Évite 3 requêtes → moins de timeouts et "- - ms - -".
    */
   loadDashboardData: async () => {
     if (__loadDashboardInProgress || get().loadInProgress) return;
@@ -95,60 +93,34 @@ const useDeliveryStore = create((set, get) => ({
       set({ error: e?.userMessage || e?.message || 'Erreur chargement. Tirez pour réessayer.' });
     };
 
-    let anyDone = false;
-    const clearLoadingOnce = () => {
-      if (!anyDone) {
-        anyDone = true;
-        set({ isLoading: false });
-      }
-    };
-
     const finish = () => {
       __loadDashboardInProgress = false;
-      set({ loadInProgress: false });
+      set({ loadInProgress: false, isLoading: false });
       if (g) g.__dashboardAbortController = null;
     };
 
-    const pEarnings = getEarnings(null, null, null, { signal })
-      .then((earningsResponse) => {
-        if (earningsResponse?.success && earningsResponse?.data) {
-          const data = earningsResponse.data;
-          set({
-            earningsData: {
-              available_balance: data.available_balance || 0,
-              total_earnings: data.total_earnings || 0,
-              total_deliveries: data.total_deliveries || 0,
-              today: data.today || 0,
-              this_week: data.this_week || 0,
-              this_month: data.this_month || 0,
-            },
-            todayStats: { ...get().todayStats, earnings: data.today || 0 },
-          });
-        }
-      })
-      .catch(applyError)
-      .finally(clearLoadingOnce);
-
-    const pOrders = getActiveOrders({ signal })
-      .then((activeOrdersResponse) => {
-        const orders = Array.isArray(activeOrdersResponse?.data?.orders) ? activeOrdersResponse.data.orders : [];
+    getDashboard({ signal })
+      .then((res) => {
+        if (!res?.success || !res?.data) return;
+        const { earnings, orders, deliveries } = res.data;
+        const ordersList = Array.isArray(orders) ? orders : [];
+        const rawDeliveries = Array.isArray(deliveries) ? deliveries : [];
+        const earningsData = earnings || {};
         set({
-          activeOrders: orders,
-          currentDelivery: orders.length > 0 ? orders[0] : null,
+          earningsData: {
+            available_balance: earningsData.available_balance ?? 0,
+            total_earnings: earningsData.total_earnings ?? 0,
+            total_deliveries: earningsData.total_deliveries ?? 0,
+            today: earningsData.today ?? 0,
+            this_week: earningsData.this_week ?? 0,
+            this_month: earningsData.this_month ?? 0,
+          },
+          todayStats: { ...get().todayStats, earnings: earningsData.today ?? 0 },
+          activeOrders: ordersList,
+          currentDelivery: ordersList.length > 0 ? ordersList[0] : null,
         });
-      })
-      .catch(() => {
-        set({ activeOrders: [], currentDelivery: null });
-      })
-      .finally(clearLoadingOnce);
-
-    const pHistory = getDeliveryHistory(1, 5, 'delivered', { signal })
-      .then((historyResponse) => {
-        const rawDeliveries = Array.isArray(historyResponse?.data?.deliveries)
-          ? historyResponse.data.deliveries
-          : [];
         if (rawDeliveries.length > 0) {
-          const deliveries = rawDeliveries.map(d => ({
+          const mapped = rawDeliveries.map(d => ({
             id: d.id,
             time: new Date(d.delivered_at || d.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
             restaurant: d.restaurant_name || 'Restaurant',
@@ -159,15 +131,13 @@ const useDeliveryStore = create((set, get) => ({
           }));
           const completedToday = rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length;
           set({
-            recentDeliveries: deliveries,
+            recentDeliveries: mapped,
             dailyGoal: { ...get().dailyGoal, completed: completedToday },
           });
         }
       })
-      .catch(() => {})
-      .finally(clearLoadingOnce);
-
-    Promise.allSettled([pEarnings, pOrders, pHistory]).finally(finish);
+      .catch(applyError)
+      .finally(finish);
   },
 
   /**

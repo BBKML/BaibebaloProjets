@@ -1,7 +1,6 @@
 import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Vibration, Platform } from 'react-native';
-import * as Notifications from 'expo-notifications';
 import API_BASE_URL from '../constants/api';
 
 // URL du serveur Socket.IO (même base que l'API, sans /api/v1)
@@ -169,10 +168,11 @@ class SocketService {
   }
 
   /**
-   * Afficher une notification locale
+   * Afficher une notification locale (expo-notifications chargé à la demande pour éviter crash APK)
    */
   async showLocalNotification(title, body) {
     try {
+      const Notifications = require('expo-notifications');
       await Notifications.scheduleNotificationAsync({
         content: {
           title,
@@ -182,7 +182,7 @@ class SocketService {
         trigger: null, // Immédiat
       });
     } catch (error) {
-      console.warn('[Socket] Erreur notification locale:', error);
+      if (__DEV__) console.warn('[Socket] Erreur notification locale:', error);
     }
   }
 

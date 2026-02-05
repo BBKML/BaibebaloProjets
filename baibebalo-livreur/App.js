@@ -1,25 +1,32 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
-import * as Notifications from 'expo-notifications';
 import AppNavigator from './src/navigation/AppNavigator';
 import ErrorBoundary from './src/components/ErrorBoundary';
 
-// Configurer le comportement des notifications par défaut
-try {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
-} catch (error) {
-  // Dans Expo Go / APK sans push : l'app continue sans notifications
-}
+// Ne pas importer expo-notifications au top : en APK le module natif peut faire planter l'app au démarrage.
+// On configure les notifications après le premier rendu (import dynamique).
+function App() {
+  useEffect(() => {
+    let cancelled = false;
+    import('expo-notifications')
+      .then((mod) => {
+        if (cancelled || !mod?.default) return;
+        try {
+          mod.default.setNotificationHandler({
+            handleNotification: async () => ({
+              shouldShowAlert: true,
+              shouldPlaySound: true,
+              shouldSetBadge: true,
+            }),
+          });
+        } catch (_) {}
+      })
+      .catch(() => {});
+    return () => { cancelled = true; };
+  }, []);
 
-export default function App() {
   return (
     <ErrorBoundary>
       <SafeAreaProvider>
@@ -30,3 +37,5 @@ export default function App() {
     </ErrorBoundary>
   );
 }
+
+export default App;

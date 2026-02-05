@@ -168,6 +168,13 @@ router.get('/available-orders',
 );
 
 /**
+ * @route   GET /api/v1/delivery/dashboard
+ * @desc    Dashboard en 1 appel : gains + commandes actives + historique récent (évite 3 requêtes)
+ * @access  Private (Delivery Person)
+ */
+router.get('/dashboard', deliveryController.getDashboard);
+
+/**
  * @route   GET /api/v1/delivery/orders/active
  * @desc    Obtenir les commandes en cours
  * @access  Private (Delivery Person)

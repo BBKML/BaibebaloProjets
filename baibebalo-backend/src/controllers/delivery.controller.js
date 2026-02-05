@@ -4,6 +4,8 @@ const { uploadService } = require('../services/upload.service');
 
 /** Timeout en ms pour éviter de laisser la requête sans réponse (ex: client APK qui coupe) */
 const HANDLER_TIMEOUT_MS = 10000;
+/** Routes livraison (earnings, orders/active, history) : 4s puis 200 avec données vides */
+const DELIVERY_ROUTE_TIMEOUT_MS = 4000;
 
 function withTimeout(promise, ms = HANDLER_TIMEOUT_MS) {
   return Promise.race([
@@ -943,7 +945,7 @@ exports.getEarnings = async (req, res) => {
       };
     };
 
-    const outcome = await withTimeout(run());
+    const outcome = await withTimeout(run(), DELIVERY_ROUTE_TIMEOUT_MS);
 
     if (outcome.notFound) {
       return res.status(404).json({
@@ -958,14 +960,109 @@ exports.getEarnings = async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur getEarnings:', error);
-    const isTimeout = error?.message === 'Handler timeout';
-    return res.status(isTimeout ? 503 : 500).json({
-      success: false,
-      error: {
-        code: isTimeout ? 'TIMEOUT' : 'FETCH_ERROR',
-        message: isTimeout ? 'Service temporairement occupé' : 'Erreur lors de la récupération',
+    return res.json({
+      success: true,
+      data: {
+        available_balance: 0,
+        total_earnings: 0,
+        total_deliveries: 0,
+        today: 0,
+        this_week: 0,
+        this_month: 0,
       },
     });
+  }
+};
+
+/**
+ * Dashboard livreur en 1 requête HTTP : earnings + commandes actives + historique récent.
+ * Réduit les timeouts et "- - ms - -" (1 seul round-trip, timeout 4s, 200 + données vides en erreur).
+ */
+exports.getDashboard = async (req, res) => {
+  const empty = () => ({
+    earnings: {
+      available_balance: 0,
+      total_earnings: 0,
+      total_deliveries: 0,
+      today: 0,
+      this_week: 0,
+      this_month: 0,
+    },
+    orders: [],
+    deliveries: [],
+    pagination: { page: 1, limit: 5, total: 0, pages: 0 },
+  });
+
+  try {
+    const uid = req.user.id;
+    const run = async () => {
+      const [deliveryRow, todayRow, weekRow, monthRow, activeOrdersRows, historyRows] = await Promise.all([
+        query(
+          `SELECT total_earnings, total_deliveries, balance FROM delivery_persons WHERE id = $1`,
+          [uid]
+        ),
+        query(
+          `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= CURRENT_DATE`,
+          [uid]
+        ),
+        query(
+          `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('week', CURRENT_DATE)`,
+          [uid]
+        ),
+        query(
+          `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
+          [uid]
+        ),
+        query(
+          `SELECT o.id, o.order_number, o.status, o.restaurant_id, o.delivery_fee, o.delivery_address,
+                  o.placed_at, o.ready_at, o.delivering_at,
+                  (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
+           FROM orders o
+           WHERE o.delivery_person_id = $1 AND o.status IN ('ready', 'delivering')
+           ORDER BY o.created_at DESC LIMIT 20`,
+          [uid]
+        ),
+        query(
+          `SELECT o.id, o.order_number, o.status, o.delivery_fee, o.delivery_address,
+                  o.placed_at, o.delivered_at, o.created_at,
+                  (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
+           FROM orders o
+           WHERE o.delivery_person_id = $1 AND o.status = 'delivered'
+           ORDER BY o.created_at DESC LIMIT 5`,
+          [uid]
+        ),
+      ]);
+
+      const delivery = deliveryRow.rows[0];
+      const today = parseFloat(todayRow.rows[0]?.v || 0);
+      const week = parseFloat(weekRow.rows[0]?.v || 0);
+      const month = parseFloat(monthRow.rows[0]?.v || 0);
+      const orders = Array.isArray(activeOrdersRows.rows) ? activeOrdersRows.rows : [];
+      const deliveries = Array.isArray(historyRows.rows) ? historyRows.rows : [];
+
+      return {
+        earnings: {
+          available_balance: delivery ? parseFloat(delivery.balance ?? 0) : 0,
+          total_earnings: delivery ? parseFloat(delivery.total_earnings || 0) : 0,
+          total_deliveries: delivery ? Number(delivery.total_deliveries) || 0 : 0,
+          today,
+          this_week: week,
+          this_month: month,
+        },
+        orders,
+        deliveries,
+        pagination: { page: 1, limit: 5, total: deliveries.length, pages: 1 },
+      };
+    };
+
+    const data = await withTimeout(run(), DELIVERY_ROUTE_TIMEOUT_MS);
+    return res.json({ success: true, data });
+  } catch (error) {
+    logger.error('Erreur getDashboard:', error);
+    return res.json({ success: true, data: empty() });
   }
 };
 
@@ -1552,9 +1649,6 @@ exports.updateMyProfile = async (req, res) => {
     });
   }
 };
-
-/** Timeout dédié pour routes livraison (4s) : répondre avant que le client coupe */
-const DELIVERY_ROUTE_TIMEOUT_MS = 4000;
 
 /**
  * Commandes actives : colonnes minimales, 1 JOIN, statuts = ready|delivering (pas picked_up en DB), LIMIT 20

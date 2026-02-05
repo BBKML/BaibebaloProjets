@@ -1,19 +1,15 @@
-import * as Notifications from 'expo-notifications';
 import Constants from 'expo-constants';
 import { saveFCMToken } from '../api/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Configurer le comportement des notifications
-try {
-  Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-      shouldShowAlert: true,
-      shouldPlaySound: true,
-      shouldSetBadge: true,
-    }),
-  });
-} catch (error) {
-  // Dans Expo Go, cette fonction peut échouer - on l'ignore silencieusement
+// Pas d'import expo-notifications ici : en APK il peut faire planter l'app au démarrage.
+// Chargement paresseux dans chaque fonction qui en a besoin.
+function getNotifications() {
+  try {
+    return require('expo-notifications');
+  } catch {
+    return null;
+  }
 }
 
 const NOTIFICATION_TOKEN_KEY = 'delivery_notification_token';
@@ -22,6 +18,8 @@ const NOTIFICATION_TOKEN_KEY = 'delivery_notification_token';
  * Demander les permissions de notifications
  */
 export const requestNotificationPermissions = async () => {
+  const Notifications = getNotifications();
+  if (!Notifications) return false;
   try {
     const { status: existingStatus } = await Notifications.getPermissionsAsync();
     let finalStatus = existingStatus;
@@ -60,6 +58,8 @@ const isExpoGo = () => {
  * Obtenir le token de notification Expo
  */
 export const getExpoPushToken = async () => {
+  const Notifications = getNotifications();
+  if (!Notifications) return null;
   try {
     // Vérifier si on a déjà un token enregistré
     const storedToken = await AsyncStorage.getItem(NOTIFICATION_TOKEN_KEY);
@@ -138,6 +138,8 @@ export const registerNotificationToken = async () => {
  * Configurer les listeners de notifications
  */
 export const setupNotificationListeners = (onNotificationReceived, onNotificationTapped) => {
+  const Notifications = getNotifications();
+  if (!Notifications) return () => {};
   try {
     if (isExpoGo()) {
       return () => {};
@@ -186,6 +188,8 @@ export const setupNotificationListeners = (onNotificationReceived, onNotificatio
  * Afficher une notification locale
  */
 export const showLocalNotification = async (title, body, data = {}) => {
+  const Notifications = getNotifications();
+  if (!Notifications) return;
   try {
     await Notifications.scheduleNotificationAsync({
       content: {
@@ -207,6 +211,8 @@ export const showLocalNotification = async (title, body, data = {}) => {
  * Obtenir le nombre de badges
  */
 export const getBadgeCount = async () => {
+  const Notifications = getNotifications();
+  if (!Notifications) return 0;
   try {
     return await Notifications.getBadgeCountAsync();
   } catch (error) {
@@ -218,6 +224,8 @@ export const getBadgeCount = async () => {
  * Définir le nombre de badges
  */
 export const setBadgeCount = async (count) => {
+  const Notifications = getNotifications();
+  if (!Notifications) return;
   try {
     await Notifications.setBadgeCountAsync(count);
   } catch (error) {

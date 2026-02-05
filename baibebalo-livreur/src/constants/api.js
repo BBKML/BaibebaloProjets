@@ -19,6 +19,7 @@ export const API_ENDPOINTS = {
   
   // Profil Livreur - Endpoints corrigés pour correspondre au backend
   DELIVERY: {
+    DASHBOARD: `${BASE}/delivery/dashboard`,
     PROFILE: `${BASE}/delivery/me`,
     CHECK_STATUS: `${BASE}/delivery/check-status`,
     UPDATE_PROFILE: `${BASE}/delivery/me`,
