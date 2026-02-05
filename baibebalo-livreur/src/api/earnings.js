@@ -4,14 +4,16 @@ import { API_ENDPOINTS } from '../constants/api';
 /**
  * Récupère le dashboard des gains
  * Retourne: available_balance, total_earnings, total_deliveries, today, this_week, this_month
+ * @param {AbortSignal} [options.signal] - pour annuler la requête (ex. au démontage)
  */
-export const getEarnings = async (period = null, startDate = null, endDate = null) => {
+export const getEarnings = async (period = null, startDate = null, endDate = null, options = {}) => {
   const response = await apiClient.get(API_ENDPOINTS.EARNINGS.DASHBOARD, {
     params: {
       ...(period && { period }),
       ...(startDate && { start_date: startDate }),
       ...(endDate && { end_date: endDate }),
     },
+    ...(options.signal && { signal: options.signal }),
   });
   return response.data;
 };

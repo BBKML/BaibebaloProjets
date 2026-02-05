@@ -10,15 +10,20 @@ export const getAvailableOrders = async (lat, lng, radius = 5) => {
 };
 
 // === Courses actives (en cours) ===
-export const getActiveOrders = async () => {
-  const response = await apiClient.get(API_ENDPOINTS.ORDERS.ACTIVE);
+/** @param {{ signal?: AbortSignal }} [options] - option.signal pour annuler la requête */
+export const getActiveOrders = async (options = {}) => {
+  const response = await apiClient.get(API_ENDPOINTS.ORDERS.ACTIVE, {
+    ...(options.signal && { signal: options.signal }),
+  });
   return response.data;
 };
 
 // === Historique des livraisons ===
-export const getDeliveryHistory = async (page = 1, limit = 20, status) => {
+/** @param {{ signal?: AbortSignal }} [options] - option.signal pour annuler la requête */
+export const getDeliveryHistory = async (page = 1, limit = 20, status = null, options = {}) => {
   const response = await apiClient.get(API_ENDPOINTS.ORDERS.HISTORY, {
     params: { page, limit, ...(status && { status }) },
+    ...(options.signal && { signal: options.signal }),
   });
   return response.data;
 };

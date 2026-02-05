@@ -55,15 +55,39 @@ const useDeliveryStore = create((set, get) => ({
   // Notifications non lues
   unreadNotifications: 0,
 
+  // Chargement dashboard en cours (évite doublons)
+  loadInProgress: false,
+
   // === Actions API - Charger les données depuis le backend ===
-  
+
+  /** Annule le chargement dashboard en cours (ex. au démontage de l'écran Accueil) */
+  cancelDashboardLoad: () => {
+    const g = typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : null;
+    if (g && g.__dashboardAbortController) {
+      g.__dashboardAbortController.abort();
+      g.__dashboardAbortController = null;
+    }
+  },
+
   /**
    * Charge toutes les données initiales depuis le backend.
-   * Chaque requête met à jour l'UI dès qu'elle répond (chargement progressif, pas d'attente du plus lent).
+   * - Un seul chargement à la fois (garde loadInProgress).
+   * - Chaque requête met à jour l'UI dès qu'elle répond (chargement progressif).
+   * - Annulable via cancelDashboardLoad() ou signal (ex. au démontage).
    */
   loadDashboardData: async () => {
-    set({ isLoading: true, error: null });
+    if (get().loadInProgress) return;
+    const g = typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : null;
+    if (g && g.__dashboardAbortController) {
+      g.__dashboardAbortController.abort();
+    }
+    const controller = new AbortController();
+    if (g) g.__dashboardAbortController = controller;
+    const signal = controller.signal;
+
+    set({ loadInProgress: true, isLoading: true, error: null });
     const applyError = (e) => {
+      if (e?.name === 'AbortError' || e?.code === 'ERR_CANCELED') return;
       set({ error: e?.userMessage || e?.message || 'Erreur chargement. Tirez pour réessayer.' });
     };
 
@@ -75,8 +99,12 @@ const useDeliveryStore = create((set, get) => ({
       }
     };
 
-    // Gains : mise à jour dès la réponse
-    getEarnings()
+    const finish = () => {
+      set({ loadInProgress: false });
+      if (g) g.__dashboardAbortController = null;
+    };
+
+    const pEarnings = getEarnings(null, null, null, { signal })
       .then((earningsResponse) => {
         if (earningsResponse?.success && earningsResponse?.data) {
           const data = earningsResponse.data;
@@ -89,18 +117,14 @@ const useDeliveryStore = create((set, get) => ({
               this_week: data.this_week || 0,
               this_month: data.this_month || 0,
             },
-            todayStats: {
-              ...get().todayStats,
-              earnings: data.today || 0,
-            },
+            todayStats: { ...get().todayStats, earnings: data.today || 0 },
           });
         }
       })
       .catch(applyError)
       .finally(clearLoadingOnce);
 
-    // Commandes actives : mise à jour dès la réponse
-    getActiveOrders()
+    const pOrders = getActiveOrders({ signal })
       .then((activeOrdersResponse) => {
         const orders = Array.isArray(activeOrdersResponse?.data?.orders) ? activeOrdersResponse.data.orders : [];
         set({
@@ -113,8 +137,7 @@ const useDeliveryStore = create((set, get) => ({
       })
       .finally(clearLoadingOnce);
 
-    // Historique récent : mise à jour dès la réponse
-    getDeliveryHistory(1, 5, 'delivered')
+    const pHistory = getDeliveryHistory(1, 5, 'delivered', { signal })
       .then((historyResponse) => {
         const rawDeliveries = Array.isArray(historyResponse?.data?.deliveries)
           ? historyResponse.data.deliveries
@@ -132,15 +155,14 @@ const useDeliveryStore = create((set, get) => ({
           const completedToday = rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length;
           set({
             recentDeliveries: deliveries,
-            dailyGoal: {
-              ...get().dailyGoal,
-              completed: completedToday,
-            },
+            dailyGoal: { ...get().dailyGoal, completed: completedToday },
           });
         }
       })
       .catch(() => {})
       .finally(clearLoadingOnce);
+
+    Promise.allSettled([pEarnings, pOrders, pHistory]).finally(finish);
   },
 
   /**
@@ -340,8 +362,15 @@ const useDeliveryStore = create((set, get) => ({
   clearUnreadNotifications: () => set({ unreadNotifications: 0 }),
 
   // === Action de reset ===
-  reset: () => set({
+  reset: () => {
+    const g = typeof global !== 'undefined' ? global : null;
+    if (g && g.__dashboardAbortController) {
+      g.__dashboardAbortController.abort();
+      g.__dashboardAbortController = null;
+    }
+    set({
     status: 'offline',
+    loadInProgress: false,
     currentLocation: null,
     isLoading: false,
     error: null,
@@ -373,7 +402,8 @@ const useDeliveryStore = create((set, get) => ({
     recentDeliveries: [],
     hotZones: [],
     unreadNotifications: 0,
-  }),
+  });
+  },
 }));
 
 // === Helpers ===

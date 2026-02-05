@@ -66,6 +66,7 @@ export default function DeliveryHomeScreen({ navigation }) {
     recentDeliveries,
     unreadNotifications,
     loadDashboardData,
+    cancelDashboardLoad,
     isLoading,
     error: dashboardError,
   } = useDeliveryStore();
@@ -79,13 +80,16 @@ export default function DeliveryHomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   // Retarder l’affichage de la carte pour que le reste de l’écran s’affiche d’abord (évite crash APK sur certains appareils)
   const [showMap, setShowMap] = useState(false);
+  const lastDashboardLoadRef = useRef(0);
+  const DEBOUNCE_MS = 3000;
 
-  // Charger les données et connecter au Socket au montage (try/catch pour éviter crash APK)
+  // Charger les données au montage ; annuler les requêtes au démontage (évite doublons et - - ms - -)
   useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
         await loadDashboardData();
+        if (!cancelled) lastDashboardLoadRef.current = Date.now();
       } catch (e) {
         if (!cancelled) {
           console.warn('[Home] loadDashboardData error:', e?.message || e);
@@ -96,8 +100,9 @@ export default function DeliveryHomeScreen({ navigation }) {
     return () => {
       cancelled = true;
       clearTimeout(mapTimer);
+      cancelDashboardLoad();
     };
-  }, []);
+  }, [loadDashboardData, cancelDashboardLoad]);
 
   useEffect(() => {
     // Connecter au WebSocket (ne pas faire crasher l’app si erreur)
@@ -122,8 +127,11 @@ export default function DeliveryHomeScreen({ navigation }) {
         ],
         { cancelable: true }
       );
-      // Recharger les données
-      loadDashboardData();
+      // Recharger les données (debounce pour éviter doublons)
+      if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
+        lastDashboardLoadRef.current = Date.now();
+        loadDashboardData();
+      }
     });
 
     // Écouter les commandes prêtes (si livreur assigné)
@@ -145,7 +153,10 @@ export default function DeliveryHomeScreen({ navigation }) {
         '❌ Commande annulée',
         `La commande ${data.order_number} a été annulée par le client.`
       );
-      loadDashboardData();
+      if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
+        lastDashboardLoadRef.current = Date.now();
+        loadDashboardData();
+      }
     });
 
     // Mettre à jour le statut de disponibilité sur le serveur
