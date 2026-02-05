@@ -1891,17 +1891,33 @@ exports.getStatistics = async (req, res) => {
         break;
     }
 
-    // Statistiques globales des commandes
+    // Statistiques globales des commandes (orders n'a pas delivery_rating, c'est dans reviews)
     const statsResult = await query(
       `SELECT 
         COUNT(*) FILTER (WHERE status = 'delivered') as total_delivered,
         COUNT(*) FILTER (WHERE status = 'cancelled') as total_cancelled,
-        AVG(CASE WHEN delivery_rating IS NOT NULL THEN delivery_rating END) as avg_rating,
-        COUNT(*) FILTER (WHERE delivery_rating IS NOT NULL) as total_rated,
         COALESCE(SUM(delivery_fee), 0) as total_delivery_fees,
         COALESCE(SUM(COALESCE(delivery_distance, 0)), 0) as total_distance
        FROM orders o
        WHERE delivery_person_id = $1 ${dateFilter}`,
+      [req.user.id]
+    );
+
+    // Note moyenne et nombre d'avis sur la période (table reviews)
+    const ratingFilter = period === 'today'
+      ? 'AND o.delivered_at >= CURRENT_DATE'
+      : period === 'week'
+        ? "AND o.delivered_at >= DATE_TRUNC('week', CURRENT_DATE)"
+        : period === 'year'
+          ? "AND o.delivered_at >= DATE_TRUNC('year', CURRENT_DATE)"
+          : "AND o.delivered_at >= DATE_TRUNC('month', CURRENT_DATE)";
+    const ratingResult = await query(
+      `SELECT 
+        AVG(r.delivery_rating) as avg_rating,
+        COUNT(*) as total_rated
+       FROM reviews r
+       INNER JOIN orders o ON o.id = r.order_id AND o.delivery_person_id = $1 ${ratingFilter}
+       WHERE r.delivery_person_id = $1 AND r.delivery_rating IS NOT NULL`,
       [req.user.id]
     );
 
@@ -1941,6 +1957,7 @@ exports.getStatistics = async (req, res) => {
     );
 
     const stats = statsResult.rows[0];
+    const ratingRow = ratingResult.rows[0];
     const earnings = earningsResult.rows[0];
     const profile = profileResult.rows[0] || {};
     const totalDelivered = parseInt(stats.total_delivered) || 0;
@@ -1960,8 +1977,8 @@ exports.getStatistics = async (req, res) => {
           total_deliveries: totalDelivered,
           total_cancelled: totalCancelled,
           completion_rate: total > 0 ? Math.round((totalDelivered / total) * 100) : 100,
-          average_rating: parseFloat(stats.avg_rating) || parseFloat(profile.average_rating) || 0,
-          total_reviews: parseInt(stats.total_rated) || 0,
+          average_rating: parseFloat(ratingRow?.avg_rating) || parseFloat(profile.average_rating) || 0,
+          total_reviews: parseInt(ratingRow?.total_rated) || 0,
           
           // Gains de la période
           total_delivery_fees: parseFloat(stats.total_delivery_fees) || 0,
@@ -2260,17 +2277,18 @@ exports.getSupportMessages = async (req, res) => {
       });
     }
 
-    // Récupérer les messages (table ticket_messages, pas de read_at)
-    const messages = await query(
+    // Récupérer les messages (exclure les notes internes admin)
+    const messagesResult = await query(
       `SELECT * FROM ticket_messages WHERE ticket_id = $1 ORDER BY created_at ASC`,
       [ticketId]
     );
+    const messages = messagesResult.rows.filter(m => m.is_internal !== true);
 
     res.json({
       success: true,
       data: {
         ticket: ticketResult.rows[0],
-        messages: messages.rows,
+        messages,
       },
     });
   } catch (error) {

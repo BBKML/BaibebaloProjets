@@ -163,12 +163,16 @@ function ChatView({ conversation, onBack, isNew = false }) {
     try {
       const response = await apiClient.get(`/delivery/support/messages/${currentTicket.id}`);
       if (response.data?.success) {
-        const serverMessages = response.data.data.messages.map(m => ({
-          id: m.id,
-          type: m.sender_type === 'user' ? 'user' : 'support',
-          text: m.message,
-          timestamp: new Date(m.created_at),
-        }));
+        const serverMessages = response.data.data.messages.map(m => {
+          // Livreur envoie en 'delivery', admin en 'admin' ; afficher correctement
+          const isMe = m.sender_type === 'delivery' || m.sender_type === 'user';
+          return {
+            id: m.id,
+            type: isMe ? 'user' : 'support',
+            text: m.message,
+            timestamp: new Date(m.created_at),
+          };
+        });
         setMessages(serverMessages);
       }
     } catch (error) {
