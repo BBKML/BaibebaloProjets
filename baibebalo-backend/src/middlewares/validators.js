@@ -176,6 +176,7 @@ const generalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { xForwardedForHeader: false }, // évite ERR_ERL_UNEXPECTED_X_FORWARDED_FOR derrière proxy (Render)
   skip: (req) => {
     // Ne pas limiter les admins
     return req.user?.type === 'admin';

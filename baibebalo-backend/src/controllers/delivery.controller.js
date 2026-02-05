@@ -2,6 +2,16 @@ const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const { uploadService } = require('../services/upload.service');
 
+/** Timeout en ms pour éviter de laisser la requête sans réponse (ex: client APK qui coupe) */
+const HANDLER_TIMEOUT_MS = 10000;
+
+function withTimeout(promise, ms = HANDLER_TIMEOUT_MS) {
+  return Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error('Handler timeout')), ms)),
+  ]);
+}
+
 /**
  * Inscription d'un nouveau livreur
  * NOTE: Authentification uniquement par OTP - pas de mot de passe requis
@@ -1218,36 +1228,42 @@ exports.getDeliveryHistory = async (req, res) => {
     queryText += ` ORDER BY o.created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
     values.push(limit, offset);
 
-    const result = await query(queryText, values);
+    const run = async () => {
+      const result = await query(queryText, values);
+      const countResult = await query(
+        status
+          ? 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1 AND status = $2'
+          : 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1',
+        status ? [req.user.id, status] : [req.user.id]
+      );
+      return { result, countResult };
+    };
 
-    const countResult = await query(
-      status
-        ? 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1 AND status = $2'
-        : 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1',
-      status ? [req.user.id, status] : [req.user.id]
-    );
+    const { result, countResult } = await withTimeout(run());
 
-    const total = parseInt(countResult.rows[0].count);
+    const total = parseInt(countResult.rows[0]?.count, 10) || 0;
+    const deliveries = Array.isArray(result?.rows) ? result.rows : [];
 
-    res.json({
+    return res.json({
       success: true,
       data: {
-        deliveries: result.rows,
+        deliveries,
         pagination: {
-          page: parseInt(page),
-          limit: parseInt(limit),
+          page: parseInt(page, 10) || 1,
+          limit: parseInt(limit, 10) || 20,
           total,
-          pages: Math.ceil(total / limit),
+          pages: limit > 0 ? Math.ceil(total / limit) : 0,
         },
       },
     });
   } catch (error) {
     logger.error('Erreur getDeliveryHistory:', error);
-    res.status(500).json({
+    const isTimeout = error?.message === 'Handler timeout';
+    return res.status(isTimeout ? 503 : 500).json({
       success: false,
       error: {
-        code: 'FETCH_ERROR',
-        message: 'Erreur lors de la récupération',
+        code: isTimeout ? 'TIMEOUT' : 'FETCH_ERROR',
+        message: isTimeout ? 'Service temporairement occupé' : 'Erreur lors de la récupération',
       },
     });
   }
@@ -1521,25 +1537,31 @@ exports.updateMyProfile = async (req, res) => {
 exports.getActiveOrders = async (req, res) => {
   try {
     logger.info('getActiveOrders', { deliveryId: req.user?.id });
-    const result = await query(
-      `SELECT o.*, r.name as restaurant_name
-       FROM orders o
-       LEFT JOIN restaurants r ON o.restaurant_id = r.id
-       WHERE o.delivery_person_id = $1 
-       AND o.status IN ('ready', 'picked_up', 'delivering')
-       ORDER BY o.created_at DESC`,
-      [req.user.id]
+    const result = await withTimeout(
+      query(
+        `SELECT o.*, r.name as restaurant_name
+         FROM orders o
+         LEFT JOIN restaurants r ON o.restaurant_id = r.id
+         WHERE o.delivery_person_id = $1 
+         AND o.status IN ('ready', 'picked_up', 'delivering')
+         ORDER BY o.created_at DESC`,
+        [req.user.id]
+      )
     );
-
-    res.json({
+    const orders = Array.isArray(result?.rows) ? result.rows : [];
+    return res.json({
       success: true,
-      data: { orders: result.rows },
+      data: { orders },
     });
   } catch (error) {
     logger.error('Erreur getActiveOrders:', error);
-    res.status(500).json({
+    const isTimeout = error?.message === 'Handler timeout';
+    return res.status(isTimeout ? 503 : 500).json({
       success: false,
-      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+      error: {
+        code: isTimeout ? 'TIMEOUT' : 'FETCH_ERROR',
+        message: isTimeout ? 'Service temporairement occupé' : 'Erreur lors de la récupération',
+      },
     });
   }
 };

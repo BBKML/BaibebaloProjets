@@ -75,13 +75,25 @@ export default function DeliveryHomeScreen({ navigation }) {
   });
   const [selectedZone, setSelectedZone] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  // Retarder l’affichage de la carte pour que le reste de l’écran s’affiche d’abord (évite crash APK sur certains appareils)
+  const [showMap, setShowMap] = useState(false);
 
   // Charger les données et connecter au Socket au montage
   useEffect(() => {
     loadDashboardData();
-    
-    // Connecter au WebSocket
-    socketService.connect();
+
+    // Afficher la carte après un court délai pour que stats / toggle soient visibles même si la carte plante
+    const mapTimer = setTimeout(() => setShowMap(true), 1500);
+    return () => clearTimeout(mapTimer);
+  }, []);
+
+  useEffect(() => {
+    // Connecter au WebSocket (ne pas faire crasher l’app si erreur)
+    try {
+      socketService.connect();
+    } catch (e) {
+      console.warn('[Home] Socket connect:', e?.message || e);
+    }
 
     // Écouter les nouvelles livraisons disponibles
     const unsubscribeNewDelivery = socketService.on('new_delivery_available', (data) => {
@@ -304,63 +316,71 @@ export default function DeliveryHomeScreen({ navigation }) {
         </View>
         
         <View style={styles.mapContainer}>
-          <MapView
-            ref={mapRef}
-            style={styles.map}
-            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-            initialRegion={{
-              latitude: currentLocation.latitude,
-              longitude: currentLocation.longitude,
-              latitudeDelta: 0.025,
-              longitudeDelta: 0.025,
-            }}
-            showsUserLocation={false}
-            showsMyLocationButton={false}
-          >
-            {/* Zones de forte demande (cercles colorés) */}
-            {hotZones.map((zone) => (
-              <Circle
-                key={zone.id}
-                center={{ latitude: zone.latitude, longitude: zone.longitude }}
-                radius={zone.radius}
-                fillColor={zoneColors[zone.intensity].fill}
-                strokeColor={zoneColors[zone.intensity].stroke}
-                strokeWidth={2}
-                onPress={() => setSelectedZone(zone)}
-              />
-            ))}
+          {!showMap ? (
+            <View style={[styles.map, styles.mapPlaceholder]}>
+              <Ionicons name="map-outline" size={48} color={COLORS.textLight} />
+              <Text style={styles.mapPlaceholderText}>Chargement de la carte…</Text>
+              <Text style={styles.mapPlaceholderSubtext}>Zones : Centre-ville, Marché, Zone commerciale, Résidentiel Nord</Text>
+            </View>
+          ) : (
+            <MapView
+              ref={mapRef}
+              style={styles.map}
+              provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+              initialRegion={{
+                latitude: currentLocation.latitude,
+                longitude: currentLocation.longitude,
+                latitudeDelta: 0.025,
+                longitudeDelta: 0.025,
+              }}
+              showsUserLocation={false}
+              showsMyLocationButton={false}
+            >
+              {/* Zones de forte demande (cercles colorés) */}
+              {hotZones.map((zone) => (
+                <Circle
+                  key={zone.id}
+                  center={{ latitude: zone.latitude, longitude: zone.longitude }}
+                  radius={zone.radius}
+                  fillColor={zoneColors[zone.intensity].fill}
+                  strokeColor={zoneColors[zone.intensity].stroke}
+                  strokeWidth={2}
+                  onPress={() => setSelectedZone(zone)}
+                />
+              ))}
 
-            {/* Marqueurs pour les zones */}
-            {hotZones.map((zone) => (
+              {/* Marqueurs pour les zones */}
+              {hotZones.map((zone) => (
+                <Marker
+                  key={`marker-${zone.id}`}
+                  coordinate={{ latitude: zone.latitude, longitude: zone.longitude }}
+                  onPress={() => setSelectedZone(zone)}
+                >
+                  <View style={[
+                    styles.zoneMarker,
+                    { backgroundColor: zoneColors[zone.intensity].stroke }
+                  ]}>
+                    <Ionicons 
+                      name={zone.intensity === 'high' ? 'flame' : zone.intensity === 'medium' ? 'trending-up' : 'remove'} 
+                      size={14} 
+                      color="#FFFFFF" 
+                    />
+                  </View>
+                </Marker>
+              ))}
+
+              {/* Position actuelle du livreur */}
               <Marker
-                key={`marker-${zone.id}`}
-                coordinate={{ latitude: zone.latitude, longitude: zone.longitude }}
-                onPress={() => setSelectedZone(zone)}
+                coordinate={currentLocation}
+                anchor={{ x: 0.5, y: 0.5 }}
               >
-                <View style={[
-                  styles.zoneMarker, 
-                  { backgroundColor: zoneColors[zone.intensity].stroke }
-                ]}>
-                  <Ionicons 
-                    name={zone.intensity === 'high' ? 'flame' : zone.intensity === 'medium' ? 'trending-up' : 'remove'} 
-                    size={14} 
-                    color="#FFFFFF" 
-                  />
+                <View style={styles.currentLocationMarker}>
+                  <View style={styles.locationPulseAnim} />
+                  <View style={styles.locationDotInner} />
                 </View>
               </Marker>
-            ))}
-
-            {/* Position actuelle du livreur */}
-            <Marker
-              coordinate={currentLocation}
-              anchor={{ x: 0.5, y: 0.5 }}
-            >
-              <View style={styles.currentLocationMarker}>
-                <View style={styles.locationPulseAnim} />
-                <View style={styles.locationDotInner} />
-              </View>
-            </Marker>
-          </MapView>
+            </MapView>
+          )}
 
           {/* Légende */}
           <View style={styles.mapLegend}>
@@ -704,6 +724,23 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  mapPlaceholder: {
+    backgroundColor: COLORS.background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+  mapPlaceholderText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: COLORS.textSecondary,
+  },
+  mapPlaceholderSubtext: {
+    marginTop: 4,
+    fontSize: 12,
+    color: COLORS.textLight,
+    textAlign: 'center',
   },
   zoneMarker: {
     width: 28,
