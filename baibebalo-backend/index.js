@@ -65,8 +65,8 @@ app.use(helmet({
 // Rate limiting global (désactivé en dev pour les tests)
 if (config.env === 'production') {
   const limiter = rateLimit({
-    windowMs: config.rateLimit.windowMs,
-    max: config.rateLimit.maxRequests,
+    windowMs: config.rateLimit?.windowMs || 15 * 60 * 1000,
+    max: config.rateLimit?.maxRequests || 100,
     message: {
       success: false,
       error: {
@@ -76,7 +76,12 @@ if (config.env === 'production') {
     },
     standardHeaders: true,
     legacyHeaders: false,
-    validate: { xForwardedForHeader: false }, // évite ERR_ERL_UNEXPECTED_X_FORWARDED_FOR si proxy mal détecté
+    validate: { xForwardedForHeader: false },
+    // keyGenerator évite toute validation IP / X-Forwarded-For qui peut faire planter derrière Render
+    keyGenerator: (req) => {
+      const ip = req.ip || (req.get && req.get('x-forwarded-for'))?.split(',')[0]?.trim() || req.socket?.remoteAddress || 'unknown';
+      return String(ip);
+    },
   });
   app.use('/api/', limiter);
 }
