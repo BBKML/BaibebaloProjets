@@ -189,9 +189,12 @@ export default function AppNavigator() {
 
   useEffect(() => {
     const init = async () => {
-      await loadStoredAuth();
+      try {
+        await loadStoredAuth();
+      } catch (e) {
+        console.warn('[AppNavigator] loadStoredAuth error:', e?.message || e);
+      }
       setIsReady(true);
-      // Show splash for 2 seconds
       setTimeout(() => setShowSplash(false), 2000);
     };
     init();

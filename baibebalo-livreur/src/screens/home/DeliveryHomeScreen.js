@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
+import SafeMapView from '../../components/SafeMapView';
 import { COLORS } from '../../constants/colors';
 import { getImageUrl } from '../../utils/url';
 import useAuthStore from '../../store/authStore';
@@ -352,6 +353,7 @@ export default function DeliveryHomeScreen({ navigation }) {
               <Text style={styles.mapPlaceholderSubtext}>Zones : Centre-ville, Marché, Zone commerciale, Résidentiel Nord</Text>
             </View>
           ) : (
+            <SafeMapView style={styles.map}>
             <MapView
               ref={mapRef}
               style={styles.map}
@@ -409,6 +411,7 @@ export default function DeliveryHomeScreen({ navigation }) {
                 </View>
               </Marker>
             </MapView>
+            </SafeMapView>
           )}
 
           {/* Légende */}

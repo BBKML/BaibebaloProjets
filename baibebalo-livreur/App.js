@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as Notifications from 'expo-notifications';
 import AppNavigator from './src/navigation/AppNavigator';
+import ErrorBoundary from './src/components/ErrorBoundary';
 
 // Configurer le comportement des notifications par défaut
 try {
@@ -15,16 +16,17 @@ try {
     }),
   });
 } catch (error) {
-  // Dans Expo Go, les notifications push ne sont pas supportées
-  // L'application fonctionnera normalement sans notifications push
+  // Dans Expo Go / APK sans push : l'app continue sans notifications
 }
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <AppNavigator />
-      <Toast />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <AppNavigator />
+        <Toast />
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }
