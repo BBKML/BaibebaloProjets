@@ -1257,7 +1257,7 @@ exports.getDeliveryHistory = async (req, res) => {
       return { result, countResult };
     };
 
-    const { result, countResult } = await withTimeout(run());
+    const { result, countResult } = await withTimeout(run(), DELIVERY_ROUTE_TIMEOUT_MS);
 
     const total = parseInt(countResult.rows[0]?.count, 10) || 0;
     const deliveries = Array.isArray(result?.rows) ? result.rows : [];
@@ -1276,12 +1276,13 @@ exports.getDeliveryHistory = async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur getDeliveryHistory:', error);
-    const isTimeout = error?.message === 'Handler timeout';
-    return res.status(isTimeout ? 503 : 500).json({
-      success: false,
-      error: {
-        code: isTimeout ? 'TIMEOUT' : 'FETCH_ERROR',
-        message: isTimeout ? 'Service temporairement occupé' : 'Erreur lors de la récupération',
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, parseInt(req.query.limit, 10) || 20));
+    return res.json({
+      success: true,
+      data: {
+        deliveries: [],
+        pagination: { page, limit, total: 0, pages: 0 },
       },
     });
   }
@@ -1553,8 +1554,11 @@ exports.updateMyProfile = async (req, res) => {
   }
 };
 
+/** Timeout dédié pour routes lentes (5s) pour éviter - - ms - - côté client */
+const DELIVERY_ROUTE_TIMEOUT_MS = 5000;
+
 /**
- * Obtenir les commandes actives (optimisé: champs ciblés + index delivery_person_id + status)
+ * Obtenir les commandes actives (optimisé: colonnes minimales, LIMIT 20, timeout 5s, [] en erreur)
  */
 exports.getActiveOrders = async (req, res) => {
   try {
@@ -1564,12 +1568,14 @@ exports.getActiveOrders = async (req, res) => {
                 o.delivery_address, o.placed_at, o.ready_at, o.picked_up_at, o.delivering_at,
                 r.name as restaurant_name
          FROM orders o
-         LEFT JOIN restaurants r ON o.restaurant_id = r.id
+         LEFT JOIN restaurants r ON r.id = o.restaurant_id
          WHERE o.delivery_person_id = $1
-         AND o.status IN ('ready', 'picked_up', 'delivering')
-         ORDER BY o.created_at DESC`,
+           AND o.status IN ('ready', 'picked_up', 'delivering')
+         ORDER BY o.created_at DESC
+         LIMIT 20`,
         [req.user.id]
-      )
+      ),
+      DELIVERY_ROUTE_TIMEOUT_MS
     );
     const orders = Array.isArray(result?.rows) ? result.rows : [];
     return res.json({
@@ -1578,13 +1584,9 @@ exports.getActiveOrders = async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur getActiveOrders:', error);
-    const isTimeout = error?.message === 'Handler timeout';
-    return res.status(isTimeout ? 503 : 500).json({
-      success: false,
-      error: {
-        code: isTimeout ? 'TIMEOUT' : 'FETCH_ERROR',
-        message: isTimeout ? 'Service temporairement occupé' : 'Erreur lors de la récupération',
-      },
+    return res.json({
+      success: true,
+      data: { orders: [] },
     });
   }
 };
