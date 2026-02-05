@@ -81,10 +81,16 @@ export default function DeliveryHomeScreen({ navigation }) {
   // Retarder l’affichage de la carte pour que le reste de l’écran s’affiche d’abord (évite crash APK sur certains appareils)
   const [showMap, setShowMap] = useState(false);
   const lastDashboardLoadRef = useRef(0);
+  const pendingCancelRef = useRef(null);
   const DEBOUNCE_MS = 3000;
+  const CANCEL_DELAY_MS = 500;
 
-  // Charger les données au montage ; annuler les requêtes au démontage (évite doublons et - - ms - -)
+  // Charger les données au montage ; annuler au démontage avec délai (évite d'annuler sur double montage React / nav)
   useEffect(() => {
+    if (pendingCancelRef.current) {
+      clearTimeout(pendingCancelRef.current);
+      pendingCancelRef.current = null;
+    }
     let cancelled = false;
     (async () => {
       try {
@@ -100,7 +106,10 @@ export default function DeliveryHomeScreen({ navigation }) {
     return () => {
       cancelled = true;
       clearTimeout(mapTimer);
-      cancelDashboardLoad();
+      pendingCancelRef.current = setTimeout(() => {
+        cancelDashboardLoad();
+        pendingCancelRef.current = null;
+      }, CANCEL_DELAY_MS);
     };
   }, [loadDashboardData, cancelDashboardLoad]);
 
