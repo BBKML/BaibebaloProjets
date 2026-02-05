@@ -23,6 +23,9 @@ const db = require('./src/database/db');
 const app = express();
 const server = http.createServer(app);
 
+// Derrière un reverse proxy (Render, etc.) : obligatoire pour X-Forwarded-For et rate-limit
+app.set('trust proxy', 1);
+
 // ================================
 // CONFIGURATION SOCKET.IO
 // ================================
@@ -71,6 +74,9 @@ if (config.env === 'production') {
         message: 'Trop de requêtes, veuillez réessayer plus tard',
       },
     },
+    standardHeaders: true,
+    legacyHeaders: false,
+    validate: { xForwardedForHeader: false }, // évite ERR_ERL_UNEXPECTED_X_FORWARDED_FOR si proxy mal détecté
   });
   app.use('/api/', limiter);
 }

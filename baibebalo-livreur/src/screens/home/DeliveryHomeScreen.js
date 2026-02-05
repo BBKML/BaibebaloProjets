@@ -148,9 +148,10 @@ export default function DeliveryHomeScreen({ navigation }) {
     await setStatus(newStatus);
   };
 
-  const target = dailyGoal?.target ?? 10;
-  const completed = dailyGoal?.completed ?? 0;
-  const progressPercent = target > 0 ? (completed / target) * 100 : 0;
+  const target = Number(dailyGoal?.target) || 10;
+  const completed = Number(dailyGoal?.completed) || 0;
+  const progressPercent = target > 0 ? Math.min(100, (completed / target) * 100) : 0;
+  const safeRecentDeliveries = Array.isArray(recentDeliveries) ? recentDeliveries : [];
 
   const centerOnLocation = () => {
     mapRef.current?.animateToRegion({
@@ -406,7 +407,7 @@ export default function DeliveryHomeScreen({ navigation }) {
         </View>
 
         {/* Recent Deliveries */}
-        {recentDeliveries.length > 0 && (
+        {safeRecentDeliveries.length > 0 && (
           <>
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Courses récentes</Text>
@@ -415,7 +416,7 @@ export default function DeliveryHomeScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {recentDeliveries.slice(0, 3).map((delivery, index) => (
+            {safeRecentDeliveries.slice(0, 3).map((delivery, index) => (
               <View key={index} style={styles.deliveryCard}>
                 <View style={styles.deliveryInfo}>
                   <Text style={styles.deliveryTime}>{delivery.time}</Text>
@@ -448,7 +449,7 @@ export default function DeliveryHomeScreen({ navigation }) {
         )}
 
         {/* Empty state if no recent deliveries */}
-        {recentDeliveries.length === 0 && (
+        {safeRecentDeliveries.length === 0 && (
           <View style={styles.emptyState}>
             <Ionicons name="bicycle-outline" size={48} color={COLORS.textLight} />
             <Text style={styles.emptyStateText}>

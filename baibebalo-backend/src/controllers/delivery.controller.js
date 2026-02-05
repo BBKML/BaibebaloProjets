@@ -873,9 +873,10 @@ exports.confirmDelivery = async (req, res) => {
  */
 exports.getEarnings = async (req, res) => {
   try {
-    // La colonne s'appelle 'balance' et non 'available_balance'
+    logger.info('getEarnings', { deliveryId: req.user?.id });
+    // balance = colonne de base; available_balance ajoutée en migration (utiliser les deux si dispo)
     const deliveryResult = await query(
-      `SELECT total_earnings, balance, total_deliveries
+      `SELECT total_earnings, total_deliveries, balance
        FROM delivery_persons WHERE id = $1`,
       [req.user.id]
     );
@@ -925,7 +926,7 @@ exports.getEarnings = async (req, res) => {
     res.json({
       success: true,
       data: {
-        available_balance: parseFloat(delivery.balance || 0),
+        available_balance: parseFloat(delivery.balance ?? 0),
         total_earnings: parseFloat(delivery.total_earnings || 0),
         total_deliveries: delivery.total_deliveries || 0,
         today: parseFloat(todayResult.rows[0].today_earnings || 0),
@@ -1193,6 +1194,7 @@ exports.getMyCashRemittances = async (req, res) => {
  */
 exports.getDeliveryHistory = async (req, res) => {
   try {
+    logger.info('getDeliveryHistory', { deliveryId: req.user?.id });
     const { page = 1, limit = 20, status } = req.query;
     const offset = (page - 1) * limit;
 
@@ -1518,6 +1520,7 @@ exports.updateMyProfile = async (req, res) => {
  */
 exports.getActiveOrders = async (req, res) => {
   try {
+    logger.info('getActiveOrders', { deliveryId: req.user?.id });
     const result = await query(
       `SELECT o.*, r.name as restaurant_name
        FROM orders o

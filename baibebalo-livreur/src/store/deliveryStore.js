@@ -63,11 +63,11 @@ const useDeliveryStore = create((set, get) => ({
   loadDashboardData: async () => {
     set({ isLoading: true, error: null });
     try {
-      // Charger gains et statistiques en parallèle
+      // Charger gains et statistiques en parallèle (chaque appel échoué retourne { success: false } pour éviter crash APK)
       const [earningsResponse, activeOrdersResponse, historyResponse] = await Promise.all([
-        getEarnings().catch(e => ({ success: false, error: e })),
-        getActiveOrders().catch(e => ({ success: false, error: e })),
-        getDeliveryHistory(1, 5, 'delivered').catch(e => ({ success: false, error: e })),
+        getEarnings().catch(() => ({ success: false })),
+        getActiveOrders().catch(() => ({ success: false })),
+        getDeliveryHistory(1, 5, 'delivered').catch(() => ({ success: false })),
       ]);
 
       // Mettre à jour les gains
@@ -89,17 +89,15 @@ const useDeliveryStore = create((set, get) => ({
         });
       }
 
-      // Mettre à jour les commandes actives
-      if (activeOrdersResponse?.success && activeOrdersResponse?.data?.orders) {
-        const orders = activeOrdersResponse.data.orders;
-        set({ 
-          activeOrders: orders,
-          currentDelivery: orders.length > 0 ? orders[0] : null,
-        });
-      }
+      // Mettre à jour les commandes actives (toujours un tableau pour éviter crash au rendu)
+      const orders = Array.isArray(activeOrdersResponse?.data?.orders) ? activeOrdersResponse.data.orders : [];
+      set({ 
+        activeOrders: orders,
+        currentDelivery: orders.length > 0 ? orders[0] : null,
+      });
 
       // Mettre à jour l'historique récent
-      const rawDeliveries = historyResponse?.success && Array.isArray(historyResponse?.data?.deliveries)
+      const rawDeliveries = Array.isArray(historyResponse?.data?.deliveries)
         ? historyResponse.data.deliveries
         : [];
       if (rawDeliveries.length > 0) {
@@ -122,10 +120,11 @@ const useDeliveryStore = create((set, get) => ({
         });
       }
 
-      set({ isLoading: false });
     } catch (error) {
       console.error('Erreur loadDashboardData:', error);
-      set({ error: error?.message || 'Erreur chargement', isLoading: false });
+      set({ error: error?.message || 'Erreur chargement' });
+    } finally {
+      set({ isLoading: false });
     }
   },
 
