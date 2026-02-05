@@ -7,7 +7,7 @@ import useAuthStore from '../store/authStore';
 const requestTimeout = 10000;
 
 const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: (typeof API_BASE_URL === 'string' && API_BASE_URL) ? API_BASE_URL : 'https://baibebaloprojets.onrender.com/api/v1',
   timeout: requestTimeout,
   headers: {
     'Content-Type': 'application/json',

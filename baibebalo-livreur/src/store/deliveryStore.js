@@ -4,6 +4,9 @@ import { getProfile, updateDeliveryStatus, updateLocation } from '../api/deliver
 import { getEarnings } from '../api/earnings';
 import { getActiveOrders, getDeliveryHistory } from '../api/orders';
 
+/** Garde synchrone : un seul loadDashboardData à la fois (évite 2x orders/active + 2x history) */
+let __loadDashboardInProgress = false;
+
 const useDeliveryStore = create((set, get) => ({
   // État du livreur
   status: 'offline', // 'available', 'busy', 'offline'
@@ -76,7 +79,8 @@ const useDeliveryStore = create((set, get) => ({
    * - Annulable via cancelDashboardLoad() ou signal (ex. au démontage).
    */
   loadDashboardData: async () => {
-    if (get().loadInProgress) return;
+    if (__loadDashboardInProgress || get().loadInProgress) return;
+    __loadDashboardInProgress = true;
     const g = typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : null;
     if (g && g.__dashboardAbortController) {
       g.__dashboardAbortController.abort();
@@ -100,6 +104,7 @@ const useDeliveryStore = create((set, get) => ({
     };
 
     const finish = () => {
+      __loadDashboardInProgress = false;
       set({ loadInProgress: false });
       if (g) g.__dashboardAbortController = null;
     };

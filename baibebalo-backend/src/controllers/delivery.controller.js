@@ -1227,13 +1227,10 @@ exports.getDeliveryHistory = async (req, res) => {
 
     const selectFields = `o.id, o.order_number, o.status, o.delivery_fee, o.delivery_address,
                          o.placed_at, o.delivered_at, o.created_at,
-                         r.name as restaurant_name,
-                         u.first_name as client_first_name`;
+                         (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name`;
     let queryText = `
       SELECT ${selectFields}
       FROM orders o
-      LEFT JOIN restaurants r ON o.restaurant_id = r.id
-      LEFT JOIN users u ON o.user_id = u.id
       WHERE o.delivery_person_id = $1
     `;
 
@@ -1247,13 +1244,15 @@ exports.getDeliveryHistory = async (req, res) => {
     values.push(limit, offset);
 
     const run = async () => {
-      const result = await query(queryText, values);
-      const countResult = await query(
-        status
-          ? 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1 AND status = $2'
-          : 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1',
-        status ? [req.user.id, status] : [req.user.id]
-      );
+      const [result, countResult] = await Promise.all([
+        query(queryText, values),
+        query(
+          status
+            ? 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1 AND status = $2'
+            : 'SELECT COUNT(*) FROM orders WHERE delivery_person_id = $1',
+          status ? [req.user.id, status] : [req.user.id]
+        ),
+      ]);
       return { result, countResult };
     };
 
@@ -1554,23 +1553,22 @@ exports.updateMyProfile = async (req, res) => {
   }
 };
 
-/** Timeout dédié pour routes lentes (5s) pour éviter - - ms - - côté client */
-const DELIVERY_ROUTE_TIMEOUT_MS = 5000;
+/** Timeout dédié pour routes livraison (4s) : répondre avant que le client coupe */
+const DELIVERY_ROUTE_TIMEOUT_MS = 4000;
 
 /**
- * Obtenir les commandes actives (optimisé: colonnes minimales, LIMIT 20, timeout 5s, [] en erreur)
+ * Commandes actives : colonnes minimales, 1 JOIN, statuts = ready|delivering (pas picked_up en DB), LIMIT 20
  */
 exports.getActiveOrders = async (req, res) => {
   try {
     const result = await withTimeout(
       query(
         `SELECT o.id, o.order_number, o.status, o.restaurant_id, o.delivery_fee,
-                o.delivery_address, o.placed_at, o.ready_at, o.picked_up_at, o.delivering_at,
-                r.name as restaurant_name
+                o.delivery_address, o.placed_at, o.ready_at, o.delivering_at,
+                (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
          FROM orders o
-         LEFT JOIN restaurants r ON r.id = o.restaurant_id
          WHERE o.delivery_person_id = $1
-           AND o.status IN ('ready', 'picked_up', 'delivering')
+           AND o.status IN ('ready', 'delivering')
          ORDER BY o.created_at DESC
          LIMIT 20`,
         [req.user.id]

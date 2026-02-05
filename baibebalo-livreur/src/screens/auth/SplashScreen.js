@@ -3,9 +3,11 @@ import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
+const primaryColor = (COLORS && COLORS.primary) || '#22C55E';
+
 export default function SplashScreen() {
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: primaryColor }]}>
       {/* Decorative circles */}
       <View style={styles.decorCircle1} />
       <View style={styles.decorCircle2} />
@@ -39,7 +41,6 @@ export default function SplashScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.primary,
     alignItems: 'center',
     justifyContent: 'space-between',
     paddingVertical: 60,

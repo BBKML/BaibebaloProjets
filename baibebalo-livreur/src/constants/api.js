@@ -2,97 +2,86 @@
 // EAS build injecte EXPO_PUBLIC_API_URL depuis eas.json ; fallback pour dev et sécurité build
 const PRODUCTION_API_URL = 'https://baibebaloprojets.onrender.com/api/v1';
 const fromEnv = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = fromEnv || (__DEV__ ? 'http://192.168.1.4:5000/api/v1' : PRODUCTION_API_URL) || PRODUCTION_API_URL;
+const API_BASE_URL = (typeof fromEnv === 'string' && fromEnv) ? fromEnv : (typeof __DEV__ !== 'undefined' && __DEV__ ? 'http://192.168.1.4:5000/api/v1' : PRODUCTION_API_URL);
+const API_BASE_URL_SAFE = (typeof API_BASE_URL === 'string' && API_BASE_URL) ? API_BASE_URL : PRODUCTION_API_URL;
+
+const BASE = API_BASE_URL_SAFE;
 
 export const API_ENDPOINTS = {
   // Authentification Livreur
   AUTH: {
-    SEND_OTP: `${API_BASE_URL}/auth/send-otp`,
-    VERIFY_OTP: `${API_BASE_URL}/auth/verify-otp`,
-    REGISTER_DELIVERY: `${API_BASE_URL}/delivery/register`,
-    REFRESH_TOKEN: `${API_BASE_URL}/auth/refresh-token`,
-    LOGOUT: `${API_BASE_URL}/auth/logout`,
+    SEND_OTP: `${BASE}/auth/send-otp`,
+    VERIFY_OTP: `${BASE}/auth/verify-otp`,
+    REGISTER_DELIVERY: `${BASE}/delivery/register`,
+    REFRESH_TOKEN: `${BASE}/auth/refresh-token`,
+    LOGOUT: `${BASE}/auth/logout`,
   },
   
   // Profil Livreur - Endpoints corrigés pour correspondre au backend
   DELIVERY: {
-    PROFILE: `${API_BASE_URL}/delivery/me`,
-    CHECK_STATUS: `${API_BASE_URL}/delivery/check-status`,
-    UPDATE_PROFILE: `${API_BASE_URL}/delivery/me`,
-    UPLOAD_DOCUMENT: `${API_BASE_URL}/delivery/me/documents`,
-    UPDATE_STATUS: `${API_BASE_URL}/delivery/status`, // Corrigé
-    UPDATE_LOCATION: `${API_BASE_URL}/delivery/location`, // Corrigé
-    UPDATE_AVAILABILITY: `${API_BASE_URL}/delivery/me/availability`,
-    UPDATE_VEHICLE: `${API_BASE_URL}/delivery/me/vehicle`,
-    UPDATE_ZONES: `${API_BASE_URL}/delivery/me/zones`,
+    PROFILE: `${BASE}/delivery/me`,
+    CHECK_STATUS: `${BASE}/delivery/check-status`,
+    UPDATE_PROFILE: `${BASE}/delivery/me`,
+    UPLOAD_DOCUMENT: `${BASE}/delivery/me/documents`,
+    UPDATE_STATUS: `${BASE}/delivery/status`,
+    UPDATE_LOCATION: `${BASE}/delivery/location`,
+    UPDATE_AVAILABILITY: `${BASE}/delivery/me/availability`,
+    UPDATE_VEHICLE: `${BASE}/delivery/me/vehicle`,
+    UPDATE_ZONES: `${BASE}/delivery/me/zones`,
   },
-  
-  // Onboarding / Formation
   ONBOARDING: {
-    TRAINING_MODULES: `${API_BASE_URL}/delivery/training/modules`,
-    MODULE_DETAIL: (id) => `${API_BASE_URL}/delivery/training/modules/${id}`,
-    COMPLETE_MODULE: (id) => `${API_BASE_URL}/delivery/training/modules/${id}/complete`,
-    QUIZ: `${API_BASE_URL}/delivery/training/quiz`,
-    SUBMIT_QUIZ: `${API_BASE_URL}/delivery/training/quiz/submit`,
-    SIGN_CONTRACT: `${API_BASE_URL}/delivery/contract/sign`,
-    STARTER_KIT: `${API_BASE_URL}/delivery/starter-kit`,
-    ORDER_STARTER_KIT: `${API_BASE_URL}/delivery/starter-kit/order`,
+    TRAINING_MODULES: `${BASE}/delivery/training/modules`,
+    MODULE_DETAIL: (id) => `${BASE}/delivery/training/modules/${id}`,
+    COMPLETE_MODULE: (id) => `${BASE}/delivery/training/modules/${id}/complete`,
+    QUIZ: `${BASE}/delivery/training/quiz`,
+    SUBMIT_QUIZ: `${BASE}/delivery/training/quiz/submit`,
+    SIGN_CONTRACT: `${BASE}/delivery/contract/sign`,
+    STARTER_KIT: `${BASE}/delivery/starter-kit`,
+    ORDER_STARTER_KIT: `${BASE}/delivery/starter-kit/order`,
   },
-  
-  // Courses / Livraisons - Endpoints corrigés pour correspondre au backend
   ORDERS: {
-    AVAILABLE: `${API_BASE_URL}/delivery/available-orders`, // Corrigé
-    ACTIVE: `${API_BASE_URL}/delivery/orders/active`, // Ajouté (commandes en cours)
-    HISTORY: `${API_BASE_URL}/delivery/history`, // Corrigé
-    DETAIL: (id) => `${API_BASE_URL}/orders/${id}`, // Détail via order routes
-    ACCEPT: (id) => `${API_BASE_URL}/delivery/orders/${id}/accept`, // Corrigé (PUT)
-    DECLINE: (id) => `${API_BASE_URL}/delivery/orders/${id}/decline`, // Corrigé
-    ARRIVE_RESTAURANT: (id) => `${API_BASE_URL}/delivery/orders/${id}/arrive-restaurant`, // Corrigé
-    PICKUP: (id) => `${API_BASE_URL}/delivery/orders/${id}/pickup`, // Corrigé
-    ARRIVE_CUSTOMER: (id) => `${API_BASE_URL}/delivery/orders/${id}/arrive-customer`, // Corrigé
-    DELIVER: (id) => `${API_BASE_URL}/delivery/orders/${id}/deliver`, // Corrigé
-    REPORT_ISSUE: (id) => `${API_BASE_URL}/delivery/orders/${id}/report-issue`, // Corrigé
-    CLIENT_ABSENT: (id) => `${API_BASE_URL}/delivery/orders/${id}/client-absent`, // Ajouté
-    WRONG_ADDRESS: (id) => `${API_BASE_URL}/delivery/orders/${id}/wrong-address`, // Ajouté
+    AVAILABLE: `${BASE}/delivery/available-orders`,
+    ACTIVE: `${BASE}/delivery/orders/active`,
+    HISTORY: `${BASE}/delivery/history`,
+    DETAIL: (id) => `${BASE}/orders/${id}`,
+    ACCEPT: (id) => `${BASE}/delivery/orders/${id}/accept`,
+    DECLINE: (id) => `${BASE}/delivery/orders/${id}/decline`,
+    ARRIVE_RESTAURANT: (id) => `${BASE}/delivery/orders/${id}/arrive-restaurant`,
+    PICKUP: (id) => `${BASE}/delivery/orders/${id}/pickup`,
+    ARRIVE_CUSTOMER: (id) => `${BASE}/delivery/orders/${id}/arrive-customer`,
+    DELIVER: (id) => `${BASE}/delivery/orders/${id}/deliver`,
+    REPORT_ISSUE: (id) => `${BASE}/delivery/orders/${id}/report-issue`,
+    CLIENT_ABSENT: (id) => `${BASE}/delivery/orders/${id}/client-absent`,
+    WRONG_ADDRESS: (id) => `${BASE}/delivery/orders/${id}/wrong-address`,
   },
-  
-  // Gains et Paiements - Endpoints corrigés pour correspondre au backend
   EARNINGS: {
-    DASHBOARD: `${API_BASE_URL}/delivery/earnings`, // Principal endpoint
-    HISTORY: `${API_BASE_URL}/delivery/history`, // Utilise le même endpoint
-    PAYOUT_REQUEST: `${API_BASE_URL}/delivery/payout-request`, // Corrigé
-    PAYOUT_HISTORY: `${API_BASE_URL}/delivery/payout-requests`, // Corrigé
-    CASH_REMITTANCE_ORDERS_PENDING: `${API_BASE_URL}/delivery/cash-remittances/orders-pending`,
-    CASH_REMITTANCES: `${API_BASE_URL}/delivery/cash-remittances`,
+    DASHBOARD: `${BASE}/delivery/earnings`,
+    HISTORY: `${BASE}/delivery/history`,
+    PAYOUT_REQUEST: `${BASE}/delivery/payout-request`,
+    PAYOUT_HISTORY: `${BASE}/delivery/payout-requests`,
+    CASH_REMITTANCE_ORDERS_PENDING: `${BASE}/delivery/cash-remittances/orders-pending`,
+    CASH_REMITTANCES: `${BASE}/delivery/cash-remittances`,
   },
-  
-  // Statistiques et Performance
   STATS: {
-    DASHBOARD: `${API_BASE_URL}/delivery/statistics`,
-    REVIEWS: `${API_BASE_URL}/delivery/reviews`,
-    RANKINGS: `${API_BASE_URL}/delivery/rankings`,
+    DASHBOARD: `${BASE}/delivery/statistics`,
+    REVIEWS: `${BASE}/delivery/reviews`,
+    RANKINGS: `${BASE}/delivery/rankings`,
   },
-  
-  // Notifications
   NOTIFICATIONS: {
-    LIST: `${API_BASE_URL}/notifications`,
-    MARK_READ: (id) => `${API_BASE_URL}/notifications/${id}/read`,
-    MARK_ALL_READ: `${API_BASE_URL}/notifications/read-all`,
-    SAVE_FCM_TOKEN: `${API_BASE_URL}/notifications/fcm-token`,
-    SETTINGS: `${API_BASE_URL}/notifications/settings`,
+    LIST: `${BASE}/notifications`,
+    MARK_READ: (id) => `${BASE}/notifications/${id}/read`,
+    MARK_ALL_READ: `${BASE}/notifications/read-all`,
+    SAVE_FCM_TOKEN: `${BASE}/notifications/fcm-token`,
+    SETTINGS: `${BASE}/notifications/settings`,
   },
-  
-  // Support - Endpoints corrigés
   SUPPORT: {
-    CONTACT: `${API_BASE_URL}/delivery/support/contact`, // Corrigé
-    EMERGENCY: `${API_BASE_URL}/delivery/emergency`, // Corrigé
+    CONTACT: `${BASE}/delivery/support/contact`,
+    EMERGENCY: `${BASE}/delivery/emergency`,
   },
-  
-  // Mobile Money
   MOBILE_MONEY: {
-    VERIFY_ACCOUNT: `${API_BASE_URL}/delivery/mobile-money/verify`,
-    UPDATE_ACCOUNT: `${API_BASE_URL}/delivery/mobile-money/update`,
+    VERIFY_ACCOUNT: `${BASE}/delivery/mobile-money/verify`,
+    UPDATE_ACCOUNT: `${BASE}/delivery/mobile-money/update`,
   },
 };
 
-export default API_BASE_URL;
+export default API_BASE_URL_SAFE;

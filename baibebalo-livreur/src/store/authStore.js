@@ -94,7 +94,17 @@ const useAuthStore = create((set, get) => ({
       const pendingReg = await AsyncStorage.getItem('pending_registration');
       
       if (token && userData) {
-        const user = JSON.parse(userData);
+        let user;
+        try {
+          user = JSON.parse(userData);
+        } catch (_) {
+          set({ isLoading: false });
+          return;
+        }
+        if (!user || typeof user !== 'object') {
+          set({ isLoading: false });
+          return;
+        }
         // Le backend envoie "status" pour les livreurs (pas "validation_status")
         const userStatus = user.status || user.validation_status || 'pending';
         const isActive = userStatus === 'active';
@@ -119,7 +129,13 @@ const useAuthStore = create((set, get) => ({
           isLoading: false 
         });
       } else if (registrationData) {
-        const data = JSON.parse(registrationData);
+        let data;
+        try {
+          data = JSON.parse(registrationData);
+        } catch (_) {
+          set({ isLoading: false });
+          return;
+        }
         set({ 
           registrationData: data,
           registrationStep: data.step || 0,
