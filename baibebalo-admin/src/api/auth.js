@@ -87,14 +87,17 @@ export const authAPI = {
 
   // Demander la réinitialisation du mot de passe (mot de passe oublié)
   forgotPassword: async (email) => {
-    // TODO: Implémenter l'endpoint backend
-    // const response = await apiClient.post('/auth/admin/forgot-password', { email });
-    // return response.data;
-    
-    // Pour l'instant, retourner une promesse simulée
-    return Promise.resolve({
-      success: true,
-      message: 'Si cet email existe, vous recevrez un lien de réinitialisation par email.',
+    const response = await apiClient.post('/auth/admin/forgot-password', { email });
+    return response.data;
+  },
+
+  // Réinitialiser le mot de passe avec token
+  resetPassword: async (email, resetToken, newPassword) => {
+    const response = await apiClient.post('/auth/admin/reset-password', {
+      email,
+      reset_token: resetToken,
+      new_password: newPassword,
     });
+    return response.data;
   },
 };

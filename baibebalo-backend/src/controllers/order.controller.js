@@ -97,19 +97,32 @@ exports.calculateFees = async (req, res) => {
       deliveryFee = calculateDeliveryFee(distance);
     }
 
+    // === CALCUL DES BONUS (À INCLURE DANS LES FRAIS DE LIVRAISON) ===
+    // Les bonus sont payés par le client et inclus dans les frais de livraison
+    const { calculateDeliveryBonuses } = require('../utils/earnings');
+    const orderDate = new Date();
+    const bonuses = calculateDeliveryBonuses(deliveryFee, distance, orderDate);
+    const baseDeliveryFee = deliveryFee;
+    const totalDeliveryFeeWithBonuses = baseDeliveryFee + bonuses.totalBonus;
+
     // === SEUIL DE LIVRAISON GRATUITE ===
     // Si le sous-total dépasse le seuil, la livraison est gratuite
     const freeDeliveryThreshold = config.business.freeDeliveryThreshold || 5000;
     const freeDeliveryEnabled = config.business.freeDeliveryEnabled !== false;
     let freeDeliveryApplied = false;
-    let originalDeliveryFee = deliveryFee;
+    let originalDeliveryFee = totalDeliveryFeeWithBonuses; // Total avec bonus
     let amountToFreeDelivery = 0;
 
     if (freeDeliveryEnabled && subtotal >= freeDeliveryThreshold) {
       freeDeliveryApplied = true;
-      deliveryFee = 0;
+      deliveryFee = 0; // Livraison gratuite = 0 (sans bonus)
     } else if (freeDeliveryEnabled) {
       amountToFreeDelivery = freeDeliveryThreshold - subtotal;
+      // Utiliser les frais avec bonus pour le calcul
+      deliveryFee = totalDeliveryFeeWithBonuses;
+    } else {
+      // Utiliser les frais avec bonus
+      deliveryFee = totalDeliveryFeeWithBonuses;
     }
 
     // Frais de service désactivés (0 %) — uniquement frais livraison + commission restaurant
@@ -120,7 +133,7 @@ exports.calculateFees = async (req, res) => {
     const platformMaxKm = config.business.maxDeliveryDistance ?? 10;
     const deliveryRadiusKm = Number(restaurant.delivery_radius) || platformMaxKm;
 
-    // Total = sous-total + frais de livraison (pas de frais de service)
+    // Total = sous-total + frais de livraison (avec bonus inclus)
     const total = subtotal + deliveryFee;
 
     logger.info('Calcul des frais:', {
@@ -128,7 +141,9 @@ exports.calculateFees = async (req, res) => {
       restaurantId: restaurant_id,
       distance: distance.toFixed(2),
       subtotal,
-      deliveryFee,
+      baseDeliveryFee,
+      bonuses: bonuses.totalBonus,
+      deliveryFee: deliveryFee, // Total avec bonus
       total,
       freeDeliveryApplied,
     });
@@ -140,7 +155,14 @@ exports.calculateFees = async (req, res) => {
       success: true,
       data: {
         subtotal: subtotal,
-        delivery_fee: deliveryFee,
+        delivery_fee: deliveryFee, // Total avec bonus inclus
+        base_delivery_fee: baseDeliveryFee, // Frais de base sans bonus
+        bonuses: {
+          long_distance: bonuses.breakdown.bonus_long_distance,
+          peak_hour: bonuses.breakdown.bonus_peak_hour,
+          weekend: bonuses.breakdown.bonus_weekend,
+          total: bonuses.totalBonus,
+        },
         service_fee: serviceFee,
         total: total,
         distance_km: parseFloat(distance.toFixed(2)),
@@ -194,6 +216,18 @@ exports.createOrder = async (req, res) => {
       promo_code,
     } = req.body;
 
+    // Validation de la méthode de paiement
+    const ALLOWED_PAYMENT_METHODS = ['cash'];
+    if (!ALLOWED_PAYMENT_METHODS.includes(payment_method)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'PAYMENT_METHOD_DISABLED',
+          message: 'Seul le paiement à la livraison (cash) est accepté pour le moment.'
+        }
+      });
+    }
+
     return await transaction(async (client) => {
       // 1. Vérifier que le restaurant existe et est ouvert
       const restaurantResult = await client.query(
@@ -219,6 +253,18 @@ exports.createOrder = async (req, res) => {
       const orderItems = [];
 
       for (const item of items) {
+        // Valider et normaliser la quantité
+        const quantity = Math.max(1, Math.floor(Number(item.quantity) || 1));
+        if (!item.menu_item_id) {
+          return res.status(400).json({
+            success: false,
+            error: {
+              code: 'INVALID_ITEM',
+              message: 'menu_item_id manquant pour un article',
+            },
+          });
+        }
+
         const menuItemResult = await client.query(
           `SELECT * FROM menu_items 
            WHERE id = $1 AND restaurant_id = $2 AND is_available = true`,
@@ -262,13 +308,24 @@ exports.createOrder = async (req, res) => {
           });
         }
 
-        const itemSubtotal = itemPrice * item.quantity;
+        // Calculer le sous-total de l'item (prix unitaire * quantité)
+        const itemSubtotal = parseFloat(itemPrice) * quantity;
         subtotal += itemSubtotal;
+        
+        // Logger pour déboguer
+        logger.debug('Calcul item commande:', {
+          menu_item_id: item.menu_item_id,
+          item_name: menuItem.name,
+          unit_price: itemPrice,
+          quantity: quantity,
+          item_subtotal: itemSubtotal,
+          running_subtotal: subtotal,
+        });
 
         orderItems.push({
           menu_item_id: menuItem.id,
           menu_item_snapshot: menuItem,
-          quantity: item.quantity,
+          quantity: quantity, // Utiliser la quantité normalisée
           unit_price: itemPrice,
           selected_options: item.selected_options || {},
           special_notes: item.special_notes || null,
@@ -361,9 +418,16 @@ exports.createOrder = async (req, res) => {
         });
       }
 
-      let delivery_fee = calculateDeliveryFee(distance);
-      let originalDeliveryFee = delivery_fee;
+      let baseDeliveryFee = calculateDeliveryFee(distance);
+      let originalDeliveryFee = baseDeliveryFee;
       let freeDeliveryApplied = false;
+
+      // === CALCUL DES BONUS (À INCLURE DANS LES FRAIS DE LIVRAISON) ===
+      // Les bonus sont payés par le client et inclus dans les frais de livraison
+      const { calculateDeliveryBonuses } = require('../utils/earnings');
+      const orderDate = new Date();
+      const bonuses = calculateDeliveryBonuses(baseDeliveryFee, distance, orderDate);
+      const totalDeliveryFeeWithBonuses = baseDeliveryFee + bonuses.totalBonus;
 
       // === SEUIL DE LIVRAISON GRATUITE ===
       // Si le sous-total dépasse le seuil, la livraison est gratuite
@@ -372,8 +436,13 @@ exports.createOrder = async (req, res) => {
       
       if (freeDeliveryEnabled && subtotal >= freeDeliveryThreshold) {
         freeDeliveryApplied = true;
-        delivery_fee = 0;
+        delivery_fee = 0; // Livraison gratuite = 0 (sans bonus)
+        originalDeliveryFee = totalDeliveryFeeWithBonuses; // Pour le log
         logger.info(`Livraison gratuite appliquée: sous-total ${subtotal} >= seuil ${freeDeliveryThreshold}`);
+      } else {
+        // Utiliser les frais avec bonus inclus
+        delivery_fee = totalDeliveryFeeWithBonuses;
+        originalDeliveryFee = totalDeliveryFeeWithBonuses;
       }
 
       // === DÉTECTION ET CALCUL DE LA RÉDUCTION BUNDLE ===
@@ -474,7 +543,8 @@ exports.createOrder = async (req, res) => {
                 discount = (subtotal * promo.value) / 100;
               } else if (promo.type === 'fixed_amount') {
                 discount = promo.value;
-              } else if (promo.type === 'free_delivery') {
+              } else               if (promo.type === 'free_delivery') {
+                // La réduction "livraison gratuite" s'applique sur le total avec bonus
                 discount = delivery_fee;
               }
 
@@ -493,11 +563,9 @@ exports.createOrder = async (req, res) => {
         logger.info(`Réduction filleul (${referralDiscount}) plus avantageuse que code promo (${discount})`);
       }
 
-      // 6. Calculer la commission Baibebalo (taux du restaurant, défaut 15 %)
-      const commissionRate = (restaurant.commission_rate != null && restaurant.commission_rate !== '')
-        ? Number(restaurant.commission_rate)
-        : 15.0;
-      const commission = Math.round((subtotal * commissionRate) / 100 * 100) / 100;
+      // 6. Calculer la commission Baibebalo (taux du restaurant, défaut 15 %) — voir utils/commission.js
+      const { getCommission } = require('../utils/commission');
+      const { commission, rate: commissionRate } = getCommission(subtotal, restaurant.commission_rate);
 
       // Ajouter la réduction bundle au discount total
       const totalDiscount = discount + bundleDiscount;
@@ -505,6 +573,27 @@ exports.createOrder = async (req, res) => {
       // 7. Calculer le total
       // Total = Sous-total + Frais de livraison - Réduction (promo + bundle)
       const total = Math.max(0, subtotal + delivery_fee - totalDiscount);
+      
+      // Logger le calcul final pour déboguer
+      logger.info('Calcul final commande:', {
+        subtotal,
+        baseDeliveryFee: baseDeliveryFee,
+        bonuses: bonuses.totalBonus,
+        delivery_fee, // Total avec bonus inclus
+        totalDiscount,
+        commission,
+        commissionRate,
+        netRevenue: subtotal - commission,
+        total,
+        items_count: orderItems.length,
+        items_total_check: orderItems.reduce((sum, item) => sum + item.subtotal, 0),
+        items_details: orderItems.map(item => ({
+          menu_item_id: item.menu_item_id,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          item_subtotal: item.subtotal,
+        })),
+      });
 
       // 8. Créer la commande
       const order_number = generateOrderNumber();
@@ -524,6 +613,13 @@ exports.createOrder = async (req, res) => {
         referral_discount: isFirstOrderReferee ? referralDiscount : 0,
         free_delivery_applied: freeDeliveryApplied,
         original_delivery_fee: originalDeliveryFee,
+        base_delivery_fee: baseDeliveryFee,
+        bonuses: {
+          long_distance: bonuses.breakdown.bonus_long_distance,
+          peak_hour: bonuses.breakdown.bonus_peak_hour,
+          weekend: bonuses.breakdown.bonus_weekend,
+          total: bonuses.totalBonus,
+        },
         delivery_savings: freeDeliveryApplied ? originalDeliveryFee : 0,
       };
 
@@ -792,12 +888,15 @@ exports.getOrderById = async (req, res) => {
       `SELECT o.*, 
               r.name as restaurant_name, r.logo as restaurant_logo,
               r.phone as restaurant_phone, r.address as restaurant_address,
+              r.latitude as restaurant_latitude, r.longitude as restaurant_longitude,
               u.first_name as client_first_name, u.last_name as client_last_name,
               u.phone as client_phone,
               dp.first_name as delivery_first_name, dp.last_name as delivery_last_name,
-              dp.phone as delivery_phone, dp.vehicle_type,
+              dp.phone as delivery_phone, dp.vehicle_type, dp.vehicle_plate,
               dp.current_latitude as delivery_latitude,
-              dp.current_longitude as delivery_longitude
+              dp.current_longitude as delivery_longitude,
+              dp.profile_photo as delivery_photo,
+              dp.average_rating as delivery_rating
        FROM orders o
        LEFT JOIN restaurants r ON o.restaurant_id = r.id
        LEFT JOIN users u ON o.user_id = u.id
@@ -865,16 +964,224 @@ exports.getOrderById = async (req, res) => {
     });
 
     // Formater l'adresse de livraison si elle est en JSON
+    let discountMetadata = null;
     if (order.delivery_address && typeof order.delivery_address === 'string') {
       try {
-        order.delivery_address = JSON.parse(order.delivery_address);
+        const parsedAddress = JSON.parse(order.delivery_address);
+        // Extraire discount_metadata si présent
+        if (parsedAddress.discount_metadata) {
+          discountMetadata = parsedAddress.discount_metadata;
+          // Garder seulement l'adresse dans delivery_address
+          const { discount_metadata, ...addressData } = parsedAddress;
+          order.delivery_address = addressData;
+        } else {
+          order.delivery_address = parsedAddress;
+        }
       } catch (e) {
         // Garder la valeur string si le parsing échoue
       }
     }
+    
+    // Ajouter les informations sur les bonus si disponibles
+    if (discountMetadata && discountMetadata.bonuses) {
+      order.delivery_fee_breakdown = {
+        base_delivery_fee: discountMetadata.base_delivery_fee || 0,
+        bonuses: discountMetadata.bonuses,
+        total: order.delivery_fee || 0,
+      };
+    }
+
+    // Structurer les données du restaurant pour correspondre à l'attendu du frontend
+    // Vérifier si les données du restaurant sont disponibles, sinon les récupérer directement
+    let restaurantPhone = order.restaurant_phone;
+    let restaurantAddress = order.restaurant_address;
+    
+    // Si les données ne sont pas dans le JOIN, les récupérer directement
+    if (!restaurantPhone || !restaurantAddress) {
+      try {
+        const restaurantResult = await query(
+          'SELECT phone, address FROM restaurants WHERE id = $1',
+          [order.restaurant_id]
+        );
+        if (restaurantResult.rows.length > 0) {
+          restaurantPhone = restaurantPhone || restaurantResult.rows[0].phone;
+          restaurantAddress = restaurantAddress || restaurantResult.rows[0].address;
+          logger.debug('Données restaurant récupérées directement:', {
+            orderId: order.id,
+            restaurantId: order.restaurant_id,
+            phone: restaurantPhone,
+            address: restaurantAddress,
+          });
+        }
+      } catch (restaurantError) {
+        logger.warn('Erreur récupération restaurant:', restaurantError);
+      }
+    }
+    
+    order.restaurant = {
+      id: order.restaurant_id,
+      name: order.restaurant_name,
+      phone: restaurantPhone || null,
+      logo: order.restaurant_logo,
+      address: restaurantAddress || null,
+      latitude: order.restaurant_latitude,
+      longitude: order.restaurant_longitude,
+    };
+    
+    // Logger pour déboguer
+    logger.debug('Données restaurant structurées (getOrderById):', {
+      orderId: order.id,
+      restaurantId: order.restaurant_id,
+      restaurant_name_from_join: order.restaurant_name,
+      restaurant_address_from_join: order.restaurant_address,
+      restaurant_phone_from_join: order.restaurant_phone,
+      restaurant_final: order.restaurant,
+    });
+
+    // Structurer les données du client
+    // Vérifier si les données du client sont disponibles, sinon les récupérer directement
+    let clientFirstName = order.client_first_name;
+    let clientLastName = order.client_last_name;
+    let clientPhone = order.client_phone;
+    
+    // TOUJOURS récupérer les données si elles manquent (même si seulement le téléphone manque)
+    if (order.user_id && (!clientFirstName || !clientLastName || !clientPhone)) {
+      try {
+        const userResult = await query(
+          'SELECT first_name, last_name, phone FROM users WHERE id = $1',
+          [order.user_id]
+        );
+        if (userResult.rows.length > 0) {
+          const user = userResult.rows[0];
+          clientFirstName = clientFirstName || user.first_name || null;
+          clientLastName = clientLastName || user.last_name || null;
+          clientPhone = clientPhone || user.phone || null;
+          
+          logger.debug('Données client récupérées directement (getOrderById):', {
+            orderId: order.id,
+            userId: order.user_id,
+            phone_from_join: order.client_phone,
+            phone_from_db: user.phone,
+            phone_final: clientPhone,
+            first_name: clientFirstName,
+            last_name: clientLastName,
+          });
+        } else {
+          logger.warn('Utilisateur non trouvé pour récupération client (getOrderById):', {
+            orderId: order.id,
+            userId: order.user_id,
+          });
+        }
+      } catch (userError) {
+        logger.error('Erreur récupération client (getOrderById):', {
+          orderId: order.id,
+          userId: order.user_id,
+          error: userError.message,
+        });
+      }
+    }
+    
+    // Ajouter les données client à l'objet order pour faciliter l'accès
+    order.client_first_name = clientFirstName;
+    order.client_last_name = clientLastName;
+    order.client_phone = clientPhone;
+    
+    logger.debug('Données client structurées (getOrderById):', {
+      orderId: order.id,
+      userId: order.user_id,
+      client_first_name_from_join: order.client_first_name,
+      client_last_name_from_join: order.client_last_name,
+      client_phone_from_join: order.client_phone,
+      client_final: {
+        first_name: clientFirstName,
+        last_name: clientLastName,
+        phone: clientPhone,
+      },
+      phone_is_null: clientPhone === null,
+      phone_is_empty: clientPhone === '',
+      phone_is_undefined: clientPhone === undefined,
+    });
+
+    // Structurer les données du livreur si assigné
+    if (order.delivery_first_name) {
+      order.delivery_person = {
+        first_name: order.delivery_first_name,
+        last_name: order.delivery_last_name,
+        phone: order.delivery_phone,
+        vehicle_type: order.vehicle_type,
+        current_latitude: order.delivery_latitude,
+        current_longitude: order.delivery_longitude,
+      };
+    }
 
     order.items = formattedItems;
 
+    // RECALCULER le total pour garantir l'exactitude
+    // Total = Sous-total + Frais de livraison - Réduction
+    const subtotal = parseFloat(order.subtotal) || 0;
+    const deliveryFee = parseFloat(order.delivery_fee) || 0;
+    const discount = parseFloat(order.discount) || 0;
+    const storedTotal = parseFloat(order.total) || 0;
+    const recalculatedTotal = Math.max(0, subtotal + deliveryFee - discount);
+    
+    // Logger si le total diffère de celui en base
+    if (Math.abs(storedTotal - recalculatedTotal) > 0.01) {
+      logger.warn('Total recalculé diffère de celui en base (getOrderById):', {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        storedTotal,
+        recalculatedTotal,
+        subtotal,
+        deliveryFee,
+        discount,
+        difference: Math.abs(storedTotal - recalculatedTotal),
+        formula: `${subtotal} + ${deliveryFee} - ${discount} = ${recalculatedTotal}`,
+      });
+    }
+    
+    // Utiliser le total recalculé (source de vérité)
+    order.total = recalculatedTotal;
+    
+    // Logger pour vérification
+    logger.info('getOrderById - Total recalculé:', {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      subtotal,
+      deliveryFee,
+      discount,
+      storedTotal,
+      recalculatedTotal,
+      formula: `${subtotal} + ${deliveryFee} - ${discount} = ${recalculatedTotal}`,
+    });
+
+    // Calculer les gains estimés pour les livreurs
+    if (req.user.type === 'delivery' && order.delivery_fee) {
+      const { calculateEstimatedEarnings } = require('../utils/earnings');
+      order.estimated_earnings = calculateEstimatedEarnings(
+        parseFloat(order.delivery_fee || 0),
+        parseFloat(order.delivery_distance || 0),
+        order.placed_at ? new Date(order.placed_at) : new Date()
+      );
+      
+      // Calculer le revenu net du restaurant pour que le livreur sache combien le restaurant doit recevoir
+      const { getCommission, getNetRestaurantRevenue } = require('../utils/commission');
+      const commissionRate = parseFloat(order.commission_rate) || 15;
+      const netRestaurantRevenue = getNetRestaurantRevenue(subtotal, commissionRate, order.commission);
+      order.restaurant_net_revenue = netRestaurantRevenue;
+      order.restaurant_subtotal = subtotal;
+      order.restaurant_commission = order.commission || getCommission(subtotal, commissionRate).commission;
+    }
+
+    // S'assurer que client_phone est bien présent dans la réponse
+    if (!order.client_phone && order.user_id) {
+      logger.warn('⚠️ client_phone manquant avant envoi réponse (getOrderById):', {
+        orderId: order.id,
+        userId: order.user_id,
+        client_first_name: order.client_first_name,
+        client_last_name: order.client_last_name,
+      });
+    }
+    
     res.json({
       success: true,
       data: { order },
@@ -935,22 +1242,27 @@ exports.cancelOrder = async (req, res) => {
         [reason, id]
       );
 
-      // Si paiement déjà effectué, créer remboursement
+      // Si paiement déjà effectué, créer remboursement (plateforme → client, comme Glovo)
       if (order.payment_status === 'paid') {
         await client.query(
           `INSERT INTO transactions (
             order_id, transaction_type, amount,
             from_user_type, from_user_id,
             to_user_type, to_user_id,
-            status
+            status, payment_method, metadata
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
           [
             order.id, 'refund', order.total,
-            'restaurant', order.restaurant_id,
-            'client', order.user_id,
-            'pending'
+            'platform', null,
+            'user', order.user_id,
+            'pending', order.payment_method || 'internal',
+            JSON.stringify({ reason: reason || 'Annulation commande', order_number: order.order_number })
           ]
+        );
+        await client.query(
+          `UPDATE orders SET payment_status = 'refunded', updated_at = NOW() WHERE id = $1`,
+          [order.id]
         );
       }
 
@@ -1192,7 +1504,8 @@ exports.acceptOrder = async (req, res) => {
 
       // Notifier le client
       const io = req.app.get('io');
-      io.to(`order_${id}`).emit('order_status_changed', {
+      const { emitToOrder } = require('../utils/socketEmitter');
+      emitToOrder(req.app, id, 'order_status_changed', {
         order_id: id,
         status: 'accepted',
       });
@@ -1272,9 +1585,34 @@ exports.rejectOrder = async (req, res) => {
 
     const order = result.rows[0];
 
+    // Si la commande était déjà payée (Mobile Money), créer remboursement plateforme → client
+    if (order.payment_status === 'paid') {
+      await query(
+        `INSERT INTO transactions (
+          order_id, transaction_type, amount,
+          from_user_type, from_user_id,
+          to_user_type, to_user_id,
+          status, payment_method, metadata
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          order.id, 'refund', order.total,
+          'platform', null,
+          'user', order.user_id,
+          'pending', order.payment_method || 'internal',
+          JSON.stringify({ reason: reason || 'Refus restaurant', order_number: order.order_number, source: 'restaurant_reject' })
+        ]
+      );
+      await query(
+        `UPDATE orders SET payment_status = 'refunded', updated_at = NOW() WHERE id = $1`,
+        [order.id]
+      );
+    }
+
     // Notifier le client
     const io = req.app.get('io');
-    io.to(`order_${id}`).emit('order_status_changed', {
+    const { emitToOrder } = require('../utils/socketEmitter');
+    emitToOrder(req.app, id, 'order_status_changed', {
       order_id: id,
       status: 'cancelled',
       reason,
@@ -1334,8 +1672,8 @@ exports.markOrderReady = async (req, res) => {
     );
     const restaurant = restaurantResult.rows[0];
 
-    // Notifier le client via WebSocket
-    io.to(`order_${id}`).emit('order_status_changed', {
+    const { emitToOrder } = require('../utils/socketEmitter');
+    emitToOrder(req.app, id, 'order_status_changed', {
       order_id: id,
       status: 'ready',
       message: 'Votre commande est prête !',
@@ -1345,6 +1683,7 @@ exports.markOrderReady = async (req, res) => {
     const { notifyOrderStatusChange } = require('../utils/socket');
     notifyOrderStatusChange(io, id, 'ready');
 
+    let proposalResult = { proposed: false };
     // Si livreur déjà assigné, le notifier
     if (order.delivery_person_id) {
       if (partnersIo) {
@@ -1363,50 +1702,11 @@ exports.markOrderReady = async (req, res) => {
         logger.warn('Push livreur ignorée', { error: err.message });
       }
     } else {
-      // Pas de livreur assigné - Alerter les livreurs disponibles dans la zone
-      const availableDeliveryPersons = await query(
-        `SELECT id, fcm_token FROM delivery_persons 
-         WHERE status = 'active' 
-           AND delivery_status = 'available'
-           AND fcm_token IS NOT NULL
-         LIMIT 20`
-      );
-
-      if (availableDeliveryPersons.rows.length > 0) {
-        // Notifier via WebSocket tous les livreurs disponibles
-        if (partnersIo) {
-          partnersIo.emit('new_delivery_available', {
-            order_id: id,
-            order_number: order.order_number,
-            restaurant_name: restaurant?.name,
-            restaurant_address: restaurant?.address,
-            restaurant_lat: restaurant?.latitude,
-            restaurant_lng: restaurant?.longitude,
-            delivery_fee: order.delivery_fee,
-            total: order.total,
-          });
-        }
-
-        // Push notification à tous les livreurs disponibles
-        for (const dp of availableDeliveryPersons.rows) {
-          try {
-            await notificationService.sendToUser(dp.id, 'delivery', {
-              title: '🚴 Nouvelle livraison disponible',
-              body: `${restaurant?.name} - ${order.delivery_fee} FCFA`,
-              type: 'new_delivery',
-              data: {
-                order_id: id,
-                order_number: order.order_number,
-                restaurant_name: restaurant?.name,
-              },
-              channel: 'deliveries',
-            });
-          } catch (err) {
-            logger.warn(`Push livreur ${dp.id} ignorée`, { error: err.message });
-          }
-        }
-
-        logger.info(`Alerte envoyée à ${availableDeliveryPersons.rows.length} livreurs disponibles`);
+      // Attribution automatique type Glovo : proposer la course à un livreur (acceptation sous 2 min)
+      const deliveryProposalService = require('../services/deliveryProposal.service');
+      proposalResult = await deliveryProposalService.proposeOrderToDelivery(id, req.app);
+      if (proposalResult.proposed) {
+        logger.info(`Course proposée automatiquement à un livreur pour ${order.order_number}`);
       }
     }
 
@@ -1423,6 +1723,7 @@ exports.markOrderReady = async (req, res) => {
       success: true,
       message: 'Commande marquée comme prête',
       data: {
+        proposed_to_delivery: proposalResult.proposed || false,
         available_delivery_persons: order.delivery_person_id ? 0 : (await query(
           `SELECT COUNT(*) FROM delivery_persons 
            WHERE status = 'active' AND delivery_status = 'available'`
@@ -1445,14 +1746,20 @@ exports.trackOrder = async (req, res) => {
   try {
     const { id } = req.params;
     const result = await query(
-      `SELECT o.*, r.name as restaurant_name, r.address as restaurant_address,
-              r.latitude as restaurant_latitude, r.longitude as restaurant_longitude,
+      `SELECT o.*, 
+              r.name as restaurant_name, r.address as restaurant_address,
+              r.phone as restaurant_phone, r.logo as restaurant_logo,
+              r.latitude as restaurant_latitude, 
+              r.longitude as restaurant_longitude,
+              u.first_name as client_first_name, u.last_name as client_last_name,
+              u.phone as client_phone,
               d.first_name as delivery_first_name, d.last_name as delivery_last_name,
               d.phone as delivery_phone, d.current_latitude, d.current_longitude,
               d.vehicle_type, d.vehicle_plate, d.profile_photo as delivery_photo,
               d.average_rating as delivery_rating
        FROM orders o
        LEFT JOIN restaurants r ON o.restaurant_id = r.id
+       LEFT JOIN users u ON o.user_id = u.id
        LEFT JOIN delivery_persons d ON o.delivery_person_id = d.id
        WHERE o.id = $1`,
       [id]
@@ -1465,9 +1772,262 @@ exports.trackOrder = async (req, res) => {
       });
     }
 
+    const order = result.rows[0];
+
+    // Récupérer les items avec les noms depuis le snapshot (comme dans getOrderById)
+    const itemsResult = await query(
+      `SELECT oi.*, 
+              COALESCE(oi.menu_item_snapshot->>'name', mi.name) as item_name,
+              COALESCE((oi.menu_item_snapshot->>'price')::numeric, mi.price, oi.unit_price) as item_price
+       FROM order_items oi
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       WHERE oi.order_id = $1`,
+      [id]
+    );
+
+    // Formater les items pour le frontend (identique à getOrderById)
+    const formattedItems = itemsResult.rows.map(item => {
+      const snapshot = typeof item.menu_item_snapshot === 'string' 
+        ? JSON.parse(item.menu_item_snapshot) 
+        : item.menu_item_snapshot;
+      
+      return {
+        ...item,
+        name: item.item_name || snapshot?.name || 'Article',
+        price: Number.parseFloat(item.unit_price || item.item_price || snapshot?.price || 0),
+        menu_item: snapshot ? {
+          name: snapshot.name,
+          price: snapshot.price,
+          image_url: snapshot.photo || snapshot.image_url,
+          effective_price: snapshot.effective_price,
+          original_price: snapshot.original_price,
+          is_promotion_active: snapshot.is_promotion_active,
+        } : null,
+        menu_item_snapshot: snapshot,
+      };
+    });
+
+    // Formater l'adresse de livraison si elle est en JSON
+    let discountMetadata = null;
+    if (order.delivery_address && typeof order.delivery_address === 'string') {
+      try {
+        const parsedAddress = JSON.parse(order.delivery_address);
+        // Extraire discount_metadata si présent
+        if (parsedAddress.discount_metadata) {
+          discountMetadata = parsedAddress.discount_metadata;
+          // Garder seulement l'adresse dans delivery_address
+          const { discount_metadata, ...addressData } = parsedAddress;
+          order.delivery_address = addressData;
+        } else {
+          order.delivery_address = parsedAddress;
+        }
+      } catch (e) {
+        // Garder la valeur string si le parsing échoue
+      }
+    }
+    
+    // Ajouter les informations sur les bonus si disponibles
+    if (discountMetadata && discountMetadata.bonuses) {
+      order.delivery_fee_breakdown = {
+        base_delivery_fee: discountMetadata.base_delivery_fee || 0,
+        bonuses: discountMetadata.bonuses,
+        total: order.delivery_fee || 0,
+      };
+    }
+
+    // Structurer les données du restaurant pour correspondre à l'attendu du frontend
+    // Vérifier si les données du restaurant sont disponibles, sinon les récupérer directement
+    let restaurantPhone = order.restaurant_phone;
+    let restaurantAddress = order.restaurant_address;
+    
+    // Si les données ne sont pas dans le JOIN, les récupérer directement
+    if ((!restaurantPhone || !restaurantAddress) && order.restaurant_id) {
+      try {
+        const restaurantResult = await query(
+          'SELECT phone, address FROM restaurants WHERE id = $1',
+          [order.restaurant_id]
+        );
+        if (restaurantResult.rows.length > 0) {
+          restaurantPhone = restaurantPhone || restaurantResult.rows[0].phone;
+          restaurantAddress = restaurantAddress || restaurantResult.rows[0].address;
+          logger.debug('Données restaurant récupérées directement (trackOrder):', {
+            orderId: order.id,
+            restaurantId: order.restaurant_id,
+            phone: restaurantPhone,
+            address: restaurantAddress,
+          });
+        }
+      } catch (restaurantError) {
+        logger.warn('Erreur récupération restaurant (trackOrder):', restaurantError);
+      }
+    }
+    
+    order.restaurant = {
+      id: order.restaurant_id,
+      name: order.restaurant_name || 'Restaurant',
+      phone: restaurantPhone || null,
+      logo: order.restaurant_logo || null,
+      address: restaurantAddress || null,
+      latitude: order.restaurant_latitude,
+      longitude: order.restaurant_longitude,
+    };
+    
+    // Logger pour déboguer
+    logger.debug('Données restaurant structurées (trackOrder):', {
+      orderId: order.id,
+      restaurantId: order.restaurant_id,
+      restaurant_name_from_join: order.restaurant_name,
+      restaurant_address_from_join: order.restaurant_address,
+      restaurant_phone_from_join: order.restaurant_phone,
+      restaurant_final: order.restaurant,
+    });
+
+    // Structurer les données du client
+    // Vérifier si les données du client sont disponibles, sinon les récupérer directement
+    let clientFirstName = order.client_first_name;
+    let clientLastName = order.client_last_name;
+    let clientPhone = order.client_phone;
+    
+    // TOUJOURS récupérer les données si elles manquent (même si seulement le téléphone manque)
+    if (order.user_id && (!clientFirstName || !clientLastName || !clientPhone)) {
+      try {
+        const userResult = await query(
+          'SELECT first_name, last_name, phone FROM users WHERE id = $1',
+          [order.user_id]
+        );
+        if (userResult.rows.length > 0) {
+          const user = userResult.rows[0];
+          clientFirstName = clientFirstName || user.first_name || null;
+          clientLastName = clientLastName || user.last_name || null;
+          clientPhone = clientPhone || user.phone || null;
+          
+          logger.debug('Données client récupérées directement (trackOrder):', {
+            orderId: order.id,
+            userId: order.user_id,
+            phone_from_join: order.client_phone,
+            phone_from_db: user.phone,
+            phone_final: clientPhone,
+            first_name: clientFirstName,
+            last_name: clientLastName,
+          });
+        } else {
+          logger.warn('Utilisateur non trouvé pour récupération client (trackOrder):', {
+            orderId: order.id,
+            userId: order.user_id,
+          });
+        }
+      } catch (userError) {
+        logger.error('Erreur récupération client (trackOrder):', {
+          orderId: order.id,
+          userId: order.user_id,
+          error: userError.message,
+        });
+      }
+    }
+    
+    // Ajouter les données client à l'objet order pour faciliter l'accès
+    order.client_first_name = clientFirstName;
+    order.client_last_name = clientLastName;
+    order.client_phone = clientPhone;
+    
+    logger.debug('Données client structurées (trackOrder):', {
+      orderId: order.id,
+      userId: order.user_id,
+      client_first_name_from_join: order.client_first_name,
+      client_last_name_from_join: order.client_last_name,
+      client_phone_from_join: order.client_phone,
+      client_final: {
+        first_name: clientFirstName,
+        last_name: clientLastName,
+        phone: clientPhone,
+      },
+      phone_is_null: clientPhone === null,
+      phone_is_empty: clientPhone === '',
+      phone_is_undefined: clientPhone === undefined,
+    });
+
+    // Structurer les données du livreur si assigné
+    if (order.delivery_first_name) {
+      order.delivery_person = {
+        first_name: order.delivery_first_name,
+        last_name: order.delivery_last_name,
+        phone: order.delivery_phone,
+        current_latitude: order.current_latitude,
+        current_longitude: order.current_longitude,
+        vehicle_type: order.vehicle_type,
+        vehicle_plate: order.vehicle_plate,
+        profile_photo: order.delivery_photo,
+        average_rating: order.delivery_rating,
+      };
+    }
+
+    // Ajouter les items à la commande
+    order.items = formattedItems;
+
+    // RECALCULER le total pour garantir l'exactitude
+    // Total = Sous-total + Frais de livraison - Réduction
+    const subtotal = parseFloat(order.subtotal) || 0;
+    const deliveryFee = parseFloat(order.delivery_fee) || 0;
+    const discount = parseFloat(order.discount) || 0;
+    const storedTotal = parseFloat(order.total) || 0;
+    const recalculatedTotal = Math.max(0, subtotal + deliveryFee - discount);
+    
+    // Logger si le total diffère de celui en base
+    if (Math.abs(storedTotal - recalculatedTotal) > 0.01) {
+      logger.warn('Total recalculé diffère de celui en base (trackOrder):', {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        storedTotal,
+        recalculatedTotal,
+        subtotal,
+        deliveryFee,
+        discount,
+        difference: Math.abs(storedTotal - recalculatedTotal),
+      });
+    }
+    
+    // Utiliser le total recalculé (source de vérité)
+    order.total = recalculatedTotal;
+
+    // Logger pour vérifier que tous les champs nécessaires aux calculs sont présents
+    logger.info('trackOrder - Total recalculé:', {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      subtotal,
+      deliveryFee,
+      discount,
+      storedTotal,
+      recalculatedTotal,
+      formula: `${subtotal} + ${deliveryFee} - ${discount} = ${recalculatedTotal}`,
+    });
+    
+    logger.debug('trackOrder - Données retournées:', {
+      orderId: order.id,
+      hasItems: !!order.items && order.items.length > 0,
+      itemsCount: order.items?.length || 0,
+      subtotal: order.subtotal,
+      delivery_fee: order.delivery_fee,
+      taxes: order.taxes,
+      discount: order.discount,
+      total: order.total,
+      total_recalculated: recalculatedTotal,
+      restaurantPhone: order.restaurant?.phone,
+      restaurantName: order.restaurant?.name,
+    });
+
+    // S'assurer que client_phone est bien présent dans la réponse
+    if (!order.client_phone && order.user_id) {
+      logger.warn('⚠️ client_phone manquant avant envoi réponse (trackOrder):', {
+        orderId: order.id,
+        userId: order.user_id,
+        client_first_name: order.client_first_name,
+        client_last_name: order.client_last_name,
+      });
+    }
+    
     res.json({
       success: true,
-      data: { order: result.rows[0] },
+      data: { order },
     });
   } catch (error) {
     logger.error('Erreur trackOrder:', error);
@@ -1594,7 +2154,8 @@ exports.markOrderPreparing = async (req, res) => {
 
     // WebSocket - notifier le client
     const io = req.app.get('io');
-    io.to(`order_${id}`).emit('order_status_changed', {
+    const { emitToOrder } = require('../utils/socketEmitter');
+    emitToOrder(req.app, id, 'order_status_changed', {
       order_id: id,
       status: 'preparing',
       estimated_time: order.estimated_delivery_time,
@@ -1987,7 +2548,7 @@ exports.getOrderMessages = async (req, res) => {
          FROM orders o
          JOIN restaurants r ON o.restaurant_id = r.id
          JOIN users u ON o.user_id = u.id
-         WHERE o.id = $1 AND r.owner_id = $2`,
+         WHERE o.id = $1 AND r.id = $2`,
         [orderId, userId]
       );
     } else {
@@ -2055,6 +2616,13 @@ exports.sendOrderMessage = async (req, res) => {
     const userId = req.user.id;
     const userType = req.user.type;
 
+    logger.debug('Envoi message commande:', {
+      orderId,
+      userId,
+      userType,
+      messageLength: message?.length,
+    });
+
     // Vérifier l'accès à la commande
     let orderQuery;
     let senderType;
@@ -2066,14 +2634,14 @@ exports.sendOrderMessage = async (req, res) => {
          FROM orders o
          JOIN restaurants r ON o.restaurant_id = r.id
          JOIN users u ON o.user_id = u.id
-         WHERE o.id = $1 AND r.owner_id = $2`,
+         WHERE o.id = $1 AND r.id = $2`,
         [orderId, userId]
       );
       senderType = 'restaurant';
     } else {
       orderQuery = await query(
         `SELECT o.id, o.user_id, o.restaurant_id, o.status, r.name as restaurant_name,
-                r.owner_id as restaurant_owner_id
+                r.id as restaurant_id
          FROM orders o
          JOIN restaurants r ON o.restaurant_id = r.id
          WHERE o.id = $1 AND o.user_id = $2`,
@@ -2083,6 +2651,7 @@ exports.sendOrderMessage = async (req, res) => {
     }
 
     if (orderQuery.rows.length === 0) {
+      logger.warn('Commande non trouvée pour envoi message:', { orderId, userId, userType });
       return res.status(404).json({
         success: false,
         error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée ou accès refusé' },
@@ -2090,6 +2659,7 @@ exports.sendOrderMessage = async (req, res) => {
     }
 
     const order = orderQuery.rows[0];
+    logger.debug('Commande trouvée:', { orderId, status: order.status, senderType });
 
     // Vérifier que la commande est en cours (pas livrée/annulée depuis trop longtemps)
     const inactiveStatuses = ['delivered', 'cancelled'];
@@ -2102,7 +2672,10 @@ exports.sendOrderMessage = async (req, res) => {
       const updatedAt = new Date(orderResult.rows[0]?.updated_at);
       const hoursSince = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60);
       
+      logger.debug('Vérification délai commande fermée:', { orderId, status: order.status, hoursSince });
+      
       if (hoursSince > 24) {
+        logger.warn('Tentative d\'envoi message sur commande fermée:', { orderId, hoursSince });
         return res.status(400).json({
           success: false,
           error: { code: 'ORDER_CLOSED', message: 'La discussion est fermée pour cette commande' },
@@ -2111,6 +2684,7 @@ exports.sendOrderMessage = async (req, res) => {
     }
 
     // Insérer le message
+    logger.debug('Insertion message:', { orderId, senderType, userId, messageLength: message?.length });
     const insertResult = await query(
       `INSERT INTO order_messages (order_id, sender_type, sender_id, message)
        VALUES ($1, $2, $3, $4)
@@ -2119,12 +2693,13 @@ exports.sendOrderMessage = async (req, res) => {
     );
 
     const newMessage = insertResult.rows[0];
+    logger.info('Message inséré avec succès:', { messageId: newMessage.id, orderId, senderType });
 
     // Émettre via WebSocket
     const io = req.app.get('io');
     if (io) {
-      // Notifier la room de la commande
-      io.to(`order_${orderId}`).emit('new_order_message', {
+      const { emitToOrder } = require('../utils/socketEmitter');
+      emitToOrder(req.app, orderId, 'new_order_message', {
         order_id: orderId,
         message: newMessage,
       });
@@ -2140,21 +2715,9 @@ exports.sendOrderMessage = async (req, res) => {
 
     // Envoyer notification push
     try {
-      if (senderType === 'customer' && order.restaurant_owner_id) {
-        // Notification au restaurant
-        const ownerResult = await query(
-          'SELECT fcm_token FROM users WHERE id = $1',
-          [order.restaurant_owner_id]
-        );
-        if (ownerResult.rows[0]?.fcm_token) {
-          await notificationService.sendPushNotification(
-            ownerResult.rows[0].fcm_token,
-            'Nouveau message client',
-            message.substring(0, 100),
-            { type: 'order_message', order_id: orderId }
-          );
-        }
-      } else if (senderType === 'restaurant' && order.customer_fcm_token) {
+      // Les restaurants reçoivent les notifications via Socket.IO (déjà émis ci-dessus)
+      // Pas besoin de FCM pour les restaurants
+      if (senderType === 'restaurant' && order.customer_fcm_token) {
         // Notification au client
         await notificationService.sendPushNotification(
           order.customer_fcm_token,
@@ -2167,12 +2730,19 @@ exports.sendOrderMessage = async (req, res) => {
       logger.warn('Erreur notification message:', notifError.message);
     }
 
+    logger.info('Message envoyé avec succès:', { messageId: newMessage.id, orderId });
     res.status(201).json({
       success: true,
       data: { message: newMessage },
     });
   } catch (error) {
-    logger.error('Erreur sendOrderMessage:', error);
+    logger.error('Erreur sendOrderMessage:', {
+      error: error.message,
+      stack: error.stack,
+      orderId: req.params.id,
+      userId: req.user?.id,
+      userType: req.user?.type,
+    });
     res.status(500).json({
       success: false,
       error: { code: 'SEND_ERROR', message: 'Erreur lors de l\'envoi du message' },
@@ -2197,7 +2767,7 @@ exports.markMessagesRead = async (req, res) => {
       orderQuery = await query(
         `SELECT o.id FROM orders o
          JOIN restaurants r ON o.restaurant_id = r.id
-         WHERE o.id = $1 AND r.owner_id = $2`,
+         WHERE o.id = $1 AND r.id = $2`,
         [orderId, userId]
       );
       targetSenderType = 'customer'; // Marquer les messages du client comme lus

@@ -16,13 +16,14 @@ import {
   Alert
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Circle, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Circle, PROVIDER_DEFAULT } from 'react-native-maps';
 import SafeMapView from '../../components/SafeMapView';
 import { COLORS } from '../../constants/colors';
 import { getImageUrl } from '../../utils/url';
 import useAuthStore from '../../store/authStore';
 import useDeliveryStore from '../../store/deliveryStore';
 import socketService from '../../services/socketService';
+import { acceptOrder, declineOrder } from '../../api/orders';
 
 const { width } = Dimensions.get('window');
 
@@ -150,7 +151,7 @@ export default function DeliveryHomeScreen({ navigation }) {
         '📦 Commande prête !',
         `La commande ${data.order_number} est prête à récupérer chez ${data.restaurant_name}`,
         [
-          { text: 'OK', onPress: () => navigation.navigate('CurrentDelivery', { orderId: data.order_id }) },
+          { text: 'OK', onPress: () => navigation.navigate('NavigationToRestaurant', { orderId: data.order_id }) },
         ]
       );
     });
@@ -168,6 +169,49 @@ export default function DeliveryHomeScreen({ navigation }) {
       }
     });
 
+    // Course proposée (attribution auto type Glovo) — Accepter ou Refuser
+    const unsubscribeOrderProposed = socketService.on('order_proposed', (data) => {
+      const expiresMin = data.expires_in_seconds ? Math.floor(data.expires_in_seconds / 60) : 2;
+      Alert.alert(
+        '📦 Course proposée',
+        `${data.restaurant_name}\n${data.delivery_fee || data.total} FCFA\n\nAcceptez dans les ${expiresMin} min.`,
+        [
+          {
+            text: 'Refuser',
+            style: 'cancel',
+            onPress: async () => {
+              try {
+                await declineOrder(data.order_id, 'Refus proposition');
+                if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
+                  lastDashboardLoadRef.current = Date.now();
+                  loadDashboardData();
+                }
+              } catch (e) {
+                console.warn('[Home] decline proposed:', e?.message || e);
+              }
+            },
+          },
+          {
+            text: 'Accepter',
+            onPress: async () => {
+              try {
+                await acceptOrder(data.order_id);
+                navigation.navigate('NavigationToRestaurant', { orderId: data.order_id });
+                if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
+                  lastDashboardLoadRef.current = Date.now();
+                  loadDashboardData();
+                }
+              } catch (e) {
+                console.warn('[Home] accept proposed:', e?.message || e);
+                Alert.alert('Erreur', e?.response?.data?.error?.message || 'Impossible d\'accepter la course.');
+              }
+            },
+          },
+        ],
+        { cancelable: false }
+      );
+    });
+
     // Mettre à jour le statut de disponibilité sur le serveur
     socketService.updateAvailability(status === 'available');
 
@@ -175,6 +219,7 @@ export default function DeliveryHomeScreen({ navigation }) {
       unsubscribeNewDelivery();
       unsubscribeOrderReady();
       unsubscribeOrderCancelled();
+      unsubscribeOrderProposed();
     };
   }, [status, navigation]);
 
@@ -377,7 +422,7 @@ export default function DeliveryHomeScreen({ navigation }) {
             <MapView
               ref={mapRef}
               style={styles.map}
-              provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+              provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
               initialRegion={{
                 latitude: currentLocation.latitude,
                 longitude: currentLocation.longitude,

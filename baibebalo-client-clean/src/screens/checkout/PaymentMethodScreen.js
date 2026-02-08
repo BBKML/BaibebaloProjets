@@ -18,29 +18,35 @@ export default function PaymentMethodScreen({ navigation, route }) {
   const deliveryFee = route?.params?.deliveryFee || 500;
   const totalAmount = itemsTotal + deliveryFee;
 
-  const paymentMethods = [
+  const PAYMENT_METHODS = [
     {
       id: 'cash',
-      name: 'Espèces',
-      description: 'Préparez l\'appoint si possible',
+      name: 'Paiement à la livraison',
+      description: 'Payez en espèces au livreur',
       icon: 'cash-outline',
       accent: COLORS.primary,
+      enabled: true,
+      recommended: true,
     },
-    {
-      id: 'orange_money',
-      name: 'Orange Money',
-      description: null,
-      icon: 'phone-portrait',
-      accent: '#f58220',
-    },
-    {
-      id: 'mtn_money',
-      name: 'MTN Mobile Money',
-      description: null,
-      icon: 'flash',
-      accent: '#f7c948',
-    },
+    // Tous les autres modes de paiement sont commentés
+    // {
+    //   id: 'orange_money',
+    //   name: 'Orange Money',
+    //   description: null,
+    //   icon: 'phone-portrait',
+    //   accent: '#f58220',
+    // },
+    // {
+    //   id: 'mtn_money',
+    //   name: 'MTN Mobile Money',
+    //   description: null,
+    //   icon: 'flash',
+    //   accent: '#f7c948',
+    // },
   ];
+
+  // Filtrer pour n'afficher que les méthodes activées
+  const availableMethods = PAYMENT_METHODS.filter(m => m.enabled);
 
   const handleSelect = () => {
     // #region agent log
@@ -105,7 +111,7 @@ export default function PaymentMethodScreen({ navigation, route }) {
         </Text>
 
         <View style={styles.methodsContainer}>
-          {paymentMethods.map(renderPaymentMethod)}
+          {availableMethods.map(renderPaymentMethod)}
         </View>
 
         <View style={styles.summaryCard}>

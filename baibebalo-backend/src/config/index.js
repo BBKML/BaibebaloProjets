@@ -90,6 +90,9 @@ const config = {
   // PAIEMENTS
   // ================================
   payment: {
+    // Méthodes de paiement activées
+    enabledMethods: ['cash'],
+    
     // FedaPay
     fedapay: {
       apiKey: process.env.FEDAPAY_API_KEY || '',
@@ -107,6 +110,7 @@ const config = {
     
     // Orange Money
     orangeMoney: {
+      enabled: false,
       endpoint: process.env.ORANGE_API_ENDPOINT || 'https://api.orange.com',
       merchantKey: process.env.ORANGE_MERCHANT_KEY || '',
       secret: process.env.ORANGE_MERCHANT_SECRET || '',
@@ -115,11 +119,17 @@ const config = {
     
     // MTN Mobile Money
     mtnMomo: {
+      enabled: false,
       endpoint: process.env.MTN_API_ENDPOINT || 'https://proxy.momoapi.mtn.com',
       apiKey: process.env.MTN_API_KEY || '',
       apiSecret: process.env.MTN_API_SECRET || '',
       subscriptionKey: process.env.MTN_SUBSCRIPTION_KEY || '',
       environment: process.env.MTN_ENVIRONMENT || 'sandbox', // sandbox ou production
+    },
+    
+    // Moov Money
+    moovMoney: {
+      enabled: false,
     },
   },
   
@@ -238,11 +248,11 @@ const config = {
     fromName: process.env.EMAIL_FROM_NAME || 'BAIBEBALO',
     
     smtp: {
-      host: process.env.SMTP_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.SMTP_PORT, 10) || 587,
-      secure: process.env.SMTP_SECURE === 'true',
-      user: process.env.SMTP_USER || '',
-      password: process.env.SMTP_PASSWORD || '',
+      host: process.env.EMAIL_HOST || process.env.SMTP_HOST || 'smtp.gmail.com',
+      port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT, 10) || 587,
+      secure: process.env.EMAIL_SECURE === 'true' || process.env.SMTP_SECURE === 'true',
+      user: process.env.EMAIL_USER || process.env.SMTP_USER || '',
+      password: process.env.EMAIL_PASSWORD || process.env.SMTP_PASSWORD || '',
     },
     
     sendgrid: {
@@ -387,10 +397,17 @@ const config = {
     deliveryDailyGoalTarget: parseInt(process.env.DELIVERY_DAILY_GOAL_TARGET, 10) || 10, // courses
     deliveryDailyGoalBonusAmount: parseInt(process.env.DELIVERY_DAILY_GOAL_BONUS, 10) || 2000, // FCFA
     
+    // Numéro Baibebalo pour dépôt Mobile Money (remise espèces quotidienne)
+    baibebaloMobileMoneyNumber: process.env.BAIBEBALO_MOBILE_MONEY_NUMBER || '+225XXXXXXXXX',
+    baibebaloMobileMoneyProvider: process.env.BAIBEBALO_MOBILE_MONEY_PROVIDER || 'orange_money', // orange_money, mtn_money, waves
+    
     // Pénalités
     deliveryPenaltyLateThreshold: parseInt(process.env.DELIVERY_PENALTY_LATE_MINUTES, 10) || 15, // minutes
     deliveryPenaltyLateAmount: parseInt(process.env.DELIVERY_PENALTY_LATE_AMOUNT, 10) || 200, // FCFA
     deliveryPenaltyCancellationAmount: parseInt(process.env.DELIVERY_PENALTY_CANCELLATION, 10) || 500, // FCFA
+
+    // Délai pour accepter/refuser une course proposée (secondes) — attribution automatique type Glovo
+    deliveryProposalExpirySeconds: parseInt(process.env.DELIVERY_PROPOSAL_EXPIRY_SECONDS, 10) || 120, // 2 min
     
     // === SEUIL LIVRAISON GRATUITE ===
     // Si le sous-total dépasse ce montant, la livraison est gratuite

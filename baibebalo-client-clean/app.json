@@ -61,7 +61,8 @@
     "extra": {
       "eas": {
         "projectId": "9da8cb67-d323-48af-9257-e397c1d4c9d9"
-      }
+      },
+      "mapsProvider": "default"
     },
     "owner": "baibebalo"
   }

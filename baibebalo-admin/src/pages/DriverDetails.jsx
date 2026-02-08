@@ -266,10 +266,33 @@ const DriverDetails = () => {
                 <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400">payments</span>
               </div>
               <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Gains totaux</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Gains totaux (livreur)</p>
                 <p className="text-lg font-bold text-slate-900 dark:text-white">
                   {formatCurrency(stats.total_earnings || driver.total_earnings || 0)}
                 </p>
+                {stats.earnings && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    30j: {formatCurrency(stats.earnings.last_30_days || 0)}
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
+                <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">account_balance</span>
+              </div>
+              <div>
+                <p className="text-xs text-slate-500 dark:text-slate-400">Commission Baibebalo</p>
+                <p className="text-lg font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(stats.platform_commission?.all_time || 0)}
+                </p>
+                {stats.platform_commission && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    30j: {formatCurrency(stats.platform_commission.last_30_days || 0)} ({stats.platform_commission.percentage || 30}%)
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -283,6 +306,11 @@ const DriverDetails = () => {
                 <p className="text-lg font-bold text-slate-900 dark:text-white">
                   {stats.total_deliveries || driver.total_deliveries || 0}
                 </p>
+                {stats.deliveries_30d !== undefined && (
+                  <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                    30j: {stats.deliveries_30d}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -295,19 +323,6 @@ const DriverDetails = () => {
                 <p className="text-xs text-slate-500 dark:text-slate-400">Note moyenne</p>
                 <p className="text-lg font-bold text-slate-900 dark:text-white">
                   {(stats.average_rating || driver.average_rating) ? `${parseFloat(stats.average_rating || driver.average_rating).toFixed(1)}/5` : 'N/A'}
-                </p>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/30 flex items-center justify-center">
-                <span className="material-symbols-outlined text-purple-600 dark:text-purple-400">{getVehicleIcon(driver.vehicle_type)}</span>
-              </div>
-              <div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Véhicule</p>
-                <p className="text-lg font-bold text-slate-900 dark:text-white">
-                  {driver.vehicle_type || 'Non défini'}
                 </p>
               </div>
             </div>
@@ -338,101 +353,172 @@ const DriverDetails = () => {
           <div className="p-6">
             {/* Tab: Informations */}
             {activeTab === 'info' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Informations personnelles */}
-                <div>
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Informations personnelles</h3>
-                  {/* Photo du livreur */}
-                  <div className="flex items-start gap-3 mb-6">
-                    <span className="material-symbols-outlined text-slate-400 mt-0.5">account_circle</span>
-                    <div>
-                      <p className="text-xs text-slate-500 mb-2">Photo</p>
-                      {profilePicture ? (
-                        <img
-                          src={profilePicture}
-                          alt={fullName}
-                          className="w-24 h-24 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm"
-                          onError={(e) => {
-                            e.target.style.display = 'none';
-                            if (e.target.nextElementSibling) e.target.nextElementSibling.style.display = 'flex';
-                          }}
-                        />
-                      ) : null}
-                      <div
-                        className="w-24 h-24 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400"
-                        style={{ display: profilePicture ? 'none' : 'flex' }}
-                      >
-                        <span className="material-symbols-outlined text-4xl">person</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="space-y-4">
-                    <InfoRow icon="person" label="Prénom" value={driver.first_name} />
-                    <InfoRow icon="person" label="Nom" value={driver.last_name} />
-                    <InfoRow icon="phone" label="Téléphone" value={driver.phone} />
-                    <InfoRow icon="email" label="Email" value={driver.email} />
-                    <InfoRow icon="location_on" label="Adresse / Quartier" value={
-                      typeof driver.address === 'object'
-                        ? (driver.address?.address_line || driver.address?.street || `${driver.address?.district || ''} ${driver.address?.city || ''}`.trim())
-                        : driver.address
-                    } />
-                    <InfoRow icon="calendar_today" label="Inscrit le" value={driver.created_at ? formatDateShort(driver.created_at) : 'N/A'} />
-                    <InfoRow icon="badge" label="Statut compte" value={driver.status} />
-                    <InfoRow icon="schedule" label="Disponibilité" value={driver.delivery_status} />
-                  </div>
-                </div>
-
-                {/* Véhicule */}
-                <div>
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Véhicule</h3>
-                  <div className="space-y-4">
-                    <InfoRow icon="directions_car" label="Type" value={driver.vehicle_type} />
-                    <InfoRow icon="pin" label="Plaque" value={driver.vehicle_plate} />
-                    <InfoRow icon="palette" label="Couleur" value={driver.vehicle_color} />
-                    <InfoRow icon="two_wheeler" label="Marque" value={driver.vehicle_brand} />
-                  </div>
-                </div>
-
-                {/* Paiement */}
-                <div>
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Informations de paiement</h3>
-                  <div className="space-y-4">
-                    <InfoRow icon="account_balance_wallet" label="Mobile Money" value={driver.mobile_money_number} />
-                    <InfoRow icon="business" label="Opérateur" value={driver.mobile_money_provider} />
-                  </div>
-                </div>
-
-                {/* Statuts */}
-                <div>
-                  <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Statuts</h3>
-                  <div className="space-y-4">
-                    <div className="flex items-start gap-3">
-                      <span className="material-symbols-outlined text-slate-400 mt-0.5">verified_user</span>
+              <div className="space-y-8">
+                {/* Section Gains et Commission */}
+                {(stats.earnings || stats.platform_commission) && (
+                  <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-6 border border-slate-200 dark:border-slate-700">
+                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Gains et Commission</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      {/* Gains du livreur */}
                       <div>
-                        <p className="text-xs text-slate-500">Statut du compte</p>
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getStatusBadge(driver.status)}`}>
-                          {getStatusLabel(driver.status)}
-                        </span>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <span className="material-symbols-outlined text-slate-400 mt-0.5">schedule</span>
-                      <div>
-                        <p className="text-xs text-slate-500">Disponibilité</p>
-                        <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getDeliveryStatusBadge(driver.delivery_status)}`}>
-                          {getDeliveryStatusLabel(driver.delivery_status)}
-                        </span>
-                      </div>
-                    </div>
-                    {driver.suspension_reason && (
-                      <div className="flex items-start gap-3">
-                        <span className="material-symbols-outlined text-red-400 mt-0.5">warning</span>
-                        <div>
-                          <p className="text-xs text-slate-500">Raison de suspension</p>
-                          <p className="text-sm text-red-600 dark:text-red-400">{driver.suspension_reason}</p>
+                        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Gains du livreur (70%)</h4>
+                        <div className="space-y-2">
+                          {stats.earnings && (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">Aujourd'hui:</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.earnings.today || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">7 derniers jours:</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.earnings.last_7_days || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">30 derniers jours:</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.earnings.last_30_days || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
+                                <span className="text-slate-700 dark:text-slate-300 font-semibold">Total:</span>
+                                <span className="font-bold text-emerald-600 dark:text-emerald-400">{formatCurrency(stats.earnings.all_time || 0)}</span>
+                              </div>
+                            </>
+                          )}
                         </div>
                       </div>
+                      {/* Commission Baibebalo */}
+                      <div>
+                        <h4 className="text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">Commission Baibebalo (30%)</h4>
+                        <div className="space-y-2">
+                          {stats.platform_commission && (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">Aujourd'hui:</span>
+                                <span className="font-bold text-purple-600 dark:text-purple-400">{formatCurrency(stats.platform_commission.today || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">7 derniers jours:</span>
+                                <span className="font-bold text-purple-600 dark:text-purple-400">{formatCurrency(stats.platform_commission.last_7_days || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span className="text-slate-600 dark:text-slate-400">30 derniers jours:</span>
+                                <span className="font-bold text-purple-600 dark:text-purple-400">{formatCurrency(stats.platform_commission.last_30_days || 0)}</span>
+                              </div>
+                              <div className="flex justify-between text-sm border-t border-slate-200 dark:border-slate-700 pt-2 mt-2">
+                                <span className="text-slate-700 dark:text-slate-300 font-semibold">Total:</span>
+                                <span className="font-bold text-purple-600 dark:text-purple-400">{formatCurrency(stats.platform_commission.all_time || 0)}</span>
+                              </div>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {stats.delivery_fees && (
+                      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-700">
+                        <p className="text-xs text-slate-500 dark:text-slate-400 mb-2">Frais de livraison totaux (30j): {formatCurrency(stats.delivery_fees.last_30_days || 0)}</p>
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
+                          Répartition: {formatCurrency(stats.earnings?.last_30_days || 0)} pour le livreur (70%) + {formatCurrency(stats.platform_commission?.last_30_days || 0)} pour Baibebalo (30%)
+                        </p>
+                      </div>
                     )}
+                  </div>
+                )}
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  {/* Informations personnelles */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Informations personnelles</h3>
+                    {/* Photo du livreur */}
+                    <div className="flex items-start gap-3 mb-6">
+                      <span className="material-symbols-outlined text-slate-400 mt-0.5">account_circle</span>
+                      <div>
+                        <p className="text-xs text-slate-500 mb-2">Photo</p>
+                        {profilePicture ? (
+                          <img
+                            src={profilePicture}
+                            alt={fullName}
+                            className="w-24 h-24 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700 shadow-sm"
+                            onError={(e) => {
+                              e.target.style.display = 'none';
+                              if (e.target.nextElementSibling) e.target.nextElementSibling.style.display = 'flex';
+                            }}
+                          />
+                        ) : null}
+                        <div
+                          className="w-24 h-24 rounded-xl bg-slate-100 dark:bg-slate-800 border-2 border-dashed border-slate-300 dark:border-slate-600 flex items-center justify-center text-slate-400"
+                          style={{ display: profilePicture ? 'none' : 'flex' }}
+                        >
+                          <span className="material-symbols-outlined text-4xl">person</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      <InfoRow icon="person" label="Prénom" value={driver.first_name} />
+                      <InfoRow icon="person" label="Nom" value={driver.last_name} />
+                      <InfoRow icon="phone" label="Téléphone" value={driver.phone} />
+                      <InfoRow icon="email" label="Email" value={driver.email} />
+                      <InfoRow icon="location_on" label="Adresse / Quartier" value={
+                        typeof driver.address === 'object'
+                          ? (driver.address?.address_line || driver.address?.street || `${driver.address?.district || ''} ${driver.address?.city || ''}`.trim())
+                          : driver.address
+                      } />
+                      <InfoRow icon="calendar_today" label="Inscrit le" value={driver.created_at ? formatDateShort(driver.created_at) : 'N/A'} />
+                      <InfoRow icon="badge" label="Statut compte" value={driver.status} />
+                      <InfoRow icon="schedule" label="Disponibilité" value={driver.delivery_status} />
+                    </div>
+                  </div>
+
+                  {/* Véhicule */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Véhicule</h3>
+                    <div className="space-y-4">
+                      <InfoRow icon="directions_car" label="Type" value={driver.vehicle_type} />
+                      <InfoRow icon="pin" label="Plaque" value={driver.vehicle_plate} />
+                      <InfoRow icon="palette" label="Couleur" value={driver.vehicle_color} />
+                      <InfoRow icon="two_wheeler" label="Marque" value={driver.vehicle_brand} />
+                    </div>
+                  </div>
+
+                  {/* Paiement */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Informations de paiement</h3>
+                    <div className="space-y-4">
+                      <InfoRow icon="account_balance_wallet" label="Mobile Money" value={driver.mobile_money_number} />
+                      <InfoRow icon="business" label="Opérateur" value={driver.mobile_money_provider} />
+                    </div>
+                  </div>
+
+                  {/* Statuts */}
+                  <div>
+                    <h3 className="text-sm font-bold text-slate-500 uppercase tracking-wider mb-4">Statuts</h3>
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-slate-400 mt-0.5">verified_user</span>
+                        <div>
+                          <p className="text-xs text-slate-500">Statut du compte</p>
+                          <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getStatusBadge(driver.status)}`}>
+                            {getStatusLabel(driver.status)}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="flex items-start gap-3">
+                        <span className="material-symbols-outlined text-slate-400 mt-0.5">schedule</span>
+                        <div>
+                          <p className="text-xs text-slate-500">Disponibilité</p>
+                          <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getDeliveryStatusBadge(driver.delivery_status)}`}>
+                            {getDeliveryStatusLabel(driver.delivery_status)}
+                          </span>
+                        </div>
+                      </div>
+                      {driver.suspension_reason && (
+                        <div className="flex items-start gap-3">
+                          <span className="material-symbols-outlined text-red-400 mt-0.5">warning</span>
+                          <div>
+                            <p className="text-xs text-slate-500">Raison de suspension</p>
+                            <p className="text-sm text-red-600 dark:text-red-400">{driver.suspension_reason}</p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>

@@ -1,7 +1,7 @@
 import React from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Polyline, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { COLORS } from '../../constants/colors';
 
 // Données mock pour une livraison complète
@@ -61,7 +61,7 @@ export default function DeliveryDetailsScreen({ navigation, route }) {
         <View style={styles.mapContainer}>
           <MapView
             style={styles.map}
-            provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+            provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
             initialRegion={{
               latitude: (delivery.restaurant.latitude + delivery.customer.latitude) / 2,
               longitude: (delivery.restaurant.longitude + delivery.customer.longitude) / 2,

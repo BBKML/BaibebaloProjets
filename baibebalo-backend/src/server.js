@@ -48,6 +48,48 @@ const io = socketIo(server, {
 // Rendre io accessible globalement
 app.set('io', io);
 
+// Namespace pour l'app client (suivi commande, position livreur en temps réel)
+const clientNamespace = io.of('/client');
+clientNamespace.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    if (!token) return next(new Error('Token manquant'));
+    const { verifyAccessToken } = require('./middlewares/auth');
+    const decoded = verifyAccessToken(token);
+    if (decoded.type !== 'user' && decoded.type !== 'client') {
+      return next(new Error('Accès réservé aux clients'));
+    }
+    socket.userId = decoded.id;
+    next();
+  } catch (e) {
+    next(new Error('Authentification échouée'));
+  }
+});
+clientNamespace.on('connection', (socket) => {
+  socket.on('join_order', async (data) => {
+    const orderId = data?.order_id || data;
+    if (!orderId) return;
+    try {
+      const { query } = require('./database/db');
+      const r = await query(
+        'SELECT id FROM orders WHERE id = $1 AND user_id = $2',
+        [orderId, socket.userId]
+      );
+      if (r.rows.length > 0) {
+        socket.join(`order_${orderId}`);
+        logger.debug(`Client ${socket.userId} a rejoint order_${orderId}`);
+      }
+    } catch (err) {
+      logger.warn('join_order client:', err.message);
+    }
+  });
+  socket.on('leave_order', (data) => {
+    const orderId = data?.order_id || data;
+    if (orderId) socket.leave(`order_${orderId}`);
+  });
+});
+app.set('clientIo', clientNamespace);
+
 // Middlewares de sécurité
 app.use(helmet({
   // Désactiver certaines protections pour permettre l'accès aux fichiers statiques
@@ -327,15 +369,18 @@ partnersNamespace.on('connection', (socket) => {
         [latitude, longitude, socket.userId]
       );
       
-      // Si une commande est en cours, notifier le client
+      // Si une commande est en cours, notifier le client (app) et les admins
       if (order_id) {
-        io.to(`order_${order_id}`).emit('delivery_location_updated', {
+        const payload = {
           order_id,
           latitude,
           longitude,
           delivery_person_id: socket.userId,
           timestamp: new Date().toISOString(),
-        });
+        };
+        io.to(`order_${order_id}`).emit('delivery_location_updated', payload);
+        const clientIo = app.get('clientIo');
+        if (clientIo) clientIo.to(`order_${order_id}`).emit('delivery_location_updated', payload);
       }
 
       // Notifier les admins qui suivent tous les livreurs
@@ -390,6 +435,13 @@ partnersNamespace.on('connection', (socket) => {
 
 // Rendre le namespace partenaires accessible
 app.set('partnersIo', partnersNamespace);
+
+// Cron des propositions de course expirées (attribution auto type Glovo)
+try {
+  require('./jobs/cron').init(app);
+} catch (e) {
+  logger.warn('Cron init (propositions livreur) ignoré:', e.message);
+}
 
 // Gestion WebSocket pour les mises à jour en temps réel (admins)
 io.on('connection', (socket) => {

@@ -37,6 +37,7 @@ import KnowledgeBaseAdmin from './pages/KnowledgeBaseAdmin';
 import TransactionHistory from './pages/TransactionHistory';
 import FinancialReports from './pages/FinancialReports';
 import ValidationHistory from './pages/ValidationHistory';
+import PayoutsHistory from './pages/PayoutsHistory';
 import PaymentDetails from './pages/PaymentDetails';
 import BulkUserActions from './pages/BulkUserActions';
 import CustomReports from './pages/CustomReports';
@@ -61,6 +62,7 @@ import PendingDriverPayments from './pages/PendingDriverPayments';
 import PendingRestaurantPayments from './pages/PendingRestaurantPayments';
 import AccountSettings from './pages/AccountSettings';
 import ResetPassword from './pages/ResetPassword';
+import ResetPasswordFromEmail from './pages/ResetPasswordFromEmail';
 import ForgotPassword from './pages/ForgotPassword';
 import RestaurantDetails from './pages/RestaurantDetails';
 import DriverDetails from './pages/DriverDetails';
@@ -89,6 +91,7 @@ function App() {
           <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password" element={<ResetPasswordFromEmail />} />
           <Route
             path="/"
             element={
@@ -350,6 +353,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <TransactionHistory />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finances/payouts-history"
+            element={
+              <ProtectedRoute>
+                <PayoutsHistory />
               </ProtectedRoute>
             }
           />

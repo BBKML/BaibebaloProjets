@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Circle, Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Circle, Marker, PROVIDER_DEFAULT } from 'react-native-maps';
 import { COLORS } from '../../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateProfile, getProfile } from '../../api/delivery';
@@ -143,7 +143,7 @@ export default function WorkZonesScreen({ navigation }) {
         <MapView
           ref={mapRef}
           style={styles.map}
-          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+          provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
           initialRegion={{
             latitude: 9.4580,
             longitude: -5.6294,

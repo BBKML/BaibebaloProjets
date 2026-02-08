@@ -430,6 +430,7 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_promotions_dates ON promotions(valid_from, valid_until);`,
   `ALTER TABLE promotions ADD COLUMN IF NOT EXISTS restaurant_id UUID REFERENCES restaurants(id) ON DELETE CASCADE;`,
   `CREATE INDEX IF NOT EXISTS idx_promotions_restaurant ON promotions(restaurant_id);`,
+  `ALTER TABLE promotions ADD COLUMN IF NOT EXISTS updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP;`,
 
   // ======================================
   // Migration 13: Table transactions
@@ -604,8 +605,9 @@ const migrations = [
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     delivery_person_id UUID NOT NULL REFERENCES delivery_persons(id) ON DELETE CASCADE,
     amount DECIMAL(10,2) NOT NULL CHECK (amount > 0),
-    method VARCHAR(20) NOT NULL CHECK (method IN ('agency', 'bank_deposit')),
+    method VARCHAR(20) NOT NULL CHECK (method IN ('agency', 'bank_deposit', 'mobile_money_deposit')),
     reference VARCHAR(100),
+    mobile_money_provider VARCHAR(20) CHECK (mobile_money_provider IN ('orange_money', 'mtn_money', 'waves')),
     status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'rejected')),
     processed_by UUID REFERENCES admins(id) ON DELETE SET NULL,
     processed_at TIMESTAMP,
@@ -622,6 +624,12 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_cash_remittances_status ON cash_remittances(status);`,
   `CREATE INDEX IF NOT EXISTS idx_cash_remittances_created ON cash_remittances(created_at DESC);`,
   `ALTER TABLE orders ADD COLUMN IF NOT EXISTS cash_remittance_id UUID REFERENCES cash_remittances(id) ON DELETE SET NULL;`,
+
+  // Attribution automatique type Glovo : proposition à un livreur (délai pour accepter/refuser)
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS proposed_delivery_person_id UUID REFERENCES delivery_persons(id) ON DELETE SET NULL;`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS proposal_expires_at TIMESTAMP;`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS assigned_at TIMESTAMP;`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_proposal ON orders(proposed_delivery_person_id, proposal_expires_at) WHERE proposed_delivery_person_id IS NOT NULL;`,
 
   // ======================================
   // Migration 18: Table support_tickets
@@ -1069,6 +1077,40 @@ const migrations = [
   // Index pour les restaurants sponsorisés
   `CREATE INDEX IF NOT EXISTS idx_restaurants_sponsored ON restaurants(is_sponsored, sponsor_priority DESC) 
    WHERE is_sponsored = true;`,
+
+  // ======================================
+  // Migration: Colonnes manquantes pour le suivi de livraison
+  // ======================================
+  
+  // S'assurer que last_location_update existe dans delivery_persons
+  `ALTER TABLE delivery_persons ADD COLUMN IF NOT EXISTS last_location_update TIMESTAMP;`,
+  
+  // Ajouter les colonnes de suivi d'arrivée pour les commandes
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS arrived_at_restaurant TIMESTAMP;`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS arrived_at_customer TIMESTAMP;`,
+  
+  // Ajouter la colonne paid_at pour le suivi du paiement
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`,
+  
+  // Livreur paie restaurant à l'avance
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS restaurant_paid_by_delivery BOOLEAN DEFAULT FALSE;`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS restaurant_paid_by_delivery_at TIMESTAMP;`,
+  
+  // Statut paid dans payout_requests (entre pending et completed)
+  `ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`,
+  `ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS paid_by UUID REFERENCES admins(id) ON DELETE SET NULL;`,
+  `ALTER TABLE payout_requests DROP CONSTRAINT IF EXISTS payout_requests_status_check;`,
+  `ALTER TABLE payout_requests ADD CONSTRAINT payout_requests_status_check CHECK (status IN ('pending', 'paid', 'completed', 'rejected'));`,
+  
+  // PREUVE DE PAIEMENT (sécurité contre les réclamations)
+  `ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS payment_proof_url TEXT;`,
+  `ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS payment_transaction_id VARCHAR(100);`,
+  `ALTER TABLE payout_requests ADD COLUMN IF NOT EXISTS payment_confirmed_at TIMESTAMP;`,
+  
+  // VÉRIFICATION REMISES ESPÈCES (sécurité contre vol)
+  `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS verified_amount DECIMAL(10,2);`,
+  `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS verification_notes TEXT;`,
+  `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS discrepancy_amount DECIMAL(10,2) DEFAULT 0;`,
 ];
 
 // Fonction pour vérifier si une table existe

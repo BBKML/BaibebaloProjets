@@ -32,6 +32,12 @@ router.post('/delivery/login', authLimiter, authController.deliveryLogin);
 // Connexion admin
 router.post('/admin/login', authLimiter, authController.adminLogin);
 
+// Mot de passe oublié admin - Étape 1: Demander réinitialisation (envoi email)
+router.post('/admin/forgot-password', authLimiter, authController.adminForgotPassword);
+
+// Mot de passe oublié admin - Étape 2: Réinitialiser mot de passe avec token
+router.post('/admin/reset-password', authLimiter, authController.adminResetPassword);
+
 // Rafraîchir le token
 router.post('/refresh-token', authController.refreshToken);
 

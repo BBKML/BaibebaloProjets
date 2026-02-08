@@ -5,6 +5,7 @@ const { generateAccessToken, generateRefreshToken } = require('../middlewares/au
 const { query } = require('../database/db');
 const logger = require('../utils/logger');
 const bcrypt = require('bcrypt');
+const config = require('../config');
 
 class AuthController {
   /**
@@ -17,10 +18,10 @@ class AuthController {
       // Générer et sauvegarder l'OTP
       const code = await authService.createOTP(phone);
 
-      // Afficher le code OTP dans la console (mode dev) - Utiliser console.log ET logger
+      // Afficher le code OTP dans les logs (toujours visible pour faciliter les tests)
       const otpMessage = `
 ══════════════════════════════════════════════════════════════════
-🔐 CODE OTP GÉNÉRÉ
+🔐 CODE OTP GÉNÉRÉ (CONNEXION/INSCRIPTION CLIENT)
 ══════════════════════════════════════════════════════════════════
    📞 Numéro: ${phone}
    🔑 Code OTP: ${code}
@@ -28,8 +29,17 @@ class AuthController {
    📅 Date: ${new Date().toISOString()}
 ══════════════════════════════════════════════════════════════════`;
       
-      console.log(otpMessage);
-      logger.info('CODE OTP GÉNÉRÉ', { phone, code, expiresIn: '5 minutes' });
+      // Log dans la console (toujours visible dans le terminal)
+      console.log('\n' + otpMessage + '\n');
+      
+      // Log avec Winston (pour les fichiers de log)
+      logger.info('CODE OTP GÉNÉRÉ POUR CLIENT', { 
+        phone, 
+        code, 
+        expiresIn: '5 minutes',
+        type: 'client_login',
+        timestamp: new Date().toISOString()
+      });
 
       // Envoyer par SMS uniquement (WhatsApp désactivé)
       let smsOk = false;
@@ -260,10 +270,12 @@ class AuthController {
    */
   async partnerLogin(req, res, next) {
     try {
-      // Accepter soit email soit phone (selon le design HTML qui utilise phone)
-      const email = req.body?.email?.trim().toLowerCase();
+      // Accepter soit email soit phone
+      const email = req.body?.email?.trim();
       const phone = req.body?.phone?.trim();
-      const identifier = phone || email; // Priorité au phone si fourni
+      
+      // Déterminer l'identifiant (priorité au phone si fourni et non vide)
+      const identifier = (phone && phone.length > 0) ? phone : (email && email.length > 0 ? email.toLowerCase() : null);
       const password = req.body?.password;
 
       // Log pour débogage
@@ -275,12 +287,15 @@ class AuthController {
         passwordProvided: !!password,
         passwordLength: password?.length,
         bodyKeys: Object.keys(req.body || {}),
+        body: req.body,
       });
 
       if (!identifier || !password) {
         logger.warn('Connexion restaurant: champs manquants', {
           identifier: !!identifier,
           password: !!password,
+          emailProvided: !!email,
+          phoneProvided: !!phone,
         });
         return res.status(401).json({
           success: false,
@@ -504,17 +519,34 @@ class AuthController {
         [storedPhone, otp, expiresAt]
       );
 
+      // Afficher le code OTP dans les logs (toujours visible)
+      const otpMessage = `
+══════════════════════════════════════════════════════════════════
+🔐 CODE OTP RÉINITIALISATION MOT DE PASSE (RESTAURANT)
+══════════════════════════════════════════════════════════════════
+   📞 Numéro: ${storedPhone}
+   🏪 Restaurant: ${restaurant.name} (ID: ${restaurant.id})
+   🔑 Code OTP: ${otp}
+   ⏰ Valide pendant: 10 minutes
+   📅 Date: ${new Date().toISOString()}
+══════════════════════════════════════════════════════════════════`;
+      
+      console.log(otpMessage);
+      logger.info('CODE OTP RÉINITIALISATION RESTAURANT', { 
+        phone: storedPhone, 
+        restaurantId: restaurant.id,
+        restaurantName: restaurant.name,
+        code: otp, 
+        expiresIn: '10 minutes' 
+      });
+
       // Envoyer l'OTP par SMS
       const smsService = require('../services/sms.service');
       try {
         await smsService.sendOTP(storedPhone, otp);
-        logger.info('OTP de réinitialisation envoyé', { phone: storedPhone, restaurantId: restaurant.id });
+        logger.info('OTP de réinitialisation envoyé par SMS', { phone: storedPhone, restaurantId: restaurant.id });
       } catch (smsError) {
         logger.warn('Échec envoi SMS OTP reset', { error: smsError.message });
-        // En développement, on log le code pour les tests
-        if (process.env.NODE_ENV === 'development') {
-          logger.info('🔐 Code OTP (dev): ' + otp);
-        }
       }
 
       res.json({
@@ -613,6 +645,24 @@ class AuthController {
 
       // Générer un token temporaire pour la réinitialisation (6 chiffres)
       const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
+      
+      // Afficher le token de réinitialisation dans les logs
+      const resetTokenMessage = `
+══════════════════════════════════════════════════════════════════
+🔐 TOKEN DE RÉINITIALISATION GÉNÉRÉ (RESTAURANT)
+══════════════════════════════════════════════════════════════════
+   📞 Numéro: ${otpRecord.phone}
+   🔑 Token de réinitialisation: ${resetToken}
+   ⏰ Valide pendant: 10 minutes
+   📅 Date: ${new Date().toISOString()}
+══════════════════════════════════════════════════════════════════`;
+      
+      console.log(resetTokenMessage);
+      logger.info('TOKEN RÉINITIALISATION RESTAURANT', { 
+        phone: otpRecord.phone, 
+        resetToken: resetToken, 
+        expiresIn: '10 minutes' 
+      });
       
       // Utiliser le numéro tel qu'il est stocké dans l'OTP
       const storedPhone = otpRecord.phone;
@@ -980,6 +1030,201 @@ class AuthController {
           message: 'Refresh token invalide',
         },
       });
+    }
+  }
+
+  /**
+   * Mot de passe oublié admin - Étape 1: Envoyer email avec lien de réinitialisation
+   */
+  async adminForgotPassword(req, res, next) {
+    try {
+      const { email } = req.body;
+
+      if (!email) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'EMAIL_REQUIRED', message: 'Adresse email requise' },
+        });
+      }
+
+      // Vérifier que l'admin existe
+      const result = await query(
+        'SELECT id, email, full_name FROM admins WHERE email = $1 AND is_active = true',
+        [email.toLowerCase().trim()]
+      );
+
+      // Ne pas révéler si l'email existe ou non (sécurité)
+      if (result.rows.length === 0) {
+        // Retourner un succès même si l'email n'existe pas (pour éviter l'énumération)
+        logger.warn('Tentative réinitialisation mot de passe admin avec email inexistant', { email });
+        return res.json({
+          success: true,
+          message: 'Si cet email existe, vous recevrez un lien de réinitialisation par email.',
+        });
+      }
+
+      const admin = result.rows[0];
+
+      // Générer un token de réinitialisation sécurisé
+      const crypto = require('crypto');
+      const resetToken = crypto.randomBytes(32).toString('hex');
+      const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // 1 heure
+
+      // Supprimer les anciens tokens pour cet admin
+      await query(
+        "DELETE FROM otp_codes WHERE phone = $1 AND type = 'admin_password_reset'",
+        [admin.email]
+      );
+
+      // Sauvegarder le token (on utilise la table otp_codes avec email comme "phone")
+      await query(
+        `INSERT INTO otp_codes (phone, code, expires_at, type, is_used)
+         VALUES ($1, $2, $3, 'admin_password_reset', false)`,
+        [admin.email, resetToken, expiresAt]
+      );
+
+      // Construire l'URL de réinitialisation
+      const frontendUrl = config.urls.adminPanel || 'http://localhost:5174';
+      const resetUrl = `${frontendUrl}/reset-password?token=${resetToken}&email=${encodeURIComponent(admin.email)}`;
+
+      // Afficher le lien dans les logs (mode dev)
+      if (process.env.NODE_ENV === 'development') {
+        const resetMessage = `
+══════════════════════════════════════════════════════════════════
+🔐 LIEN DE RÉINITIALISATION MOT DE PASSE ADMIN
+══════════════════════════════════════════════════════════════════
+   📧 Email: ${admin.email}
+   👤 Admin: ${admin.full_name} (ID: ${admin.id})
+   🔗 Lien: ${resetUrl}
+   🔑 Token: ${resetToken}
+   ⏰ Valide pendant: 1 heure
+   📅 Date: ${new Date().toISOString()}
+══════════════════════════════════════════════════════════════════`;
+        console.log('\n' + resetMessage + '\n');
+      }
+
+      // Envoyer l'email de réinitialisation
+      const emailService = require('../services/email.service');
+      try {
+        await emailService.sendPasswordResetEmail(admin.email, admin.full_name, resetUrl, resetToken);
+        logger.info('Email de réinitialisation envoyé', { 
+          email: admin.email, 
+          adminId: admin.id 
+        });
+      } catch (emailError) {
+        logger.error('Échec envoi email réinitialisation', { 
+          error: emailError.message,
+          email: admin.email 
+        });
+        // Ne pas bloquer - le lien est dans les logs en dev
+      }
+
+      res.json({
+        success: true,
+        message: 'Si cet email existe, vous recevrez un lien de réinitialisation par email.',
+      });
+    } catch (error) {
+      logger.error('Erreur adminForgotPassword', { error: error.message });
+      next(error);
+    }
+  }
+
+  /**
+   * Mot de passe oublié admin - Étape 2: Réinitialiser mot de passe avec token
+   */
+  async adminResetPassword(req, res, next) {
+    try {
+      const { email, reset_token, new_password } = req.body;
+
+      if (!email || !reset_token || !new_password) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'MISSING_FIELDS', message: 'Tous les champs sont requis' },
+        });
+      }
+
+      // Vérifier la longueur du mot de passe
+      if (new_password.length < 8) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'WEAK_PASSWORD', message: 'Le mot de passe doit contenir au moins 8 caractères' },
+        });
+      }
+
+      // Vérifier le token de réinitialisation
+      const result = await query(
+        `SELECT * FROM otp_codes 
+         WHERE phone = $1 AND type = 'admin_password_reset' AND code = $2 AND is_used = false
+         ORDER BY created_at DESC LIMIT 1`,
+        [email.toLowerCase().trim(), reset_token]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_TOKEN', message: 'Token de réinitialisation invalide ou expiré' },
+        });
+      }
+
+      const tokenRecord = result.rows[0];
+
+      // Vérifier expiration du token
+      if (new Date() > new Date(tokenRecord.expires_at)) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'TOKEN_EXPIRED', message: 'Le token a expiré. Veuillez en demander un nouveau.' },
+        });
+      }
+
+      // Vérifier que l'admin existe toujours
+      const adminResult = await query(
+        'SELECT id, email, full_name FROM admins WHERE email = $1 AND is_active = true',
+        [email.toLowerCase().trim()]
+      );
+
+      if (adminResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'ADMIN_NOT_FOUND', message: 'Admin non trouvé' },
+        });
+      }
+
+      const admin = adminResult.rows[0];
+
+      // Hasher le nouveau mot de passe
+      const passwordHash = await bcrypt.hash(new_password, 12);
+
+      // Mettre à jour le mot de passe
+      await query(
+        'UPDATE admins SET password_hash = $1, updated_at = NOW() WHERE id = $2',
+        [passwordHash, admin.id]
+      );
+
+      logger.info('Mot de passe admin réinitialisé', { 
+        adminId: admin.id, 
+        email: admin.email,
+        adminName: admin.full_name 
+      });
+
+      // Marquer le token comme utilisé
+      await query(
+        'UPDATE otp_codes SET is_used = true WHERE id = $1',
+        [tokenRecord.id]
+      );
+
+      // Nettoyer les anciens tokens pour cet admin
+      await query(
+        "DELETE FROM otp_codes WHERE phone = $1 AND type = 'admin_password_reset' AND is_used = true",
+        [admin.email]
+      );
+
+      res.json({
+        success: true,
+        message: 'Mot de passe réinitialisé avec succès. Vous pouvez maintenant vous connecter.',
+      });
+    } catch (error) {
+      logger.error('Erreur adminResetPassword', { error: error.message });
+      next(error);
     }
   }
 }

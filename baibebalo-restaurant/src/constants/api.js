@@ -1,8 +1,9 @@
 // Configuration API
 // En dev : EXPO_PUBLIC_API_URL dans .env, ou IP locale (téléphone = même WiFi)
 // En prod : EXPO_PUBLIC_API_URL au build (EAS) ou défaut ci-dessous
+// IMPORTANT: Mettez à jour l'IP ci-dessous avec l'IP affichée par le serveur backend
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
-  || (__DEV__ ? 'http://192.168.1.8:5000/api/v1' : 'https://baibebaloprojets.onrender.com/api/v1');
+  || (__DEV__ ? 'http://192.168.1.5:5000/api/v1' : 'https://baibebaloprojets.onrender.com/api/v1');
 
 export const API_ENDPOINTS = {
   // Authentification
@@ -34,6 +35,10 @@ export const API_ENDPOINTS = {
     PREPARING: (id) => `${API_BASE_URL}/orders/${id}/preparing`,
     READY: (id) => `${API_BASE_URL}/orders/${id}/ready`,
     TRACK: (id) => `${API_BASE_URL}/orders/${id}/track`,
+    // Messages de commande
+    GET_MESSAGES: (id) => `${API_BASE_URL}/orders/${id}/messages`,
+    SEND_MESSAGE: (id) => `${API_BASE_URL}/orders/${id}/messages`,
+    MARK_MESSAGES_READ: (id) => `${API_BASE_URL}/orders/${id}/messages/read`,
   },
   
   // Menu

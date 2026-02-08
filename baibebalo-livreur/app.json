@@ -74,7 +74,8 @@
     "extra": {
       "eas": {
         "projectId": "b0f1d162-8cbb-4866-9d32-61ff9c45dcca"
-      }
+      },
+      "mapsProvider": "default"
     },
     "owner": "entreprise-baibebalo"
   }

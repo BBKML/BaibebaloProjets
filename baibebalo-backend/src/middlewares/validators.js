@@ -204,19 +204,36 @@ const authLimiter = rateLimit({
 /**
  * Rate limiter pour l'envoi de SMS (1 req/min par téléphone)
  */
+// Rate limiter pour les SMS OTP
+// En développement, limite plus souple pour faciliter les tests
+const isDev = process.env.NODE_ENV === 'development';
 const smsLimiter = rateLimit({
-  windowMs: 60 * 1000,
-  max: 1,
+  windowMs: 60 * 1000, // 1 minute
+  max: isDev ? 5 : 1, // 5 requêtes/min en dev, 1 en prod
   message: {
     success: false,
     error: {
       code: 'SMS_RATE_LIMIT',
-      message: 'Veuillez attendre 1 minute avant de demander un nouveau code.',
+      message: isDev 
+        ? 'Limite atteinte. En développement, vous pouvez demander jusqu\'à 5 codes par minute.'
+        : 'Veuillez attendre 1 minute avant de demander un nouveau code.',
     },
   },
   keyGenerator: (req) => req.body.phone || req.ip,
   standardHeaders: true,
   legacyHeaders: false,
+  // En dev, logger les requêtes bloquées pour debug
+  onLimitReached: (req, res, options) => {
+    if (isDev) {
+      const logger = require('../utils/logger');
+      logger.warn('Rate limit SMS atteint', { 
+        phone: req.body?.phone, 
+        ip: req.ip,
+        windowMs: options.windowMs,
+        max: options.max
+      });
+    }
+  },
 });
 
 /**

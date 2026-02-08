@@ -107,7 +107,17 @@ const AccountSettings = () => {
         // Mettre à jour le localStorage
         const adminData = JSON.parse(localStorage.getItem('admin') || '{}');
         adminData.profile_picture = null;
+        
+        // Si le backend retourne les données admin complètes, les utiliser
+        if (response.data?.admin) {
+          Object.assign(adminData, response.data.admin);
+        }
+        
         localStorage.setItem('admin', JSON.stringify(adminData));
+        
+        // Déclencher l'événement pour mettre à jour le Header immédiatement
+        window.dispatchEvent(new Event('adminDataUpdated'));
+        
         toast.success('Photo de profil supprimée avec succès');
       }
     } catch (error) {
@@ -163,8 +173,25 @@ const AccountSettings = () => {
     try {
       const response = await authAPI.updateEmail(newEmail);
       if (response.success) {
-        setCurrentEmail(newEmail);
+        // Mettre à jour le state local
+        const updatedEmail = response.data?.email || newEmail;
+        setCurrentEmail(updatedEmail);
         setIsEmailVerified(false); // Nécessite nouvelle vérification
+        
+        // Mettre à jour le localStorage pour que le Header affiche le nouvel email
+        const adminData = JSON.parse(localStorage.getItem('admin') || '{}');
+        adminData.email = updatedEmail;
+        
+        // Si le backend retourne les données admin complètes, les utiliser
+        if (response.data?.admin) {
+          Object.assign(adminData, response.data.admin);
+        }
+        
+        localStorage.setItem('admin', JSON.stringify(adminData));
+        
+        // Déclencher l'événement pour mettre à jour le Header immédiatement
+        window.dispatchEvent(new Event('adminDataUpdated'));
+        
         toast.success(response.message || 'Email mis à jour. Un lien de vérification a été envoyé à la nouvelle adresse.');
         setNewEmail('');
       }
