@@ -66,4 +66,10 @@ export const restaurantsAPI = {
     const response = await apiClient.post(`/admin/restaurants/${id}/request-corrections`, { message });
     return response.data;
   },
+
+  // Obtenir le menu d'un restaurant
+  getRestaurantMenu: async (id) => {
+    const response = await apiClient.get(`/admin/restaurants/${id}/menu`);
+    return response.data;
+  },
 };

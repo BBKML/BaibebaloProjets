@@ -64,33 +64,78 @@ export const truncate = (text, maxLength = 50) => {
 
 /**
  * Calculer le sous-total d'une commande à partir des items
+ * Recalcule toujours à partir des items pour éviter les erreurs de calcul
  */
 export const calculateOrderSubtotal = (order) => {
   if (!order) return 0;
-  // Si subtotal existe, l'utiliser
-  if (order.subtotal) return Number.parseFloat(order.subtotal);
-  // Sinon, calculer à partir des items
-  if (!order.items) return 0;
-  return order.items.reduce((sum, item) => {
-    // Le backend retourne unit_price dans order_items
+  if (!order.items || order.items.length === 0) {
+    // Si pas d'items, utiliser le subtotal de la commande comme fallback
+    return Number.parseFloat(order.subtotal || 0);
+  }
+  
+  // TOUJOURS recalculer à partir des items (source de vérité)
+  // Ne pas utiliser item.subtotal stocké car il peut être incorrect
+  const calculatedSubtotal = order.items.reduce((sum, item) => {
+    // TOUJOURS calculer unit_price * quantity pour garantir l'exactitude
     const itemPrice = item.unit_price || item.price || item.menu_item?.price || item.menu_item_snapshot?.price || 0;
     const itemQuantity = item.quantity || 1;
-    return sum + Number.parseFloat(itemPrice) * itemQuantity;
+    const itemSubtotal = Number.parseFloat(itemPrice) * itemQuantity;
+    
+    // Vérifier si le subtotal stocké diffère du recalculé
+    const storedItemSubtotal = item.subtotal !== undefined && item.subtotal !== null
+      ? Number.parseFloat(item.subtotal)
+      : null;
+    
+    if (storedItemSubtotal !== null && Math.abs(storedItemSubtotal - itemSubtotal) > 0.01) {
+      console.warn('Sous-total item incorrect détecté:', {
+        itemName: item.name || item.menu_item?.name,
+        unitPrice: itemPrice,
+        quantity: itemQuantity,
+        storedSubtotal: storedItemSubtotal,
+        recalculatedSubtotal: itemSubtotal,
+      });
+    }
+    
+    return sum + (isNaN(itemSubtotal) ? 0 : itemSubtotal);
   }, 0);
+  
+  // Retourner le sous-total calculé (plus fiable que celui de la base de données)
+  return calculatedSubtotal;
 };
 
 /**
  * Calculer le total d'une commande (sous-total + frais de livraison + taxes)
+ * TOUJOURS recalculer pour éviter d'utiliser un total incorrect de la base de données
  */
 export const calculateOrderTotal = (order) => {
   if (!order) return 0;
-  // Si total existe, l'utiliser (priorité)
-  if (order.total) return Number.parseFloat(order.total);
-  // Sinon, si total_amount existe, l'utiliser
-  if (order.total_amount) return Number.parseFloat(order.total_amount);
-  // Sinon, calculer
+  
+  // TOUJOURS recalculer à partir du sous-total recalculé et des frais
+  // C'est la source de vérité pour garantir l'exactitude
   const subtotal = calculateOrderSubtotal(order);
   const deliveryFee = Number.parseFloat(order.delivery_fee || 0);
   const taxes = Number.parseFloat(order.taxes || 0);
-  return subtotal + deliveryFee + taxes;
+  const discount = Number.parseFloat(order.discount || 0);
+  
+  // Total = Sous-total + Frais de livraison + Taxes - Réduction
+  const calculatedTotal = subtotal + deliveryFee + taxes - discount;
+  
+  // Vérifier si le total en base diffère significativement du recalculé
+  const storedTotal = order.total ? Number.parseFloat(order.total) : null;
+  if (storedTotal !== null && Math.abs(storedTotal - calculatedTotal) > 0.01) {
+    // Logger pour déboguer (en production, utiliser un service de logging)
+    console.warn('Total recalculé diffère de celui en base:', {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      storedTotal,
+      calculatedTotal,
+      subtotal,
+      deliveryFee,
+      taxes,
+      discount,
+    });
+  }
+  
+  // Toujours retourner le total recalculé (source de vérité)
+  return Math.max(0, calculatedTotal);
 };

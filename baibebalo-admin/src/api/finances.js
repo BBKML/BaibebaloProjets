@@ -88,4 +88,34 @@ export const financesAPI = {
     const response = await apiClient.put(`/admin/finances/cash-remittances/${id}/reject`, { reason });
     return response.data;
   },
+
+  // Payouts (demandes de retrait)
+  getPayoutRequests: async (params = {}) => {
+    const response = await apiClient.get('/admin/finances/payouts', { params });
+    return response.data;
+  },
+  processPayout: async (id) => {
+    const response = await apiClient.put(`/admin/finances/payouts/${id}/process`);
+    return response.data;
+  },
+  markPayoutAsPaid: async (id, proof) => {
+    const response = await apiClient.put(`/admin/finances/payouts/${id}/mark-paid`, proof);
+    return response.data;
+  },
+  refreshDeliveryBalance: async (id) => {
+    const response = await apiClient.put(`/admin/finances/delivery/${id}/refresh-balance`);
+    return response.data;
+  },
+  refreshRestaurantBalance: async (id) => {
+    const response = await apiClient.put(`/admin/finances/restaurant/${id}/refresh-balance`);
+    return response.data;
+  },
+  rejectPayout: async (id, reason) => {
+    const response = await apiClient.put(`/admin/finances/payouts/${id}/reject`, { reason });
+    return response.data;
+  },
+  generatePayouts: async (userType) => {
+    const response = await apiClient.post('/admin/finances/generate-payouts', { user_type: userType });
+    return response.data;
+  },
 };

@@ -90,11 +90,25 @@ export default function OrdersScreen({ navigation }) {
       );
     });
 
+    // Écouter les annulations de commande
+    const unsubscribeCancelled = socketService.on('order_cancelled', (data) => {
+      console.log('❌ Commande annulée reçue dans OrdersScreen:', data);
+      const cancelledOrderId = data.orderId || data.order_id;
+      Alert.alert(
+        '❌ Commande annulée',
+        `La commande #${data.orderNumber || cancelledOrderId?.substring(0, 8)} a été annulée par le client.\n\nRaison: ${data.reason || 'Non spécifiée'}`,
+        [{ text: 'OK' }]
+      );
+      // Recharger les commandes pour mettre à jour le statut
+      loadOrders();
+    });
+
     return () => {
       unsubscribeConnection();
       unsubscribeNewOrder();
       unsubscribeOrderUpdate();
       unsubscribeUrgent();
+      unsubscribeCancelled();
     };
   }, []);
 
@@ -128,7 +142,8 @@ export default function OrdersScreen({ navigation }) {
     try {
       const statusMap = {
         'new': 'new',
-        'in-progress': 'accepted',
+        // Pour "En cours", charger tous les statuts pertinents
+        'in-progress': 'accepted,preparing,ready,picked_up,delivering',
         'completed': 'delivered',
         'all': undefined,
       };
@@ -144,6 +159,12 @@ export default function OrdersScreen({ navigation }) {
         itemsCount: order.itemsCount || order.items_count || order.items?.length || order.order_items?.length || 0,
         createdAt: order.createdAt || order.created_at || order.placed_at || new Date().toISOString(),
         total: order.total || order.total_amount || 0,
+        // Utiliser le revenu net au lieu du total pour l'affichage
+        netRevenue: order.netRevenue !== null && order.netRevenue !== undefined 
+          ? Number.parseFloat(order.netRevenue) 
+          : (order.net_revenue !== null && order.net_revenue !== undefined 
+            ? Number.parseFloat(order.net_revenue) 
+            : null),
       }));
       
       setOrders(normalizedOrders);
@@ -160,7 +181,7 @@ export default function OrdersScreen({ navigation }) {
 
   const filteredOrders = orders.filter(order => {
     if (selectedTab === 'new') return order.status === 'pending' || order.status === 'new';
-    if (selectedTab === 'in-progress') return ['accepted', 'preparing'].includes(order.status);
+    if (selectedTab === 'in-progress') return ['accepted', 'preparing', 'ready', 'picked_up', 'delivering'].includes(order.status);
     if (selectedTab === 'completed') return order.status === 'delivered';
     return true;
   });
@@ -225,7 +246,7 @@ export default function OrdersScreen({ navigation }) {
 
   const tabs = [
     { key: 'new', label: 'Nouvelles', count: orders.filter(o => o.status === 'pending' || o.status === 'new').length },
-    { key: 'in-progress', label: 'En cours', count: orders.filter(o => ['accepted', 'preparing'].includes(o.status)).length },
+    { key: 'in-progress', label: 'En cours', count: orders.filter(o => ['accepted', 'preparing', 'ready', 'picked_up', 'delivering'].includes(o.status)).length },
     { key: 'completed', label: 'Complétées', count: orders.filter(o => o.status === 'delivered').length },
     { key: 'all', label: 'Toutes' },
   ];
@@ -238,7 +259,27 @@ export default function OrdersScreen({ navigation }) {
     const itemsCount = item.itemsCount || 0;
     const customerName = item.customerName || 'Client';
     const orderNumber = item.orderNumber || item.order_number || (item.id ? item.id.slice(0, 8).toUpperCase() : 'N/A');
-    const orderTotal = item.total || item.total_amount || 0;
+    
+    // Utiliser le revenu net au lieu du total
+    // Si le revenu net n'est pas disponible, calculer à partir du subtotal et de la commission
+    let displayAmount = item.netRevenue !== null && item.netRevenue !== undefined 
+      ? Number.parseFloat(item.netRevenue) 
+      : (item.net_revenue !== null && item.net_revenue !== undefined 
+        ? Number.parseFloat(item.net_revenue) 
+        : null);
+    
+    // Si le revenu net n'est pas disponible, le calculer
+    if (displayAmount === null || displayAmount === undefined) {
+      const subtotal = Number.parseFloat(item.subtotal || 0);
+      const commission = Number.parseFloat(item.commission || 0);
+      const commissionRate = Number.parseFloat(item.commission_rate || 15);
+      
+      // Si la commission n'est pas disponible, la calculer
+      const actualCommission = commission > 0 ? commission : (subtotal * commissionRate) / 100;
+      displayAmount = Math.max(0, subtotal - actualCommission);
+    }
+    
+    const orderTotal = displayAmount;
     
     // Déterminer le label du statut
     const getStatusLabel = () => {
@@ -298,20 +339,41 @@ export default function OrdersScreen({ navigation }) {
             </View>
           </View>
 
-          <View style={styles.orderActions}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.acceptButton]}
-              onPress={() => handleAccept(item.id)}
-            >
-              <Text style={styles.acceptButtonText}>Accepter</Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.refuseButton]}
-              onPress={() => handleRefuse(item.id)}
-            >
-              <Text style={styles.refuseButtonText}>Refuser</Text>
-            </TouchableOpacity>
-          </View>
+          {/* Boutons d'action selon le statut */}
+          {(item.status === 'pending' || item.status === 'new') ? (
+            <View style={styles.orderActions}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.acceptButton]}
+                onPress={() => handleAccept(item.id)}
+              >
+                <Text style={styles.acceptButtonText}>Accepter</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.refuseButton]}
+                onPress={() => handleRefuse(item.id)}
+              >
+                <Text style={styles.refuseButtonText}>Refuser</Text>
+              </TouchableOpacity>
+            </View>
+          ) : item.status === 'accepted' ? (
+            <View style={styles.orderActions}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.startButton]}
+                onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
+              >
+                <Text style={styles.startButtonText}>Démarrer préparation</Text>
+              </TouchableOpacity>
+            </View>
+          ) : item.status === 'preparing' ? (
+            <View style={styles.orderActions}>
+              <TouchableOpacity
+                style={[styles.actionButton, styles.readyButton]}
+                onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
+              >
+                <Text style={styles.readyButtonText}>Marquer prête</Text>
+              </TouchableOpacity>
+            </View>
+          ) : null}
 
           <TouchableOpacity
             style={styles.detailsButton}
@@ -638,6 +700,22 @@ const styles = StyleSheet.create({
   },
   refuseButtonText: {
     color: COLORS.text,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  startButton: {
+    backgroundColor: COLORS.primary,
+  },
+  startButtonText: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  readyButton: {
+    backgroundColor: COLORS.success,
+  },
+  readyButtonText: {
+    color: COLORS.white,
     fontSize: 14,
     fontWeight: 'bold',
   },

@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Vibration, Platform } from 'react-native';
 
 // URL du serveur Socket.IO (même que l'API sans /api/v1)
-const SOCKET_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.6:5000').replace('/api/v1', '');
+const SOCKET_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.5:5000/api/v1').replace('/api/v1', '');
 
 class SocketService {
   constructor() {
@@ -30,9 +30,10 @@ class SocketService {
         return;
       }
 
-      console.log('[Socket] Connexion à', SOCKET_URL);
+      const clientNamespaceUrl = `${SOCKET_URL}/client`;
+      console.log('[Socket] Connexion à', clientNamespaceUrl);
 
-      this.socket = io(SOCKET_URL, {
+      this.socket = io(clientNamespaceUrl, {
         auth: { token },
         transports: ['websocket', 'polling'],
         reconnection: true,
@@ -54,13 +55,14 @@ class SocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('[Socket] ✅ Connecté');
+      console.log('[Socket] ✅ Connecté au namespace /client');
       this.isConnected = true;
       this.emit('connection_status', { connected: true });
       
       // Rejoindre la room de la commande en cours si elle existe
       if (this.currentOrderId) {
-        this.joinOrderRoom(this.currentOrderId);
+        console.log('[Socket] Rejoindre automatiquement room order_' + this.currentOrderId);
+        this._doJoinOrderRoom(this.currentOrderId);
       }
     });
 
@@ -138,15 +140,45 @@ class SocketService {
    * Rejoindre la room d'une commande pour recevoir les mises à jour
    */
   joinOrderRoom(orderId) {
-    if (!this.socket?.connected) {
-      console.log('[Socket] Non connecté, impossible de rejoindre la room');
-      this.currentOrderId = orderId; // Sauvegarder pour rejoindre après connexion
+    if (!orderId) {
+      console.warn('[Socket] joinOrderRoom: orderId manquant');
       return;
     }
 
-    console.log('[Socket] Rejoindre room order_' + orderId);
+    this.currentOrderId = orderId; // Sauvegarder pour rejoindre après connexion
+
+    if (!this.socket) {
+      console.log('[Socket] Socket non initialisé, connexion en cours...');
+      this.connect().then(() => {
+        this._doJoinOrderRoom(orderId);
+      });
+      return;
+    }
+
+    if (!this.socket.connected) {
+      console.log('[Socket] Non connecté, attente de la connexion...');
+      // Attendre la connexion
+      this.socket.once('connect', () => {
+        console.log('[Socket] Connecté, rejoindre room maintenant');
+        this._doJoinOrderRoom(orderId);
+      });
+      return;
+    }
+
+    this._doJoinOrderRoom(orderId);
+  }
+
+  /**
+   * Effectuer réellement le join de la room
+   */
+  _doJoinOrderRoom(orderId) {
+    if (!this.socket?.connected) {
+      console.warn('[Socket] Impossible de rejoindre room: socket non connecté');
+      return;
+    }
+
+    console.log('[Socket] ✅ Rejoindre room order_' + orderId);
     this.socket.emit('join_order', { order_id: orderId });
-    this.currentOrderId = orderId;
   }
 
   /**

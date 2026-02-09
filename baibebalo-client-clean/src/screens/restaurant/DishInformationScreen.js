@@ -129,8 +129,28 @@ export default function DishInformationScreen({ navigation, route }) {
             <Ionicons name="flame" size={12} color={COLORS.primary} />
             <Text style={styles.tagText}>Signature Dish</Text>
           </View>
-          <Text style={styles.dishName}>{dish.name}</Text>
-          <Text style={styles.dishPrice}>{dish.price || 0} FCFA</Text>
+          <View style={styles.dishNameContainer}>
+            <Text style={styles.dishName}>{dish.name}</Text>
+          </View>
+          {/* Badge de promotion */}
+          {dish.is_promotion_active && dish.effective_price && dish.effective_price < dish.original_price && (
+            <View style={styles.promotionBadge}>
+              <Ionicons name="pricetag" size={14} color={COLORS.white} />
+              <Text style={styles.promotionBadgeText}>
+                -{dish.savings_percent || Math.round((1 - dish.effective_price / dish.original_price) * 100)}% OFF
+              </Text>
+            </View>
+          )}
+          <View style={styles.priceContainer}>
+            {dish.is_promotion_active && dish.effective_price && dish.effective_price < dish.original_price ? (
+              <>
+                <Text style={styles.dishPriceOriginal}>{dish.original_price || dish.price || 0} FCFA</Text>
+                <Text style={styles.dishPrice}>{dish.effective_price || dish.price || 0} FCFA</Text>
+              </>
+            ) : (
+              <Text style={styles.dishPrice}>{dish.price || 0} FCFA</Text>
+            )}
+          </View>
         </View>
 
         {/* Description */}
@@ -354,17 +374,46 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     textTransform: 'uppercase',
   },
+  dishNameContainer: {
+    marginBottom: 8,
+  },
   dishName: {
-    flex: 1,
     fontSize: 26,
     fontWeight: '800',
     color: COLORS.text,
+  },
+  promotionBadge: {
+    backgroundColor: '#EF4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'flex-start',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 8,
+    gap: 6,
+    marginBottom: 12,
+  },
+  promotionBadgeText: {
+    color: COLORS.white,
+    fontSize: 12,
+    fontWeight: '700',
+  },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 6,
   },
   dishPrice: {
     fontSize: 18,
     fontWeight: '700',
     color: COLORS.primary,
-    marginTop: 6,
+  },
+  dishPriceOriginal: {
+    fontSize: 16,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textDecorationLine: 'line-through',
   },
   section: {
     padding: 16,

@@ -1,0 +1,54 @@
+# Flow : Notation (avis après livraison)
+# Prérequis : utilisateur connecté avec au moins une commande livrée (pour "Modifier mon avis")
+# Ou simulation : écran "Confirmer la réception" -> OrderReview
+appId: ci.baibebalo.client
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 15000
+- tapOn: "Commandes"
+- extendedWaitUntil:
+    visible:
+      any:
+        - "Livrée"
+        - "En attente"
+        - "Aucune commande"
+    timeout: 8000
+# Ouvrir une commande (tap sur une carte)
+- tapOn:
+    text: "Livrée"
+    optional: true
+- tapOn:
+    text: "FCFA"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      any:
+        - "Modifier mon avis"
+        - "Commander à nouveau"
+        - "Votre avis nous intéresse"
+    timeout: 8000
+# Si commande livrée : bouton "Modifier mon avis"
+- tapOn:
+    text: "Modifier mon avis"
+    optional: true
+- extendedWaitUntil:
+    visible: "Votre avis nous intéresse"
+    timeout: 5000
+# Noter le restaurant (5 étoiles)
+- tapOn:
+    text: "star"
+    optional: true
+# Ou utiliser les étoiles par index / position
+- tapOn:
+    text: "Notez le Restaurant"
+    optional: true
+- tapOn:
+    text: "Envoyer mon avis"
+    optional: true
+- assertVisible:
+    any:
+      - "Merci"
+      - "Votre avis nous intéresse"
+      - "Envoyer mon avis"

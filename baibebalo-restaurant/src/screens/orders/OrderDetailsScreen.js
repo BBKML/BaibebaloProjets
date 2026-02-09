@@ -110,10 +110,35 @@ export default function OrderDetailsScreen({ navigation, route }) {
       }
     });
 
+    // Commande annulée par le client
+    const unsubCancelled = socketService.on('order_cancelled', (data) => {
+      console.log('❌ Événement order_cancelled reçu:', data);
+      if (data.order_id === orderId || data.orderId === orderId) {
+        Vibration.vibrate([0, 500, 200, 500]);
+        Alert.alert(
+          '❌ Commande annulée',
+          `Le client a annulé cette commande.\n\nRaison: ${data.reason || 'Non spécifiée'}`,
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                // Recharger les détails pour mettre à jour le statut
+                loadOrderDetails();
+                // Retourner à la liste si nécessaire
+                navigation.goBack();
+              },
+            },
+          ]
+        );
+        loadOrderDetails();
+      }
+    });
+
     return () => {
       unsubArrived();
       unsubPickedUp();
       unsubAssigned();
+      unsubCancelled();
     };
   }, [orderId]);
 
@@ -393,7 +418,18 @@ export default function OrderDetailsScreen({ navigation, route }) {
             <View style={styles.financialRow}>
               <Text style={styles.financialLabel}>Sous-total articles</Text>
               <Text style={styles.financialValue}>
-                {order.subtotal ? Number.parseFloat(order.subtotal).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} FCFA
+                {(() => {
+                  // Recalculer le sous-total à partir des items pour éviter les erreurs
+                  const calculatedSubtotal = order.items?.reduce((sum, item) => {
+                    // Utiliser item.subtotal s'il existe, sinon calculer unit_price * quantity
+                    const itemSubtotal = item.subtotal || ((item.unit_price || item.price || 0) * (item.quantity || 1));
+                    return sum + Number.parseFloat(itemSubtotal || 0);
+                  }, 0) || 0;
+                  
+                  // Utiliser le sous-total calculé s'il est disponible, sinon utiliser celui de la commande
+                  const displaySubtotal = calculatedSubtotal > 0 ? calculatedSubtotal : (order.subtotal || 0);
+                  return Number.parseFloat(displaySubtotal).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                })()} FCFA
               </Text>
             </View>
             <View style={styles.financialRow}>
@@ -405,13 +441,47 @@ export default function OrderDetailsScreen({ navigation, route }) {
             <View style={styles.financialRow}>
               <Text style={styles.financialLabel}>Commission BAIBEBALO</Text>
               <Text style={styles.financialValue}>
-                {order.commission ? Number.parseFloat(order.commission).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} FCFA ({order.commissionRate || order.commission_rate || 0}%)
+                {(() => {
+                  // Utiliser la commission calculée par le backend (toujours disponible)
+                  const commission = order.commission !== null && order.commission !== undefined 
+                    ? Number.parseFloat(order.commission) 
+                    : 0;
+                  const commissionRate = order.commissionRate || order.commission_rate || 15;
+                  
+                  // Si la commission est 0 mais qu'on a un subtotal, recalculer
+                  if (commission === 0 && order.subtotal && order.subtotal > 0) {
+                    const recalculatedCommission = (order.subtotal * commissionRate) / 100;
+                    return `${recalculatedCommission.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA (${commissionRate}%)`;
+                  }
+                  
+                  return `${commission.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA (${commissionRate}%)`;
+                })()}
               </Text>
             </View>
             <View style={[styles.financialRow, styles.financialTotal]}>
               <Text style={styles.financialTotalLabel}>Votre revenu net</Text>
               <Text style={styles.financialTotalValue}>
-                {order.netRevenue || order.net_revenue ? Number.parseFloat(order.netRevenue || order.net_revenue || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} FCFA
+                {(() => {
+                  // Utiliser le revenu net calculé par le backend
+                  const netRevenue = order.netRevenue !== null && order.netRevenue !== undefined 
+                    ? Number.parseFloat(order.netRevenue) 
+                    : (order.net_revenue !== null && order.net_revenue !== undefined 
+                      ? Number.parseFloat(order.net_revenue) 
+                      : 0);
+                  
+                  // Si le revenu net est 0 mais qu'on a un subtotal et une commission, recalculer
+                  if (netRevenue === 0 && order.subtotal && order.subtotal > 0) {
+                    const commission = order.commission !== null && order.commission !== undefined 
+                      ? Number.parseFloat(order.commission) 
+                      : 0;
+                    const commissionRate = order.commissionRate || order.commission_rate || 15;
+                    const actualCommission = commission > 0 ? commission : (order.subtotal * commissionRate) / 100;
+                    const recalculatedNetRevenue = order.subtotal - actualCommission;
+                    return `${Math.max(0, recalculatedNetRevenue).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA`;
+                  }
+                  
+                  return `${Math.max(0, netRevenue).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA`;
+                })()}
               </Text>
             </View>
           </View>

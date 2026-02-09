@@ -25,6 +25,8 @@ const adminRoutes = require('./routes/admin.routes');
 const webhookRoutes = require('./routes/webhook.routes');
 const notificationRoutes = require('./routes/notification.routes');
 const adsRoutes = require('./routes/ads.routes');
+const publicRoutes = require('./routes/public.routes');
+logger.debug('Route publique chargée:', typeof publicRoutes);
 
 // Initialiser les cron jobs
 require('./jobs/cron');
@@ -193,6 +195,12 @@ if (config.upload?.provider === 'local' && config.env === 'development') {
 // Routes API
 const apiPrefix = `/api/${config.apiVersion}`;
 
+// Routes publiques (sans authentification) - AVANT les autres routes
+logger.info(`Enregistrement route publique: ${apiPrefix}/public`);
+app.use(`${apiPrefix}/public`, publicRoutes);
+logger.debug('Route publique enregistrée avec succès');
+
+// Routes authentifiées
 app.use(`${apiPrefix}/auth`, authRoutes);
 app.use(`${apiPrefix}/users`, userRoutes);
 app.use(`${apiPrefix}/restaurants`, restaurantRoutes);
@@ -597,6 +605,17 @@ const startServer = async () => {
         logger.warn('⚠️  Le serveur va démarrer malgré l\'erreur DB (mode dev)');
       } else {
         throw new Error('Connexion base de données requise en production');
+      }
+    }
+
+    // Synchroniser les paramètres depuis config/index.js vers app_settings
+    // (uniquement si la DB est connectée)
+    if (dbConnected) {
+      try {
+        const { syncSettingsFromConfig } = require('./utils/syncSettings');
+        await syncSettingsFromConfig();
+      } catch (error) {
+        logger.warn('⚠️  Erreur synchronisation paramètres (non bloquant):', error.message);
       }
     }
 

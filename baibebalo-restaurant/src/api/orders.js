@@ -84,8 +84,22 @@ export const restaurantOrders = {
   // Récupérer les messages d'une commande
   getOrderMessages: async (orderId) => {
     try {
-      const response = await api.get(`/orders/${orderId}/messages`);
-      return response;
+      // Utiliser le chemin complet avec /api/v1 car baseURL l'enlève
+      // validateStatus permet d'accepter les codes 200-399 (y compris 304 Not Modified)
+      const response = await api.get(`/api/v1/orders/${orderId}/messages`, {
+        validateStatus: (status) => status >= 200 && status < 400,
+      });
+      
+      // Pour un 304 (Not Modified), response.data peut être vide/undefined
+      // Dans ce cas, on retourne un objet avec success: true pour éviter les erreurs
+      if (response.status === 304) {
+        // Code 304 signifie que les données n'ont pas changé
+        // On retourne un objet vide avec success pour indiquer que tout va bien
+        return { success: true, data: { messages: [], unread_count: 0 } };
+      }
+      
+      // Pour les autres codes (200, etc.), retourner les données normalement
+      return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -94,8 +108,9 @@ export const restaurantOrders = {
   // Envoyer un message
   sendOrderMessage: async (orderId, message) => {
     try {
-      const response = await api.post(`/orders/${orderId}/messages`, { message });
-      return response;
+      // Utiliser le chemin complet avec /api/v1 car baseURL l'enlève
+      const response = await api.post(`/api/v1/orders/${orderId}/messages`, { message });
+      return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }
@@ -104,8 +119,9 @@ export const restaurantOrders = {
   // Marquer les messages comme lus
   markMessagesRead: async (orderId) => {
     try {
-      const response = await api.put(`/orders/${orderId}/messages/read`);
-      return response;
+      // Utiliser le chemin complet avec /api/v1 car baseURL l'enlève
+      const response = await api.put(`/api/v1/orders/${orderId}/messages/read`);
+      return response.data;
     } catch (error) {
       throw error.response?.data || error.message;
     }

@@ -501,6 +501,19 @@ class NotificationService {
         },
         channel: 'deliveries',
       },
+      order_proposed: {
+        title: '📦 Course proposée',
+        body: `${order?.restaurant_name || 'Restaurant'} - ${order?.delivery_fee || order?.total || 0} FCFA. Acceptez dans les 2 min.`,
+        type: 'order_proposed',
+        data: {
+          order_id: order?.id,
+          order_number: order?.order_number,
+          restaurant_name: order?.restaurant_name,
+          expires_at: order?.expires_at,
+          expires_in_seconds: order?.expires_in_seconds,
+        },
+        channel: 'deliveries',
+      },
       order_cancelled: {
         title: '❌ Commande annulée',
         body: `La commande ${order?.order_number} a été annulée.`,

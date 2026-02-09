@@ -161,20 +161,19 @@ exports.updateLocation = async (req, res) => {
       [latitude, longitude, req.user.id]
     );
 
-    // Émettre via WebSocket pour les commandes en cours
-    const io = req.app.get('io');
-    
-    // Récupérer les commandes en cours de livraison
+    const { emitToOrder } = require('../utils/socketEmitter');
     const ordersResult = await query(
       `SELECT id FROM orders 
-       WHERE delivery_person_id = $1 AND status = 'delivering'`,
+       WHERE delivery_person_id = $1 AND status IN ('delivering', 'picked_up')`,
       [req.user.id]
     );
-
-    ordersResult.rows.forEach(order => {
-      io.to(`order_${order.id}`).emit('delivery_location_updated', {
+    ordersResult.rows.forEach((order) => {
+      emitToOrder(req.app, order.id, 'delivery_location_updated', {
+        order_id: order.id,
         latitude,
         longitude,
+        delivery_person_id: req.user.id,
+        timestamp: new Date().toISOString(),
       });
     });
 
@@ -223,15 +222,16 @@ exports.getAvailableOrders = async (req, res) => {
               ) / 1000 as distance_km
        FROM orders o
        JOIN restaurants r ON o.restaurant_id = r.id
-       WHERE o.status = 'ready' 
-       AND o.delivery_person_id IS NULL
-       AND earth_distance(
-         ll_to_earth(r.latitude, r.longitude),
-         ll_to_earth($1, $2)
-       ) / 1000 <= $3
+       WHERE o.status = 'ready'
+         AND o.delivery_person_id IS NULL
+         AND (o.proposed_delivery_person_id IS NULL OR o.proposed_delivery_person_id = $4 OR o.proposal_expires_at < NOW())
+         AND earth_distance(
+           ll_to_earth(r.latitude, r.longitude),
+           ll_to_earth($1, $2)
+         ) / 1000 <= $3
        ORDER BY o.placed_at ASC
        LIMIT 20`,
-      [parseFloat(lat), parseFloat(lng), parseFloat(radius)]
+      [parseFloat(lat), parseFloat(lng), parseFloat(radius), req.user.id]
     );
 
     res.json({
@@ -261,15 +261,19 @@ exports.acceptDelivery = async (req, res) => {
     const { id } = req.params;
 
     return await transaction(async (client) => {
-      // Vérifier que la commande est disponible
+      // Vérifier que la commande est disponible (ou proposée à ce livreur et non expirée)
       const orderResult = await client.query(
         `SELECT o.*, r.name as restaurant_name, r.address as restaurant_address, 
                 r.latitude as restaurant_lat, r.longitude as restaurant_lng
          FROM orders o
          JOIN restaurants r ON o.restaurant_id = r.id
          WHERE o.id = $1 AND o.status = 'ready' AND o.delivery_person_id IS NULL
+           AND (
+             o.proposed_delivery_person_id IS NULL
+             OR (o.proposed_delivery_person_id = $2 AND o.proposal_expires_at > NOW())
+           )
          FOR UPDATE OF o`,
-        [id]
+        [id, req.user.id]
       );
 
       if (orderResult.rows.length === 0) {
@@ -284,10 +288,11 @@ exports.acceptDelivery = async (req, res) => {
 
       const order = orderResult.rows[0];
 
-      // Assigner le livreur (garder statut 'ready' jusqu'au pickup)
+      // Assigner le livreur et effacer la proposition (garder statut 'ready' jusqu'au pickup)
       await client.query(
         `UPDATE orders 
-         SET delivery_person_id = $1, assigned_at = NOW()
+         SET delivery_person_id = $1, assigned_at = NOW(),
+             proposed_delivery_person_id = NULL, proposal_expires_at = NULL, updated_at = NOW()
          WHERE id = $2`,
         [req.user.id, id]
       );
@@ -308,8 +313,8 @@ exports.acceptDelivery = async (req, res) => {
       const io = req.app.get('io');
       const partnersIo = req.app.get('partnersIo');
 
-      // Notifier le client - livreur assigné
-      io.to(`order_${id}`).emit('delivery_assigned', {
+      const { emitToOrder } = require('../utils/socketEmitter');
+      emitToOrder(req.app, id, 'delivery_assigned', {
         order_id: id,
         delivery_person: {
           id: req.user.id,
@@ -357,6 +362,7 @@ exports.acceptDelivery = async (req, res) => {
 
       // Push notification au client
       try {
+        const notificationService = require('../services/notification.service');
         await notificationService.sendOrderNotification(order.id, 'client', 'delivery_assigned');
       } catch (notificationError) {
         logger.warn('Notification push ignorée (acceptDelivery)', { error: notificationError.message });
@@ -388,6 +394,65 @@ exports.acceptDelivery = async (req, res) => {
 };
 
 /**
+ * Livreur paie le restaurant à l'avance (avant de récupérer la commande)
+ */
+exports.payRestaurant = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const orderResult = await query(
+      `SELECT * FROM orders 
+       WHERE id = $1 AND delivery_person_id = $2 AND status IN ('ready', 'preparing', 'accepted')
+       AND restaurant_paid_by_delivery = FALSE`,
+      [id, req.user.id]
+    );
+
+    if (orderResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'ORDER_NOT_FOUND',
+          message: 'Commande non trouvée, déjà payée par vous, ou statut invalide',
+        },
+      });
+    }
+
+    const order = orderResult.rows[0];
+
+    // Marquer comme payé par le livreur
+    await query(
+      `UPDATE orders 
+       SET restaurant_paid_by_delivery = TRUE, 
+           restaurant_paid_by_delivery_at = NOW(),
+           updated_at = NOW()
+       WHERE id = $1`,
+      [id]
+    );
+
+    logger.info(`Livreur ${req.user.id} a payé le restaurant pour commande ${order.order_number}`);
+
+    res.json({
+      success: true,
+      message: 'Paiement restaurant enregistré. Vous pouvez récupérer la commande.',
+      data: {
+        order_id: id,
+        order_number: order.order_number,
+        restaurant_paid_by_delivery: true,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur payRestaurant:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'PAYMENT_ERROR',
+        message: 'Erreur lors de l\'enregistrement du paiement',
+      },
+    });
+  }
+};
+
+/**
  * Confirmer la récupération de la commande au restaurant
  */
 exports.confirmPickup = async (req, res) => {
@@ -397,7 +462,7 @@ exports.confirmPickup = async (req, res) => {
     const result = await query(
       `UPDATE orders 
        SET status = 'picked_up', picked_up_at = NOW()
-       WHERE id = $1 AND delivery_person_id = $2 AND status = 'ready'
+       WHERE id = $1 AND delivery_person_id = $2 AND status IN ('ready', 'delivering', 'accepted')
        RETURNING *`,
       [id, req.user.id]
     );
@@ -417,14 +482,13 @@ exports.confirmPickup = async (req, res) => {
     const io = req.app.get('io');
     const partnersIo = req.app.get('partnersIo');
 
-    // Notifier le client - commande récupérée
-    io.to(`order_${id}`).emit('order_picked_up', {
+    const { emitToOrder } = require('../utils/socketEmitter');
+    emitToOrder(req.app, id, 'order_picked_up', {
       order_id: id,
       order_number: order.order_number,
       message: 'Votre commande a été récupérée par le livreur',
     });
-
-    io.to(`order_${id}`).emit('order_status_changed', {
+    emitToOrder(req.app, id, 'order_status_changed', {
       order_id: id,
       status: 'picked_up',
     });
@@ -467,6 +531,7 @@ exports.confirmPickup = async (req, res) => {
 
     // Push notification au client
     try {
+      const notificationService = require('../services/notification.service');
       await notificationService.sendOrderNotification(order.id, 'client', 'delivery_on_way');
     } catch (notificationError) {
       logger.warn('Notification push ignorée (confirmPickup)', { error: notificationError.message });
@@ -521,59 +586,77 @@ exports.confirmDelivery = async (req, res) => {
       await client.query(
         `UPDATE orders 
          SET status = 'delivered', delivered_at = NOW()
-         ${order.payment_method === 'cash' ? ", payment_status = 'paid'" : ''}
+         ${order.payment_method === 'cash' ? ", payment_status = 'paid', paid_at = NOW()" : ''}
          WHERE id = $1`,
         [id]
       );
 
-      // === CALCUL COMPLET DES GAINS DU LIVREUR ===
+      // === CRÉDIT RESTAURANT (flux Glovo : plateforme crédite le restaurant une fois livré + payé) ===
+      // IMPORTANT : Ne pas créditer si le livreur a déjà payé le restaurant à l'avance
+      const paymentStatusAfterDelivery = order.payment_method === 'cash' ? 'paid' : order.payment_status;
+      const restaurantAlreadyPaidByDelivery = order.restaurant_paid_by_delivery === true;
+      
+      if (paymentStatusAfterDelivery === 'paid' && !restaurantAlreadyPaidByDelivery) {
+        const existingCredit = await client.query(
+          `SELECT 1 FROM transactions WHERE order_id = $1 AND to_user_type = 'restaurant' AND to_user_id = $2 AND status = 'completed' LIMIT 1`,
+          [order.id, order.restaurant_id]
+        );
+        if (existingCredit.rows.length === 0) {
+          const { getCommission, getNetRestaurantRevenue } = require('../utils/commission');
+          const subtotal = parseFloat(order.subtotal) || 0;
+          const { commission, rate: commissionRate } = getCommission(subtotal, order.commission_rate);
+          const netRestaurant = getNetRestaurantRevenue(subtotal, order.commission_rate, order.commission);
+          if (netRestaurant > 0) {
+            await client.query(
+              `INSERT INTO transactions (
+                order_id, transaction_type, amount,
+                from_user_type, from_user_id,
+                to_user_type, to_user_id,
+                status, payment_method, metadata
+              )
+              VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+              [
+                order.id, 'order_payment', netRestaurant,
+                'platform', null,
+                'restaurant', order.restaurant_id,
+                'completed', order.payment_method || 'internal',
+                JSON.stringify({ subtotal, commission, commission_rate: commissionRate, order_number: order.order_number }),
+              ]
+            );
+            logger.info(`Restaurant ${order.restaurant_id} crédité: ${netRestaurant} FCFA (commande ${order.order_number})`);
+          }
+        }
+      } else if (restaurantAlreadyPaidByDelivery) {
+        logger.info(`Restaurant ${order.restaurant_id} déjà payé par livreur pour commande ${order.order_number} - Pas de crédit plateforme`);
+      }
+
+      // === CALCUL DES GAINS DU LIVREUR ===
+      // NOUVEAU MODÈLE : Les bonus sont inclus dans les frais de livraison payés par le client
+      // Le livreur reçoit 70% du total (frais de base + bonus)
+      // Baibebalo garde 30% du total
       const config = require('../config');
       const businessConfig = config.business;
       const now = new Date();
-      const currentHour = now.getHours();
-      const dayOfWeek = now.getDay(); // 0 = Dimanche, 6 = Samedi
-      const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
-      
-      // 1. GAIN DE BASE (70% des frais de livraison)
-      const baseEarnings = (order.delivery_fee * (businessConfig.deliveryPersonPercentage || 70)) / 100;
-      
-      // 2. BONUS DISTANCE LONGUE (si distance > 5 km → +200 FCFA)
       const deliveryDistance = parseFloat(order.delivery_distance) || 0;
-      const longDistanceThreshold = businessConfig.deliveryBonusLongDistanceThreshold || 5;
-      const bonusLongDistance = deliveryDistance > longDistanceThreshold 
-        ? (businessConfig.deliveryBonusLongDistanceAmount || 200) 
-        : 0;
       
-      // 3. BONUS HEURE DE POINTE (12h-14h ou 19h-21h → +100 FCFA)
-      const peakHours = businessConfig.deliveryPeakHours || { lunch: { start: 12, end: 14 }, dinner: { start: 19, end: 21 } };
-      const isPeakHour = (currentHour >= peakHours.lunch.start && currentHour < peakHours.lunch.end) ||
-                         (currentHour >= peakHours.dinner.start && currentHour < peakHours.dinner.end);
-      const bonusPeakHour = isPeakHour ? (businessConfig.deliveryBonusPeakHourAmount || 100) : 0;
+      // Les bonus sont déjà inclus dans order.delivery_fee (payé par le client)
+      // Calculer 70% du total (frais + bonus)
+      const deliveryPersonPercentage = businessConfig.deliveryPersonPercentage || 70;
+      const deliveryEarnings = Math.round((order.delivery_fee * deliveryPersonPercentage) / 100);
       
-      // 4. Sous-total avant bonus week-end
-      let subtotalEarnings = baseEarnings + bonusLongDistance + bonusPeakHour;
-      
-      // 5. BONUS WEEK-END (+10% sur le total)
-      const weekendBonusPercent = businessConfig.deliveryBonusWeekendPercent || 10;
-      const bonusWeekend = isWeekend ? Math.round(subtotalEarnings * weekendBonusPercent / 100) : 0;
-      
-      // 6. TOTAL DES GAINS
-      const deliveryEarnings = subtotalEarnings + bonusWeekend;
+      // Calculer ce que Baibebalo garde (30%)
+      const platformCommission = order.delivery_fee - deliveryEarnings;
       
       // Détail des gains pour le log et la transaction
       const earningsBreakdown = {
-        base: baseEarnings,
-        bonus_long_distance: bonusLongDistance,
-        bonus_peak_hour: bonusPeakHour,
-        bonus_weekend: bonusWeekend,
-        total: deliveryEarnings,
+        delivery_fee_total: order.delivery_fee, // Total payé par le client (frais + bonus)
+        delivery_person_percentage: deliveryPersonPercentage,
+        delivery_person_earnings: deliveryEarnings, // 70% du total
+        platform_commission: platformCommission, // 30% du total
         details: {
-          delivery_fee: order.delivery_fee,
-          percentage: businessConfig.deliveryPersonPercentage || 70,
           distance_km: deliveryDistance,
-          is_peak_hour: isPeakHour,
-          is_weekend: isWeekend,
-          hour: currentHour,
+          hour: now.getHours(),
+          day_of_week: now.getDay(),
         },
       };
       
@@ -656,6 +739,7 @@ exports.confirmDelivery = async (req, res) => {
         
         // Notification au livreur
         try {
+          const notificationService = require('../services/notification.service');
           await notificationService.sendToUser(req.user.id, 'delivery', {
             title: '🎯 Objectif atteint !',
             body: `Félicitations ! Vous avez effectué ${dailyGoalTarget} courses aujourd'hui. Bonus de ${dailyGoalBonus} FCFA crédité !`,
@@ -731,13 +815,14 @@ exports.confirmDelivery = async (req, res) => {
       }
 
       // Notifier le client
-      const io = req.app.get('io');
-      io.to(`order_${id}`).emit('order_status_changed', {
+      const { emitToOrder } = require('../utils/socketEmitter');
+      emitToOrder(req.app, id, 'order_status_changed', {
         order_id: id,
         status: 'delivered',
       });
       
       // Notifier les admins du dashboard
+      const io = req.app.get('io');
       const { notifyOrderStatusChange } = require('../utils/socket');
       notifyOrderStatusChange(io, id, 'delivered', { delivered_at: new Date() });
 
@@ -776,6 +861,7 @@ exports.confirmDelivery = async (req, res) => {
 
       // Push notification au client
       try {
+        const notificationService = require('../services/notification.service');
         await notificationService.sendOrderNotification(order.id, 'client', 'order_delivered');
       } catch (notificationError) {
         logger.warn('Notification push ignorée (confirmDelivery)', { error: notificationError.message });
@@ -795,14 +881,16 @@ exports.confirmDelivery = async (req, res) => {
         );
 
         // Enregistrer la transaction de points
+        // amount = montant de la commande en FCFA (utilisé pour calculer les points)
         await client.query(
           `INSERT INTO loyalty_transactions (
-            user_id, points, type, description, order_id, created_at
-          ) VALUES ($1, $2, $3, $4, $5, NOW())`,
+            user_id, type, amount, points, description, order_id, created_at
+          ) VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
           [
             order.user_id,
-            loyaltyPointsEarned,
             'earned',
+            Math.floor(order.total), // amount en FCFA (entier)
+            loyaltyPointsEarned, // points gagnés
             `Points gagnés pour commande #${order.order_number}`,
             order.id,
           ]
@@ -826,11 +914,13 @@ exports.confirmDelivery = async (req, res) => {
         if (totalPoints - loyaltyPointsEarned <= 100 && totalPoints > 100 && totalPoints <= 500) {
           // Passage à Argent
           try {
+            const notificationService = require('../services/notification.service');
             await notificationService.sendOrderNotification(order.id, 'client', 'loyalty_reward');
           } catch (e) { /* ignore */ }
         } else if (totalPoints - loyaltyPointsEarned <= 500 && totalPoints > 500) {
           // Passage à Or
           try {
+            const notificationService = require('../services/notification.service');
             await notificationService.sendOrderNotification(order.id, 'client', 'loyalty_reward');
           } catch (e) { /* ignore */ }
         }
@@ -889,7 +979,7 @@ exports.getEarnings = async (req, res) => {
   try {
     const run = async () => {
       const deliveryResult = await query(
-        `SELECT total_earnings, total_deliveries, balance
+        `SELECT total_earnings, total_deliveries, available_balance
          FROM delivery_persons WHERE id = $1`,
         [req.user.id]
       );
@@ -935,7 +1025,7 @@ exports.getEarnings = async (req, res) => {
       return {
         notFound: false,
         data: {
-          available_balance: parseFloat(delivery.balance ?? 0),
+          available_balance: parseFloat(delivery.available_balance ?? 0),
           total_earnings: parseFloat(delivery.total_earnings || 0),
           total_deliveries: Number(delivery.total_deliveries) || 0,
           today: todayEarnings,
@@ -987,6 +1077,7 @@ exports.getDashboard = async (req, res) => {
       today: 0,
       this_week: 0,
       this_month: 0,
+      cash_to_remit: 0, // Solde espèces à reverser
     },
     orders: [],
     deliveries: [],
@@ -996,9 +1087,9 @@ exports.getDashboard = async (req, res) => {
   try {
     const uid = req.user.id;
     const run = async () => {
-      const [deliveryRow, todayRow, weekRow, monthRow, activeOrdersRows, historyRows] = await Promise.all([
+      const [deliveryRow, todayRow, weekRow, monthRow, cashOrdersResult, activeOrdersRows, historyRows] = await Promise.all([
         query(
-          `SELECT total_earnings, total_deliveries, balance FROM delivery_persons WHERE id = $1`,
+          `SELECT total_earnings, total_deliveries, available_balance FROM delivery_persons WHERE id = $1`,
           [uid]
         ),
         query(
@@ -1014,6 +1105,14 @@ exports.getDashboard = async (req, res) => {
         query(
           `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
            WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
+          [uid]
+        ),
+        // Calculer le solde à reverser (espèces collectées - déjà remises)
+        query(
+          `SELECT 
+            COALESCE(SUM(CASE WHEN o.payment_method = 'cash' AND o.status = 'delivered' AND (o.cash_remittance_id IS NULL OR o.cash_remittance_id IN (SELECT id FROM cash_remittances WHERE status = 'rejected')) THEN o.total ELSE 0 END), 0) as cash_to_remit
+           FROM orders o
+           WHERE o.delivery_person_id = $1 AND o.payment_method = 'cash' AND o.status = 'delivered'`,
           [uid]
         ),
         query(
@@ -1040,17 +1139,19 @@ exports.getDashboard = async (req, res) => {
       const today = parseFloat(todayRow.rows[0]?.v || 0);
       const week = parseFloat(weekRow.rows[0]?.v || 0);
       const month = parseFloat(monthRow.rows[0]?.v || 0);
+      const cashToRemit = parseFloat(cashOrdersResult.rows[0]?.cash_to_remit || 0);
       const orders = Array.isArray(activeOrdersRows.rows) ? activeOrdersRows.rows : [];
       const deliveries = Array.isArray(historyRows.rows) ? historyRows.rows : [];
 
       return {
         earnings: {
-          available_balance: delivery ? parseFloat(delivery.balance ?? 0) : 0,
+          available_balance: delivery ? parseFloat(delivery.available_balance ?? 0) : 0,
           total_earnings: delivery ? parseFloat(delivery.total_earnings || 0) : 0,
           total_deliveries: delivery ? Number(delivery.total_deliveries) || 0 : 0,
           today,
           this_week: week,
           this_month: month,
+          cash_to_remit: cashToRemit, // Solde espèces à reverser à Baibebalo
         },
         orders,
         deliveries,
@@ -1219,17 +1320,53 @@ exports.createCashRemittance = async (req, res) => {
         });
       }
       const expectedTotal = ordersResult.rows.reduce((s, r) => s + parseFloat(r.total), 0);
-      if (Math.abs(parseFloat(amount) - expectedTotal) > 0.01) {
+      const declaredAmount = parseFloat(amount);
+      
+      // SÉCURITÉ : Vérification stricte du montant
+      if (Math.abs(declaredAmount - expectedTotal) > 0.01) {
+        logger.warn(`⚠️ Tentative remise espèces incorrecte - Livreur ${req.user.id}`, {
+          declared: declaredAmount,
+          expected: expectedTotal,
+          difference: declaredAmount - expectedTotal,
+          order_ids,
+        });
         return res.status(400).json({
           success: false,
-          error: { code: 'AMOUNT_MISMATCH', message: `Le montant doit correspondre au total des commandes: ${expectedTotal.toFixed(0)} FCFA` },
+          error: { 
+            code: 'AMOUNT_MISMATCH', 
+            message: `Le montant déclaré (${declaredAmount.toFixed(0)} FCFA) ne correspond pas au total des commandes sélectionnées (${expectedTotal.toFixed(0)} FCFA). Différence: ${(declaredAmount - expectedTotal).toFixed(0)} FCFA` 
+          },
+        });
+      }
+      
+      // SÉCURITÉ : Vérifier qu'il n'y a pas de remise déjà en cours pour ces commandes
+      const existingRemittance = await client.query(
+        `SELECT cr.id, cr.amount, cr.status 
+         FROM cash_remittances cr
+         JOIN cash_remittance_orders cro ON cr.id = cro.remittance_id
+         WHERE cro.order_id = ANY($1::uuid[])
+         AND cr.status IN ('pending', 'completed')
+         AND cr.delivery_person_id = $2
+         LIMIT 1`,
+        [order_ids, req.user.id]
+      );
+      
+      if (existingRemittance.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: { 
+            code: 'ALREADY_REMITTED', 
+            message: 'Certaines commandes ont déjà été déclarées dans une remise précédente' 
+          },
         });
       }
 
+      const mobileMoneyProvider = method === 'mobile_money_deposit' ? req.body.mobile_money_provider : null;
+      
       const remResult = await client.query(
-        `INSERT INTO cash_remittances (delivery_person_id, amount, method, reference, status)
-         VALUES ($1, $2, $3, $4, 'pending') RETURNING *`,
-        [req.user.id, amount, method, reference || null]
+        `INSERT INTO cash_remittances (delivery_person_id, amount, method, reference, mobile_money_provider, status)
+         VALUES ($1, $2, $3, $4, $5, 'pending') RETURNING *`,
+        [req.user.id, amount, method, reference || null, mobileMoneyProvider]
       );
       const rem = remResult.rows[0];
       for (const row of ordersResult.rows) {
@@ -1246,7 +1383,9 @@ exports.createCashRemittance = async (req, res) => {
           orders_count: ordersResult.rows.length,
           message: method === 'agency'
             ? 'Remise enregistrée. Présentez-vous à l\'agence avec cet argent pour validation.'
-            : 'Dépôt enregistré. Après avoir effectué le virement, l\'admin validera après vérification.',
+            : method === 'mobile_money_deposit'
+            ? 'Dépôt Mobile Money enregistré. L\'admin validera après vérification du dépôt.'
+            : 'Dépôt bancaire enregistré. Après avoir effectué le virement, l\'admin validera après vérification.',
         },
       });
     });
@@ -1302,6 +1441,30 @@ exports.getMyCashRemittances = async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur getMyCashRemittances:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
+ * Obtenir les informations de remise espèces (numéro Baibebalo, etc.)
+ */
+exports.getCashRemittanceInfo = async (req, res) => {
+  try {
+    const config = require('../config');
+    const businessConfig = config.business;
+    
+    res.json({
+      success: true,
+      data: {
+        baibebalo_mobile_money_number: businessConfig.baibebaloMobileMoneyNumber || '+225XXXXXXXXX',
+        baibebalo_mobile_money_provider: businessConfig.baibebaloMobileMoneyProvider || 'orange_money',
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getCashRemittanceInfo:', error);
     res.status(500).json({
       success: false,
       error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
@@ -1658,7 +1821,8 @@ exports.getActiveOrders = async (req, res) => {
     const result = await withTimeout(
       query(
         `SELECT o.id, o.order_number, o.status, o.restaurant_id, o.delivery_fee,
-                o.delivery_address, o.placed_at, o.ready_at, o.delivering_at,
+                o.delivery_address, o.delivery_distance, o.payment_method, o.total,
+                o.placed_at, o.ready_at, o.delivering_at,
                 (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
          FROM orders o
          WHERE o.delivery_person_id = $1
@@ -1669,7 +1833,22 @@ exports.getActiveOrders = async (req, res) => {
       ),
       DELIVERY_ROUTE_TIMEOUT_MS
     );
-    const orders = Array.isArray(result?.rows) ? result.rows : [];
+    
+    const { calculateEstimatedEarnings } = require('../utils/earnings');
+    const orders = Array.isArray(result?.rows) ? result.rows.map(order => {
+      // Calculer les gains estimés au lieu d'utiliser delivery_fee brut
+      const estimatedEarnings = calculateEstimatedEarnings(
+        parseFloat(order.delivery_fee || 0),
+        parseFloat(order.delivery_distance || 0),
+        order.placed_at ? new Date(order.placed_at) : new Date()
+      );
+      
+      return {
+        ...order,
+        estimated_earnings: estimatedEarnings,
+      };
+    }) : [];
+    
     return res.json({
       success: true,
       data: { orders },
@@ -1745,11 +1924,13 @@ exports.declineDelivery = async (req, res) => {
       penaltyApplied = true;
       logger.warn(`Pénalité d'annulation appliquée au livreur ${req.user.id}: -${penaltyAmount} FCFA`);
       
-      // Réassigner la commande
+      // Réassigner la commande (proposer à un autre livreur sera fait par le cron ou manuellement)
       await query(
-        `UPDATE orders SET delivery_person_id = NULL, status = 'ready' WHERE id = $1`,
+        `UPDATE orders SET delivery_person_id = NULL, proposed_delivery_person_id = NULL, proposal_expires_at = NULL, status = 'ready', updated_at = NOW() WHERE id = $1`,
         [id]
       );
+      const deliveryProposalService = require('../services/deliveryProposal.service');
+      await deliveryProposalService.clearProposalAndProposeNext(id, req.app);
       
       // Notifier le livreur de la pénalité
       try {
@@ -1764,6 +1945,10 @@ exports.declineDelivery = async (req, res) => {
       } catch (e) {
         // Ignorer l'erreur de notification
       }
+    } else if (!order.delivery_person_id && order.proposed_delivery_person_id === req.user.id) {
+      // Refus de la proposition (course pas encore acceptée) — pas de pénalité, proposer au suivant
+      const deliveryProposalService = require('../services/deliveryProposal.service');
+      await deliveryProposalService.clearProposalAndProposeNext(id, req.app);
     }
 
     // Logger le refus
@@ -1812,7 +1997,7 @@ exports.arriveAtRestaurant = async (req, res) => {
     const result = await query(
       `UPDATE orders 
        SET arrived_at_restaurant = NOW()
-       WHERE id = $1 AND delivery_person_id = $2 AND status = 'delivering'
+       WHERE id = $1 AND delivery_person_id = $2 AND status IN ('ready', 'delivering', 'accepted', 'picked_up')
        RETURNING *`,
       [id, req.user.id]
     );
@@ -1857,8 +2042,9 @@ exports.arriveAtCustomer = async (req, res) => {
 
     const result = await query(
       `UPDATE orders 
-       SET arrived_at_customer = NOW()
-       WHERE id = $1 AND delivery_person_id = $2 AND status = 'delivering'
+       SET arrived_at_customer = NOW(),
+           status = CASE WHEN status = 'picked_up' THEN 'delivering' ELSE status END
+       WHERE id = $1 AND delivery_person_id = $2 AND status IN ('picked_up', 'delivering')
        RETURNING *`,
       [id, req.user.id]
     );
@@ -1873,8 +2059,8 @@ exports.arriveAtCustomer = async (req, res) => {
     const order = result.rows[0];
 
     // Notifier le client
-    const io = req.app.get('io');
-    io.to(`order_${id}`).emit('delivery_arrived_at_customer', {
+    const { emitToOrder } = require('../utils/socketEmitter');
+    emitToOrder(req.app, id, 'delivery_arrived_at_customer', {
       order_id: id,
       message: 'Votre livreur est arrivé!',
     });

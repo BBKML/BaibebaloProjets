@@ -145,11 +145,19 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     }
 
     // Sinon, ajouter directement au panier
+    // Utiliser le prix promotionnel si disponible, sinon le prix normal
+    const itemPrice = (item.is_promotion_active && item.effective_price) 
+      ? item.effective_price 
+      : item.price;
+    
     const result = addItem(
       {
         id: item.id,
         name: item.name,
-        price: item.price,
+        price: itemPrice,
+        original_price: item.original_price || item.price,
+        effective_price: item.effective_price || item.price,
+        is_promotion_active: item.is_promotion_active || false,
         image_url: item.image_url,
         customizations: {},
       },
@@ -171,7 +179,10 @@ export default function RestaurantDetailScreen({ route, navigation }) {
                 {
                   id: item.id,
                   name: item.name,
-                  price: item.price,
+                  price: itemPrice,
+                  original_price: item.original_price || item.price,
+                  effective_price: item.effective_price || item.price,
+                  is_promotion_active: item.is_promotion_active || false,
                   image_url: item.image_url,
                   customizations: {},
                 },
@@ -373,19 +384,53 @@ export default function RestaurantDetailScreen({ route, navigation }) {
               >
                 <View style={styles.menuItemContent}>
                   <View style={styles.menuItemInfo}>
-                    <Text style={styles.menuItemName}>{item.name}</Text>
+                    <View style={styles.menuItemHeader}>
+                      <Text style={styles.menuItemName}>{item.name}</Text>
+                      {/* Badge de promotion */}
+                      {item.is_promotion_active && item.effective_price && item.effective_price < item.original_price && (
+                        <View style={styles.promotionBadge}>
+                          <Ionicons name="pricetag" size={12} color={COLORS.white} />
+                          <Text style={styles.promotionBadgeText}>
+                            -{item.savings_percent || Math.round((1 - item.effective_price / item.original_price) * 100)}%
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                     <Text style={styles.menuItemDescription} numberOfLines={2}>
                       {item.description}
                     </Text>
-                    <Text style={styles.menuItemPrice}>
-                      {item.price?.toLocaleString('fr-FR')} FCFA
-                    </Text>
+                    <View style={styles.priceContainer}>
+                      {item.is_promotion_active && item.effective_price && item.effective_price < item.original_price ? (
+                        <>
+                          <Text style={styles.menuItemPriceOriginal}>
+                            {item.original_price?.toLocaleString('fr-FR')} FCFA
+                          </Text>
+                          <Text style={styles.menuItemPrice}>
+                            {item.effective_price?.toLocaleString('fr-FR')} FCFA
+                          </Text>
+                        </>
+                      ) : (
+                        <Text style={styles.menuItemPrice}>
+                          {item.price?.toLocaleString('fr-FR')} FCFA
+                        </Text>
+                      )}
+                    </View>
                   </View>
                   {item.image_url && (
-                    <Image
-                      source={{ uri: item.image_url }}
-                      style={styles.menuItemImage}
-                    />
+                    <View style={styles.imageContainer}>
+                      <Image
+                        source={{ uri: item.image_url }}
+                        style={styles.menuItemImage}
+                      />
+                      {/* Badge promotion sur l'image */}
+                      {item.is_promotion_active && item.effective_price && item.effective_price < item.original_price && (
+                        <View style={styles.imagePromotionBadge}>
+                          <Text style={styles.imagePromotionBadgeText}>
+                            -{item.savings_percent || Math.round((1 - item.effective_price / item.original_price) * 100)}%
+                          </Text>
+                        </View>
+                      )}
+                    </View>
                   )}
                 </View>
                 <TouchableOpacity
@@ -1018,27 +1063,75 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 12,
   },
+  menuItemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+    gap: 8,
+  },
   menuItemName: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 4,
+    flex: 1,
+  },
+  promotionBadge: {
+    backgroundColor: '#EF4444',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+    gap: 4,
+  },
+  promotionBadgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '700',
   },
   menuItemDescription: {
     fontSize: 14,
     color: COLORS.textSecondary,
     marginBottom: 8,
   },
+  priceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   menuItemPrice: {
     fontSize: 16,
     fontWeight: 'bold',
     color: COLORS.primary,
+  },
+  menuItemPriceOriginal: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textDecorationLine: 'line-through',
+  },
+  imageContainer: {
+    position: 'relative',
   },
   menuItemImage: {
     width: 80,
     height: 80,
     borderRadius: 8,
     backgroundColor: COLORS.border,
+  },
+  imagePromotionBadge: {
+    position: 'absolute',
+    top: 4,
+    right: 4,
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  imagePromotionBadgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '700',
   },
   addButton: {
     position: 'absolute',

@@ -1077,11 +1077,27 @@ class AuthController {
       );
 
       // Sauvegarder le token (on utilise la table otp_codes avec email comme "phone")
-      await query(
-        `INSERT INTO otp_codes (phone, code, expires_at, type, is_used)
-         VALUES ($1, $2, $3, 'admin_password_reset', false)`,
-        [admin.email, resetToken, expiresAt]
-      );
+      try {
+        await query(
+          `INSERT INTO otp_codes (phone, code, expires_at, type, is_used)
+           VALUES ($1, $2, $3, 'admin_password_reset', false)`,
+          [admin.email, resetToken, expiresAt]
+        );
+        logger.debug('Token de réinitialisation sauvegardé', { 
+          email: admin.email, 
+          tokenLength: resetToken.length,
+          expiresAt 
+        });
+      } catch (dbError) {
+        logger.error('Erreur lors de la sauvegarde du token', {
+          error: dbError.message,
+          code: dbError.code,
+          email: admin.email,
+          tokenLength: resetToken.length,
+          emailLength: admin.email.length
+        });
+        throw dbError;
+      }
 
       // Construire l'URL de réinitialisation
       const frontendUrl = config.urls.adminPanel || 'http://localhost:5174';

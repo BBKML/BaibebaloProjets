@@ -76,6 +76,14 @@ export const createCashRemittance = async (payload) => {
 };
 
 /**
+ * Obtenir les informations de remise espèces (numéro Baibebalo, etc.)
+ */
+export const getCashRemittanceInfo = async () => {
+  const response = await apiClient.get(`${API_ENDPOINTS.EARNINGS.CASH_REMITTANCES}/info`);
+  return response.data;
+};
+
+/**
  * Liste des remises espèces du livreur
  */
 export const getMyCashRemittances = async (page = 1, limit = 20, status) => {

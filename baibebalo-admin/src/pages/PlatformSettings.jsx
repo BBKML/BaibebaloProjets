@@ -1,27 +1,161 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '../components/layout/Layout';
-import { useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
+import { settingsAPI } from '../api/settings';
 
 const PlatformSettings = () => {
-  const [settings, setSettings] = useState({
-    platformStatus: true,
-    deliveryBaseFee: 2.50,
-    deliveryPerKm: 0.75,
-    avgPrepTime: 15,
-    maxDeliveryTime: 45,
-    minOrderValue: 10.00,
-    maxOrderValue: 500.00,
+  const queryClient = useQueryClient();
+
+  // Charger les paramètres depuis l'API
+  const { data: settingsData, isLoading } = useQuery({
+    queryKey: ['app-settings'],
+    queryFn: () => settingsAPI.getSettings(),
+    retry: 2,
   });
+
+  // Extraire les valeurs depuis l'API et mapper vers le format du formulaire
+  const apiSettings = settingsData?.data?.settings || {};
+  
+  // Mapper les valeurs de l'API vers le format du formulaire
+  const getInitialSettings = () => {
+    const baseDeliveryFee = apiSettings['business.baseDeliveryFee']?.value || 
+                           apiSettings['default_delivery_fee']?.value || 
+                           500;
+    const minOrderAmount = apiSettings['business.minOrderAmount']?.value || 
+                          apiSettings['min_order_amount']?.value || 
+                          1000;
+    const maxDeliveryTime = apiSettings['business.maxDeliveryTime']?.value || 45;
+    const maxPreparationTime = apiSettings['business.maxPreparationTime']?.value || 60;
+    const maintenanceMode = apiSettings['maintenance_mode']?.value || false;
+    
+    // Note: deliveryPerKm et maxOrderValue ne sont pas dans config/index.js actuellement
+    // On utilise des valeurs par défaut ou on les laisse vides
+    const deliveryPerKm = apiSettings['business.deliveryPricePerExtraKm']?.value || 100;
+    const maxOrderValue = apiSettings['business.maxOrderValue']?.value || null;
+
+    return {
+      platformStatus: !maintenanceMode, // maintenance_mode false = plateforme ouverte
+      deliveryBaseFee: baseDeliveryFee,
+      deliveryPerKm: deliveryPerKm,
+      avgPrepTime: maxPreparationTime, // Utiliser maxPreparationTime comme référence
+      maxDeliveryTime: maxDeliveryTime,
+      minOrderValue: minOrderAmount,
+      maxOrderValue: maxOrderValue || 0, // 0 = pas de limite
+    };
+  };
+
+  const [settings, setSettings] = useState(getInitialSettings());
+
+  // Mettre à jour les settings quand les données API sont chargées
+  useEffect(() => {
+    if (settingsData?.data?.settings) {
+      setSettings(getInitialSettings());
+    }
+  }, [settingsData]);
 
   const handleChange = (field, value) => {
     setSettings((prev) => ({ ...prev, [field]: value }));
   };
 
-  const handleSave = () => {
-    // TODO: API call to save settings
-    toast.success('Paramètres sauvegardés avec succès');
+  // Auto-save quand le toggle maintenance change (action critique)
+  const handlePlatformStatusToggle = (checked) => {
+    const newSettings = { ...settings, platformStatus: checked };
+    setSettings(newSettings);
+    // Sauvegarder immédiatement le mode maintenance
+    const maintenanceSetting = {
+      'maintenance_mode': {
+        value: !checked, // platformStatus true = maintenance_mode false
+        description: 'Mode maintenance activé',
+        is_public: true,
+      },
+    };
+    settingsAPI.updateSettings(maintenanceSetting).then(() => {
+      toast.success(checked ? 'Plateforme ouverte aux commandes' : 'Plateforme fermée (mode maintenance activé)');
+      queryClient.invalidateQueries(['app-settings']);
+    }).catch((error) => {
+      toast.error('Erreur lors du changement de statut');
+      // Revenir en arrière si erreur
+      setSettings((prev) => ({ ...prev, platformStatus: !checked }));
+    });
   };
+
+  // Mutation pour sauvegarder les paramètres
+  const saveMutation = useMutation({
+    mutationFn: async (settingsToSave) => {
+      // Mapper les valeurs du formulaire vers le format de l'API
+      const apiSettingsToSave = {
+        'maintenance_mode': {
+          value: !settingsToSave.platformStatus, // platformStatus true = maintenance_mode false
+          description: 'Mode maintenance activé',
+          is_public: true,
+        },
+        'business.baseDeliveryFee': {
+          value: settingsToSave.deliveryBaseFee,
+          description: 'Frais de livraison de base (FCFA)',
+          is_public: true,
+        },
+        'business.deliveryPricePerExtraKm': {
+          value: settingsToSave.deliveryPerKm,
+          description: 'Prix par km supplémentaire (FCFA/km)',
+          is_public: true,
+        },
+        'business.minOrderAmount': {
+          value: settingsToSave.minOrderValue,
+          description: 'Montant minimum de commande (FCFA)',
+          is_public: true,
+        },
+        'business.maxDeliveryTime': {
+          value: settingsToSave.maxDeliveryTime,
+          description: 'Temps maximum de livraison (minutes)',
+          is_public: true,
+        },
+        'business.maxPreparationTime': {
+          value: settingsToSave.avgPrepTime,
+          description: 'Temps maximum de préparation (minutes)',
+          is_public: true,
+        },
+      };
+
+      // Ajouter maxOrderValue si défini
+      if (settingsToSave.maxOrderValue > 0) {
+        apiSettingsToSave['business.maxOrderValue'] = {
+          value: settingsToSave.maxOrderValue,
+          description: 'Montant maximum de commande (FCFA)',
+          is_public: true,
+        };
+      }
+
+      return settingsAPI.updateSettings(apiSettingsToSave);
+    },
+    onSuccess: () => {
+      toast.success('Paramètres sauvegardés avec succès');
+      queryClient.invalidateQueries(['app-settings']);
+      // ⚠️ IMPORTANT: Les calculs backend utilisent toujours config/index.js
+      // Il faudra redémarrer le serveur après modification de config/index.js
+      toast('⚠️ Modifiez aussi config/index.js et redémarrez le serveur pour appliquer les changements aux calculs', {
+        duration: 5000,
+        icon: '⚠️',
+      });
+    },
+    onError: (error) => {
+      toast.error(error.response?.data?.error?.message || 'Erreur lors de la sauvegarde');
+    },
+  });
+
+  const handleSave = () => {
+    saveMutation.mutate(settings);
+  };
+
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-slate-500">Chargement des paramètres...</div>
+        </div>
+      </Layout>
+    );
+  }
 
   return (
     <Layout>
@@ -42,7 +176,7 @@ const PlatformSettings = () => {
                 type="checkbox"
                 className="sr-only peer"
                 checked={settings.platformStatus}
-                onChange={(e) => handleChange('platformStatus', e.target.checked)}
+                onChange={(e) => handlePlatformStatusToggle(e.target.checked)}
               />
               <div className="w-11 h-6 bg-slate-200 dark:bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-primary"></div>
             </label>
@@ -116,10 +250,20 @@ const PlatformSettings = () => {
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 onClick={handleSave}
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                disabled={saveMutation.isPending}
+                className="bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
               >
-                <span className="material-symbols-outlined text-sm">save</span>
-                Sauvegarder
+                {saveMutation.isPending ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">save</span>
+                    Sauvegarder
+                  </>
+                )}
               </button>
             </div>
           </section>
@@ -179,10 +323,20 @@ const PlatformSettings = () => {
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 onClick={handleSave}
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                disabled={saveMutation.isPending}
+                className="bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
               >
-                <span className="material-symbols-outlined text-sm">save</span>
-                Sauvegarder
+                {saveMutation.isPending ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">save</span>
+                    Sauvegarder
+                  </>
+                )}
               </button>
             </div>
           </section>
@@ -236,10 +390,20 @@ const PlatformSettings = () => {
             <div className="p-4 bg-slate-50 dark:bg-slate-800/50 rounded-b-xl border-t border-slate-100 dark:border-slate-800 flex justify-end">
               <button
                 onClick={handleSave}
-                className="bg-primary hover:bg-primary/90 text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
+                disabled={saveMutation.isPending}
+                className="bg-primary hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed text-white px-6 py-2 rounded-lg text-sm font-bold shadow-sm transition-all flex items-center gap-2"
               >
-                <span className="material-symbols-outlined text-sm">save</span>
-                Sauvegarder
+                {saveMutation.isPending ? (
+                  <>
+                    <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                    Sauvegarde...
+                  </>
+                ) : (
+                  <>
+                    <span className="material-symbols-outlined text-sm">save</span>
+                    Sauvegarder
+                  </>
+                )}
               </button>
             </div>
           </section>

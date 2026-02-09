@@ -14,7 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { STATUS_LABELS } from '../../constants/orderStatus';
 import { trackOrder } from '../../api/orders';
-import { formatCurrency, calculateOrderTotal } from '../../utils/format';
+import { formatCurrency, calculateOrderTotal, calculateOrderSubtotal } from '../../utils/format';
 import { getImageUrl } from '../../utils/url';
 import socketService from '../../services/socketService';
 
@@ -30,9 +30,25 @@ export default function OrderTrackingScreen({ route, navigation }) {
       setLoading(true);
       const response = await trackOrder(orderId);
       const orderData = response.data?.order || response.data?.data?.order || response.data;
+      
+      // Logger pour déboguer les données reçues
+      console.log('📦 Données commande chargées (trackOrder):', {
+        orderId: orderData?.id,
+        hasItems: !!orderData?.items && orderData.items.length > 0,
+        itemsCount: orderData?.items?.length || 0,
+        subtotal: orderData?.subtotal,
+        delivery_fee: orderData?.delivery_fee,
+        taxes: orderData?.taxes,
+        discount: orderData?.discount,
+        total: orderData?.total,
+        restaurantPhone: orderData?.restaurant?.phone,
+        restaurantName: orderData?.restaurant?.name,
+        restaurantId: orderData?.restaurant_id,
+      });
+      
       setOrder(orderData);
     } catch (error) {
-      console.error('Erreur lors du chargement de la commande:', error);
+      console.error('❌ Erreur lors du chargement de la commande:', error);
     } finally {
       setLoading(false);
     }
@@ -42,16 +58,51 @@ export default function OrderTrackingScreen({ route, navigation }) {
     loadOrder();
     
     // Connecter au Socket et rejoindre la room de cette commande
-    socketService.connect();
-    socketService.joinOrderRoom(orderId);
+    console.log('[Tracking] Initialisation Socket pour commande:', orderId);
+    socketService.connect().then(() => {
+      console.log('[Tracking] Socket connecté, rejoindre room order_' + orderId);
+      socketService.joinOrderRoom(orderId);
+    }).catch(err => {
+      console.error('[Tracking] Erreur connexion Socket:', err);
+    });
 
     // Écouter les événements
     const unsubscribeStatus = socketService.on('order_status_changed', (data) => {
-      if (data.order_id === orderId) {
-        console.log('[Tracking] Statut changé:', data.status);
-        setOrder(prev => prev ? { ...prev, status: data.status } : prev);
-        // Recharger pour avoir les données complètes
-        loadOrder();
+      console.log('[Tracking] Événement order_status_changed reçu:', data);
+      if (data.order_id === orderId || data.orderId === orderId) {
+        console.log('[Tracking] ✅ Statut changé pour cette commande:', data.status);
+        
+        // Afficher une notification selon le statut
+        const statusMessages = {
+          'accepted': '✅ Commande acceptée par le restaurant',
+          'preparing': '👨‍🍳 Commande en préparation',
+          'ready': '📦 Commande prête ! Le livreur va la récupérer',
+          'picked_up': '🚴 Commande récupérée par le livreur',
+          'delivering': '🚗 Livraison en cours',
+          'delivered': '✅ Commande livrée !',
+        };
+        
+        if (statusMessages[data.status]) {
+          Alert.alert(
+            'Mise à jour',
+            statusMessages[data.status],
+            [{ text: 'OK' }]
+          );
+        }
+        
+        // Mettre à jour immédiatement le statut
+        setOrder(prev => {
+          if (!prev) return prev;
+          const updated = { ...prev, status: data.status };
+          console.log('[Tracking] Statut mis à jour:', updated.status);
+          return updated;
+        });
+        // Recharger pour avoir les données complètes (accepted_at, etc.)
+        setTimeout(() => {
+          loadOrder();
+        }, 500);
+      } else {
+        console.log('[Tracking] ⚠️ Événement ignoré (mauvaise commande):', data.order_id, 'vs', orderId);
       }
     });
 
@@ -119,8 +170,8 @@ export default function OrderTrackingScreen({ route, navigation }) {
   }
 
   const statusSteps = [
-    'pending',
-    'confirmed',
+    'new',
+    'accepted',
     'preparing',
     'ready',
     'picked_up',
@@ -128,13 +179,40 @@ export default function OrderTrackingScreen({ route, navigation }) {
     'delivered',
   ];
 
-  const currentStatusIndex = statusSteps.indexOf(order.status);
+  // Mapper les statuts pour la timeline (accepted peut être considéré comme confirmed)
+  const getStatusForTimeline = (status) => {
+    if (status === 'confirmed' || status === 'accepted') return 'accepted';
+    if (status === 'pending' || status === 'new') return 'new';
+    return status;
+  };
+
+  const timelineStatus = getStatusForTimeline(order.status);
+  const currentStatusIndex = statusSteps.indexOf(timelineStatus);
+
+  // Utiliser les mêmes fonctions de calcul que OrderDetailsScreen pour garantir la cohérence
+  const subtotal = calculateOrderSubtotal(order);
+  const total = calculateOrderTotal(order);
 
   const handleCallRestaurant = () => {
-    const phone = order.restaurant?.phone;
+    // Essayer plusieurs sources pour le numéro du restaurant
+    const phone = order.restaurant?.phone || order.restaurant_phone;
+    
+    console.log('📞 Tentative d\'appel restaurant:', {
+      restaurantPhone: order.restaurant?.phone,
+      restaurant_phone: order.restaurant_phone,
+      restaurantId: order.restaurant_id,
+      restaurantName: order.restaurant?.name,
+      phoneFound: !!phone,
+    });
+    
     if (phone) {
       Linking.openURL(`tel:${phone}`);
     } else {
+      console.warn('⚠️ Numéro restaurant non trouvé:', {
+        orderId: order.id,
+        restaurant: order.restaurant,
+        restaurant_phone: order.restaurant_phone,
+      });
       Alert.alert('Contact', 'Le numéro du restaurant n\'est pas disponible.');
     }
   };
@@ -211,6 +289,12 @@ export default function OrderTrackingScreen({ route, navigation }) {
           <View style={styles.contactInfo}>
             <Text style={styles.contactLabel}>Restaurant</Text>
             <Text style={styles.contactName}>{order.restaurant?.name || 'Restaurant'}</Text>
+            {order.restaurant?.phone && (
+              <TouchableOpacity onPress={handleCallRestaurant} style={styles.phoneLink}>
+                <Ionicons name="call-outline" size={14} color={COLORS.primary} />
+                <Text style={styles.phoneText}>{order.restaurant.phone}</Text>
+              </TouchableOpacity>
+            )}
             {order.estimated_preparation_time && (
               <Text style={styles.prepTime}>
                 Préparation estimée: {order.estimated_preparation_time} min
@@ -221,6 +305,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
         <View style={styles.contactButtons}>
           <TouchableOpacity style={styles.chatButton} onPress={handleOpenChat}>
             <Ionicons name="chatbubble" size={18} color={COLORS.primary} />
+            <Text style={styles.chatButtonText}>Chat</Text>
           </TouchableOpacity>
           <TouchableOpacity style={styles.callButton} onPress={handleCallRestaurant}>
             <Ionicons name="call" size={18} color={COLORS.white} />
@@ -274,39 +359,125 @@ export default function OrderTrackingScreen({ route, navigation }) {
         </View>
       )}
 
-      {/* Order Details */}
-      <View style={styles.detailsContainer}>
-        <Text style={styles.sectionTitle}>Détails de la commande</Text>
-        
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Numéro de commande</Text>
-          <Text style={styles.detailValue}>#{order.order_number}</Text>
+      {/* Delivery Address */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Adresse de livraison</Text>
+        <View style={styles.addressCard}>
+          <View style={styles.addressIcon}>
+            <Ionicons name="location" size={24} color={COLORS.primary} />
+          </View>
+          <View style={styles.addressInfo}>
+            <Text style={styles.addressLabel}>
+              {order.delivery_address?.label
+                || order.delivery_address?.title
+                || 'Adresse de livraison'}
+            </Text>
+            <Text style={styles.addressText}>
+              {order.delivery_address?.street
+                || order.delivery_address?.address_line
+                || ''}
+            </Text>
+            <Text style={styles.addressText}>
+              {order.delivery_address?.city
+                || order.delivery_address?.district
+                || ''}
+            </Text>
+            {order.delivery_address?.additional_info && (
+              <Text style={styles.addressAdditional}>
+                {order.delivery_address.additional_info}
+              </Text>
+            )}
+          </View>
         </View>
+      </View>
 
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Adresse de livraison</Text>
-          <Text style={styles.detailValue}>
-            {order.delivery_address?.street}, {order.delivery_address?.city}
-          </Text>
-        </View>
-
-        <View style={styles.detailRow}>
-          <Text style={styles.detailLabel}>Total</Text>
-          <Text style={[styles.detailValue, styles.totalValue]}>
-            {formatCurrency(calculateOrderTotal(order))}
-          </Text>
+      {/* Order Summary */}
+      <View style={styles.section}>
+        <Text style={styles.sectionTitle}>Résumé de la commande</Text>
+        <View style={styles.summaryCard}>
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Numéro de commande</Text>
+            <Text style={styles.summaryValue}>#{order.order_number}</Text>
+          </View>
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Sous-total</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(subtotal)}
+            </Text>
+          </View>
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Frais de livraison</Text>
+            <Text style={styles.summaryValue}>
+              {(order.delivery_fee || 0) === 0
+                ? 'Gratuit'
+                : formatCurrency(order.delivery_fee || 0)}
+            </Text>
+          </View>
+          
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Taxes</Text>
+            <Text style={styles.summaryValue}>
+              {formatCurrency(order.taxes || 0)}
+            </Text>
+          </View>
+          
+          <View style={[styles.summaryRow, styles.totalRow]}>
+            <Text style={styles.totalLabel}>Total à payer</Text>
+            <Text style={styles.totalValue}>
+              {formatCurrency(total)}
+            </Text>
+          </View>
         </View>
       </View>
 
       {/* Items */}
-      <View style={styles.itemsContainer}>
-        <Text style={styles.sectionTitle}>Articles</Text>
+      <View style={styles.section}>
+        <View style={styles.sectionHeader}>
+          <Text style={styles.sectionTitle}>Articles commandés</Text>
+          <Text style={styles.itemsCount}>
+            {order.items?.length || 0} Articles
+          </Text>
+        </View>
         {order.items?.map((item, index) => (
-          <View key={index} style={styles.itemRow}>
-            <Text style={styles.itemName}>{item.menu_item?.name}</Text>
-            <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+          <View key={item.id || item.menu_item?.id || index} style={styles.itemCard}>
+            {item.menu_item?.image_url && (
+              <Image
+                source={{ uri: item.menu_item.image_url }}
+                style={styles.itemImage}
+              />
+            )}
+            <View style={styles.itemInfo}>
+              <View style={styles.itemNameRow}>
+                <Text style={styles.itemName}>
+                  {item.menu_item?.name || item.name}
+                </Text>
+                {/* Badge de promotion si applicable */}
+                {item.menu_item_snapshot?.is_promotion_active && 
+                 item.menu_item_snapshot?.effective_price && 
+                 item.menu_item_snapshot?.effective_price < item.menu_item_snapshot?.original_price && (
+                  <View style={styles.itemPromotionBadge}>
+                    <Text style={styles.itemPromotionBadgeText}>PROMO</Text>
+                  </View>
+                )}
+              </View>
+              <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+              {/* Afficher prix original barré si promotion */}
+              {item.menu_item_snapshot?.is_promotion_active && 
+               item.menu_item_snapshot?.effective_price && 
+               item.menu_item_snapshot?.effective_price < item.menu_item_snapshot?.original_price && (
+                <Text style={styles.itemPriceOriginal}>
+                  {formatCurrency(
+                    (item.menu_item_snapshot?.original_price || item.unit_price || item.price || 0) * (item.quantity || 1)
+                  )}
+                </Text>
+              )}
+            </View>
             <Text style={styles.itemPrice}>
-              {formatCurrency((item.price || item.menu_item?.price || 0) * (item.quantity || 1))}
+              {formatCurrency(
+                (item.unit_price || item.price || item.menu_item?.price || item.menu_item_snapshot?.price || item.menu_item_snapshot?.effective_price || 0) * (item.quantity || 1)
+              )}
             </Text>
           </View>
         ))}
@@ -373,6 +544,17 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: COLORS.text,
   },
+  phoneLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginTop: 4,
+  },
+  phoneText: {
+    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: '500',
+  },
   prepTime: {
     fontSize: 12,
     color: COLORS.primary,
@@ -407,14 +589,20 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   chatButton: {
-    width: 40,
-    height: 40,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
     borderRadius: 20,
     backgroundColor: COLORS.primary + '20',
-    alignItems: 'center',
-    justifyContent: 'center',
     borderWidth: 1,
     borderColor: COLORS.primary,
+    gap: 6,
+  },
+  chatButtonText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.primary,
   },
   callButton: {
     width: 40,
@@ -476,16 +664,104 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: '600',
   },
-  detailsContainer: {
+  section: {
     backgroundColor: COLORS.white,
-    padding: 16,
+    marginHorizontal: 16,
     marginBottom: 12,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 3,
   },
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.text,
     marginBottom: 16,
+  },
+  addressCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  addressIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: COLORS.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  addressInfo: {
+    flex: 1,
+  },
+  addressLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  addressText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  addressAdditional: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    fontStyle: 'italic',
+    marginTop: 4,
+  },
+  summaryCard: {
+    backgroundColor: COLORS.background,
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  summaryRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  summaryLabel: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  summaryValue: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  totalRow: {
+    borderTopWidth: 2,
+    borderTopColor: COLORS.border,
+    paddingTop: 12,
+    marginTop: 8,
+    marginBottom: 0,
+  },
+  totalLabel: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  totalValue: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.primary,
+  },
+  discountValue: {
+    color: COLORS.success,
+  },
+  detailsContainer: {
+    backgroundColor: COLORS.white,
+    padding: 16,
+    marginBottom: 12,
   },
   detailRow: {
     flexDirection: 'row',
@@ -501,37 +777,72 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontWeight: '500',
   },
-  totalValue: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  itemsContainer: {
-    backgroundColor: COLORS.white,
-    padding: 16,
-  },
-  itemRow: {
+  sectionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingBottom: 12,
+    marginBottom: 16,
+  },
+  itemsCount: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
+  },
+  itemCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  itemName: {
+  itemImage: {
+    width: 64,
+    height: 64,
+    borderRadius: 8,
+    backgroundColor: COLORS.border,
+    marginRight: 12,
+  },
+  itemInfo: {
     flex: 1,
-    fontSize: 14,
+  },
+  itemNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
+  itemName: {
+    fontSize: 16,
+    fontWeight: '600',
     color: COLORS.text,
+    flex: 1,
+  },
+  itemPromotionBadge: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  itemPromotionBadgeText: {
+    color: COLORS.white,
+    fontSize: 9,
+    fontWeight: '700',
   },
   itemQuantity: {
     fontSize: 14,
     color: COLORS.textSecondary,
-    marginHorizontal: 12,
+    marginBottom: 2,
+  },
+  itemPriceOriginal: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
   },
   itemPrice: {
-    fontSize: 14,
-    fontWeight: '600',
+    fontSize: 16,
+    fontWeight: 'bold',
     color: COLORS.text,
   },
 });

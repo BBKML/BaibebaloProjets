@@ -8,7 +8,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
-export default function AppMaintenanceScreen({ navigation }) {
+export default function AppMaintenanceScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
@@ -40,9 +40,27 @@ export default function AppMaintenanceScreen({ navigation }) {
           <Text style={styles.timeBadgeText}>Retour prévu à 14h00</Text>
         </View>
 
-        <TouchableOpacity style={styles.refreshButton}>
+        <TouchableOpacity 
+          style={styles.refreshButton}
+          onPress={async () => {
+            // Recharger l'app pour vérifier à nouveau le mode maintenance
+            const { checkMaintenanceMode } = require('../../services/settingsService');
+            const { invalidateSettingsCache } = require('../../services/settingsService');
+            invalidateSettingsCache();
+            const stillInMaintenance = await checkMaintenanceMode();
+            if (!stillInMaintenance) {
+              // Redémarrer l'app si le mode maintenance est désactivé
+              if (navigation) {
+                navigation.reset({
+                  index: 0,
+                  routes: [{ name: 'OnboardingWelcome' }],
+                });
+              }
+            }
+          }}
+        >
           <Ionicons name="refresh" size={18} color={COLORS.white} />
-          <Text style={styles.refreshButtonText}>Actualiser la page</Text>
+          <Text style={styles.refreshButtonText}>Actualiser</Text>
         </TouchableOpacity>
         <Text style={styles.footerText}>
           Besoin d'aide ? <Text style={styles.footerLink}>Contactez le support</Text>

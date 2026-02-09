@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../store/authStore';
 import { COLORS } from '../constants/colors';
 import { useNotifications, useBackgroundNotifications } from '../hooks/useNotifications';
+import { checkMaintenanceMode, invalidateSettingsCache } from '../services/settingsService';
 
 // Écrans d'authentification
 import RestaurantLoginScreen from '../screens/auth/RestaurantLoginScreen';
@@ -63,6 +64,9 @@ import SupportHelpCenterScreen from '../screens/settings/SupportHelpCenterScreen
 import ReportProblemScreen from '../screens/settings/ReportProblemScreen';
 import LiveChatSupportScreen from '../screens/settings/LiveChatSupportScreen';
 import SettingsScreen from '../screens/settings/SettingsScreen';
+
+// Écran de maintenance
+import AppMaintenanceScreen from '../screens/system/AppMaintenanceScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -155,6 +159,31 @@ function NotificationWrapper({ isAuthenticated }) {
 export default function AppNavigator() {
   const { isAuthenticated, isLoading, loadStoredAuth } = useAuthStore();
   const [isReady, setIsReady] = useState(false);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
+
+  // Vérifier le mode maintenance au démarrage + polling toutes les 30s
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        invalidateSettingsCache(); // Forcer une requête fraîche
+        const maintenanceMode = await checkMaintenanceMode();
+        console.log('[AppNavigator] Mode maintenance:', maintenanceMode);
+        setIsMaintenanceMode(maintenanceMode);
+      } catch (error) {
+        console.error('[AppNavigator] Erreur vérification maintenance:', error);
+        setIsMaintenanceMode(false);
+      } finally {
+        setIsCheckingMaintenance(false);
+      }
+    };
+
+    checkMaintenance();
+
+    // Polling toutes les 30 secondes pour détecter les changements de mode maintenance
+    const interval = setInterval(checkMaintenance, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -164,8 +193,23 @@ export default function AppNavigator() {
     init();
   }, []);
 
-  if (!isReady || isLoading) {
+  if (!isReady || isLoading || isCheckingMaintenance) {
     return null; // Ou un SplashScreen
+  }
+
+  // Si mode maintenance activé, afficher l'écran de maintenance
+  if (isMaintenanceMode) {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen
+            name="AppMaintenance"
+            component={AppMaintenanceScreen}
+            options={{ gestureEnabled: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
   }
 
   return (

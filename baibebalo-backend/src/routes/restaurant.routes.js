@@ -366,7 +366,8 @@ router.get('/me/menu/promotional', restaurantController.getPromotionalItems);
  */
 router.get('/me/orders', 
   [
-    query('status').optional().isIn(['new', 'pending', 'accepted', 'preparing', 'ready', 'picked_up', 'delivered', 'cancelled']),
+    // Accepter n'importe quelle chaîne pour status (validation dans le contrôleur)
+    query('status').optional().trim().isLength({ min: 1, max: 200 }),
     paginationValidator,
   ],
   validate,

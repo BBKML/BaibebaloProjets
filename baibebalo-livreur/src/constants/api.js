@@ -1,9 +1,35 @@
 // Configuration API pour l'application Livreur BAIBEBALO
 // EAS build injecte EXPO_PUBLIC_API_URL depuis eas.json ; fallback pour dev et sécurité build
+// IMPORTANT: Mettez à jour l'IP ci-dessous avec l'IP affichée par le serveur backend au démarrage
 const PRODUCTION_API_URL = 'https://baibebaloprojets.onrender.com/api/v1';
+const DEV_API_URL = 'http://192.168.1.3:5000/api/v1'; // IP locale pour développement
+
+// En développement, toujours utiliser l'URL locale (même si EXPO_PUBLIC_API_URL est défini)
+// Pour forcer l'URL de production, définissez FORCE_PRODUCTION=true dans .env
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+const forceProduction = typeof process !== 'undefined' && process.env?.FORCE_PRODUCTION === 'true';
+
 const fromEnv = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_URL;
-const API_BASE_URL = (typeof fromEnv === 'string' && fromEnv) ? fromEnv : (typeof __DEV__ !== 'undefined' && __DEV__ ? 'http://192.168.1.4:5000/api/v1' : PRODUCTION_API_URL);
+let API_BASE_URL;
+
+if (forceProduction) {
+  // Forcer la production même en dev (pour tests)
+  API_BASE_URL = fromEnv || PRODUCTION_API_URL;
+} else if (isDev) {
+  // En développement, toujours utiliser l'URL locale
+  API_BASE_URL = DEV_API_URL;
+} else {
+  // En production (build EAS), utiliser la variable d'environnement ou l'URL de production
+  API_BASE_URL = fromEnv || PRODUCTION_API_URL;
+}
+
 const API_BASE_URL_SAFE = (typeof API_BASE_URL === 'string' && API_BASE_URL) ? API_BASE_URL : PRODUCTION_API_URL;
+
+// Log pour debug
+if (isDev) {
+  console.log(`[API Config] Mode: ${isDev ? 'DEVELOPPEMENT' : 'PRODUCTION'}`);
+  console.log(`[API Config] URL: ${API_BASE_URL_SAFE}`);
+}
 
 const BASE = API_BASE_URL_SAFE;
 
@@ -23,7 +49,7 @@ export const API_ENDPOINTS = {
     PROFILE: `${BASE}/delivery/me`,
     CHECK_STATUS: `${BASE}/delivery/check-status`,
     UPDATE_PROFILE: `${BASE}/delivery/me`,
-    UPLOAD_DOCUMENT: `${BASE}/delivery/me/documents`,
+    UPLOAD_DOCUMENT: `${BASE}/delivery/upload-document`,
     UPDATE_STATUS: `${BASE}/delivery/status`,
     UPDATE_LOCATION: `${BASE}/delivery/location`,
     UPDATE_AVAILABILITY: `${BASE}/delivery/me/availability`,
@@ -45,6 +71,7 @@ export const API_ENDPOINTS = {
     ACTIVE: `${BASE}/delivery/orders/active`,
     HISTORY: `${BASE}/delivery/history`,
     DETAIL: (id) => `${BASE}/orders/${id}`,
+    TRACK: (id) => `${BASE}/orders/${id}/track`,
     ACCEPT: (id) => `${BASE}/delivery/orders/${id}/accept`,
     DECLINE: (id) => `${BASE}/delivery/orders/${id}/decline`,
     ARRIVE_RESTAURANT: (id) => `${BASE}/delivery/orders/${id}/arrive-restaurant`,

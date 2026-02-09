@@ -1,0 +1,34 @@
+# Flow : Inscription client (téléphone + OTP)
+# Backend : utiliser un numéro de test ou OTP 123456 si configuré
+appId: ci.baibebalo.client
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Entrez votre numéro de téléphone"
+    timeout: 10000
+- inputText: "0701020304"
+- tapOn: "Continuer"
+- extendedWaitUntil:
+    visible: "Code de vérification"
+    timeout: 15000
+- inputText: "123456"
+- tapOn: "Vérifier maintenant"
+# Nouveau user : formulaire profil (optionnel)
+- tapOn:
+    text: "Nom (Obligatoire)"
+    optional: true
+- inputText:
+    text: "Coulibaly"
+    optional: true
+- tapOn:
+    text: "Prénom (Obligatoire)"
+    optional: true
+- inputText:
+    text: "Jean"
+    optional: true
+- tapOn:
+    text: "Terminer"
+    optional: true
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 15000

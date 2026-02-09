@@ -412,8 +412,10 @@ exports.suspendUser = async (req, res) => {
  */
 exports.getRestaurants = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, category } = req.query;
+    const page = Math.max(1, Number.parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(100, Math.max(1, Number.parseInt(req.query.limit, 10) || 20));
     const offset = (page - 1) * limit;
+    const { status, category, search } = req.query;
 
     let queryText = 'SELECT * FROM restaurants WHERE 1=1';
     const values = [];
@@ -431,24 +433,51 @@ exports.getRestaurants = async (req, res) => {
       paramIndex++;
     }
 
-    queryText += ` ORDER BY created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
+    const searchTerm = typeof search === 'string' ? search.trim() : '';
+    if (searchTerm) {
+      queryText += ` AND (name ILIKE $${paramIndex} OR COALESCE(phone::text, '') ILIKE $${paramIndex} OR COALESCE(email, '') ILIKE $${paramIndex})`;
+      values.push(`%${searchTerm}%`);
+      paramIndex++;
+    }
+
+    queryText += ` ORDER BY name ASC NULLS LAST, created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     values.push(limit, offset);
 
     const result = await query(queryText, values);
-    const countResult = await query('SELECT COUNT(*) FROM restaurants');
+
+    let countText = 'SELECT COUNT(*) AS count FROM restaurants WHERE 1=1';
+    const countValues = [];
+    let countParamIndex = 1;
+    if (status) {
+      countText += ` AND status = $${countParamIndex}`;
+      countValues.push(status);
+      countParamIndex++;
+    }
+    if (category) {
+      countText += ` AND category = $${countParamIndex}`;
+      countValues.push(category);
+      countParamIndex++;
+    }
+    if (searchTerm) {
+      countText += ` AND (name ILIKE $${countParamIndex} OR COALESCE(phone::text, '') ILIKE $${countParamIndex} OR COALESCE(email, '') ILIKE $${countParamIndex})`;
+      countValues.push(`%${searchTerm}%`);
+      countParamIndex++;
+    }
+    const countResult = await query(countText, countValues);
+    const total = Number.parseInt(countResult.rows[0]?.count, 10) || 0;
 
     res.json({
       success: true,
       data: {
         restaurants: result.rows.map(r => {
-          delete r.password_hash;
-          return r;
+          const { password_hash, ...rest } = r;
+          return rest;
         }),
         pagination: {
-          page: Number.parseInt(page),
-          limit: Number.parseInt(limit),
-          total: Number.parseInt(countResult.rows[0].count),
-          pages: Math.ceil(countResult.rows[0].count / limit),
+          page,
+          limit,
+          total,
+          pages: limit > 0 ? Math.ceil(total / limit) : 0,
         },
       },
     });
@@ -456,7 +485,7 @@ exports.getRestaurants = async (req, res) => {
     logger.error('Erreur getRestaurants:', error);
     res.status(500).json({
       success: false,
-      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+      error: { code: 'FETCH_ERROR', message: error.message || 'Erreur lors de la récupération' },
     });
   }
 };
@@ -741,7 +770,7 @@ exports.approveDeliveryPerson = async (req, res) => {
  */
 exports.getOrders = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, date_from, date_to, restaurant_id, delivery_person_id, amount_min, amount_max } = req.query;
+    const { page = 1, limit = 20, status, date_from, date_to, restaurant_id, delivery_person_id, user_id, amount_min, amount_max } = req.query;
     const offset = (page - 1) * limit;
 
     let queryText = `
@@ -789,6 +818,12 @@ exports.getOrders = async (req, res) => {
       paramIndex++;
     }
 
+    if (user_id) {
+      queryText += ` AND o.user_id = $${paramIndex}`;
+      values.push(user_id);
+      paramIndex++;
+    }
+
     if (amount_min) {
       queryText += ` AND o.total >= $${paramIndex}`;
       values.push(Number.parseFloat(amount_min));
@@ -832,7 +867,37 @@ exports.getOrders = async (req, res) => {
       countValues.push(date_to);
       countParamIndex++;
     }
-    
+
+    if (restaurant_id) {
+      countQuery += ` AND o.restaurant_id = $${countParamIndex}`;
+      countValues.push(restaurant_id);
+      countParamIndex++;
+    }
+
+    if (delivery_person_id) {
+      countQuery += ` AND o.delivery_person_id = $${countParamIndex}`;
+      countValues.push(delivery_person_id);
+      countParamIndex++;
+    }
+
+    if (user_id) {
+      countQuery += ` AND o.user_id = $${countParamIndex}`;
+      countValues.push(user_id);
+      countParamIndex++;
+    }
+
+    if (amount_min) {
+      countQuery += ` AND o.total >= $${countParamIndex}`;
+      countValues.push(Number.parseFloat(amount_min));
+      countParamIndex++;
+    }
+
+    if (amount_max) {
+      countQuery += ` AND o.total <= $${countParamIndex}`;
+      countValues.push(Number.parseFloat(amount_max));
+      countParamIndex++;
+    }
+
     const countResult = await query(countQuery, countValues);
 
     res.json({
@@ -4249,14 +4314,73 @@ exports.deleteDeliveryPerson = async (req, res) => {
 exports.getOrderById = async (req, res) => {
   try {
     const { id } = req.params;
-    const result = await query('SELECT * FROM orders WHERE id = $1', [id]);
+    
+    // Récupérer la commande avec les informations associées
+    const result = await query(
+      `SELECT o.*, 
+              r.name as restaurant_name, r.logo as restaurant_logo,
+              r.phone as restaurant_phone, r.address as restaurant_address,
+              u.first_name as client_first_name, u.last_name as client_last_name,
+              u.phone as client_phone, u.email as customer_email,
+              u.first_name || ' ' || u.last_name as customer_name,
+              dp.first_name as delivery_first_name, dp.last_name as delivery_last_name,
+              dp.phone as delivery_phone
+       FROM orders o
+       LEFT JOIN restaurants r ON o.restaurant_id = r.id
+       LEFT JOIN users u ON o.user_id = u.id
+       LEFT JOIN delivery_persons dp ON o.delivery_person_id = dp.id
+       WHERE o.id = $1`,
+      [id]
+    );
+    
     if (result.rows.length === 0) {
       return res.status(404).json({
         success: false,
         error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
       });
     }
-    res.json({ success: true, data: { order: result.rows[0] } });
+
+    const order = result.rows[0];
+
+    // Récupérer les items de la commande
+    const itemsResult = await query(
+      `SELECT oi.*, 
+              COALESCE(oi.menu_item_snapshot->>'name', mi.name) as item_name,
+              COALESCE((oi.menu_item_snapshot->>'price')::numeric, mi.price, oi.unit_price) as item_price
+       FROM order_items oi
+       LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
+       WHERE oi.order_id = $1
+       ORDER BY oi.created_at ASC`,
+      [id]
+    );
+
+    // Formater les items pour le frontend
+    const formattedItems = itemsResult.rows.map(item => {
+      const snapshot = typeof item.menu_item_snapshot === 'string' 
+        ? JSON.parse(item.menu_item_snapshot) 
+        : item.menu_item_snapshot;
+      
+      return {
+        ...item,
+        name: item.item_name || snapshot?.name || 'Article',
+        price: Number.parseFloat(item.unit_price || item.item_price || snapshot?.price || 0),
+        quantity: item.quantity || 1,
+      };
+    });
+
+    // Ajouter les items à la commande
+    order.items = formattedItems;
+
+    // Formater l'adresse de livraison si elle est en JSON
+    if (order.delivery_address && typeof order.delivery_address === 'string') {
+      try {
+        order.delivery_address = JSON.parse(order.delivery_address);
+      } catch (e) {
+        // Garder la valeur string si le parsing échoue
+      }
+    }
+
+    res.json({ success: true, data: { order } });
   } catch (error) {
     logger.error('Erreur getOrderById:', error);
     res.status(500).json({

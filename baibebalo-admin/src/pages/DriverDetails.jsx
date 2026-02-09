@@ -169,6 +169,43 @@ const DriverDetails = () => {
     }
   };
 
+  const getOrderStatusLabel = (status) => {
+    switch (status) {
+      case 'new': return 'Nouvelle';
+      case 'pending': return 'En attente';
+      case 'accepted': return 'Acceptée';
+      case 'preparing': return 'En préparation';
+      case 'ready': return 'Prête';
+      case 'picked_up': return 'Récupérée';
+      case 'delivering': return 'En livraison';
+      case 'delivered': return 'Livrée';
+      case 'cancelled': return 'Annulée';
+      default: return status || 'Inconnu';
+    }
+  };
+
+  const getOrderStatusBadge = (status) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      case 'picked_up':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'delivering':
+        return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
+      case 'ready':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'preparing':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      case 'pending':
+      case 'accepted':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      default:
+        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+    }
+  };
+
   const getVehicleIcon = (vehicle) => {
     switch (vehicle?.toLowerCase()) {
       case 'moto': return 'motorcycle';
@@ -600,14 +637,8 @@ const DriverDetails = () => {
                           <td className="py-3 text-sm">{delivery.restaurant_name || 'Restaurant'}</td>
                           <td className="py-3 text-sm text-slate-500">{formatDateShort(delivery.delivered_at || delivery.created_at)}</td>
                           <td className="py-3">
-                            <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
-                              delivery.status === 'delivered' 
-                                ? 'bg-emerald-100 text-emerald-700' 
-                                : delivery.status === 'cancelled'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-blue-100 text-blue-700'
-                            }`}>
-                              {delivery.status === 'delivered' ? 'Livrée' : delivery.status}
+                            <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getOrderStatusBadge(delivery.status)}`}>
+                              {getOrderStatusLabel(delivery.status)}
                             </span>
                           </td>
                           <td className="py-3 text-right font-semibold text-emerald-600">{formatCurrency(delivery.delivery_fee || 0)}</td>

@@ -53,7 +53,7 @@ export const useNotifications = (isAuthenticated) => {
         if (data?.type === 'new_delivery' && data?.order_id) {
           navigation.navigate('AvailableDeliveries');
         } else if (data?.orderId) {
-          navigation.navigate('CurrentDelivery', { orderId: data.orderId });
+          navigation.navigate('NavigationToRestaurant', { orderId: data.orderId });
         } else if (data?.screen) {
           navigation.navigate(data.screen, data.params || {});
         }

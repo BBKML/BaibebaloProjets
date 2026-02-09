@@ -9,7 +9,8 @@
     "start": "expo start --offline",
     "android": "expo start --android --offline",
     "ios": "expo start --ios --offline",
-    "web": "expo start --web --offline"
+    "web": "expo start --web --offline",
+    "test:e2e": "maestro test .maestro/"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.3",

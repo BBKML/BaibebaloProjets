@@ -45,11 +45,6 @@ const Sidebar = ({ isOpen = false, onClose }) => {
       path: '/analytics',
       icon: 'analytics',
     },
-    {
-      label: 'Paramètres',
-      path: '/settings/platform',
-      icon: 'settings',
-    },
   ];
   
   return (
@@ -125,7 +120,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         })}
       </nav>
       
-      {/* Settings */}
+      {/* Paramètres (une seule entrée, en bas) */}
       <div className="p-4 border-t border-slate-700/50">
         <Link
           to="/settings/platform"

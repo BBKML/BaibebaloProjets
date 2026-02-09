@@ -1,0 +1,22 @@
+# Flow : Recherche restaurant
+# Prérequis : utilisateur connecté (écran Accueil)
+appId: ci.baibebalo.client
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 15000
+- tapOn: "Rechercher"
+- extendedWaitUntil:
+    visible: "Rechercher un restaurant"
+    timeout: 5000
+- inputText: "Pizza"
+- extendedWaitUntil:
+    visible: "Pizza"
+    timeout: 8000
+# Au moins un résultat ou message
+- assertVisible:
+    any:
+      - "Restaurant"
+      - "Aucun résultat"
+      - "Résultats"

@@ -222,18 +222,6 @@ const smsLimiter = rateLimit({
   keyGenerator: (req) => req.body.phone || req.ip,
   standardHeaders: true,
   legacyHeaders: false,
-  // En dev, logger les requêtes bloquées pour debug
-  onLimitReached: (req, res, options) => {
-    if (isDev) {
-      const logger = require('../utils/logger');
-      logger.warn('Rate limit SMS atteint', { 
-        phone: req.body?.phone, 
-        ip: req.ip,
-        windowMs: options.windowMs,
-        max: options.max
-      });
-    }
-  },
 });
 
 /**
@@ -766,6 +754,73 @@ const createPromotionValidators = [
   validate,
 ];
 
+/**
+ * Middleware pour gérer les routes non trouvées (404)
+ */
+const notFound = (req, res) => {
+  logger.warn('Route non trouvée', {
+    method: req.method,
+    path: req.path,
+    ip: req.ip,
+  });
+  
+  res.status(404).json({
+    success: false,
+    error: {
+      code: 'ROUTE_NOT_FOUND',
+      message: `Route ${req.method} ${req.path} non trouvée`,
+      suggestion: 'Consultez la documentation à http://localhost:3000/',
+    },
+  });
+};
+
+/**
+ * Middleware de gestion d'erreurs global
+ */
+const errorHandler = (err, req, res, next) => {
+  logger.error('Erreur non gérée', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    ip: req.ip,
+  });
+
+  // Erreur de validation
+  if (err.name === 'ValidationError') {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'VALIDATION_ERROR',
+        message: err.message,
+      },
+    });
+  }
+
+  // Erreur JWT
+  if (err.name === 'JsonWebTokenError') {
+    return res.status(401).json({
+      success: false,
+      error: {
+        code: 'INVALID_TOKEN',
+        message: 'Token invalide',
+      },
+    });
+  }
+
+  // Erreur par défaut
+  res.status(err.status || 500).json({
+    success: false,
+    error: {
+      code: err.code || 'INTERNAL_ERROR',
+      message: config.env === 'production' 
+        ? 'Une erreur est survenue' 
+        : err.message,
+      ...(config.env === 'development' && { stack: err.stack }),
+    },
+  });
+};
+
 module.exports = {
   validate,
   sanitizeBody,
@@ -792,4 +847,6 @@ module.exports = {
   createReviewValidators,
   searchRestaurantsValidators,
   createPromotionValidators,
+  notFound,
+  errorHandler,
 };

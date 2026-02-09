@@ -35,9 +35,15 @@ export const getOrderDetail = async (orderId) => {
 
 /**
  * Annuler une commande
+ * @param {string} orderId - ID de la commande
+ * @param {string} reason - Raison de l'annulation (5-500 caractères)
+ * @param {string} cancellationType - Type d'annulation (optionnel): 'change_mind', 'wrong_order', 'too_long', 'other'
  */
-export const cancelOrder = async (orderId) => {
-  const response = await apiClient.put(API_CONFIG.ENDPOINTS.ORDERS.CANCEL(orderId));
+export const cancelOrder = async (orderId, reason, cancellationType = 'other') => {
+  const response = await apiClient.put(API_CONFIG.ENDPOINTS.ORDERS.CANCEL(orderId), {
+    reason: reason.trim(),
+    cancellation_type: cancellationType,
+  });
   return response.data;
 };
 

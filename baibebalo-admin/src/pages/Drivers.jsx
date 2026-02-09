@@ -388,9 +388,9 @@ const Drivers = () => {
                           }}
                         >
                           <div className="flex items-center gap-3">
-                            {(driver.profile_picture || driver.photo) ? (
+                            {(driver.profile_picture || driver.photo || driver.profile_photo) ? (
                               <img
-                                src={getImageUrl(driver.profile_picture || driver.photo)}
+                                src={getImageUrl(driver.profile_picture || driver.photo || driver.profile_photo)}
                                 alt={fullName}
                                 className="size-10 rounded-full object-cover"
                                 onError={(e) => {
@@ -401,7 +401,7 @@ const Drivers = () => {
                             ) : null}
                             <div 
                               className="size-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center text-primary dark:text-blue-400 font-black text-xs"
-                              style={{ display: (driver.profile_picture || driver.photo) ? 'none' : 'flex' }}
+                              style={{ display: (driver.profile_picture || driver.photo || driver.profile_photo) ? 'none' : 'flex' }}
                             >
                               {initials || '?'}
                             </div>

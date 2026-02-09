@@ -1111,6 +1111,15 @@ const migrations = [
   `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS verified_amount DECIMAL(10,2);`,
   `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS verification_notes TEXT;`,
   `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS discrepancy_amount DECIMAL(10,2) DEFAULT 0;`,
+  
+  // CORRECTION TABLE otp_codes pour supporter tokens longs et emails
+  // Augmenter la taille du champ code pour supporter les tokens de réinitialisation (64 caractères)
+  `ALTER TABLE otp_codes ALTER COLUMN code TYPE VARCHAR(255);`,
+  // Augmenter la taille du champ phone pour supporter les emails
+  `ALTER TABLE otp_codes ALTER COLUMN phone TYPE VARCHAR(255);`,
+  // Ajouter le type admin_password_reset dans le CHECK constraint
+  `ALTER TABLE otp_codes DROP CONSTRAINT IF EXISTS otp_codes_type_check;`,
+  `ALTER TABLE otp_codes ADD CONSTRAINT otp_codes_type_check CHECK (type IN ('login', 'registration', 'password_reset', 'verification', 'admin_password_reset'));`,
 ];
 
 // Fonction pour vérifier si une table existe

@@ -214,6 +214,12 @@ app.use(`/api/${config.apiVersion}/test`, testRoutes);
 // ROUTES API RÉELLES
 // ================================
 
+// Routes publiques (sans authentification) - AVANT les autres routes
+const publicRoutes = require('./src/routes/public.routes');
+logger.info(`Enregistrement route publique: /api/${config.apiVersion}/public`);
+app.use(`/api/${config.apiVersion}/public`, publicRoutes);
+logger.debug('Route publique enregistrée avec succès');
+
 // Routes d'authentification
 app.use(`/api/${config.apiVersion}/auth`, require('./src/routes/auth.routes'));
 
@@ -422,6 +428,14 @@ const startServer = async () => {
     try {
       await db.query('SELECT NOW()');
       logger.info('✅ Connexion à la base de données établie');
+      
+      // Synchroniser les paramètres depuis config/index.js vers app_settings
+      try {
+        const { syncSettingsFromConfig } = require('./src/utils/syncSettings');
+        await syncSettingsFromConfig();
+      } catch (syncError) {
+        logger.warn('⚠️  Erreur synchronisation paramètres (non bloquant):', syncError.message);
+      }
     } catch (dbError) {
       logger.warn('⚠️  Base de données non disponible (mode test sans DB)');
       logger.warn('   Certaines routes nécessiteront une DB connectée');
@@ -467,8 +481,10 @@ const startServer = async () => {
   }
 };
 
-// Lancer le serveur
-startServer();
+// Lancer le serveur (sauf en test : supertest utilise l'app sans listen)
+if (process.env.NODE_ENV !== 'test') {
+  startServer();
+}
 
 // Export pour les tests
 module.exports = { app, server, io };

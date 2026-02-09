@@ -44,9 +44,113 @@ cron.schedule('*/5 * * * *', async () => {
 });
 
 /**
- * Rapports hebdomadaires restaurants - Tous les lundis à 9h
+ * Paiement hebdomadaire automatique - Tous les lundis à 9h
+ * Génère automatiquement les demandes de retrait pour livreurs et restaurants
  */
 cron.schedule('0 9 * * 1', async () => {
+  try {
+    logger.info('💰 Début du paiement hebdomadaire automatique...');
+
+    // === LIVREURS ===
+    const deliveryPersons = await query(`
+      SELECT id, first_name, last_name, phone, available_balance, mobile_money_number, mobile_money_provider
+      FROM delivery_persons
+      WHERE status = 'active' 
+        AND available_balance > 0
+        AND mobile_money_number IS NOT NULL
+    `);
+
+    logger.info(`📦 ${deliveryPersons.rows.length} livreur(s) avec solde > 0`);
+
+    for (const dp of deliveryPersons.rows) {
+      const amount = parseFloat(dp.available_balance);
+      
+      // Vérifier s'il n'y a pas déjà une demande en cours
+      const existingPayout = await query(
+        `SELECT id FROM payout_requests 
+         WHERE user_type = 'delivery' AND user_id = $1 
+         AND status IN ('pending', 'paid') 
+         AND created_at >= DATE_TRUNC('week', CURRENT_DATE)`,
+        [dp.id]
+      );
+
+      if (existingPayout.rows.length === 0 && amount >= 5000) {
+        await query(
+          `INSERT INTO payout_requests (
+            user_type, user_id, amount, payment_method, account_number, status
+          ) VALUES ($1, $2, $3, $4, $5, 'pending')`,
+          ['delivery', dp.id, amount, dp.mobile_money_provider || 'mobile_money', dp.mobile_money_number]
+        );
+        logger.info(`✅ Payout créé pour livreur ${dp.first_name} ${dp.last_name}: ${amount} FCFA`);
+      }
+    }
+
+    // === RESTAURANTS ===
+    // Calculer le solde de chaque restaurant depuis les transactions
+    // NOTE: Les commandes payées par livreur (restaurant_paid_by_delivery = true) sont automatiquement exclues
+    // car confirmDelivery ne crée pas de transaction order_payment pour ces commandes
+    const restaurants = await query(`
+      SELECT 
+        r.id, r.name, r.phone, r.mobile_money_number, r.mobile_money_provider,
+        COALESCE(SUM(CASE WHEN t.to_user_id = r.id AND t.to_user_type = 'restaurant' AND t.transaction_type = 'order_payment' THEN t.amount ELSE 0 END), 0) as credits,
+        COALESCE(SUM(CASE WHEN t.from_user_id = r.id AND t.from_user_type = 'restaurant' THEN t.amount ELSE 0 END), 0) as debits
+      FROM restaurants r
+      LEFT JOIN transactions t ON (t.to_user_id = r.id OR t.from_user_id = r.id) AND t.status = 'completed'
+      WHERE r.status = 'active'
+      GROUP BY r.id, r.name, r.phone, r.mobile_money_number, r.mobile_money_provider
+      HAVING COALESCE(SUM(CASE WHEN t.to_user_id = r.id AND t.to_user_type = 'restaurant' AND t.transaction_type = 'order_payment' THEN t.amount ELSE 0 END), 0) - 
+             COALESCE(SUM(CASE WHEN t.from_user_id = r.id AND t.from_user_type = 'restaurant' THEN t.amount ELSE 0 END), 0) > 0
+    `);
+
+    logger.info(`🍽️  ${restaurants.rows.length} restaurant(s) avec solde > 0`);
+
+    for (const rest of restaurants.rows) {
+      const credits = parseFloat(rest.credits) || 0;
+      const debits = parseFloat(rest.debits) || 0;
+      const balance = credits - debits;
+
+      // Vérifier les demandes en cours
+      const pendingPayouts = await query(
+        `SELECT COALESCE(SUM(amount), 0) as pending_amount
+         FROM payout_requests 
+         WHERE user_type = 'restaurant' AND user_id = $1 
+         AND status IN ('pending', 'paid')`,
+        [rest.id]
+      );
+
+      const pendingAmount = parseFloat(pendingPayouts.rows[0].pending_amount) || 0;
+      const availableBalance = balance - pendingAmount;
+
+      // Vérifier s'il n'y a pas déjà une demande cette semaine
+      const existingPayout = await query(
+        `SELECT id FROM payout_requests 
+         WHERE user_type = 'restaurant' AND user_id = $1 
+         AND status IN ('pending', 'paid') 
+         AND created_at >= DATE_TRUNC('week', CURRENT_DATE)`,
+        [rest.id]
+      );
+
+      if (existingPayout.rows.length === 0 && availableBalance >= 10000 && rest.mobile_money_number) {
+        await query(
+          `INSERT INTO payout_requests (
+            user_type, user_id, amount, payment_method, account_number, status
+          ) VALUES ($1, $2, $3, $4, $5, 'pending')`,
+          ['restaurant', rest.id, availableBalance, rest.mobile_money_provider || 'mobile_money', rest.mobile_money_number]
+        );
+        logger.info(`✅ Payout créé pour restaurant ${rest.name}: ${availableBalance} FCFA`);
+      }
+    }
+
+    logger.info('✅ Paiement hebdomadaire automatique terminé');
+  } catch (error) {
+    logger.error('❌ Erreur paiement hebdomadaire:', error);
+  }
+});
+
+/**
+ * Rapports hebdomadaires restaurants - Tous les lundis à 9h30 (après paiements)
+ */
+cron.schedule('30 9 * * 1', async () => {
   try {
     const restaurants = await query(`
       SELECT 
@@ -217,8 +321,34 @@ cron.schedule('0 3 * * *', async () => {
   }
 });
 
+/**
+ * Propositions de course expirées — proposer au livreur suivant (attribution auto type Glovo)
+ * Nécessite app pour Socket.IO / push. Schedulé via init(app) appelé par server.js
+ */
+function init(app) {
+  if (!app) return;
+  cron.schedule('* * * * *', async () => {
+    try {
+      const { query } = require('../database/db');
+      const deliveryProposalService = require('../services/deliveryProposal.service');
+      const expired = await query(
+        `SELECT id, order_number FROM orders
+         WHERE status = 'ready' AND delivery_person_id IS NULL
+           AND proposed_delivery_person_id IS NOT NULL AND proposal_expires_at < NOW()`
+      );
+      for (const row of expired.rows) {
+        await deliveryProposalService.clearProposalAndProposeNext(row.id, app);
+        logger.info(`Proposition expirée pour ${row.order_number}, passage au livreur suivant`);
+      }
+    } catch (error) {
+      logger.error('❌ Erreur cron propositions expirées:', error);
+    }
+  });
+  logger.info('⏰ Cron propositions livreur (attribution auto) initialisé');
+}
+
 logger.info('⏰ Cron jobs initialisés');
 
 module.exports = {
-  // Export pour tests si nécessaire
+  init,
 };

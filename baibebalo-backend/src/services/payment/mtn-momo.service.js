@@ -292,16 +292,16 @@ class MTNMoMoService {
       if (mappedStatus === 'completed') {
         await query(
           `UPDATE orders 
-           SET payment_status = 'paid', payment_reference = $1
+           SET payment_status = 'paid', paid_at = NOW(), payment_reference = $1, updated_at = NOW()
            WHERE order_number = $2`,
           [financialTransactionId, externalId]
         );
 
         await query(
           `UPDATE transactions 
-           SET status = 'completed', reference = $1
+           SET status = 'completed', payment_reference = $1, completed_at = NOW()
            WHERE order_id = (SELECT id FROM orders WHERE order_number = $2)
-           AND type = 'order_payment'`,
+           AND transaction_type = 'order_payment'`,
           [financialTransactionId, externalId]
         );
 

@@ -4,7 +4,18 @@ import { Vibration, Platform } from 'react-native';
 import API_BASE_URL from '../constants/api';
 
 // URL du serveur Socket.IO (même base que l'API, sans /api/v1)
-const API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || (__DEV__ ? 'http://192.168.1.4:5000' : 'https://baibebaloprojets.onrender.com');
+// En développement, toujours utiliser l'URL locale
+const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
+const forceProduction = typeof process !== 'undefined' && process.env?.FORCE_PRODUCTION === 'true';
+
+let API_BASE;
+if (forceProduction) {
+  API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || 'https://baibebaloprojets.onrender.com';
+} else if (isDev) {
+  API_BASE = 'http://192.168.1.5:5000';
+} else {
+  API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || 'https://baibebaloprojets.onrender.com';
+}
 
 class SocketService {
   constructor() {
@@ -81,6 +92,17 @@ class SocketService {
         `${data.restaurant_name} - ${data.delivery_fee} FCFA`
       );
       this.emit('new_delivery_available', data);
+    });
+
+    // Course proposée (attribution auto type Glovo) — uniquement à ce livreur
+    this.socket.on('order_proposed', (data) => {
+      console.log('[Socket] 📦 Course proposée:', data);
+      this.vibrate(500);
+      this.showLocalNotification(
+        '📦 Course proposée',
+        `${data.restaurant_name} - ${data.delivery_fee || data.total} FCFA. Acceptez dans les ${data.expires_in_seconds ? Math.floor(data.expires_in_seconds / 60) : 2} min.`
+      );
+      this.emit('order_proposed', data);
     });
 
     // Commande prête à récupérer (si livreur déjà assigné)

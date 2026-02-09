@@ -1,0 +1,35 @@
+# Flow : Ajout au panier
+# Prérequis : utilisateur connecté, backend avec au moins un restaurant
+appId: ci.baibebalo.client
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 15000
+- tapOn: "Rechercher"
+- extendedWaitUntil:
+    visible: "Rechercher un restaurant"
+    timeout: 5000
+- inputText: "Restaurant"
+- extendedWaitUntil:
+    visible: "min"
+    timeout: 8000
+# Ouvrir le premier restaurant (texte "min" sur une carte)
+- tapOn: "min"
+- extendedWaitUntil:
+    visible:
+      any:
+        - "Ajouter au panier"
+        - "Voir le panier"
+        - "Menu"
+    timeout: 8000
+- tapOn: "Ajouter au panier"
+# Si écran personnalisation (CustomizeDishScreen)
+- tapOn:
+    text: "Ajouter au panier"
+    optional: true
+- assertVisible:
+    any:
+      - "Voir le panier"
+      - "Panier"
+      - "Valider la commande"

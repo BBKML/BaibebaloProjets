@@ -10,6 +10,10 @@ import {
   Alert,
   Share,
   Linking,
+  Modal,
+  TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -22,6 +26,9 @@ export default function OrderDetailsScreen({ route, navigation }) {
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [canEditReview, setCanEditReview] = useState(false);
+  const [showCancelModal, setShowCancelModal] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancelType, setCancelType] = useState('other');
 
   useEffect(() => {
     loadOrderDetails();
@@ -32,6 +39,21 @@ export default function OrderDetailsScreen({ route, navigation }) {
       setLoading(true);
       const response = await getOrderDetail(orderId);
       const orderData = response.data?.order || response.data?.data?.order || response.data;
+      
+      // Logger pour déboguer les données reçues
+      console.log('📦 Données commande chargées (getOrderDetail):', {
+        orderId: orderData?.id,
+        hasItems: !!orderData?.items && orderData.items.length > 0,
+        itemsCount: orderData?.items?.length || 0,
+        subtotal: orderData?.subtotal,
+        delivery_fee: orderData?.delivery_fee,
+        taxes: orderData?.taxes,
+        discount: orderData?.discount,
+        total: orderData?.total,
+        restaurantPhone: orderData?.restaurant?.phone,
+        restaurantName: orderData?.restaurant?.name,
+      });
+      
       setOrder(orderData);
       
       // Vérifier si l'avis peut être modifié (dans les 48h après livraison)
@@ -192,40 +214,42 @@ export default function OrderDetailsScreen({ route, navigation }) {
       return;
     }
 
-    Alert.alert(
-      'Annuler la commande',
-      'Êtes-vous sûr de vouloir annuler cette commande ?',
-      [
+    // Ouvrir le modal pour demander la raison
+    setCancelReason('');
+    setCancelType('other');
+    setShowCancelModal(true);
+  };
+
+  const handleConfirmCancel = async () => {
+    if (!cancelReason.trim() || cancelReason.trim().length < 5) {
+      Alert.alert('Raison requise', 'Veuillez indiquer une raison d\'annulation (minimum 5 caractères).');
+      return;
+    }
+
+    if (cancelReason.trim().length > 500) {
+      Alert.alert('Raison trop longue', 'La raison ne peut pas dépasser 500 caractères.');
+      return;
+    }
+
+    try {
+      setShowCancelModal(false);
+      await cancelOrder(orderId, cancelReason.trim(), cancelType);
+      Alert.alert('Succès', 'Votre commande a été annulée.', [
         {
-          text: 'Non',
-          style: 'cancel',
-        },
-        {
-          text: 'Oui, annuler',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await cancelOrder(orderId);
-              Alert.alert('Succès', 'Votre commande a été annulée.', [
-                {
-                  text: 'OK',
-                  onPress: () => {
-                    loadOrderDetails(); // Recharger les détails
-                    navigation.goBack();
-                  },
-                },
-              ]);
-            } catch (error) {
-              console.error('Erreur lors de l\'annulation:', error);
-              Alert.alert(
-                'Erreur',
-                error.response?.data?.message || 'Impossible d\'annuler la commande. Veuillez réessayer.'
-              );
-            }
+          text: 'OK',
+          onPress: () => {
+            loadOrderDetails(); // Recharger les détails
+            navigation.goBack();
           },
         },
-      ]
-    );
+      ]);
+    } catch (error) {
+      console.error('Erreur lors de l\'annulation:', error);
+      const errorMessage = error.response?.data?.error?.message 
+        || error.response?.data?.message 
+        || 'Impossible d\'annuler la commande. Veuillez réessayer.';
+      Alert.alert('Erreur', errorMessage);
+    }
   };
 
   const paymentLabel = () => {
@@ -257,7 +281,12 @@ export default function OrderDetailsScreen({ route, navigation }) {
         <Text style={styles.headerTitle}>Détails de la commande</Text>
       </View>
 
-      <ScrollView style={styles.scroll} contentContainerStyle={styles.scrollContent}>
+      <ScrollView 
+        style={styles.scroll} 
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={true}
+        bounces={true}
+      >
       {/* Status Card */}
       <View style={styles.statusCard}>
         <View style={styles.statusHeader}>
@@ -335,14 +364,36 @@ export default function OrderDetailsScreen({ route, navigation }) {
               />
             )}
             <View style={styles.itemInfo}>
-              <Text style={styles.itemName}>
-                {item.menu_item?.name || item.name}
-              </Text>
+              <View style={styles.itemNameRow}>
+                <Text style={styles.itemName}>
+                  {item.menu_item?.name || item.name}
+                </Text>
+                {/* Badge de promotion si applicable */}
+                {item.menu_item_snapshot?.is_promotion_active && 
+                 item.menu_item_snapshot?.effective_price && 
+                 item.menu_item_snapshot?.effective_price < item.menu_item_snapshot?.original_price && (
+                  <View style={styles.itemPromotionBadge}>
+                    <Text style={styles.itemPromotionBadgeText}>
+                      PROMO
+                    </Text>
+                  </View>
+                )}
+              </View>
               <Text style={styles.itemQuantity}>x{item.quantity}</Text>
+              {/* Afficher prix original barré si promotion */}
+              {item.menu_item_snapshot?.is_promotion_active && 
+               item.menu_item_snapshot?.effective_price && 
+               item.menu_item_snapshot?.effective_price < item.menu_item_snapshot?.original_price && (
+                <Text style={styles.itemPriceOriginal}>
+                  {formatCurrency(
+                    (item.menu_item_snapshot?.original_price || item.unit_price || item.price || 0) * (item.quantity || 1)
+                  )}
+                </Text>
+              )}
             </View>
             <Text style={styles.itemPrice}>
               {formatCurrency(
-                (item.unit_price || item.price || item.menu_item?.price || item.menu_item_snapshot?.price || 0) * (item.quantity || 1)
+                (item.unit_price || item.price || item.menu_item?.price || item.menu_item_snapshot?.price || item.menu_item_snapshot?.effective_price || 0) * (item.quantity || 1)
               )}
             </Text>
           </View>
@@ -351,13 +402,16 @@ export default function OrderDetailsScreen({ route, navigation }) {
 
       {/* Order Summary */}
       <View style={styles.section}>
-        <Text style={styles.sectionTitle}>Résumé</Text>
+        <Text style={styles.sectionTitle}>Résumé de la commande</Text>
         <View style={styles.summaryCard}>
-          <View style={styles.summaryRow}>
-            <Text style={styles.summaryLabel}>Sous-total</Text>
-            <Text style={styles.summaryValue}>
-              {formatCurrency(subtotal)}
-            </Text>
+          {/* Sous-total - Mise en évidence */}
+          <View style={styles.subtotalContainer}>
+            <View style={[styles.summaryRow, styles.subtotalRow]}>
+              <Text style={[styles.summaryLabel, styles.subtotalLabel]}>Sous-total</Text>
+              <Text style={[styles.summaryValue, styles.subtotalValue]}>
+                {formatCurrency(subtotal)}
+              </Text>
+            </View>
           </View>
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Frais de livraison</Text>
@@ -374,9 +428,9 @@ export default function OrderDetailsScreen({ route, navigation }) {
             </Text>
           </View>
           <View style={[styles.summaryRow, styles.totalRow]}>
-            <Text style={styles.totalLabel}>Total</Text>
+            <Text style={styles.totalLabel}>Total à payer</Text>
             <Text style={styles.totalValue}>
-              {formatCurrency(total || order.total || 0)}
+              {formatCurrency(total)}
             </Text>
           </View>
           <View style={styles.paymentRow}>
@@ -391,10 +445,11 @@ export default function OrderDetailsScreen({ route, navigation }) {
           <TouchableOpacity 
             style={styles.refundPolicyLink}
             onPress={handleViewRefundPolicy}
+            activeOpacity={0.7}
           >
-            <Ionicons name="information-circle-outline" size={16} color={COLORS.primary} />
+            <Ionicons name="information-circle-outline" size={18} color={COLORS.primary} />
             <Text style={styles.refundPolicyText}>Politique de remboursement</Text>
-            <Ionicons name="chevron-forward" size={16} color={COLORS.textSecondary} />
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
           </TouchableOpacity>
         </View>
       </View>
@@ -472,6 +527,94 @@ export default function OrderDetailsScreen({ route, navigation }) {
         </TouchableOpacity>
       </View>
     </ScrollView>
+
+    {/* Modal d'annulation */}
+    <Modal
+      visible={showCancelModal}
+      transparent={true}
+      animationType="slide"
+      onRequestClose={() => setShowCancelModal(false)}
+    >
+      <KeyboardAvoidingView
+        style={styles.modalOverlay}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+        <View style={styles.modalContent}>
+          <Text style={styles.modalTitle}>Annuler la commande</Text>
+          <Text style={styles.modalSubtitle}>
+            Veuillez indiquer la raison de l'annulation (minimum 5 caractères)
+          </Text>
+
+          {/* Type d'annulation */}
+          <View style={styles.cancelTypeContainer}>
+            <Text style={styles.cancelTypeLabel}>Type d'annulation :</Text>
+            <View style={styles.cancelTypeButtons}>
+              {[
+                { value: 'change_mind', label: 'Changement d\'avis' },
+                { value: 'wrong_order', label: 'Mauvaise commande' },
+                { value: 'too_long', label: 'Trop long' },
+                { value: 'other', label: 'Autre' },
+              ].map((type) => (
+                <TouchableOpacity
+                  key={type.value}
+                  style={[
+                    styles.cancelTypeButton,
+                    cancelType === type.value && styles.cancelTypeButtonActive,
+                  ]}
+                  onPress={() => setCancelType(type.value)}
+                >
+                  <Text
+                    style={[
+                      styles.cancelTypeButtonText,
+                      cancelType === type.value && styles.cancelTypeButtonTextActive,
+                    ]}
+                  >
+                    {type.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
+          {/* Raison */}
+          <TextInput
+            style={styles.cancelReasonInput}
+            placeholder="Décrivez la raison de l'annulation..."
+            placeholderTextColor={COLORS.textLight}
+            value={cancelReason}
+            onChangeText={setCancelReason}
+            multiline
+            numberOfLines={4}
+            maxLength={500}
+            textAlignVertical="top"
+          />
+          <Text style={styles.charCount}>
+            {cancelReason.length}/500 caractères
+          </Text>
+
+          {/* Boutons */}
+          <View style={styles.modalButtons}>
+            <TouchableOpacity
+              style={[styles.modalButton, styles.modalButtonCancel]}
+              onPress={() => setShowCancelModal(false)}
+            >
+              <Text style={styles.modalButtonCancelText}>Annuler</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.modalButton,
+                styles.modalButtonConfirm,
+                (!cancelReason.trim() || cancelReason.trim().length < 5) && styles.modalButtonDisabled,
+              ]}
+              onPress={handleConfirmCancel}
+              disabled={!cancelReason.trim() || cancelReason.trim().length < 5}
+            >
+              <Text style={styles.modalButtonConfirmText}>Confirmer l'annulation</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+    </Modal>
     </View>
   );
 }
@@ -512,7 +655,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140,
+    paddingBottom: 350, // Augmenté pour s'assurer que tout le contenu est visible, y compris le sous-total et le bouton politique de remboursement
   },
   statusCard: {
     backgroundColor: COLORS.white,
@@ -564,7 +707,7 @@ const styles = StyleSheet.create({
   },
   section: {
     paddingHorizontal: 16,
-    marginBottom: 16,
+    marginBottom: 20, // Augmenté pour plus d'espace entre les sections
   },
   sectionHeader: {
     flexDirection: 'row',
@@ -642,15 +785,39 @@ const styles = StyleSheet.create({
   itemInfo: {
     flex: 1,
   },
+  itemNameRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 4,
+  },
   itemName: {
     fontSize: 16,
     fontWeight: '600',
     color: COLORS.text,
-    marginBottom: 4,
+    flex: 1,
+  },
+  itemPromotionBadge: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  itemPromotionBadgeText: {
+    color: COLORS.white,
+    fontSize: 9,
+    fontWeight: '700',
   },
   itemQuantity: {
     fontSize: 14,
     color: COLORS.textSecondary,
+    marginBottom: 2,
+  },
+  itemPriceOriginal: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
   },
   itemPrice: {
     fontSize: 16,
@@ -663,20 +830,52 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
+    marginBottom: 16, // Espacement supplémentaire en bas pour le bouton politique de remboursement
+    paddingBottom: 20, // Padding supplémentaire en bas de la carte
   },
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     marginBottom: 12,
   },
+  subtotalContainer: {
+    marginBottom: 20,
+    marginTop: 4,
+  },
+  subtotalRow: {
+    marginBottom: 0,
+    paddingBottom: 20,
+    paddingTop: 20,
+    borderBottomWidth: 2,
+    borderBottomColor: COLORS.border || '#E0E0E0',
+    backgroundColor: COLORS.background || '#F8F9FA',
+    paddingHorizontal: 16,
+    marginHorizontal: -16,
+    borderRadius: 8,
+    minHeight: 75, // Hauteur minimale pour garantir la visibilité complète
+    alignItems: 'center', // Centrer verticalement
+  },
   summaryLabel: {
     fontSize: 14,
     color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  subtotalLabel: {
+    fontSize: 17,
+    fontWeight: '800',
+    color: COLORS.text,
+    letterSpacing: 0.5,
   },
   summaryValue: {
     fontSize: 14,
     fontWeight: '500',
     color: COLORS.text,
+  },
+  subtotalValue: {
+    fontSize: 20,
+    fontWeight: '900',
+    color: COLORS.primary || COLORS.text,
+    letterSpacing: 0.5,
   },
   totalRow: {
     borderTopWidth: 2,
@@ -733,6 +932,11 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
     gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 5,
   },
   primaryButton: {
     backgroundColor: COLORS.primary,
@@ -820,17 +1024,24 @@ const styles = StyleSheet.create({
   refundPolicyLink: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    paddingTop: 12,
+    gap: 10,
+    marginTop: 16,
+    paddingTop: 16,
+    paddingBottom: 16,
+    paddingHorizontal: 4,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    minHeight: 50, // Hauteur minimale pour garantir la visibilité complète
+    backgroundColor: COLORS.background || '#F8F9FA',
+    borderRadius: 8,
+    marginHorizontal: -4,
   },
   refundPolicyText: {
     flex: 1,
-    fontSize: 13,
+    fontSize: 15,
     color: COLORS.primary,
-    fontWeight: '600',
+    fontWeight: '700',
+    letterSpacing: 0.3,
   },
   refundButton: {
     backgroundColor: 'transparent',
@@ -877,5 +1088,116 @@ const styles = StyleSheet.create({
     color: COLORS.white,
     fontSize: 16,
     fontWeight: '700',
+  },
+  // Styles pour le modal d'annulation
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  modalContent: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 24,
+    width: '100%',
+    maxWidth: 500,
+    maxHeight: '80%',
+  },
+  modalTitle: {
+    fontSize: 22,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  modalSubtitle: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 20,
+  },
+  cancelTypeContainer: {
+    marginBottom: 20,
+  },
+  cancelTypeLabel: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  cancelTypeButtons: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  cancelTypeButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  cancelTypeButtonActive: {
+    backgroundColor: COLORS.primary + '20',
+    borderColor: COLORS.primary,
+  },
+  cancelTypeButtonText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  cancelTypeButtonTextActive: {
+    color: COLORS.primary,
+    fontWeight: '600',
+  },
+  cancelReasonInput: {
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    padding: 16,
+    fontSize: 15,
+    color: COLORS.text,
+    minHeight: 100,
+    backgroundColor: COLORS.background,
+    marginBottom: 8,
+  },
+  charCount: {
+    fontSize: 12,
+    color: COLORS.textLight,
+    textAlign: 'right',
+    marginBottom: 20,
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  modalButton: {
+    flex: 1,
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  modalButtonCancel: {
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  modalButtonConfirm: {
+    backgroundColor: COLORS.error || '#EF4444',
+  },
+  modalButtonDisabled: {
+    backgroundColor: COLORS.textLight,
+    opacity: 0.5,
+  },
+  modalButtonCancelText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  modalButtonConfirmText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.white,
   },
 });

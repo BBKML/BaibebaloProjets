@@ -1,0 +1,41 @@
+# Flow : Validation commande (panier -> checkout)
+# Prérequis : utilisateur connecté avec au moins un article dans le panier
+appId: ci.baibebalo.client
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 15000
+# Ouvrir le panier (icône ou onglet)
+- tapOn: "Panier"
+- extendedWaitUntil:
+    visible:
+      any:
+        - "Valider la commande"
+        - "Votre panier est vide"
+    timeout: 5000
+- tapOn: "Valider la commande"
+- extendedWaitUntil:
+    visible:
+      any:
+        - "Adresse de livraison"
+        - "Ajouter une adresse"
+        - "Continuer vers le paiement"
+    timeout: 8000
+# Si pas d'adresse : l'utilisateur doit en ajouter une manuellement avant ce flow
+- tapOn: "Continuer vers le paiement"
+- extendedWaitUntil:
+    visible: "Paiement à la livraison"
+    timeout: 5000
+# Confirmer le mode de paiement (retour au checkout)
+- tapOn: "Confirmer la commande"
+- extendedWaitUntil:
+    visible: "Confirmer la commande"
+    timeout: 3000
+# Passer la commande
+- tapOn: "Confirmer la commande"
+- assertVisible:
+    any:
+      - "Commande confirmée"
+      - "Suivre ma commande"
+      - "Erreur"

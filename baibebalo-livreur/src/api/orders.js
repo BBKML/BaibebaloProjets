@@ -34,6 +34,12 @@ export const getOrderDetail = async (orderId) => {
   return response.data;
 };
 
+// === Suivi d'une commande (trackOrder) - Plus fiable pour les livreurs ===
+export const trackOrder = async (orderId) => {
+  const response = await apiClient.get(API_ENDPOINTS.ORDERS.TRACK(orderId));
+  return response.data;
+};
+
 // === Actions sur les courses (PUT au lieu de POST) ===
 export const acceptOrder = async (orderId, estimatedTime) => {
   const response = await apiClient.put(API_ENDPOINTS.ORDERS.ACCEPT(orderId), {
@@ -92,6 +98,7 @@ export default {
   getActiveOrders,
   getDeliveryHistory,
   getOrderDetail,
+  trackOrder,
   acceptOrder,
   declineOrder,
   arriveAtRestaurant,

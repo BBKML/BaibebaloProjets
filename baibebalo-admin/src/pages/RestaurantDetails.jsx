@@ -21,6 +21,14 @@ const RestaurantDetails = () => {
     retry: 2,
   });
 
+  // Charger le menu uniquement quand l'onglet Menu est actif
+  const { data: menuData, isLoading: isLoadingMenu } = useQuery({
+    queryKey: ['restaurant-menu', id],
+    queryFn: () => restaurantsAPI.getRestaurantMenu(id),
+    enabled: activeTab === 'menu',
+    retry: 2,
+  });
+
   const suspendMutation = useMutation({
     mutationFn: (reason) => restaurantsAPI.suspendRestaurant(id, reason),
     onSuccess: () => {
@@ -127,6 +135,19 @@ const RestaurantDetails = () => {
       case 'pending': return 'En attente';
       case 'suspended': return 'Suspendu';
       default: return status;
+    }
+  };
+
+  const getOrderStatusLabel = (status) => {
+    switch (status) {
+      case 'pending': return 'En attente';
+      case 'confirmed': return 'Confirmée';
+      case 'preparing': return 'En préparation';
+      case 'ready': return 'Prête';
+      case 'out_for_delivery': return 'En livraison';
+      case 'delivered': return 'Livrée';
+      case 'cancelled': return 'Annulée';
+      default: return status || 'Inconnu';
     }
   };
 
@@ -550,12 +571,20 @@ const RestaurantDetails = () => {
                           <td className="py-3">
                             <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
                               order.status === 'delivered' 
-                                ? 'bg-emerald-100 text-emerald-700' 
+                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
                                 : order.status === 'cancelled'
-                                ? 'bg-red-100 text-red-700'
-                                : 'bg-blue-100 text-blue-700'
+                                ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
+                                : order.status === 'pending'
+                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
+                                : order.status === 'preparing'
+                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
+                                : order.status === 'ready'
+                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'
+                                : order.status === 'out_for_delivery'
+                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400'
+                                : 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400'
                             }`}>
-                              {order.status}
+                              {getOrderStatusLabel(order.status)}
                             </span>
                           </td>
                           <td className="py-3 text-right font-semibold">{formatCurrency(order.total)}</td>
@@ -569,15 +598,130 @@ const RestaurantDetails = () => {
 
             {/* Tab: Menu */}
             {activeTab === 'menu' && (
-              <div className="text-center py-12 text-slate-500">
-                <span className="material-symbols-outlined text-4xl mb-2">restaurant_menu</span>
-                <p>Le menu sera chargé ici</p>
-                <button
-                  onClick={() => navigate(`/restaurants/${id}/statistics`)}
-                  className="mt-4 px-4 py-2 bg-primary text-white rounded-lg"
-                >
-                  Voir les statistiques complètes
-                </button>
+              <div>
+                {isLoadingMenu ? (
+                  <div className="text-center py-12">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    <p className="mt-4 text-slate-500 dark:text-slate-400">Chargement du menu...</p>
+                  </div>
+                ) : menuData?.data?.categories && menuData.data.categories.length > 0 ? (
+                  <div className="space-y-8">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-white">
+                        Menu ({menuData.data.total_items} {menuData.data.total_items === 1 ? 'plat' : 'plats'})
+                      </h3>
+                    </div>
+                    {menuData.data.categories.map((category) => (
+                      <div key={category.id} className="space-y-4">
+                        <div className="flex items-center gap-2 pb-2 border-b border-slate-200 dark:border-slate-700">
+                          <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                            {category.name}
+                          </h4>
+                          {category.description && (
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              {category.description}
+                            </span>
+                          )}
+                          <span className="ml-auto text-xs text-slate-500 dark:text-slate-400">
+                            {category.items?.length || 0} {category.items?.length === 1 ? 'plat' : 'plats'}
+                          </span>
+                        </div>
+                        {category.items && category.items.length > 0 ? (
+                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {category.items.map((item) => (
+                              <div
+                                key={item.id}
+                                className={`bg-slate-50 dark:bg-slate-800/50 rounded-lg border border-slate-200 dark:border-slate-700 overflow-hidden ${
+                                  !item.is_available ? 'opacity-60' : ''
+                                }`}
+                              >
+                                {item.photo || item.image_url ? (
+                                  <div className="aspect-video w-full overflow-hidden bg-slate-200 dark:bg-slate-700">
+                                    <img
+                                      src={getImageUrl(item.photo || item.image_url)}
+                                      alt={item.name}
+                                      className="w-full h-full object-cover"
+                                      onError={(e) => {
+                                        e.target.style.display = 'none';
+                                      }}
+                                    />
+                                  </div>
+                                ) : (
+                                  <div className="aspect-video w-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center">
+                                    <span className="material-symbols-outlined text-4xl text-slate-400">
+                                      restaurant_menu
+                                    </span>
+                                  </div>
+                                )}
+                                <div className="p-4">
+                                  <div className="flex items-start justify-between gap-2 mb-2">
+                                    <h5 className="font-bold text-slate-900 dark:text-white text-sm">
+                                      {item.name}
+                                    </h5>
+                                    {!item.is_available && (
+                                      <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs rounded-full whitespace-nowrap">
+                                        Indisponible
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.description && (
+                                    <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">
+                                      {item.description}
+                                    </p>
+                                  )}
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      {item.is_promotion_active ? (
+                                        <>
+                                          <span className="text-sm font-bold text-primary">
+                                            {formatCurrency(item.effective_price)}
+                                          </span>
+                                          <span className="text-xs text-slate-500 dark:text-slate-400 line-through">
+                                            {formatCurrency(item.original_price)}
+                                          </span>
+                                          {item.savings_percent > 0 && (
+                                            <span className="px-1.5 py-0.5 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 text-[10px] font-bold rounded">
+                                              -{item.savings_percent}%
+                                            </span>
+                                          )}
+                                        </>
+                                      ) : (
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white">
+                                          {formatCurrency(item.price)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {item.preparation_time && (
+                                      <span className="text-xs text-slate-500 dark:text-slate-400">
+                                        <span className="material-symbols-outlined text-xs align-middle">schedule</span>
+                                        {item.preparation_time} min
+                                      </span>
+                                    )}
+                                  </div>
+                                  {item.total_sold !== undefined && item.total_sold > 0 && (
+                                    <div className="mt-2 text-xs text-slate-500 dark:text-slate-400">
+                                      {item.total_sold} {item.total_sold === 1 ? 'vente' : 'ventes'}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <p className="text-sm text-slate-500 dark:text-slate-400 py-4">
+                            Aucun plat dans cette catégorie
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-12 text-slate-500 dark:text-slate-400">
+                    <span className="material-symbols-outlined text-4xl mb-2">restaurant_menu</span>
+                    <p className="text-sm font-medium">Aucun menu disponible</p>
+                    <p className="text-xs mt-1">Ce restaurant n'a pas encore de menu configuré</p>
+                  </div>
+                )}
               </div>
             )}
           </div>

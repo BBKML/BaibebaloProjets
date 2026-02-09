@@ -1,6 +1,8 @@
 // Statuts des commandes
 export const ORDER_STATUS = {
   PENDING: 'pending',
+  NEW: 'new',
+  ACCEPTED: 'accepted',
   CONFIRMED: 'confirmed',
   PREPARING: 'preparing',
   READY: 'ready',
@@ -13,6 +15,8 @@ export const ORDER_STATUS = {
 // Labels des statuts en français
 export const STATUS_LABELS = {
   [ORDER_STATUS.PENDING]: 'En attente',
+  [ORDER_STATUS.NEW]: 'Nouvelle commande',
+  [ORDER_STATUS.ACCEPTED]: 'Acceptée',
   [ORDER_STATUS.CONFIRMED]: 'Confirmée',
   [ORDER_STATUS.PREPARING]: 'En préparation',
   [ORDER_STATUS.READY]: 'Prête',
@@ -25,6 +29,8 @@ export const STATUS_LABELS = {
 // Couleurs des statuts
 export const STATUS_COLORS = {
   [ORDER_STATUS.PENDING]: '#f59e0b',
+  [ORDER_STATUS.NEW]: '#f59e0b',
+  [ORDER_STATUS.ACCEPTED]: '#10b981',
   [ORDER_STATUS.CONFIRMED]: '#3b82f6',
   [ORDER_STATUS.PREPARING]: '#f59e0b',
   [ORDER_STATUS.READY]: '#3b82f6',

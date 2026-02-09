@@ -49,8 +49,11 @@ export default function CustomizeDishScreen({ navigation, route }) {
     return optionsTotal;
   };
 
-  // Prix unitaire = Prix de base + Options
-  const unitPrice = (parseFloat(dish?.price) || 0) + calculateOptionsTotal();
+  // Prix unitaire = Prix de base (avec promotion si applicable) + Options
+  const basePrice = (dish?.is_promotion_active && dish?.effective_price) 
+    ? parseFloat(dish.effective_price) 
+    : (parseFloat(dish?.price) || 0);
+  const unitPrice = basePrice + calculateOptionsTotal();
   
   // Prix total = Prix unitaire × Quantité
   const totalPrice = unitPrice * quantity;
@@ -86,14 +89,22 @@ export default function CustomizeDishScreen({ navigation, route }) {
     }
 
     // Calculer le prix avec les options
+    // Utiliser le prix promotionnel si disponible, sinon le prix normal
+    const basePrice = (dish.is_promotion_active && dish.effective_price) 
+      ? dish.effective_price 
+      : (parseFloat(dish.price) || 0);
+    const originalBasePrice = parseFloat(dish.original_price || dish.price || 0);
     const optionsTotal = calculateOptionsTotal();
-    const priceWithOptions = (parseFloat(dish.price) || 0) + optionsTotal;
+    const priceWithOptions = basePrice + optionsTotal;
 
     const result = addItem(
       {
         ...dish,
-        price: priceWithOptions, // Prix incluant les options
-        base_price: dish.price, // Prix de base original
+        price: priceWithOptions, // Prix incluant les options (avec promotion si applicable)
+        base_price: basePrice, // Prix de base (avec promotion si applicable)
+        original_price: originalBasePrice, // Prix original sans promotion
+        effective_price: dish.effective_price || dish.price, // Prix effectif avec promotion
+        is_promotion_active: dish.is_promotion_active || false,
         options_total: optionsTotal, // Total des options pour référence
         quantity,
         customizations,
@@ -117,7 +128,10 @@ export default function CustomizeDishScreen({ navigation, route }) {
                 {
                   ...dish,
                   price: priceWithOptions,
-                  base_price: dish.price,
+                  base_price: basePrice,
+                  original_price: originalBasePrice,
+                  effective_price: dish.effective_price || dish.price,
+                  is_promotion_active: dish.is_promotion_active || false,
                   options_total: optionsTotal,
                   quantity,
                   customizations,
@@ -318,6 +332,18 @@ export default function CustomizeDishScreen({ navigation, route }) {
           </View>
           <View style={styles.totalBox}>
             <Text style={styles.totalLabel}>Total</Text>
+            {dish?.is_promotion_active && dish?.effective_price && dish?.original_price && (
+              <View style={styles.promotionPriceContainer}>
+                <Text style={styles.totalValueOriginal}>
+                  {((dish.original_price + calculateOptionsTotal()) * quantity).toLocaleString('fr-FR')} FCFA
+                </Text>
+                <View style={styles.promotionBadge}>
+                  <Text style={styles.promotionBadgeText}>
+                    -{Math.round((1 - dish.effective_price / dish.original_price) * 100)}%
+                  </Text>
+                </View>
+              </View>
+            )}
             <Text style={styles.totalValue}>
               {totalPrice.toLocaleString('fr-FR')} FCFA
             </Text>
@@ -569,9 +595,9 @@ const styles = StyleSheet.create({
     textAlign: 'center',
   },
   totalBox: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: 'column',
+    alignItems: 'flex-end',
+    gap: 4,
     marginTop: 12,
   },
   totalLabel: {
@@ -579,6 +605,29 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     fontWeight: '600',
     textTransform: 'uppercase',
+    alignSelf: 'flex-start',
+  },
+  promotionPriceContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  totalValueOriginal: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: COLORS.textSecondary,
+    textDecorationLine: 'line-through',
+  },
+  promotionBadge: {
+    backgroundColor: '#EF4444',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+  promotionBadgeText: {
+    color: COLORS.white,
+    fontSize: 10,
+    fontWeight: '700',
   },
   totalValue: {
     fontSize: 18,

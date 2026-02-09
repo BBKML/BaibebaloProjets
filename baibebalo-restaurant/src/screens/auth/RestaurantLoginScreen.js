@@ -89,18 +89,19 @@ export default function RestaurantLoginScreen({ navigation }) {
 
           {/* Formulaire */}
           <View style={styles.form}>
-            {/* Numéro de téléphone */}
+            {/* Identifiant (téléphone ou email) */}
             <View style={styles.fieldContainer}>
-              <Text style={styles.fieldLabel}>Numéro de téléphone</Text>
+              <Text style={styles.fieldLabel}>Téléphone ou Email</Text>
               <View style={styles.inputWrapper}>
                 <TextInput
                   style={styles.input}
-                  placeholder="06 00 00 00 00"
+                  placeholder="06 00 00 00 00 ou restaurant@exemple.com"
                   placeholderTextColor={COLORS.textSecondary + '99'}
                   value={phone}
                   onChangeText={setPhone}
-                  keyboardType="phone-pad"
+                  keyboardType="default"
                   autoCapitalize="none"
+                  autoCorrect={false}
                 />
               </View>
             </View>

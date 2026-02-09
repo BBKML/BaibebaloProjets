@@ -1,0 +1,40 @@
+BAIBEBALO - Tests de charge (autocannon)
+URL: http://localhost:5001 | Durée par scénario: 10s
+
+--- Scénario 1 : 100 clients simultanés (send-otp) ---
+
+--- Scénario 2 : 50 commandes (ignoré, CLIENT_TOKEN manquant ou PERF_SKIP_AUTH=1) ---
+
+--- Scénario 3 : 1000 req GPS/min (ignoré, DELIVERY_TOKEN manquant ou PERF_SKIP_AUTH=1) ---
+
+--- Scénario 4 : 500 notifications (ignoré, ADMIN_TOKEN manquant ou PERF_SKIP_AUTH=1) ---
+
+--- Scénario 5 : 100 restaurants menu (ignoré, RESTAURANT_TOKEN manquant ou PERF_SKIP_AUTH=1) ---
+
+========== RAPPORT DE PERFORMANCE ==========
+Base URL: http://localhost:5001
+Début: 2026-02-08T19:28:30.973Z
+Fin:   2026-02-08T19:28:38.426Z
+Durée totale: 7.5 s
+--- Ressources (processus runner) ---
+RAM (heap used): 396.37 MB
+RAM (RSS):       594.52 MB
+Load avg (1m):  0.00
+--- Seuils ---
+Latence cible:  < 200 ms
+Taux d'erreur:  < 1%
+--- Résultats par scénario ---
+  [FAIL] 100 clients send-otp
+    Requêtes:     1
+    Erreurs:      99 (9900.00%)
+    Débit:        139.86 req/s
+    Latence avg:  5792.00 ms
+    Latence p99:  5792.00 ms
+    Latence max:  5792.00 ms
+  [SKIP] 50 commandes
+  [SKIP] 1000 GPS/min
+  [SKIP] 500 notifications
+  [SKIP] 100 restaurants menu
+--- Bilan ---
+Réussis: 0, Échoués: 1, Ignorés: 4
+==============================================

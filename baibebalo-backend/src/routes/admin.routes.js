@@ -43,13 +43,6 @@ router.get('/users/:id',
   adminController.getUserById
 );
 
-// Statistiques détaillées d'un restaurant
-router.get('/restaurants/:id/statistics', 
-  requireAdminPermission('view_restaurants'),
-  uuidValidator('id', 'Restaurant ID'),
-  adminController.getRestaurantStatistics
-);
-
 // Suspendre/activer un utilisateur
 router.put('/users/:id/suspend', 
   requireAdminPermission('manage_users'),
@@ -80,6 +73,20 @@ router.get('/restaurants',
   requireAdminPermission('view_restaurants'),
   paginationValidator,
   adminController.getRestaurants
+);
+
+// Statistiques détaillées d'un restaurant (doit être avant /:id)
+router.get('/restaurants/:id/statistics', 
+  requireAdminPermission('view_restaurants'),
+  uuidValidator('id', 'Restaurant ID'),
+  adminController.getRestaurantStatistics
+);
+
+// Menu d'un restaurant (doit être avant /:id pour éviter les conflits)
+router.get('/restaurants/:id/menu', 
+  requireAdminPermission('view_restaurants'),
+  uuidValidator('id', 'Restaurant ID'),
+  adminController.getRestaurantMenu
 );
 
 // Détails d'un restaurant
@@ -259,6 +266,19 @@ router.get('/orders/:id',
   adminController.getOrderById
 );
 
+// Mettre à jour le statut d'une commande (admin)
+router.patch('/orders/:id/status',
+  requireAdminPermission('manage_orders'),
+  uuidValidator('id', 'Order ID'),
+  [
+    body('status')
+      .isIn(['new', 'accepted', 'preparing', 'ready', 'cancelled', 'assigned', 'picked_up', 'delivering', 'delivered'])
+      .withMessage('Statut invalide'),
+  ],
+  validate,
+  adminController.updateOrderStatus
+);
+
 // Annuler une commande (en cas de litige)
 router.put('/orders/:id/cancel', 
   requireAdminPermission('manage_orders'),
@@ -338,6 +358,36 @@ router.put('/finances/payouts/:id/process',
   requireAdminPermission('process_payouts'),
   uuidValidator('id', 'Payout ID'),
   adminController.processPayout
+);
+
+// Marquer un payout comme payé (après versement effectué)
+router.put('/finances/payouts/:id/mark-paid', 
+  requireAdminPermission('process_payouts'),
+  uuidValidator('id', 'Payout ID'),
+  adminController.markPayoutAsPaid
+);
+
+// Actualiser le solde d'un livreur
+router.put('/finances/delivery/:id/refresh-balance', 
+  requireAdminPermission('process_payouts'),
+  uuidValidator('id', 'Delivery Person ID'),
+  adminController.refreshDeliveryBalance
+);
+
+// Actualiser le solde d'un restaurant
+router.put('/finances/restaurant/:id/refresh-balance', 
+  requireAdminPermission('process_payouts'),
+  uuidValidator('id', 'Restaurant ID'),
+  adminController.refreshRestaurantBalance
+);
+
+// Générer manuellement les payouts
+router.post('/finances/generate-payouts',
+  requireAdminPermission('process_payouts'),
+  [
+    body('user_type').optional().isIn(['delivery', 'restaurant']).withMessage('user_type doit être delivery ou restaurant'),
+  ],
+  adminController.generatePayouts
 );
 
 // Rejeter une demande de retrait

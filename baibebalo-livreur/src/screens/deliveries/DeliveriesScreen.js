@@ -156,7 +156,20 @@ export default function DeliveriesScreen({ navigation }) {
         </View>
       </View>
       <View style={styles.activeOrderActions}>
-        <Text style={styles.activeOrderEarnings}>+{(item.delivery_fee || 0).toLocaleString()} F</Text>
+        <View style={styles.activeOrderLeft}>
+          <Text style={styles.activeOrderEarnings}>+{(item.estimated_earnings || item.delivery_fee || 0).toLocaleString()} F</Text>
+          {item.payment_method === 'cash' ? (
+            <View style={styles.paymentBadge}>
+              <Ionicons name="cash-outline" size={12} color={COLORS.warning} />
+              <Text style={styles.paymentBadgeText}>Espèces</Text>
+            </View>
+          ) : (
+            <View style={[styles.paymentBadge, styles.paymentBadgePaid]}>
+              <Ionicons name="checkmark-circle" size={12} color={COLORS.success} />
+              <Text style={[styles.paymentBadgeText, styles.paymentBadgeTextPaid]}>Payé</Text>
+            </View>
+          )}
+        </View>
         <View style={styles.continueButton}>
           <Text style={styles.continueButtonText}>Continuer</Text>
           <Ionicons name="arrow-forward" size={16} color="#FFFFFF" />
@@ -424,9 +437,34 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
+  activeOrderLeft: {
+    flexDirection: 'column',
+    gap: 6,
+  },
   activeOrderEarnings: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: COLORS.success,
+  },
+  paymentBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.warning + '15',
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+  },
+  paymentBadgePaid: {
+    backgroundColor: COLORS.success + '15',
+  },
+  paymentBadgeText: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: COLORS.warning,
+  },
+  paymentBadgeTextPaid: {
     color: COLORS.success,
   },
   continueButton: {

@@ -6,8 +6,9 @@ import useAuthStore from '../store/authStore';
 // Timeout 10s : éviter que l'app reste bloquée ; erreur gérée gracieusement (spinner + message)
 const requestTimeout = 10000;
 
+// Utiliser API_BASE_URL depuis constants/api.js qui gère déjà l'environnement
 const apiClient = axios.create({
-  baseURL: (typeof API_BASE_URL === 'string' && API_BASE_URL) ? API_BASE_URL : 'https://baibebaloprojets.onrender.com/api/v1',
+  baseURL: API_BASE_URL || 'http://192.168.1.5:5000/api/v1',
   timeout: requestTimeout,
   headers: {
     'Content-Type': 'application/json',

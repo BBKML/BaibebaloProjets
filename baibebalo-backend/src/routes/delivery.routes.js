@@ -228,6 +228,16 @@ router.put('/orders/:id/arrive-restaurant',
 );
 
 /**
+ * @route   PUT /api/v1/delivery/orders/:id/pay-restaurant
+ * @desc    Livreur paie le restaurant à l'avance (avant de récupérer la commande)
+ * @access  Private (Delivery Person)
+ */
+router.put('/orders/:id/pay-restaurant',
+  uuidValidator('id', 'Order ID'),
+  deliveryController.payRestaurant
+);
+
+/**
  * @route   PUT /api/v1/delivery/orders/:id/pickup
  * @desc    Confirmer récupération de la commande
  * @access  Private (Delivery Person)
@@ -364,14 +374,22 @@ router.get('/cash-remittances/orders-pending', deliveryController.getOrdersPendi
 router.post('/cash-remittances',
   [
     body('amount').isFloat({ min: 1 }).toFloat().withMessage('Montant requis'),
-    body('method').isIn(['agency', 'bank_deposit']).withMessage('Méthode: agency ou bank_deposit'),
+    body('method').isIn(['agency', 'bank_deposit', 'mobile_money_deposit']).withMessage('Méthode: agency, bank_deposit ou mobile_money_deposit'),
     body('order_ids').isArray({ min: 1 }).withMessage('Liste des IDs de commandes requise'),
     body('order_ids.*').isUUID().withMessage('ID commande invalide'),
     body('reference').optional().trim(),
+    body('mobile_money_provider').optional().isIn(['orange_money', 'mtn_money', 'waves']).withMessage('Provider doit être orange_money, mtn_money ou waves'),
   ],
   validate,
   deliveryController.createCashRemittance
 );
+
+/**
+ * @route   GET /api/v1/delivery/cash-remittances/info
+ * @desc    Obtenir les informations de remise espèces (numéro Baibebalo, etc.)
+ * @access  Private (Delivery Person)
+ */
+router.get('/cash-remittances/info', deliveryController.getCashRemittanceInfo);
 
 /**
  * @route   GET /api/v1/delivery/cash-remittances

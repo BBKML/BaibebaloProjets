@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../store/authStore';
 import { COLORS } from '../constants/colors';
 import { useNotifications } from '../hooks/useNotifications';
+import { checkMaintenanceMode, invalidateSettingsCache } from '../services/settingsService';
 
 // Écrans d'authentification
 import SplashScreen from '../screens/auth/SplashScreen';
@@ -85,6 +86,9 @@ import IncidentReportScreen from '../screens/problems/IncidentReportScreen';
 
 // Notification Center
 import NotificationCenterScreen from '../screens/notifications/NotificationCenterScreen';
+
+// Écran de maintenance
+import AppMaintenanceScreen from '../screens/system/AppMaintenanceScreen';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -191,6 +195,31 @@ export default function AppNavigator() {
   const [showSplash, setShowSplash] = useState(true);
   const navigationRef = useRef(null);
   const [previousAuth, setPreviousAuth] = useState(false);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
+
+  // Vérifier le mode maintenance au démarrage + polling toutes les 30s
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        invalidateSettingsCache(); // Forcer une requête fraîche
+        const maintenanceMode = await checkMaintenanceMode();
+        console.log('[AppNavigator] Mode maintenance:', maintenanceMode);
+        setIsMaintenanceMode(maintenanceMode);
+      } catch (error) {
+        console.error('[AppNavigator] Erreur vérification maintenance:', error);
+        setIsMaintenanceMode(false);
+      } finally {
+        setIsCheckingMaintenance(false);
+      }
+    };
+
+    checkMaintenance();
+
+    // Polling toutes les 30 secondes pour détecter les changements de mode maintenance
+    const interval = setInterval(checkMaintenance, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     const init = async () => {
@@ -227,8 +256,23 @@ export default function AppNavigator() {
     }
   }, [isAuthenticated, isReady, showSplash]);
 
-  if (!isReady || isLoading || showSplash) {
+  if (!isReady || isLoading || showSplash || isCheckingMaintenance) {
     return <SplashScreen />;
+  }
+
+  // Si mode maintenance activé, afficher l'écran de maintenance
+  if (isMaintenanceMode) {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen
+            name="AppMaintenance"
+            component={AppMaintenanceScreen}
+            options={{ gestureEnabled: false }}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
   }
   
   // Déterminer la route cible selon l'état

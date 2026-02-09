@@ -110,12 +110,51 @@ const OrderDetails = () => {
   const order = data?.data?.order || {};
   const isDelayed = order.status === 'delayed' || order.is_delayed;
 
+  // Fonction pour traduire les statuts de commande
+  const getOrderStatusLabel = (status) => {
+    switch (status) {
+      case 'new': return 'Nouvelle';
+      case 'pending': return 'En attente';
+      case 'accepted': return 'Acceptée';
+      case 'preparing': return 'En préparation';
+      case 'ready': return 'Prête';
+      case 'picked_up': return 'Récupérée';
+      case 'delivering': return 'En livraison';
+      case 'delivered': return 'Livrée';
+      case 'cancelled': return 'Annulée';
+      default: return status || 'Inconnu';
+    }
+  };
+
+  const getOrderStatusBadge = (status) => {
+    switch (status) {
+      case 'delivered':
+        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+      case 'cancelled':
+        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
+      case 'picked_up':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'delivering':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'ready':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'preparing':
+        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+      case 'accepted':
+      case 'pending':
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+      default:
+        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
+    }
+  };
+
   // Timeline steps
   const timelineSteps = [
     { key: 'placed', label: 'Commandée', icon: 'shopping_cart' },
     { key: 'confirmed', label: 'Confirmée', icon: 'check_circle' },
     { key: 'preparing', label: 'En préparation', icon: 'restaurant' },
     { key: 'ready', label: 'Prête', icon: 'done' },
+    { key: 'picked_up', label: 'Récupérée', icon: 'inventory_2' },
     { key: 'on_route', label: 'En route', icon: 'local_shipping' },
     { key: 'delivered', label: 'Livrée', icon: 'check' },
   ];
@@ -160,19 +199,8 @@ const OrderDetails = () => {
             </div>
             <div>
               <p className="text-sm text-slate-500">Statut</p>
-              <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${
-                order.status === 'delivered' ? 'bg-emerald-100 text-emerald-700' :
-                order.status === 'cancelled' ? 'bg-red-100 text-red-700' :
-                order.status === 'preparing' ? 'bg-blue-100 text-blue-700' :
-                order.status === 'delivering' ? 'bg-purple-100 text-purple-700' :
-                'bg-amber-100 text-amber-700'
-              }`}>
-                {order.status === 'delivered' ? 'Livrée' :
-                 order.status === 'cancelled' ? 'Annulée' :
-                 order.status === 'preparing' ? 'En préparation' :
-                 order.status === 'delivering' ? 'En livraison' :
-                 order.status === 'ready' ? 'Prête' :
-                 order.status}
+              <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${getOrderStatusBadge(order.status)}`}>
+                {getOrderStatusLabel(order.status)}
               </span>
             </div>
             <div>
@@ -447,34 +475,44 @@ const OrderDetails = () => {
               <thead>
                 <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[11px] font-black uppercase tracking-widest">
                   <th className="px-6 py-4">Item</th>
-                  <th className="px-6 py-4 text-center">Quantity</th>
-                  <th className="px-6 py-4 text-right">Price</th>
+                  <th className="px-6 py-4 text-center">Quantité</th>
+                  <th className="px-6 py-4 text-right">Prix unitaire</th>
+                  <th className="px-6 py-4 text-right">Total</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {order.items && order.items.length > 0 ? (
-                  order.items.map((item, index) => (
-                    <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                      <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">
-                        {item.name || item.item_name || 'N/A'}
-                      </td>
-                      <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">
-                        {item.quantity || 1}x
-                      </td>
-                      <td className="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">
-                        {formatCurrency(item.price || item.unit_price || 0)}
-                      </td>
-                    </tr>
-                  ))
+                  order.items.map((item, index) => {
+                    const quantity = item.quantity || 1;
+                    const unitPrice = Number.parseFloat(item.price || item.unit_price || 0);
+                    const totalPrice = unitPrice * quantity;
+                    
+                    return (
+                      <tr key={index} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
+                        <td className="px-6 py-4 text-sm font-medium text-slate-900 dark:text-white">
+                          {item.name || item.item_name || 'N/A'}
+                        </td>
+                        <td className="px-6 py-4 text-center text-sm text-slate-600 dark:text-slate-400">
+                          {quantity}x
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm text-slate-600 dark:text-slate-400">
+                          {formatCurrency(unitPrice)}
+                        </td>
+                        <td className="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">
+                          {formatCurrency(totalPrice)}
+                        </td>
+                      </tr>
+                    );
+                  })
                 ) : (
                   <tr>
-                    <td colSpan="3" className="px-6 py-8 text-center text-slate-500">
+                    <td colSpan="4" className="px-6 py-8 text-center text-slate-500">
                       Aucun article trouvé
                     </td>
                   </tr>
                 )}
                 <tr className="bg-slate-50 dark:bg-slate-800/50 font-bold">
-                  <td colSpan="2" className="px-6 py-4 text-sm text-slate-900 dark:text-white">
+                  <td colSpan="3" className="px-6 py-4 text-sm text-slate-900 dark:text-white">
                     Total
                   </td>
                   <td className="px-6 py-4 text-right text-lg text-slate-900 dark:text-white">

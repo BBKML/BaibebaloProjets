@@ -26,6 +26,7 @@ export default function OrderChatScreen({ route, navigation }) {
   const flatListRef = useRef(null);
 
   useEffect(() => {
+    console.log('💬 OrderChatScreen monté:', { orderId, restaurantName });
     loadMessages();
     
     // Polling pour les nouveaux messages toutes les 5 secondes
@@ -37,7 +38,9 @@ export default function OrderChatScreen({ route, navigation }) {
     try {
       const response = await apiClient.get(`/orders/${orderId}/messages`);
       if (response.data?.success) {
-        setMessages(response.data.data.messages || []);
+        const loadedMessages = response.data.data.messages || [];
+        console.log('📥 Messages chargés:', { count: loadedMessages.length, orderId });
+        setMessages(loadedMessages);
         setOrderInfo(response.data.data.order);
         
         // Marquer comme lus
@@ -46,7 +49,7 @@ export default function OrderChatScreen({ route, navigation }) {
         }
       }
     } catch (error) {
-      console.error('Erreur chargement messages:', error);
+      console.error('❌ Erreur chargement messages:', error);
       if (loading) {
         Alert.alert('Erreur', 'Impossible de charger les messages');
       }
@@ -56,26 +59,45 @@ export default function OrderChatScreen({ route, navigation }) {
   };
 
   const sendMessage = async () => {
-    if (!newMessage.trim() || sending) return;
+    if (!newMessage.trim() || sending) {
+      console.log('Envoi bloqué:', { hasMessage: !!newMessage.trim(), sending });
+      return;
+    }
+
+    const messageToSend = newMessage.trim();
+    console.log('📤 Envoi du message:', { orderId, message: messageToSend.substring(0, 50) });
 
     setSending(true);
     try {
       const response = await apiClient.post(`/orders/${orderId}/messages`, {
-        message: newMessage.trim(),
+        message: messageToSend,
       });
 
+      console.log('✅ Réponse serveur:', response.data);
+
       if (response.data?.success) {
-        setMessages(prev => [...prev, response.data.data.message]);
+        const newMsg = response.data.data.message;
+        console.log('✅ Message ajouté:', newMsg);
+        setMessages(prev => [...prev, newMsg]);
         setNewMessage('');
         
         // Scroll vers le bas
         setTimeout(() => {
           flatListRef.current?.scrollToEnd({ animated: true });
         }, 100);
+      } else {
+        console.warn('⚠️ Réponse sans success:', response.data);
+        Alert.alert('Erreur', 'Le message n\'a pas pu être envoyé');
       }
     } catch (error) {
-      console.error('Erreur envoi message:', error);
-      const errorMsg = error.response?.data?.error?.message || 'Impossible d\'envoyer le message';
+      console.error('❌ Erreur envoi message:', error);
+      console.error('Détails erreur:', {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        headers: error.response?.headers,
+      });
+      const errorMsg = error.response?.data?.error?.message || error.message || 'Impossible d\'envoyer le message';
       Alert.alert('Erreur', errorMsg);
     } finally {
       setSending(false);
@@ -199,7 +221,7 @@ export default function OrderChatScreen({ route, navigation }) {
       {/* Messages */}
       <KeyboardAvoidingView 
         style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {messages.length === 0 ? (
@@ -219,6 +241,7 @@ export default function OrderChatScreen({ route, navigation }) {
             contentContainerStyle={styles.messagesList}
             onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           />
         )}
 
@@ -229,13 +252,36 @@ export default function OrderChatScreen({ route, navigation }) {
             placeholder="Écrivez votre message..."
             placeholderTextColor={COLORS.textLight}
             value={newMessage}
-            onChangeText={setNewMessage}
+            onChangeText={(text) => {
+              console.log('📝 Texte modifié:', text.substring(0, 30));
+              setNewMessage(text);
+            }}
             multiline
             maxLength={1000}
+            blurOnSubmit={false}
+            returnKeyType="send"
+            onSubmitEditing={() => {
+              console.log('⌨️ onSubmitEditing déclenché');
+              // Ne pas fermer le clavier lors de la soumission
+              if (newMessage.trim() && !sending) {
+                sendMessage();
+              }
+            }}
+            onKeyPress={({ nativeEvent }) => {
+              // Sur Android, gérer la touche Entrée pour multiline
+              if (nativeEvent.key === 'Enter' && !nativeEvent.shiftKey) {
+                if (newMessage.trim() && !sending) {
+                  sendMessage();
+                }
+              }
+            }}
           />
           <TouchableOpacity 
             style={[styles.sendButton, (!newMessage.trim() || sending) && styles.sendButtonDisabled]}
-            onPress={sendMessage}
+            onPress={() => {
+              console.log('🔘 Bouton d\'envoi pressé:', { hasMessage: !!newMessage.trim(), sending });
+              sendMessage();
+            }}
             disabled={!newMessage.trim() || sending}
           >
             {sending ? (

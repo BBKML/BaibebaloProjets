@@ -92,7 +92,7 @@ const Header = ({ onMenuClick = () => {} }) => {
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
           <input
             type="text"
-            placeholder="Rechercher une commande..."
+            placeholder="Rechercher..."
             className="pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 w-64 transition-all"
           />
         </div>

@@ -24,6 +24,8 @@ export default function CustomerChatScreen({ route, navigation }) {
   const [sending, setSending] = useState(false);
   const [orderInfo, setOrderInfo] = useState(null);
   const flatListRef = useRef(null);
+  const inputRef = useRef(null);
+  const [isInputFocused, setIsInputFocused] = useState(false);
 
   // Templates de messages rapides
   const quickReplies = [
@@ -34,28 +36,67 @@ export default function CustomerChatScreen({ route, navigation }) {
   ];
 
   useEffect(() => {
-    loadMessages();
+    loadMessages(false); // Premier chargement, toujours mettre à jour
     
     // Polling pour les nouveaux messages toutes les 5 secondes
-    const interval = setInterval(loadMessages, 5000);
+    // Ne pas mettre à jour si l'input est en focus pour éviter de fermer le clavier
+    const interval = setInterval(() => {
+      if (!isInputFocused) {
+        loadMessages(true);
+      }
+    }, 5000);
     return () => clearInterval(interval);
   }, [orderId]);
 
-  const loadMessages = async () => {
+  const loadMessages = async (skipUpdateIfFocused = true) => {
     try {
       const response = await restaurantOrders.getOrderMessages(orderId);
-      if (response.data?.success) {
-        setMessages(response.data.data.messages || []);
-        setOrderInfo(response.data.data.order);
+      
+      // Si l'input est en focus et qu'on veut éviter les mises à jour, ne pas mettre à jour les messages
+      // sauf si c'est le premier chargement
+      if (skipUpdateIfFocused && isInputFocused && !loading) {
+        return;
+      }
+      
+      // getOrderMessages retourne déjà response.data, donc on accède directement à response.success
+      if (response?.success) {
+        const newMessages = response.data?.messages || [];
+        // Ne mettre à jour que si les messages ont changé (éviter les re-renders inutiles)
+        setMessages(prev => {
+          if (prev.length === newMessages.length && 
+              prev.length > 0 && 
+              prev[prev.length - 1].id === newMessages[newMessages.length - 1].id) {
+            return prev; // Pas de changement, garder la référence
+          }
+          return newMessages;
+        });
+        setOrderInfo(response.data?.order);
         
         // Marquer comme lus
-        if (response.data.data.unread_count > 0) {
+        if (response.data?.unread_count > 0) {
+          await restaurantOrders.markMessagesRead(orderId);
+        }
+      } else if (response?.data?.success) {
+        // Fallback pour compatibilité avec l'ancien format
+        const newMessages = response.data.data?.messages || [];
+        setMessages(prev => {
+          if (prev.length === newMessages.length && 
+              prev.length > 0 && 
+              prev[prev.length - 1].id === newMessages[newMessages.length - 1].id) {
+            return prev;
+          }
+          return newMessages;
+        });
+        setOrderInfo(response.data.data?.order);
+        
+        if (response.data.data?.unread_count > 0) {
           await restaurantOrders.markMessagesRead(orderId);
         }
       }
     } catch (error) {
       console.error('Erreur chargement messages:', error);
-      if (loading) {
+      // Ne pas afficher d'alerte pour les erreurs silencieuses (polling)
+      if (loading && error.code !== 'FETCH_ERROR') {
         Alert.alert('Erreur', 'Impossible de charger les messages');
       }
     } finally {
@@ -63,26 +104,58 @@ export default function CustomerChatScreen({ route, navigation }) {
     }
   };
 
-  const sendMessage = async (messageText = newMessage) => {
-    const text = messageText.trim();
+  const sendMessage = async (messageText = null) => {
+    const text = (messageText || newMessage).trim();
     if (!text || sending) return;
 
     setSending(true);
+    const tempMessageId = `temp-${Date.now()}`;
+    
+    // Ajouter le message optimistiquement à la liste
+    const optimisticMessage = {
+      id: tempMessageId,
+      message: text,
+      sender_type: 'restaurant',
+      created_at: new Date().toISOString(),
+      read_at: null,
+    };
+    setMessages(prev => [...prev, optimisticMessage]);
+    setNewMessage('');
+    
+    // Scroll vers le bas immédiatement
+    setTimeout(() => {
+      flatListRef.current?.scrollToEnd({ animated: true });
+    }, 100);
+
     try {
       const response = await restaurantOrders.sendOrderMessage(orderId, text);
 
-      if (response.data?.success) {
-        setMessages(prev => [...prev, response.data.data.message]);
-        setNewMessage('');
+      if (response?.success || response?.data?.success) {
+        // Le backend retourne { success: true, data: { message: {...} } }
+        const actualMessage = response?.data?.message || response?.data?.data?.message;
         
-        // Scroll vers le bas
+        // Remplacer le message temporaire par le vrai message du serveur
+        if (actualMessage) {
+          setMessages(prev => prev.map(msg => 
+            msg.id === tempMessageId ? actualMessage : msg
+          ));
+        } else {
+          // Si pas de message retourné, recharger tous les messages
+          setTimeout(() => {
+            loadMessages();
+          }, 300);
+        }
+      } else {
+        // En cas d'échec, recharger quand même pour avoir l'état actuel
         setTimeout(() => {
-          flatListRef.current?.scrollToEnd({ animated: true });
-        }, 100);
+          loadMessages();
+        }, 300);
       }
     } catch (error) {
       console.error('Erreur envoi message:', error);
-      const errorMsg = error.response?.data?.error?.message || 'Impossible d\'envoyer le message';
+      // Retirer le message temporaire en cas d'erreur
+      setMessages(prev => prev.filter(msg => msg.id !== tempMessageId));
+      const errorMsg = error?.error?.message || error?.message || 'Impossible d\'envoyer le message';
       Alert.alert('Erreur', errorMsg);
     } finally {
       setSending(false);
@@ -90,6 +163,8 @@ export default function CustomerChatScreen({ route, navigation }) {
   };
 
   const handleQuickReply = (text) => {
+    // Vider le champ de saisie et envoyer le message rapide
+    setNewMessage('');
     sendMessage(text);
   };
 
@@ -231,7 +306,7 @@ export default function CustomerChatScreen({ route, navigation }) {
       {/* Messages */}
       <KeyboardAvoidingView 
         style={styles.chatContainer}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
       >
         {messages.length === 0 ? (
@@ -246,17 +321,28 @@ export default function CustomerChatScreen({ route, navigation }) {
           <FlatList
             ref={flatListRef}
             data={messages}
-            keyExtractor={(item) => item.id}
+            keyExtractor={(item) => item.id?.toString() || `msg-${item.created_at}`}
             renderItem={renderMessage}
             contentContainerStyle={styles.messagesList}
-            onContentSizeChange={() => flatListRef.current?.scrollToEnd({ animated: false })}
+            onContentSizeChange={() => {
+              setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: false });
+              }, 100);
+            }}
+            onLayout={() => {
+              setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: false });
+              }, 100);
+            }}
             showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
           />
         )}
 
         {/* Input */}
         <View style={styles.inputContainer}>
           <TextInput
+            ref={inputRef}
             style={styles.input}
             placeholder="Écrivez votre message..."
             placeholderTextColor={COLORS.textLight}
@@ -264,6 +350,23 @@ export default function CustomerChatScreen({ route, navigation }) {
             onChangeText={setNewMessage}
             multiline
             maxLength={1000}
+            blurOnSubmit={false}
+            returnKeyType="send"
+            onFocus={() => {
+              setIsInputFocused(true);
+              // Scroll vers le bas quand le clavier s'ouvre
+              setTimeout(() => {
+                flatListRef.current?.scrollToEnd({ animated: true });
+              }, 300);
+            }}
+            onBlur={() => {
+              setIsInputFocused(false);
+            }}
+            onSubmitEditing={() => {
+              if (newMessage.trim() && !sending) {
+                sendMessage();
+              }
+            }}
           />
           <TouchableOpacity 
             style={[styles.sendButton, (!newMessage.trim() || sending) && styles.sendButtonDisabled]}

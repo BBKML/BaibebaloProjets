@@ -16,6 +16,7 @@ import { COLORS } from '../../constants/colors';
 import {
   getOrdersPendingCashRemittance,
   createCashRemittance,
+  getCashRemittanceInfo,
 } from '../../api/earnings';
 
 export default function CashRemittanceScreen({ navigation }) {
@@ -24,9 +25,11 @@ export default function CashRemittanceScreen({ navigation }) {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [method, setMethod] = useState('agency');
   const [reference, setReference] = useState('');
+  const [mobileMoneyProvider, setMobileMoneyProvider] = useState('orange_money');
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [baibebaloMobileMoneyNumber, setBaibebaloMobileMoneyNumber] = useState('+225XXXXXXXXX');
 
   const loadPending = useCallback(async () => {
     try {
@@ -104,6 +107,8 @@ export default function CashRemittanceScreen({ navigation }) {
           'Remise enregistrée',
           method === 'agency'
             ? "Présentez-vous à l'agence avec cet argent pour validation."
+            : method === 'mobile_money_deposit'
+            ? "Dépôt Mobile Money enregistré. L'admin validera après vérification du dépôt."
             : "Après avoir effectué le virement, l'admin validera après vérification.",
           [
             {
@@ -256,6 +261,16 @@ export default function CashRemittanceScreen({ navigation }) {
                     </Text>
                   </TouchableOpacity>
                 </View>
+                
+                <TouchableOpacity
+                  style={[styles.methodButton, styles.methodButtonFull, method === 'mobile_money_deposit' && styles.methodButtonActive]}
+                  onPress={() => setMethod('mobile_money_deposit')}
+                >
+                  <Ionicons name="phone-portrait-outline" size={24} color={method === 'mobile_money_deposit' ? '#FFF' : COLORS.text} />
+                  <Text style={[styles.methodButtonText, method === 'mobile_money_deposit' && styles.methodButtonTextActive]}>
+                    Dépôt Mobile Money
+                  </Text>
+                </TouchableOpacity>
 
                 {method === 'bank_deposit' && (
                   <TextInput
@@ -265,6 +280,54 @@ export default function CashRemittanceScreen({ navigation }) {
                     value={reference}
                     onChangeText={setReference}
                   />
+                )}
+                
+                {method === 'mobile_money_deposit' && (
+                  <>
+                    <View style={styles.mobileMoneyInfo}>
+                      <Ionicons name="information-circle-outline" size={20} color={COLORS.info} />
+                      <Text style={styles.mobileMoneyInfoText}>
+                        Faites un dépôt Mobile Money sur le numéro Baibebalo :{' '}
+                        <Text style={styles.mobileMoneyNumber}>{baibebaloMobileMoneyNumber}</Text>
+                      </Text>
+                    </View>
+                    
+                    <Text style={styles.providerLabel}>Provider Mobile Money</Text>
+                    <View style={styles.providerRow}>
+                      <TouchableOpacity
+                        style={[styles.providerButton, mobileMoneyProvider === 'orange_money' && styles.providerButtonActive]}
+                        onPress={() => setMobileMoneyProvider('orange_money')}
+                      >
+                        <Text style={[styles.providerButtonText, mobileMoneyProvider === 'orange_money' && styles.providerButtonTextActive]}>
+                          Orange Money
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.providerButton, mobileMoneyProvider === 'mtn_money' && styles.providerButtonActive]}
+                        onPress={() => setMobileMoneyProvider('mtn_money')}
+                      >
+                        <Text style={[styles.providerButtonText, mobileMoneyProvider === 'mtn_money' && styles.providerButtonTextActive]}>
+                          MTN MoMo
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.providerButton, mobileMoneyProvider === 'waves' && styles.providerButtonActive]}
+                        onPress={() => setMobileMoneyProvider('waves')}
+                      >
+                        <Text style={[styles.providerButtonText, mobileMoneyProvider === 'waves' && styles.providerButtonTextActive]}>
+                          Wave
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    
+                    <TextInput
+                      style={styles.referenceInput}
+                      placeholder="Numéro de transaction Mobile Money (obligatoire)"
+                      placeholderTextColor={COLORS.textLight}
+                      value={reference}
+                      onChangeText={setReference}
+                    />
+                  </>
                 )}
 
                 <TouchableOpacity
@@ -370,9 +433,67 @@ const styles = StyleSheet.create({
     borderColor: COLORS.border,
     backgroundColor: COLORS.white,
   },
+  methodButtonFull: {
+    flex: 1,
+    width: '100%',
+    marginBottom: 16,
+  },
   methodButtonActive: { borderColor: COLORS.primary, backgroundColor: COLORS.primary },
   methodButtonText: { fontSize: 14, fontWeight: '600', color: COLORS.text },
   methodButtonTextActive: { color: '#FFF' },
+  mobileMoneyInfo: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+    backgroundColor: COLORS.info + '15',
+    padding: 16,
+    borderRadius: 12,
+    marginBottom: 16,
+  },
+  mobileMoneyInfoText: {
+    flex: 1,
+    fontSize: 13,
+    color: COLORS.info,
+    lineHeight: 20,
+  },
+  mobileMoneyNumber: {
+    fontWeight: 'bold',
+    fontSize: 14,
+    color: COLORS.primary,
+  },
+  providerLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+    marginBottom: 12,
+  },
+  providerRow: {
+    flexDirection: 'row',
+    gap: 12,
+    marginBottom: 16,
+  },
+  providerButton: {
+    flex: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 8,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+  },
+  providerButtonActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary,
+  },
+  providerButtonText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  providerButtonTextActive: {
+    color: '#FFF',
+  },
   referenceInput: {
     backgroundColor: COLORS.white,
     borderRadius: 12,

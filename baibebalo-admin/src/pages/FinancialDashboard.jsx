@@ -34,6 +34,12 @@ const FinancialDashboard = () => {
   const expenses = expensesData?.data || {};
   const netProfit = financialData?.data?.net_profit || 0;
   const profitMargin = financialData?.data?.profit_margin || 0;
+  const platformRevenue = financialData?.data?.platform_revenue || {};
+  const commissionFromRestaurants = platformRevenue.commission_from_restaurants || 0;
+  const commissionFromDelivery = platformRevenue.commission_from_delivery || 0;
+  const totalPlatformRevenue = platformRevenue.total || 0;
+  const deliveryPayouts = financialData?.data?.delivery_payouts || 0; // Ce que les livreurs ont gagné (70%)
+  const restaurantPayouts = financialData?.data?.restaurant_payouts || 0;
 
   // Fonction d'export
   const handleExport = () => {
@@ -166,10 +172,14 @@ const FinancialDashboard = () => {
               </div>
             </div>
             <div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Commissions</p>
+              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenus Plateforme</p>
               <h3 className="text-2xl font-bold mt-1 tracking-tight text-slate-900 dark:text-white">
-                {formatCurrency(overview.commission_collected || 0)}
+                {formatCurrency(totalPlatformRevenue)}
               </h3>
+              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 space-y-0.5">
+                <div>Restaurants: {formatCurrency(commissionFromRestaurants)}</div>
+                <div>Livraisons: {formatCurrency(commissionFromDelivery)}</div>
+              </div>
             </div>
           </div>
           <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl flex flex-col gap-4">
@@ -202,6 +212,67 @@ const FinancialDashboard = () => {
                 </p>
               )}
             </div>
+          </div>
+        </div>
+
+        {/* Détails des commissions */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg">
+                <span className="material-symbols-outlined">store</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Commission Restaurants</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(commissionFromRestaurants)}
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Commission sur les commandes des restaurants
+            </p>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
+                <span className="material-symbols-outlined">delivery_dining</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Commission Livraisons</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(commissionFromDelivery)}
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              30% des frais de livraison (Baibebalo garde 30%, livreurs reçoivent 70%)
+            </p>
+            <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+              <div>Livreurs ont gagné: <span className="font-bold">{formatCurrency(deliveryPayouts)}</span></div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
+                <span className="material-symbols-outlined">account_balance</span>
+              </div>
+              <div>
+                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Commissions</p>
+                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
+                  {formatCurrency(totalPlatformRevenue)}
+                </h3>
+              </div>
+            </div>
+            <p className="text-xs text-slate-500 dark:text-slate-400">
+              Revenus totaux de la plateforme Baibebalo
+            </p>
+            {platformRevenue.breakdown && (
+              <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">
+                <div>Restaurants: {platformRevenue.breakdown.restaurants_percent}%</div>
+                <div>Livraisons: {platformRevenue.breakdown.delivery_percent}%</div>
+              </div>
+            )}
           </div>
         </div>
 

@@ -12,13 +12,16 @@ const Restaurants = () => {
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
     status: '',
+    search: '',
     page: 1,
     limit: 20,
   });
   const [showActionsMenu, setShowActionsMenu] = useState(null);
   const [suspendReason, setSuspendReason] = useState('');
   const [showSuspendModal, setShowSuspendModal] = useState(null);
+  const [searchInput, setSearchInput] = useState(''); // valeur affichée dans le champ (saisie libre)
   const menuRef = useRef(null);
+  const searchDebounceRef = useRef(null);
 
   // Mutation pour suspendre un restaurant
   const suspendMutation = useMutation({
@@ -110,19 +113,53 @@ const Restaurants = () => {
           </div>
         </div>
 
-        {/* Filters */}
+        {/* Filtres : recherche par nom / propriétaire / téléphone, statut */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-          <div className="flex gap-4">
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters({ ...filters, status: e.target.value, page: 1 })}
-              className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Tous les statuts</option>
-              <option value="pending">En attente</option>
-              <option value="active">Actifs</option>
-              <option value="suspended">Suspendus</option>
-            </select>
+          <div className="flex flex-wrap items-end gap-4">
+            <div className="flex-1 min-w-[200px] max-w-md">
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
+                Rechercher par nom, email ou téléphone
+              </label>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSearchInput(v);
+                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                  searchDebounceRef.current = setTimeout(() => {
+                    setFilters((prev) => ({ ...prev, search: v.trim(), page: 1 }));
+                  }, 400);
+                }}
+                placeholder="Saisir pour filtrer..."
+                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Statut</label>
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value, page: 1 }))}
+                className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Tous les statuts</option>
+                <option value="pending">En attente</option>
+                <option value="active">Actifs</option>
+                <option value="suspended">Suspendus</option>
+              </select>
+            </div>
+            {(searchInput || filters.search) && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSearchInput('');
+                  setFilters((prev) => ({ ...prev, search: '', page: 1 }));
+                }}
+                className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              >
+                Effacer la recherche
+              </button>
+            )}
           </div>
         </div>
 

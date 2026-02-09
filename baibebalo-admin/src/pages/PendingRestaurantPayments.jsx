@@ -418,13 +418,51 @@ const PendingRestaurantPayments = () => {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleViewDetails(payment.id)}
-                            className="text-primary hover:text-primary/70 font-bold text-sm transition-colors px-3 py-1.5 rounded-lg border border-transparent hover:border-primary/20"
-                            title="Voir les détails"
-                          >
-                            <span className="material-symbols-outlined text-lg">visibility</span>
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            {payment.status === 'paid' && (
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await financesAPI.refreshRestaurantBalance(payment.restaurant_id || payment.user_id);
+                                    toast.success('Solde restaurant actualisé');
+                                    queryClient.invalidateQueries(['restaurant-payments']);
+                                  } catch (error) {
+                                    toast.error('Erreur lors de l\'actualisation');
+                                  }
+                                }}
+                                className="text-emerald-600 hover:text-emerald-700 font-bold text-sm transition-colors px-3 py-1.5 rounded-lg border border-emerald-200 hover:bg-emerald-50"
+                                title="Actualiser le solde"
+                              >
+                                <span className="material-symbols-outlined text-lg">refresh</span>
+                              </button>
+                            )}
+                            {payment.status === 'pending' && (
+                              <button
+                                onClick={async () => {
+                                  if (window.confirm(`Marquer le paiement de ${formatCurrency(payment.amount)} comme effectué ?`)) {
+                                    try {
+                                      await financesAPI.markPayoutAsPaid(payment.id);
+                                      toast.success('Paiement marqué comme effectué');
+                                      queryClient.invalidateQueries(['restaurant-payments']);
+                                    } catch (error) {
+                                      toast.error(error.response?.data?.error?.message || 'Erreur');
+                                    }
+                                  }
+                                }}
+                                className="text-primary hover:text-primary/70 font-bold text-sm transition-colors px-3 py-1.5 rounded-lg border border-primary/20 hover:bg-primary/5"
+                                title="Marquer comme payé"
+                              >
+                                <span className="material-symbols-outlined text-lg">check_circle</span>
+                              </button>
+                            )}
+                            <button
+                              onClick={() => handleViewDetails(payment.id)}
+                              className="text-primary hover:text-primary/70 font-bold text-sm transition-colors px-3 py-1.5 rounded-lg border border-transparent hover:border-primary/20"
+                              title="Voir les détails"
+                            >
+                              <span className="material-symbols-outlined text-lg">visibility</span>
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );

@@ -66,7 +66,20 @@ class AuthService {
         }
       }
 
-      logger.info('OTP créé', { phone, type, expiresAt });
+      // Afficher le code OTP dans les logs (toujours visible)
+      const otpMessage = `
+══════════════════════════════════════════════════════════════════
+🔐 CODE OTP CRÉÉ (auth.service)
+══════════════════════════════════════════════════════════════════
+   📞 Numéro: ${phone}
+   🔑 Code OTP: ${code}
+   📋 Type: ${type}
+   ⏰ Valide pendant: 5 minutes
+   📅 Date: ${new Date().toISOString()}
+══════════════════════════════════════════════════════════════════`;
+      
+      console.log(otpMessage);
+      logger.info('OTP créé', { phone, type, code, expiresAt });
 
       return code;
     } catch (error) {

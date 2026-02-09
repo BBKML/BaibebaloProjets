@@ -1,0 +1,45 @@
+# Flow : Suivi commande en temps réel
+# Prérequis : utilisateur connecté avec au moins une commande (idéalement en cours)
+appId: ci.baibebalo.client
+---
+- launchApp
+- extendedWaitUntil:
+    visible: "Accueil"
+    timeout: 15000
+- tapOn: "Commandes"
+- extendedWaitUntil:
+    visible:
+      any:
+        - "En cours"
+        - "Livrée"
+        - "Suivre"
+        - "Détails"
+        - "Aucune commande"
+    timeout: 8000
+# Ouvrir la première commande de la liste
+- tapOn:
+    text: "Suivre"
+    optional: true
+- tapOn:
+    text: "Détails"
+    optional: true
+- tapOn:
+    text: "FCFA"
+    optional: true
+- extendedWaitUntil:
+    visible:
+      any:
+        - "Suivre ma commande"
+        - "Commande"
+        - "Statut"
+        - "Livreur"
+        - "Préparation"
+        - "Livrée"
+    timeout: 8000
+- assertVisible:
+    any:
+      - "Suivre ma commande"
+      - "Commande confirmée"
+      - "En préparation"
+      - "Livraison en cours"
+      - "Livrée"

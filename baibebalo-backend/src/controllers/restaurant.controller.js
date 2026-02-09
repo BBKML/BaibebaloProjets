@@ -2408,6 +2408,30 @@ exports.getMyOrders = async (req, res) => {
     const { status, page = 1, limit = 20 } = req.query;
     const offset = (page - 1) * limit;
     
+    // Validation des statuts
+    const validStatuses = ['new', 'pending', 'accepted', 'preparing', 'ready', 'picked_up', 'delivering', 'delivered', 'cancelled'];
+    if (status) {
+      const statusesToCheck = status.includes(',') 
+        ? status.split(',').map(s => s.trim()).filter(s => s)
+        : [status.trim()];
+      
+      const invalidStatuses = statusesToCheck.filter(s => !validStatuses.includes(s));
+      if (invalidStatuses.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: `Statuts invalides: ${invalidStatuses.join(', ')}`,
+            details: [{
+              field: 'status',
+              message: `Statuts valides: ${validStatuses.join(', ')}`,
+              value: status,
+            }],
+          },
+        });
+      }
+    }
+    
     let queryText = `
       SELECT o.*, 
              u.first_name || ' ' || u.last_name as customer_name,
@@ -2417,19 +2441,37 @@ exports.getMyOrders = async (req, res) => {
               FROM order_items oi 
               LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
               WHERE oi.order_id = o.id 
-              LIMIT 1) as first_item_image
+              LIMIT 1) as first_item_image,
+             -- Recalculer le sous-total à partir des items (source de vérité)
+             (SELECT COALESCE(SUM((oi.unit_price * oi.quantity)), 0)
+              FROM order_items oi
+              WHERE oi.order_id = o.id) as recalculated_subtotal
       FROM orders o
       LEFT JOIN users u ON o.user_id = u.id
       WHERE o.restaurant_id = $1
     `;
     const values = [restaurantId];
+    let paramIndex = 2;
     
+    // Gérer les statuts multiples pour "En cours"
     if (status) {
-      queryText += ` AND o.status = $2`;
-      values.push(status);
+      // Si le statut est une chaîne contenant plusieurs valeurs séparées par des virgules
+      if (status.includes(',')) {
+        const statuses = status.split(',').map(s => s.trim()).filter(s => s);
+        if (statuses.length > 0) {
+          const placeholders = statuses.map((_, i) => `$${paramIndex + i}`).join(',');
+          queryText += ` AND o.status IN (${placeholders})`;
+          values.push(...statuses);
+          paramIndex += statuses.length;
+        }
+      } else {
+        queryText += ` AND o.status = $${paramIndex}`;
+        values.push(status);
+        paramIndex++;
+      }
     }
     
-    queryText += ` ORDER BY o.placed_at DESC, o.created_at DESC LIMIT $${values.length + 1} OFFSET $${values.length + 2}`;
+    queryText += ` ORDER BY o.placed_at DESC, o.created_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     values.push(parseInt(limit), offset);
     
     const result = await query(queryText, values);
@@ -2437,22 +2479,71 @@ exports.getMyOrders = async (req, res) => {
     // Compter le total
     let countQuery = 'SELECT COUNT(*) FROM orders WHERE restaurant_id = $1';
     const countValues = [restaurantId];
+    let countParamIndex = 2;
     if (status) {
-      countQuery += ' AND status = $2';
-      countValues.push(status);
+      if (status.includes(',')) {
+        const statuses = status.split(',').map(s => s.trim()).filter(s => s);
+        if (statuses.length > 0) {
+          const placeholders = statuses.map((_, i) => `$${countParamIndex + i}`).join(',');
+          countQuery += ` AND status IN (${placeholders})`;
+          countValues.push(...statuses);
+        }
+      } else {
+        countQuery += ` AND status = $${countParamIndex}`;
+        countValues.push(status);
+      }
     }
     const countResult = await query(countQuery, countValues);
     const total = parseInt(countResult.rows[0].count);
     
+    // Calculer le revenu net pour chaque commande
+    const { getCommission } = require('../utils/commission');
+    
     // Formater les commandes pour l'application
-    const orders = result.rows.map(order => ({
-      ...order,
-      orderNumber: order.order_number,
-      customerName: order.customer_name || 'Client',
-      itemsCount: parseInt(order.items_count) || 0,
-      createdAt: order.placed_at || order.created_at,
-      firstItemImage: order.first_item_image || null,
-    }));
+    const orders = result.rows.map(order => {
+      // Utiliser le sous-total recalculé si disponible (plus fiable que celui stocké)
+      // Sinon utiliser celui de la base de données
+      const recalculatedSubtotal = order.recalculated_subtotal !== null && order.recalculated_subtotal !== undefined
+        ? parseFloat(order.recalculated_subtotal)
+        : null;
+      // Utiliser le recalculé s'il est disponible (même s'il est 0, c'est la source de vérité)
+      const subtotal = recalculatedSubtotal !== null && !isNaN(recalculatedSubtotal)
+        ? recalculatedSubtotal
+        : (parseFloat(order.subtotal) || 0);
+      
+      // Déterminer le taux de commission à utiliser
+      let commissionRate = 15; // Défaut
+      if (order.commission_rate !== null && order.commission_rate !== undefined) {
+        commissionRate = parseFloat(order.commission_rate);
+      }
+      
+      // Calculer la commission à partir du sous-total recalculé (source de vérité)
+      // Si la commission stockée existe et correspond au sous-total stocké, on peut l'utiliser
+      // Sinon, recalculer à partir du sous-total recalculé
+      let commission = 0;
+      if (order.commission !== null && order.commission !== undefined && recalculatedSubtotal === null) {
+        // Utiliser la commission stockée seulement si on n'a pas de sous-total recalculé
+        commission = parseFloat(order.commission);
+      } else {
+        // Toujours recalculer à partir du sous-total recalculé pour garantir l'exactitude
+        const commissionResult = getCommission(subtotal, commissionRate);
+        commission = commissionResult.commission;
+      }
+      
+      // Revenu net = subtotal - commission (utilise le sous-total recalculé)
+      const netRevenue = Math.max(0, subtotal - commission);
+      
+      return {
+        ...order,
+        orderNumber: order.order_number,
+        customerName: order.customer_name || 'Client',
+        itemsCount: parseInt(order.items_count) || 0,
+        createdAt: order.placed_at || order.created_at,
+        firstItemImage: order.first_item_image || null,
+        netRevenue: netRevenue, // Ajouter le revenu net calculé
+        net_revenue: netRevenue, // Alias pour compatibilité
+      };
+    });
     
     res.json({
       success: true,
@@ -2485,7 +2576,9 @@ exports.getMyOrderById = async (req, res) => {
     
     const result = await query(
       `SELECT o.*, 
-              COALESCE(o.commission_rate, r.commission_rate) as commission_rate,
+              o.commission_rate as order_commission_rate,
+              r.commission_rate as restaurant_commission_rate,
+              COALESCE(o.commission_rate, r.commission_rate, 15) as commission_rate,
               u.first_name || ' ' || u.last_name as customer_name,
               u.phone as customer_phone
        FROM orders o
@@ -2523,6 +2616,60 @@ exports.getMyOrderById = async (req, res) => {
     }));
     order.items = formattedItems;
     
+    // RECALCULER le sous-total à partir des items pour garantir l'exactitude
+    // C'est la source de vérité car les items contiennent les quantités réelles
+    // IMPORTANT: Toujours recalculer unit_price * quantity pour éviter d'utiliser un subtotal incorrect stocké
+    const recalculatedSubtotal = formattedItems.reduce((sum, item) => {
+      // TOUJOURS recalculer à partir de unit_price * quantity (source de vérité)
+      const unitPrice = parseFloat(item.unit_price || item.price || 0);
+      const quantity = parseInt(item.quantity) || 1;
+      const itemSubtotal = unitPrice * quantity;
+      
+      // Vérifier si le subtotal stocké diffère du recalculé
+      const storedItemSubtotal = item.subtotal !== null && item.subtotal !== undefined
+        ? parseFloat(item.subtotal)
+        : null;
+      
+      if (storedItemSubtotal !== null && Math.abs(storedItemSubtotal - itemSubtotal) > 0.01) {
+        logger.warn('Sous-total item incorrect détecté:', {
+          orderId: order.id,
+          itemName: item.name,
+          unitPrice,
+          quantity,
+          storedSubtotal: storedItemSubtotal,
+          recalculatedSubtotal: itemSubtotal,
+          difference: Math.abs(storedItemSubtotal - itemSubtotal),
+        });
+      }
+      
+      return sum + (isNaN(itemSubtotal) ? 0 : itemSubtotal);
+    }, 0);
+    
+    // Utiliser le sous-total recalculé comme source de vérité
+    // Le recalcul à partir des items est plus fiable car il prend en compte les quantités réelles
+    // Si on a des items, toujours utiliser le recalculé (même s'il est 0, c'est la source de vérité)
+    // Sinon, utiliser celui de la base de données
+    const subtotal = formattedItems.length > 0 
+      ? recalculatedSubtotal 
+      : (parseFloat(order.subtotal) || 0);
+    
+    // Logger si le sous-total diffère
+    if (Math.abs(recalculatedSubtotal - parseFloat(order.subtotal || 0)) > 0.01) {
+      logger.warn('Sous-total recalculé diffère de celui en base:', {
+        orderId: order.id,
+        orderNumber: order.order_number,
+        subtotalInDB: parseFloat(order.subtotal || 0),
+        recalculatedSubtotal,
+        itemsCount: formattedItems.length,
+        itemsDetails: formattedItems.map(item => ({
+          name: item.name,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          item_subtotal: item.subtotal,
+        })),
+      });
+    }
+    
     // Formater l'adresse de livraison
     let deliveryAddress = '';
     let deliveryLatitude = null;
@@ -2545,14 +2692,67 @@ exports.getMyOrderById = async (req, res) => {
       deliveryLandmark = deliveryAddr.landmark || '';
     }
     
-    // Calculer le revenu net (total - commission)
-    const commissionRate = parseFloat(order.commission_rate) || 0;
-    const subtotal = parseFloat(order.subtotal) || 0; // Prix des articles uniquement
+    // Calculer le revenu net (subtotal - commission)
+    // IMPORTANT: TOUJOURS recalculer la commission à partir du sous-total recalculé
+    // pour éviter d'utiliser une commission stockée basée sur un mauvais sous-total
     const total = parseFloat(order.total) || 0;
-    // Commission calculée sur le subtotal (prix articles), pas sur le total
-    const commission = parseFloat(order.commission) || (subtotal * commissionRate / 100);
+    
+    // Utiliser la fonction getCommission() pour garantir la cohérence avec le reste du système
+    const { getCommission } = require('../utils/commission');
+    
+    // Déterminer le taux de commission à utiliser (priorité: order.commission_rate > restaurant.commission_rate > 15%)
+    let commissionRate = 15; // Défaut
+    if (order.order_commission_rate !== null && order.order_commission_rate !== undefined) {
+      commissionRate = parseFloat(order.order_commission_rate);
+    } else if (order.restaurant_commission_rate !== null && order.restaurant_commission_rate !== undefined) {
+      commissionRate = parseFloat(order.restaurant_commission_rate);
+    }
+    
+    // TOUJOURS recalculer la commission à partir du sous-total recalculé (source de vérité)
+    const { commission, rate: finalCommissionRate } = getCommission(subtotal, commissionRate);
+    
+    // Vérifier si la commission stockée correspond au sous-total recalculé
+    const storedCommission = order.commission !== null && order.commission !== undefined 
+      ? parseFloat(order.commission) 
+      : null;
+    
+    // Logger si la commission stockée diffère significativement de celle recalculée
+    if (storedCommission !== null && !isNaN(storedCommission) && storedCommission > 0) {
+      const difference = Math.abs(storedCommission - commission);
+      const tolerance = 0.01; // Tolérance de 1 centime
+      
+      if (difference > tolerance) {
+        logger.warn('Commission stockée diffère de celle recalculée:', {
+          orderId: order.id,
+          orderNumber: order.order_number,
+          subtotalRecalculated: subtotal,
+          subtotalInDB: parseFloat(order.subtotal || 0),
+          storedCommission,
+          recalculatedCommission: commission,
+          difference,
+          commissionRate: finalCommissionRate,
+        });
+      }
+    }
+    
     // Le restaurant reçoit: subtotal - commission (pas les frais de livraison/service)
     const netRevenue = subtotal - commission;
+    
+    // Logger pour déboguer les valeurs calculées
+    logger.info('Calcul commission et revenu net pour commande:', {
+      orderId: order.id,
+      orderNumber: order.order_number,
+      subtotalRecalculated: subtotal,
+      subtotalInDB: parseFloat(order.subtotal || 0),
+      storedCommission: order.commission,
+      recalculatedCommission: commission,
+      commissionRate: finalCommissionRate,
+      netRevenue,
+      orderCommissionRate: order.order_commission_rate,
+      restaurantCommissionRate: order.restaurant_commission_rate,
+      itemsCount: formattedItems.length,
+      itemsTotal: recalculatedSubtotal,
+    });
     
     // Formater les données pour le frontend
     const formattedOrder = {
@@ -2563,11 +2763,11 @@ exports.getMyOrderById = async (req, res) => {
       deliveryLatitude: deliveryLatitude,
       deliveryLongitude: deliveryLongitude,
       deliveryLandmark: deliveryLandmark,
-      subtotal: parseFloat(order.subtotal) || 0,
+      subtotal: subtotal, // Utiliser le sous-total recalculé (source de vérité)
       deliveryFee: parseFloat(order.delivery_fee) || 0,
-      commission: commission,
-      commissionRate: commissionRate,
-      netRevenue: netRevenue,
+      commission: Math.max(0, commission), // Commission recalculée à partir du sous-total recalculé
+      commissionRate: finalCommissionRate, // Taux utilisé pour le calcul
+      netRevenue: Math.max(0, netRevenue), // Revenu net = subtotal - commission
       total: total,
       items: formattedItems,
     };
@@ -2615,16 +2815,18 @@ exports.getMyStatistics = async (req, res) => {
     }
     
     // Statistiques générales - Utiliser des sous-requêtes pour éviter la syntaxe FILTER
+    // IMPORTANT: Revenu = sous-total - commission (revenu net du restaurant)
     const statsResult = await query(
       `SELECT 
         (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND DATE(placed_at) = CURRENT_DATE) as today_orders,
-        COALESCE((SELECT SUM(subtotal) FROM orders WHERE restaurant_id = r.id AND DATE(placed_at) = CURRENT_DATE AND status = 'delivered'), 0) as today_revenue,
+        COALESCE((SELECT SUM(o.subtotal - COALESCE(o.commission, o.subtotal * COALESCE(o.commission_rate, r.commission_rate, 15.0) / 100.0)) FROM orders o WHERE o.restaurant_id = r.id AND DATE(o.placed_at) = CURRENT_DATE AND o.status = 'delivered'), 0) as today_revenue,
         (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND (status = 'new' OR status = 'pending')) as pending_orders,
         (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND status = 'delivered' ${dateFilterSubquery}) as delivered_orders,
         (SELECT COUNT(*) FROM orders WHERE restaurant_id = r.id AND (status = 'cancelled' OR status = 'refused') ${dateFilterSubquery}) as cancelled_orders,
         COALESCE((SELECT AVG(EXTRACT(EPOCH FROM (ready_at - accepted_at)) / 60) FROM orders WHERE restaurant_id = r.id AND ready_at IS NOT NULL AND accepted_at IS NOT NULL ${dateFilterSubquery}), 0) as average_preparation_time,
         r.average_rating,
-        r.total_reviews
+        r.total_reviews,
+        r.commission_rate
        FROM restaurants r
        WHERE r.id = $1`,
       values
@@ -2641,13 +2843,14 @@ exports.getMyStatistics = async (req, res) => {
       total_reviews: 0,
     };
     
-    // Revenus par jour (7 ou 30 derniers jours) - utilise subtotal (prix articles seulement)
+    // Revenus par jour (7 ou 30 derniers jours) - utilise revenu NET (subtotal - commission)
     const revenueByDayResult = await query(
       `SELECT 
         DATE(o.placed_at) as date,
-        COALESCE(SUM(o.subtotal), 0) as revenue,
+        COALESCE(SUM(o.subtotal - COALESCE(o.commission, o.subtotal * COALESCE(o.commission_rate, r.commission_rate, 15.0) / 100.0)), 0) as revenue,
         COUNT(*) as orders_count
        FROM orders o
+       LEFT JOIN restaurants r ON o.restaurant_id = r.id
        WHERE o.restaurant_id = $1 AND o.status = 'delivered' ${dateFilter}
        GROUP BY DATE(o.placed_at)
        ORDER BY DATE(o.placed_at) DESC
@@ -2736,13 +2939,14 @@ exports.getMyStatistics = async (req, res) => {
       data: {
         statistics: {
           today_orders: Number.parseInt(stats.today_orders) || 0,
-          today_revenue: Number.parseFloat(stats.today_revenue) || 0,
+          today_revenue: Number.parseFloat(stats.today_revenue) || 0, // Revenu NET (après commission)
           pending_orders: Number.parseInt(stats.pending_orders) || 0,
           delivered_orders: Number.parseInt(stats.delivered_orders) || 0,
           cancelled_orders: Number.parseInt(stats.cancelled_orders) || 0,
           average_rating: Number.parseFloat(stats.average_rating) || 0,
           total_reviews: Number.parseInt(stats.total_reviews) || 0,
           average_preparation_time: Math.round(Number.parseFloat(stats.average_preparation_time) || 0),
+          commission_rate: Number.parseFloat(stats.commission_rate) || 15.0, // Taux de commission du restaurant
           // Données pour graphiques
           revenue_evolution: {
             labels: dayLabels,
@@ -2831,12 +3035,31 @@ exports.getMyEarnings = async (req, res) => {
     // Récupérer les gains (revenus articles moins commission plateforme)
     // Le restaurant reçoit: subtotal (prix articles) - commission
     // Il ne reçoit PAS les frais de livraison (vont au livreur) ni frais de service (vont à la plateforme)
+    // Utiliser la même logique de calcul de commission que partout ailleurs :
+    // 1. o.commission si disponible
+    // 2. Sinon o.commission_rate
+    // 3. Sinon r.commission_rate
+    // 4. Sinon défaut 15%
     const earningsResult = await query(
       `SELECT 
         COUNT(*) as total_orders,
         COALESCE(SUM(o.subtotal), 0) as total_revenue,
-        COALESCE(SUM(o.subtotal * r.commission_rate / 100), 0) as total_commission,
-        COALESCE(SUM(o.subtotal * (1 - r.commission_rate / 100)), 0) as net_earnings,
+        COALESCE(SUM(
+          CASE 
+            WHEN o.commission IS NOT NULL THEN o.commission
+            WHEN o.commission_rate IS NOT NULL THEN o.subtotal * o.commission_rate / 100.0
+            WHEN r.commission_rate IS NOT NULL THEN o.subtotal * r.commission_rate / 100.0
+            ELSE o.subtotal * 15.0 / 100.0
+          END
+        ), 0) as total_commission,
+        COALESCE(SUM(
+          o.subtotal - CASE 
+            WHEN o.commission IS NOT NULL THEN o.commission
+            WHEN o.commission_rate IS NOT NULL THEN o.subtotal * o.commission_rate / 100.0
+            WHEN r.commission_rate IS NOT NULL THEN o.subtotal * r.commission_rate / 100.0
+            ELSE o.subtotal * 15.0 / 100.0
+          END
+        ), 0) as net_earnings,
         r.balance
        FROM restaurants r
        LEFT JOIN orders o ON o.restaurant_id = r.id AND o.status = 'delivered' ${dateFilter}
@@ -3129,10 +3352,97 @@ exports.getMyPayoutRequests = async (req, res) => {
  */
 exports.getMyPromotions = async (req, res) => {
   try {
-    // TODO: Implémenter la récupération
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    
+    // Récupérer les codes promo du restaurant
+    const promotionsResult = await query(
+      `SELECT * FROM promotions 
+       WHERE restaurant_id = $1 
+       ORDER BY created_at DESC`,
+      [restaurantId]
+    );
+    
+    // Récupérer aussi les promotions sur les items du menu
+    const menuPromotionsResult = await query(
+      `SELECT 
+        id,
+        name,
+        price as original_price,
+        promotional_price,
+        is_promotional,
+        promotion_start,
+        promotion_end,
+        promotion_description,
+        CASE 
+          WHEN is_promotional = true 
+            AND promotional_price IS NOT NULL
+            AND (promotion_start IS NULL OR promotion_start <= NOW())
+            AND (promotion_end IS NULL OR promotion_end >= NOW())
+          THEN true
+          ELSE false
+        END as is_active,
+        CASE 
+          WHEN is_promotional = true 
+            AND promotional_price IS NOT NULL
+            AND (promotion_start IS NULL OR promotion_start <= NOW())
+            AND (promotion_end IS NULL OR promotion_end >= NOW())
+          THEN promotional_price
+          ELSE price
+        END as effective_price,
+        CASE 
+          WHEN is_promotional = true 
+            AND promotional_price IS NOT NULL
+            AND (promotion_start IS NULL OR promotion_start <= NOW())
+            AND (promotion_end IS NULL OR promotion_end >= NOW())
+          THEN price - promotional_price
+          ELSE 0
+        END as savings,
+        CASE 
+          WHEN is_promotional = true 
+            AND promotional_price IS NOT NULL
+            AND (promotion_start IS NULL OR promotion_start <= NOW())
+            AND (promotion_end IS NULL OR promotion_end >= NOW())
+          THEN ROUND((1 - promotional_price / price) * 100)
+          ELSE 0
+        END as discount_percent
+       FROM menu_items 
+       WHERE restaurant_id = $1 
+         AND is_promotional = true
+       ORDER BY name ASC`,
+      [restaurantId]
+    );
+    
+    res.json({
+      success: true,
+      data: {
+        promo_codes: promotionsResult.rows.map(promo => ({
+          id: promo.id,
+          code: promo.code,
+          type: promo.type,
+          value: parseFloat(promo.value),
+          min_order_amount: parseFloat(promo.min_order_amount || 0),
+          max_discount: promo.max_discount ? parseFloat(promo.max_discount) : null,
+          usage_limit: promo.usage_limit,
+          used_count: promo.used_count || 0,
+          valid_from: promo.valid_from,
+          valid_until: promo.valid_until,
+          is_active: promo.is_active,
+          created_at: promo.created_at,
+        })),
+        menu_item_promotions: menuPromotionsResult.rows.map(item => ({
+          id: item.id,
+          name: item.name,
+          original_price: parseFloat(item.original_price),
+          promotional_price: item.promotional_price ? parseFloat(item.promotional_price) : null,
+          effective_price: parseFloat(item.effective_price),
+          is_active: item.is_active,
+          promotion_start: item.promotion_start,
+          promotion_end: item.promotion_end,
+          promotion_description: item.promotion_description,
+          savings: parseFloat(item.savings || 0),
+          discount_percent: parseInt(item.discount_percent || 0),
+        })),
+      },
     });
   } catch (error) {
     logger.error('Erreur getMyPromotions:', error);
@@ -3144,20 +3454,160 @@ exports.getMyPromotions = async (req, res) => {
 };
 
 /**
- * Créer une promotion
+ * Créer une promotion (code promo)
  */
 exports.createPromotion = async (req, res) => {
   try {
-    // TODO: Implémenter la création
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const {
+      code,
+      type,
+      value,
+      min_order_amount = 0,
+      max_discount,
+      usage_limit,
+      valid_from,
+      valid_until,
+    } = req.body;
+
+    // Validation
+    if (!code || !type || value === undefined) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'code, type et value sont requis',
+        },
+      });
+    }
+
+    if (!['percentage', 'fixed_amount', 'free_delivery'].includes(type)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Type invalide. Types acceptés: percentage, fixed_amount, free_delivery',
+        },
+      });
+    }
+
+    // Validation des valeurs selon le type
+    if (type === 'percentage' && (value < 0 || value > 100)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Pour un pourcentage, la valeur doit être entre 0 et 100',
+        },
+      });
+    }
+
+    if (type === 'fixed_amount' && value < 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Le montant fixe doit être positif',
+        },
+      });
+    }
+
+    // Dates de validité (optionnelles, par défaut maintenant jusqu'à 30 jours)
+    const now = new Date();
+    const defaultValidFrom = valid_from ? new Date(valid_from) : now;
+    const defaultValidUntil = valid_until ? new Date(valid_until) : new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+
+    if (defaultValidFrom >= defaultValidUntil) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'valid_until doit être après valid_from',
+        },
+      });
+    }
+
+    // Vérifier que le code n'existe pas déjà
+    const existingPromo = await query(
+      'SELECT id FROM promotions WHERE code = $1',
+      [code.toUpperCase().trim()]
+    );
+
+    if (existingPromo.rows.length > 0) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'PROMOTION_EXISTS',
+          message: 'Un code promotion avec ce nom existe déjà',
+        },
+      });
+    }
+
+    // Créer la promotion
+    const result = await query(
+      `INSERT INTO promotions (
+        code, type, value, min_order_amount, max_discount, usage_limit,
+        valid_from, valid_until, applicable_to, restaurant_id, is_active
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, true)
+      RETURNING *`,
+      [
+        code.toUpperCase().trim(),
+        type,
+        value,
+        min_order_amount || 0,
+        max_discount || null,
+        usage_limit || null,
+        defaultValidFrom,
+        defaultValidUntil,
+        'specific_restaurant',
+        restaurantId,
+      ]
+    );
+
+    logger.info(`Promotion créée par restaurant ${restaurantId}`, { code: code.toUpperCase() });
+
+    res.status(201).json({
+      success: true,
+      message: 'Promotion créée avec succès',
+      data: {
+        promotion: {
+          id: result.rows[0].id,
+          code: result.rows[0].code,
+          type: result.rows[0].type,
+          value: parseFloat(result.rows[0].value),
+          min_order_amount: parseFloat(result.rows[0].min_order_amount || 0),
+          max_discount: result.rows[0].max_discount ? parseFloat(result.rows[0].max_discount) : null,
+          usage_limit: result.rows[0].usage_limit,
+          used_count: result.rows[0].used_count || 0,
+          valid_from: result.rows[0].valid_from,
+          valid_until: result.rows[0].valid_until,
+          is_active: result.rows[0].is_active,
+          created_at: result.rows[0].created_at,
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur createPromotion:', error);
+    
+    if (error.code === '23505') { // Unique violation
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'PROMOTION_EXISTS',
+          message: 'Un code promotion avec ce nom existe déjà',
+        },
+      });
+    }
+
     res.status(500).json({
       success: false,
-      error: { code: 'CREATE_ERROR', message: 'Erreur lors de la création' },
+      error: { 
+        code: 'CREATE_ERROR', 
+        message: 'Erreur lors de la création',
+        ...(process.env.NODE_ENV === 'development' && {
+          details: error.message,
+        }),
+      },
     });
   }
 };
@@ -3167,10 +3617,104 @@ exports.createPromotion = async (req, res) => {
  */
 exports.updatePromotion = async (req, res) => {
   try {
-    // TODO: Implémenter la mise à jour
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { promotionId } = req.params;
+    const {
+      value,
+      min_order_amount,
+      max_discount,
+      usage_limit,
+      valid_from,
+      valid_until,
+      is_active,
+    } = req.body;
+
+    // Vérifier que la promotion appartient au restaurant
+    const existingPromo = await query(
+      'SELECT * FROM promotions WHERE id = $1 AND restaurant_id = $2',
+      [promotionId, restaurantId]
+    );
+
+    if (existingPromo.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'PROMOTION_NOT_FOUND', message: 'Promotion non trouvée' },
+      });
+    }
+
+    // Construire la requête de mise à jour dynamiquement
+    const updates = [];
+    const values = [];
+    let paramIndex = 1;
+
+    if (value !== undefined) {
+      updates.push(`value = $${paramIndex++}`);
+      values.push(value);
+    }
+    if (min_order_amount !== undefined) {
+      updates.push(`min_order_amount = $${paramIndex++}`);
+      values.push(min_order_amount);
+    }
+    if (max_discount !== undefined) {
+      updates.push(`max_discount = $${paramIndex++}`);
+      values.push(max_discount);
+    }
+    if (usage_limit !== undefined) {
+      updates.push(`usage_limit = $${paramIndex++}`);
+      values.push(usage_limit);
+    }
+    if (valid_from !== undefined) {
+      updates.push(`valid_from = $${paramIndex++}`);
+      values.push(new Date(valid_from));
+    }
+    if (valid_until !== undefined) {
+      updates.push(`valid_until = $${paramIndex++}`);
+      values.push(new Date(valid_until));
+    }
+    if (is_active !== undefined) {
+      updates.push(`is_active = $${paramIndex++}`);
+      values.push(is_active);
+    }
+
+    if (updates.length === 0) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Aucun champ à mettre à jour' },
+      });
+    }
+
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+    values.push(promotionId, restaurantId);
+
+    const result = await query(
+      `UPDATE promotions 
+       SET ${updates.join(', ')} 
+       WHERE id = $${paramIndex++} AND restaurant_id = $${paramIndex++}
+       RETURNING *`,
+      values
+    );
+
+    logger.info(`Promotion mise à jour par restaurant ${restaurantId}`, { promotionId });
+
+    res.json({
+      success: true,
+      message: 'Promotion mise à jour avec succès',
+      data: {
+        promotion: {
+          id: result.rows[0].id,
+          code: result.rows[0].code,
+          type: result.rows[0].type,
+          value: parseFloat(result.rows[0].value),
+          min_order_amount: parseFloat(result.rows[0].min_order_amount || 0),
+          max_discount: result.rows[0].max_discount ? parseFloat(result.rows[0].max_discount) : null,
+          usage_limit: result.rows[0].usage_limit,
+          used_count: result.rows[0].used_count || 0,
+          valid_from: result.rows[0].valid_from,
+          valid_until: result.rows[0].valid_until,
+          is_active: result.rows[0].is_active,
+          updated_at: result.rows[0].updated_at,
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur updatePromotion:', error);
@@ -3186,10 +3730,36 @@ exports.updatePromotion = async (req, res) => {
  */
 exports.deletePromotion = async (req, res) => {
   try {
-    // TODO: Implémenter la suppression
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { promotionId } = req.params;
+
+    // Vérifier que la promotion appartient au restaurant
+    const existingPromo = await query(
+      'SELECT id, code FROM promotions WHERE id = $1 AND restaurant_id = $2',
+      [promotionId, restaurantId]
+    );
+
+    if (existingPromo.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'PROMOTION_NOT_FOUND', message: 'Promotion non trouvée' },
+      });
+    }
+
+    // Supprimer la promotion
+    await query(
+      'DELETE FROM promotions WHERE id = $1 AND restaurant_id = $2',
+      [promotionId, restaurantId]
+    );
+
+    logger.info(`Promotion supprimée par restaurant ${restaurantId}`, { 
+      promotionId, 
+      code: existingPromo.rows[0].code 
+    });
+
+    res.json({
+      success: true,
+      message: 'Promotion supprimée avec succès',
     });
   } catch (error) {
     logger.error('Erreur deletePromotion:', error);
@@ -3201,14 +3771,52 @@ exports.deletePromotion = async (req, res) => {
 };
 
 /**
- * Basculer une promotion
+ * Basculer une promotion (activer/désactiver)
  */
 exports.togglePromotion = async (req, res) => {
   try {
-    // TODO: Implémenter le toggle
-    res.status(501).json({
-      success: false,
-      error: { code: 'NOT_IMPLEMENTED', message: 'Fonctionnalité en cours de développement' },
+    const restaurantId = req.user.id;
+    const { promotionId } = req.params;
+
+    // Vérifier que la promotion appartient au restaurant
+    const existingPromo = await query(
+      'SELECT id, code, is_active FROM promotions WHERE id = $1 AND restaurant_id = $2',
+      [promotionId, restaurantId]
+    );
+
+    if (existingPromo.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'PROMOTION_NOT_FOUND', message: 'Promotion non trouvée' },
+      });
+    }
+
+    const newStatus = !existingPromo.rows[0].is_active;
+
+    // Basculer le statut
+    const result = await query(
+      `UPDATE promotions 
+       SET is_active = $1, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2 AND restaurant_id = $3
+       RETURNING *`,
+      [newStatus, promotionId, restaurantId]
+    );
+
+    logger.info(`Promotion ${newStatus ? 'activée' : 'désactivée'} par restaurant ${restaurantId}`, { 
+      promotionId, 
+      code: existingPromo.rows[0].code 
+    });
+
+    res.json({
+      success: true,
+      message: `Promotion ${newStatus ? 'activée' : 'désactivée'} avec succès`,
+      data: {
+        promotion: {
+          id: result.rows[0].id,
+          code: result.rows[0].code,
+          is_active: result.rows[0].is_active,
+        },
+      },
     });
   } catch (error) {
     logger.error('Erreur togglePromotion:', error);

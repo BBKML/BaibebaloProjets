@@ -72,6 +72,7 @@ import EmptyOrderHistoryScreen from '../screens/errors/EmptyOrderHistoryScreen';
 import SupportFeedbackSuccessScreen from '../screens/support/SupportFeedbackSuccessScreen';
 import AppMaintenanceScreen from '../screens/system/AppMaintenanceScreen';
 import UpdateRequiredScreen from '../screens/system/UpdateRequiredScreen';
+import { checkMaintenanceMode, invalidateSettingsCache } from '../services/settingsService';
 import SettingsUpdateSuccessScreen from '../screens/settings/SettingsUpdateSuccessScreen';
 import RestaurantClosedScreen from '../screens/restaurant/RestaurantClosedScreen';
 import SafetySecurityTipsScreen from '../screens/settings/SafetySecurityTipsScreen';
@@ -203,6 +204,8 @@ export default function AppNavigator() {
   const { isAuthenticated, isLoading, loadAuth, user } = useAuthStore();
   const navigationRef = useRef(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
+  const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
+  const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
   
   const logNavState = (label) => {
     const route = navigationRef.current?.getCurrentRoute?.();
@@ -212,8 +215,33 @@ export default function AppNavigator() {
       routeParams: route?.params,
       isAuthenticated,
       isLoading,
+      isMaintenanceMode,
     });
   };
+
+  // Vérifier le mode maintenance au démarrage + polling toutes les 30s
+  useEffect(() => {
+    const checkMaintenance = async () => {
+      try {
+        invalidateSettingsCache(); // Forcer une requête fraîche
+        const maintenanceMode = await checkMaintenanceMode();
+        console.log('[AppNavigator] Mode maintenance:', maintenanceMode);
+        setIsMaintenanceMode(maintenanceMode);
+      } catch (error) {
+        console.error('[AppNavigator] Erreur vérification maintenance:', error);
+        // En cas d'erreur, on considère que tout va bien
+        setIsMaintenanceMode(false);
+      } finally {
+        setIsCheckingMaintenance(false);
+      }
+    };
+
+    checkMaintenance();
+
+    // Polling toutes les 30 secondes pour détecter les changements de mode maintenance
+    const interval = setInterval(checkMaintenance, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     // Charger l'auth avec un timeout de sécurité
@@ -268,8 +296,26 @@ export default function AppNavigator() {
   // La navigation est maintenant gérée par OTPVerificationScreen
   // et ProfileCreationScreen directement
 
-  if (isBootstrapping) {
+  // Afficher le splash screen pendant le chargement initial
+  if (isBootstrapping || isCheckingMaintenance) {
     return <SplashScreen />;
+  }
+
+  // Si mode maintenance activé, afficher l'écran de maintenance
+  if (isMaintenanceMode) {
+    return (
+      <SafeAreaProvider>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen
+              name="AppMaintenance"
+              component={AppMaintenanceScreen}
+              options={{ gestureEnabled: false }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </SafeAreaProvider>
+    );
   }
 
   // Déterminer la route initiale
