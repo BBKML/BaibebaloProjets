@@ -144,8 +144,11 @@ const ExportOrdersModal = ({ isOpen, onClose }) => {
     { id: 'confirmed', label: 'Confirmée' },
     { id: 'preparing', label: 'En préparation' },
     { id: 'ready', label: 'Prête' },
+    { id: 'picked_up', label: 'Récupérée' },
     { id: 'delivering', label: 'En livraison' },
+    { id: 'driver_at_customer', label: 'Livreur arrivé' },
     { id: 'completed', label: 'Complétée' },
+    { id: 'delivered', label: 'Livrée' },
     { id: 'cancelled', label: 'Annulée' },
     { id: 'refunded', label: 'Remboursée' },
   ];

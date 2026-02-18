@@ -6,15 +6,12 @@ import {
   StyleSheet,
   TouchableOpacity,
   Alert,
-  Dimensions,
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import * as Location from 'expo-location';
 import { WebView } from 'react-native-webview';
-
-const { width, height } = Dimensions.get('window');
 
 export default function MapLocationSelectorScreen({ navigation, route }) {
   const { onSelectLocation, location: initialLocation } = route.params || {};

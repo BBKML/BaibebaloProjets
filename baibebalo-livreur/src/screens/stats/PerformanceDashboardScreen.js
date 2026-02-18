@@ -1,12 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Dimensions, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
 import { getDeliveryProfile, getDeliveryHistoryForStats } from '../../api/stats';
 
-const { width } = Dimensions.get('window');
-const CHART_WIDTH = width - 64;
+let SCREEN_WIDTH = 390;
+let CHART_WIDTH = 350;
+try {
+  const RN = require('react-native');
+  if (RN.Dimensions?.get) {
+    const w = RN.Dimensions.get('window').width || 390;
+    SCREEN_WIDTH = w;
+    CHART_WIDTH = Math.max(300, w - 64);
+  }
+} catch (_) {}
 
 export default function PerformanceDashboardScreen({ navigation }) {
   const { earningsData, todayStats } = useDeliveryStore();
@@ -242,7 +250,7 @@ const styles = StyleSheet.create({
   scrollContent: { padding: 16 },
   statsGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12, marginBottom: 16 },
   statCard: {
-    width: (width - 44) / 2,
+    width: (SCREEN_WIDTH - 44) / 2,
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 16,

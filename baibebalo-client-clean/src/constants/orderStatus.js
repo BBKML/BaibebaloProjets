@@ -1,3 +1,9 @@
+// Statuts considérés comme "en cours" (non terminés)
+export const ACTIVE_STATUSES = [
+  'pending', 'new', 'accepted', 'confirmed', 'preparing', 'ready',
+  'picked_up', 'delivering', 'driver_at_customer',
+];
+
 // Statuts des commandes
 export const ORDER_STATUS = {
   PENDING: 'pending',
@@ -21,9 +27,10 @@ export const STATUS_LABELS = {
   [ORDER_STATUS.PREPARING]: 'En préparation',
   [ORDER_STATUS.READY]: 'Prête',
   [ORDER_STATUS.PICKED_UP]: 'Récupérée',
-  [ORDER_STATUS.DELIVERING]: 'En livraison',
+  [ORDER_STATUS.DELIVERING]: 'Livraison en cours',
   [ORDER_STATUS.DELIVERED]: 'Livrée',
   [ORDER_STATUS.CANCELLED]: 'Annulée',
+  driver_at_customer: 'Livreur arrivé', // À la porte du client
 };
 
 // Couleurs des statuts
@@ -38,4 +45,5 @@ export const STATUS_COLORS = {
   [ORDER_STATUS.DELIVERING]: '#0ea5e9',
   [ORDER_STATUS.DELIVERED]: '#10b981',
   [ORDER_STATUS.CANCELLED]: '#ef4444',
+  driver_at_customer: '#10b981',
 };

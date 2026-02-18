@@ -12,11 +12,13 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import apiClient from '../../api/client';
 
 export default function OrderChatScreen({ route, navigation }) {
+  const insets = useSafeAreaInsets();
   const { orderId, restaurantName } = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -246,7 +248,7 @@ export default function OrderChatScreen({ route, navigation }) {
         )}
 
         {/* Input */}
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { paddingBottom: 12 + Math.max(insets.bottom, 16) }]}>
           <TextInput
             style={styles.input}
             placeholder="Écrivez votre message..."

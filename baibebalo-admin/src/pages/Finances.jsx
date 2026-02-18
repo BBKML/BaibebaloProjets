@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import { financesAPI } from '../api/finances';
@@ -273,6 +273,9 @@ const Finances = () => {
       setSelectedPayments([]);
       queryClient.invalidateQueries(['delivery-payments']);
       queryClient.invalidateQueries(['restaurant-payments']);
+      queryClient.invalidateQueries(['delivery-payment-summary']);
+      queryClient.invalidateQueries(['paid-payments']);
+      queryClient.invalidateQueries({ predicate: (q) => q.queryKey[0] === 'driver' });
     },
     onError: (error) => {
       toast.error(error.response?.data?.error?.message || error.message || 'Erreur lors du paiement');
@@ -344,6 +347,44 @@ const Finances = () => {
             </p>
           </div>
           <div className="flex gap-3">
+            {activeTab === 'delivery' && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Générer les payouts pour tous les livreurs avec solde > 1000 FCFA et numéro Mobile Money configuré ?')) {
+                    try {
+                      await financesAPI.generatePayouts('delivery');
+                      toast.success('Payouts livreurs générés avec succès');
+                      queryClient.invalidateQueries(['delivery-payments']);
+                    } catch (error) {
+                      toast.error(error.response?.data?.error?.message || 'Erreur lors de la génération');
+                    }
+                  }
+                }}
+                className="flex items-center gap-2 px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">add_circle</span>
+                <span>Générer les payouts livreurs</span>
+              </button>
+            )}
+            {activeTab === 'restaurant' && (
+              <button
+                onClick={async () => {
+                  if (window.confirm('Générer les payouts pour tous les restaurants avec solde > 10000 FCFA ?')) {
+                    try {
+                      await financesAPI.generatePayouts('restaurant');
+                      toast.success('Payouts restaurants générés avec succès');
+                      queryClient.invalidateQueries(['restaurant-payments']);
+                    } catch (error) {
+                      toast.error(error.response?.data?.error?.message || 'Erreur lors de la génération');
+                    }
+                  }
+                }}
+                className="flex items-center gap-2 px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors"
+              >
+                <span className="material-symbols-outlined text-xl">add_circle</span>
+                <span>Générer les payouts restaurants</span>
+              </button>
+            )}
             <button 
               onClick={() => {
                 toast.info('Fonctionnalité d\'export en cours de développement');
@@ -381,6 +422,84 @@ const Finances = () => {
             </div>
           </div>
         )}
+
+        {/* Lien vers Vue paiement livreurs (liste + gains pour chaque lundi) */}
+        <Link
+          to="/finances/delivery-payment-summary"
+          className="flex items-center gap-3 p-4 bg-primary/10 dark:bg-primary/20 border border-primary/30 rounded-xl hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
+        >
+          <span className="material-symbols-outlined text-2xl text-primary">
+            list_alt
+          </span>
+          <div>
+            <p className="font-semibold text-slate-900 dark:text-white">
+              Vue paiement livreurs
+            </p>
+            <p className="text-sm text-slate-600 dark:text-slate-400">
+              Liste des livreurs avec leurs gains à payer. Vue pour chaque lundi.
+            </p>
+          </div>
+          <span className="material-symbols-outlined text-primary ml-auto">
+            arrow_forward
+          </span>
+        </Link>
+
+        {/* Guide : Comment payer les livreurs */}
+        {activeTab === 'delivery' && (
+          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
+            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
+              Comment payer vos livreurs ?
+            </p>
+            <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
+              <li>Cliquez sur <strong>Générer les payouts livreurs</strong> pour créer les demandes de paiement (livreurs avec solde &gt; 1000 FCFA et Mobile Money configuré).</li>
+              <li>Sélectionnez les paiements à effectuer, puis cliquez sur <strong>Payer la sélection</strong>.</li>
+              <li>Effectuez le virement Mobile Money vers le numéro indiqué pour chaque livreur.</li>
+              <li>Optionnel : utilisez <strong>Marquer comme payé</strong> pour enregistrer la preuve (référence TX ou capture d&apos;écran).</li>
+            </ol>
+          </div>
+        )}
+
+        {/* Lien vers Espèces dues (ce que les livreurs doivent) */}
+        <Link
+          to="/finances/cash-owed"
+          className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+        >
+          <span className="material-symbols-outlined text-2xl text-amber-600 dark:text-amber-400">
+            account_balance_wallet
+          </span>
+          <div>
+            <p className="font-semibold text-amber-900 dark:text-amber-100">
+              Espèces dues par les livreurs
+            </p>
+            <p className="text-sm text-amber-700 dark:text-amber-300">
+              Voir combien chaque livreur doit reverser (paiements cash non remis)
+            </p>
+          </div>
+          <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 ml-auto">
+            arrow_forward
+          </span>
+        </Link>
+
+        {/* Lien vers Remises espèces (valider les remises déclarées) */}
+        <Link
+          to="/finances/cash-remittances"
+          className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+        >
+          <span className="material-symbols-outlined text-2xl text-emerald-600 dark:text-emerald-400">
+            payments
+          </span>
+          <div>
+            <p className="font-semibold text-emerald-900 dark:text-emerald-100">
+              Remises espèces
+            </p>
+            <p className="text-sm text-emerald-700 dark:text-emerald-300">
+              Valider ou refuser les remises déclarées par les livreurs (agence, dépôt, Mobile Money)
+            </p>
+          </div>
+          <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 ml-auto">
+            arrow_forward
+          </span>
+        </Link>
 
         {/* Filtres de recherche */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
@@ -790,6 +909,8 @@ const Finances = () => {
                                     queryClient.invalidateQueries(['delivery-payments']);
                                     queryClient.invalidateQueries(['restaurant-payments']);
                                     queryClient.invalidateQueries(['paid-payments']);
+                                    queryClient.invalidateQueries(['delivery-payment-summary']);
+                                    if (userId) queryClient.invalidateQueries(['driver', userId]);
                                   } catch (error) {
                                     toast.error('Erreur lors de l\'actualisation');
                                   }
@@ -858,6 +979,9 @@ const Finances = () => {
             toast.success('Paiement marqué comme effectué');
             queryClient.invalidateQueries(['delivery-payments']);
             queryClient.invalidateQueries(['restaurant-payments']);
+            queryClient.invalidateQueries(['delivery-payment-summary']);
+            const userId = paymentProofModal.payment?.user_id;
+            if (userId) queryClient.invalidateQueries(['driver', userId]);
           } catch (error) {
             toast.error(error.response?.data?.error?.message || 'Erreur lors du marquage');
             throw error;

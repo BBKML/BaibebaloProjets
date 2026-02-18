@@ -31,14 +31,16 @@ export default function RefuseOrderModal({ navigation, route }) {
   const { updateOrder } = useRestaurantStore();
   const insets = useSafeAreaInsets();
 
+  const canConfirm = selectedReason && (selectedReason !== 'other' || otherReason.trim().length >= 5);
+
   const handleRefuse = async () => {
     if (!selectedReason) {
       Alert.alert('Erreur', 'Veuillez sélectionner un motif de refus');
       return;
     }
 
-    if (selectedReason === 'other' && !otherReason.trim()) {
-      Alert.alert('Erreur', 'Veuillez préciser le motif de refus');
+    if (selectedReason === 'other' && otherReason.trim().length < 5) {
+      Alert.alert('Erreur', 'Veuillez préciser le motif de refus (au moins 5 caractères)');
       return;
     }
 
@@ -80,7 +82,11 @@ export default function RefuseOrderModal({ navigation, route }) {
             </TouchableOpacity>
           </View>
 
-          <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+          <ScrollView
+            style={styles.content}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
+          >
             <Text style={styles.description}>
               Veuillez sélectionner un motif de refus :
             </Text>
@@ -94,6 +100,8 @@ export default function RefuseOrderModal({ navigation, route }) {
                     selectedReason === reason.id && styles.reasonItemSelected,
                   ]}
                   onPress={() => setSelectedReason(reason.id)}
+                  activeOpacity={0.7}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
                 >
                   <View style={styles.radioContainer}>
                     <View
@@ -121,7 +129,7 @@ export default function RefuseOrderModal({ navigation, route }) {
 
             {selectedReason === 'other' && (
               <View style={styles.otherReasonContainer}>
-                <Text style={styles.otherReasonLabel}>Précisez le motif :</Text>
+                <Text style={styles.otherReasonLabel}>Précisez le motif (min. 5 caractères) :</Text>
                 <TextInput
                   style={styles.otherReasonInput}
                   placeholder="Entrez le motif de refus..."
@@ -153,10 +161,10 @@ export default function RefuseOrderModal({ navigation, route }) {
             <TouchableOpacity
               style={[
                 styles.confirmButton,
-                (!selectedReason || loading) && styles.buttonDisabled,
+                (!canConfirm || loading) && styles.buttonDisabled,
               ]}
               onPress={handleRefuse}
-              disabled={!selectedReason || loading}
+              disabled={!canConfirm || loading}
             >
               <Text style={styles.confirmButtonText}>
                 {loading ? 'Traitement...' : 'Confirmer le refus'}
@@ -179,7 +187,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    maxHeight: '90%',
+    height: '85%',
+    maxHeight: 600,
   },
   header: {
     flexDirection: 'row',
@@ -197,9 +206,12 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    flexGrow: 1,
   },
   scrollContent: {
     padding: 20,
+    flexGrow: 1,
+    paddingBottom: 24,
   },
   description: {
     fontSize: 14,

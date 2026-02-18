@@ -9,7 +9,6 @@
 
 const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
-const config = require('../config');
 
 // ======================================
 // TARIFS PUBLICITÉ
@@ -791,6 +790,7 @@ exports.sendPushNotificationAd = async (req, res) => {
     }
 
     // Récupérer les utilisateurs ciblés
+    // eslint-disable-next-line no-unused-vars -- target_audience réservé pour filtres de ciblage futurs
     const targetAudience = ad.target_audience || {};
     let userQuery = `
       SELECT id, fcm_token 

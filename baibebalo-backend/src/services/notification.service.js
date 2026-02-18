@@ -3,6 +3,39 @@ const config = require('../config');
 const logger = require('../utils/logger');
 const { query } = require('../database/db');
 
+const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
+
+/** Token Expo (ExponentPushToken[...]) = gratuit, pas de Firebase requis */
+const isExpoPushToken = (token) =>
+  token && typeof token === 'string' && token.startsWith('ExponentPushToken[');
+
+/**
+ * Envoyer une notification via l'API Expo Push (100% gratuit)
+ */
+async function sendViaExpoPush(token, notification) {
+  const body = {
+    to: token,
+    title: notification.title || '',
+    body: notification.body || notification.message || '',
+    sound: 'default',
+    data: notification.data || {},
+  };
+  const res = await fetch(EXPO_PUSH_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(body),
+  });
+  const json = await res.json();
+  if (!res.ok) {
+    throw new Error(json.errors?.[0]?.message || `Expo Push HTTP ${res.status}`);
+  }
+  const ticket = Array.isArray(json.data) ? json.data[0] : json.data;
+  if (ticket?.status === 'error') {
+    throw new Error(ticket.message || 'Expo Push error');
+  }
+  return ticket?.id || 'ok';
+}
+
 // Initialiser Firebase Admin
 let firebaseApp = null;
 
@@ -49,15 +82,10 @@ class NotificationService {
 
   /**
    * Envoyer une notification push à un utilisateur
+   * Supporte Expo Push (gratuit) et Firebase FCM
    */
   async sendToUser(userId, userType, notification) {
     try {
-      if (!firebaseApp) {
-        logger.warn('Firebase non initialisé - notification ignorée');
-        return { success: false, reason: 'firebase_not_configured' };
-      }
-
-      // Récupérer le FCM token de l'utilisateur
       const table = this.getUserTable(userType);
       const notificationUserType = this.normalizeNotificationUserType(userType);
 
@@ -71,39 +99,51 @@ class NotificationService {
         return { success: false, reason: 'no_fcm_token' };
       }
 
-      const fcmToken = result.rows[0].fcm_token;
-
+      const pushToken = result.rows[0].fcm_token;
       const messageBody = notification.body || notification.message || '';
 
-      // Construire le message
-      const message = {
-        token: fcmToken,
-        notification: {
+      let response;
+
+      // Expo Push Token = gratuit, pas de Firebase requis
+      if (isExpoPushToken(pushToken)) {
+        response = await sendViaExpoPush(pushToken, {
           title: notification.title,
           body: messageBody,
-        },
-        data: notification.data || {},
-        android: {
-          priority: 'high',
+          message: messageBody,
+          data: notification.data || {},
+        });
+        logger.info(`Notification Expo Push envoyée: ${response}`);
+      } else if (firebaseApp) {
+        // Token FCM = Firebase requis
+        const message = {
+          token: pushToken,
           notification: {
-            sound: 'default',
-            channelId: notification.channel || 'default',
+            title: notification.title,
+            body: messageBody,
           },
-        },
-        apns: {
-          payload: {
-            aps: {
+          data: notification.data || {},
+          android: {
+            priority: 'high',
+            notification: {
               sound: 'default',
-              badge: 1,
+              channelId: notification.channel || 'default',
             },
           },
-        },
-      };
-
-      // Envoyer la notification
-      const response = await admin.messaging().send(message);
-      
-      logger.info(`Notification push envoyée: ${response}`);
+          apns: {
+            payload: {
+              aps: {
+                sound: 'default',
+                badge: 1,
+              },
+            },
+          },
+        };
+        response = await admin.messaging().send(message);
+        logger.info(`Notification Firebase envoyée: ${response}`);
+      } else {
+        logger.warn('Firebase non configuré et token non-Expo - notification ignorée');
+        return { success: false, reason: 'firebase_not_configured' };
+      }
 
       // Enregistrer dans la base de données
       await query(

@@ -29,7 +29,7 @@ export default function CashRemittanceScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [baibebaloMobileMoneyNumber, setBaibebaloMobileMoneyNumber] = useState('+225XXXXXXXXX');
+  const [baibebaloMobileMoneyNumber, setBaibebaloMobileMoneyNumber] = useState('+2250787097996');
 
   const loadPending = useCallback(async () => {
     try {
@@ -96,12 +96,16 @@ export default function CashRemittanceScreen({ navigation }) {
 
     setSubmitting(true);
     try {
-      const res = await createCashRemittance({
+      const payload = {
         amount,
         method,
         order_ids: orderIds,
         reference: reference.trim() || undefined,
-      });
+      };
+      if (method === 'mobile_money_deposit') {
+        payload.mobile_money_provider = mobileMoneyProvider;
+      }
+      const res = await createCashRemittance(payload);
       if (res?.success) {
         Alert.alert(
           'Remise enregistrée',

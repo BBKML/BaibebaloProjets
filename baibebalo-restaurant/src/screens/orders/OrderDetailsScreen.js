@@ -36,6 +36,7 @@ const STATUS_COLORS = {
   accepted: COLORS.confirmed,
   preparing: COLORS.preparing,
   ready: COLORS.ready,
+  driver_en_route: COLORS.delivering,
   delivering: COLORS.delivering,
   delivered: COLORS.delivered,
   cancelled: COLORS.cancelled,
@@ -48,10 +49,22 @@ const STATUS_LABELS = {
   accepted: 'Acceptée',
   preparing: 'En préparation',
   ready: 'Prête',
+  picked_up: 'Récupérée',
+  driver_en_route: 'Livreur en route', // Affiché quand ready + delivery_person_id
   delivering: 'En livraison',
   delivered: 'Livrée',
   cancelled: 'Annulée',
   refused: 'Refusée',
+};
+
+const getStatusLabel = (order) => {
+  if (order?.status === 'ready' && order?.delivery_person_id) {
+    return STATUS_LABELS.driver_en_route;
+  }
+  if (order?.status === 'picked_up') {
+    return STATUS_LABELS.picked_up;
+  }
+  return STATUS_LABELS[order?.status] || order?.status;
 };
 
 export default function OrderDetailsScreen({ navigation, route }) {
@@ -106,6 +119,12 @@ export default function OrderDetailsScreen({ navigation, route }) {
       console.log('🚚 Événement delivery_assigned reçu:', data);
       if (data.order_id === orderId || data.orderId === orderId) {
         setDriverInfo(data.delivery_person || data.driver);
+        const driverName = data.delivery_person?.first_name || data.driver?.first_name || 'Un livreur';
+        Alert.alert(
+          '🚴 Livreur assigné !',
+          `${driverName} va récupérer la commande chez vous.`,
+          [{ text: 'OK' }]
+        );
         loadOrderDetails();
       }
     });
@@ -228,8 +247,10 @@ export default function OrderDetailsScreen({ navigation, route }) {
     );
   }
 
-  const statusColor = STATUS_COLORS[order.status] || COLORS.textSecondary;
-  const statusLabel = STATUS_LABELS[order.status] || order.status;
+  const statusColor = (order?.status === 'ready' && order?.delivery_person_id) 
+    ? STATUS_COLORS.driver_en_route 
+    : (STATUS_COLORS[order.status] || COLORS.textSecondary);
+  const statusLabel = getStatusLabel(order);
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>

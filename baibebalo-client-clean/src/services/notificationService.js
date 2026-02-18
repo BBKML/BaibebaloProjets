@@ -77,8 +77,11 @@ export const getExpoPushToken = async () => {
     // Dans Expo Go (SDK 53+), les notifications push ne sont pas supportées
     try {
       // Obtenir un nouveau token
+      const projectId = process.env.EXPO_PUBLIC_PROJECT_ID
+        || Constants?.expoConfig?.extra?.eas?.projectId
+        || Constants?.easConfig?.projectId;
       const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: process.env.EXPO_PUBLIC_PROJECT_ID || 'your-project-id',
+        projectId: projectId || undefined,
       });
 
       const token = tokenData.data;

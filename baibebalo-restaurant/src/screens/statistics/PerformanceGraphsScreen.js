@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  Dimensions,
   ActivityIndicator,
   Alert,
 } from 'react-native';
@@ -16,7 +15,13 @@ import { LineChart, BarChart, PieChart } from 'react-native-chart-kit';
 import { COLORS } from '../../constants/colors';
 import { restaurantApi } from '../../api/restaurant';
 
-const { width } = Dimensions.get('window');
+let CHART_WIDTH = 350;
+try {
+  const RN = require('react-native');
+  if (RN.Dimensions && typeof RN.Dimensions.get === 'function') {
+    CHART_WIDTH = Math.max(300, (RN.Dimensions.get('window').width || 390) - 40);
+  }
+} catch (_) {}
 
 export default function PerformanceGraphsScreen({ navigation }) {
   const [period, setPeriod] = useState('week');
@@ -140,7 +145,7 @@ export default function PerformanceGraphsScreen({ navigation }) {
           <View style={styles.chartContainer}>
             <LineChart
               data={graphData.revenueEvolution}
-              width={width - 40}
+              width={CHART_WIDTH}
               height={220}
               chartConfig={chartConfig}
               bezier
@@ -155,7 +160,7 @@ export default function PerformanceGraphsScreen({ navigation }) {
           <View style={styles.chartContainer}>
             <BarChart
               data={graphData.ordersPerDay}
-              width={width - 40}
+              width={CHART_WIDTH}
               height={220}
               chartConfig={chartConfig}
               style={styles.chart}
@@ -170,7 +175,7 @@ export default function PerformanceGraphsScreen({ navigation }) {
           <View style={styles.chartContainer}>
             <BarChart
               data={graphData.peakHours}
-              width={width - 40}
+              width={CHART_WIDTH}
               height={220}
               chartConfig={chartConfig}
               style={styles.chart}
@@ -186,7 +191,7 @@ export default function PerformanceGraphsScreen({ navigation }) {
           <View style={styles.chartContainer}>
             <PieChart
               data={graphData.acceptedVsRefused}
-              width={width - 40}
+              width={CHART_WIDTH}
               height={220}
               chartConfig={chartConfig}
               accessor="population"

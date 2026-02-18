@@ -5,13 +5,18 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Dimensions,
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
-const { width } = Dimensions.get('window');
+let SCREEN_WIDTH = 390;
+try {
+  const RN = require('react-native');
+  if (RN.Dimensions?.get) {
+    SCREEN_WIDTH = RN.Dimensions.get('window').width || 390;
+  }
+} catch (_) {}
 
 export default function OnboardingWelcomeScreen({ navigation }) {
   const [currentPage, setCurrentPage] = useState(0);
@@ -45,7 +50,7 @@ export default function OnboardingWelcomeScreen({ navigation }) {
       
       // ✅ Faire défiler vers la page suivante
       scrollViewRef.current?.scrollTo({
-        x: nextPage * width,
+        x: nextPage * SCREEN_WIDTH,
         animated: true,
       });
     } else {
@@ -72,7 +77,7 @@ export default function OnboardingWelcomeScreen({ navigation }) {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={(event) => {
-          const pageIndex = Math.round(event.nativeEvent.contentOffset.x / width);
+          const pageIndex = Math.round(event.nativeEvent.contentOffset.x / SCREEN_WIDTH);
           setCurrentPage(pageIndex);
         }}
         style={styles.scrollView}
@@ -153,7 +158,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   page: {
-    width,
+    width: SCREEN_WIDTH,
     flex: 1,
     paddingHorizontal: 24,
   },

@@ -4,24 +4,31 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { confirmPickup } from '../../api/orders';
 
-const checklist = [
+const checklistFood = [
   { id: 'bags', label: 'Nombre de sacs correct' },
   { id: 'sealed', label: 'Commande bien fermée/emballée' },
   { id: 'drinks', label: 'Boissons incluses' },
   { id: 'cutlery', label: 'Couverts et serviettes' },
 ];
 
+const checklistExpress = [
+  { id: 'received', label: 'Colis récupéré' },
+  { id: 'condition', label: 'Colis en bon état' },
+  { id: 'sealed', label: 'Emballage correct et fermé' },
+];
+
 export default function OrderVerificationScreen({ navigation, route }) {
   const [checked, setChecked] = useState({});
   const [confirming, setConfirming] = useState(false);
   const delivery = route.params?.delivery;
+  const isExpress = delivery?.order_type === 'express';
+  const checklist = isExpress ? checklistExpress : checklistFood;
 
   const toggleCheck = (id) => setChecked(prev => ({ ...prev, [id]: !prev[id] }));
-  const allChecked = checklist.every(item => checked[item.id]);
 
-  // Confirmer la récupération de la commande
+  // Confirmer la récupération de la commande (cochage non obligatoire)
   const handleConfirmPickup = async () => {
-    if (confirming || !allChecked) return;
+    if (confirming) return;
 
     setConfirming(true);
     try {
@@ -55,7 +62,9 @@ export default function OrderVerificationScreen({ navigation, route }) {
         <View style={styles.placeholder} />
       </View>
       <ScrollView style={styles.content}>
-        <Text style={styles.sectionTitle}>Vérifier la commande</Text>
+        <Text style={styles.sectionTitle}>
+          {isExpress ? 'Vérifier le colis' : 'Vérifier la commande'}
+        </Text>
         {checklist.map(item => (
           <TouchableOpacity key={item.id} style={styles.checkItem} onPress={() => toggleCheck(item.id)}>
             <View style={[styles.checkbox, checked[item.id] && styles.checkboxChecked]}>
@@ -67,14 +76,16 @@ export default function OrderVerificationScreen({ navigation, route }) {
       </ScrollView>
       <View style={styles.bottomContainer}>
         <TouchableOpacity 
-          style={[styles.primaryButton, (!allChecked || confirming) && styles.primaryButtonDisabled]}
+          style={[styles.primaryButton, confirming && styles.primaryButtonDisabled]}
           onPress={handleConfirmPickup}
-          disabled={!allChecked || confirming}
+          disabled={confirming}
         >
           {confirming ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Text style={styles.primaryButtonText}>COMMANDE RÉCUPÉRÉE</Text>
+            <Text style={styles.primaryButtonText}>
+              {isExpress ? 'COLIS RÉCUPÉRÉ' : 'COMMANDE RÉCUPÉRÉE'}
+            </Text>
           )}
         </TouchableOpacity>
       </View>

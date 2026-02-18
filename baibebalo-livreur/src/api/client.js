@@ -8,7 +8,7 @@ const requestTimeout = 10000;
 
 // Utiliser API_BASE_URL depuis constants/api.js qui gère déjà l'environnement
 const apiClient = axios.create({
-  baseURL: API_BASE_URL || 'http://192.168.1.5:5000/api/v1',
+  baseURL: API_BASE_URL || 'http://192.168.1.16:5000/api/v1',
   timeout: requestTimeout,
   headers: {
     'Content-Type': 'application/json',
@@ -54,8 +54,12 @@ apiClient.interceptors.response.use(
     const url = error.config?.url || '';
     const status = error.response?.status;
     const isTimeout = error.code === 'ECONNABORTED';
+    const isCanceled = error.code === 'ERR_CANCELED' || error.message === 'canceled';
     const msg = isTimeout ? 'Timeout' : status || error.message || 'Network Error';
-    console.warn(`[API] ✗ ${url} - ${msg}`);
+    // Ne pas logger les annulations (navigation, AbortController) - comportement normal
+    if (!isCanceled) {
+      console.warn(`[API] ✗ ${url} - ${msg}`);
+    }
     if (isTimeout) {
       error.isTimeout = true;
       error.userMessage = 'Délai dépassé. Tirez pour réessayer.';

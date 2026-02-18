@@ -53,9 +53,15 @@ export default function AddressSelectionScreen({ navigation, route }) {
     if (selectedAddress) {
       const onSelect = route?.params?.onSelect;
       const nextRouteName = route?.params?.nextRouteName;
+      const returnTo = route?.params?.returnTo;
+      const returnParamKey = route?.params?.returnParamKey;
       if (onSelect) {
         onSelect(selectedAddress);
         navigation.goBack();
+        return;
+      }
+      if (returnTo && returnParamKey) {
+        navigation.navigate(returnTo, { [returnParamKey]: selectedAddress });
         return;
       }
       if (nextRouteName) {

@@ -435,10 +435,17 @@ const Dashboard = () => {
                     
                     const statusConfig = {
                       pending: { label: 'En attente', class: 'bg-semantic-amber/10 text-semantic-amber' },
+                      new: { label: 'Nouvelle', class: 'bg-semantic-amber/10 text-semantic-amber' },
+                      accepted: { label: 'Acceptée', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
                       confirmed: { label: 'Confirmé', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
                       preparing: { label: 'Préparation', class: 'bg-semantic-amber/10 text-semantic-amber' },
+                      ready: { label: 'Prête', class: 'bg-primary/10 text-primary' },
+                      picked_up: { label: 'Récupérée', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
                       shipped: { label: 'Expédié', class: 'bg-primary/10 text-primary' },
+                      delivering: { label: 'En livraison', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
+                      driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500' },
                       delivered: { label: 'Livré', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
+                      cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500' },
                     };
                     
                     const status = statusConfig[order.status] || { label: order.status, class: 'bg-slate-100 text-slate-600' };

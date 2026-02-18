@@ -2,9 +2,11 @@ import apiClient from './client';
 import { API_ENDPOINTS } from '../constants/api';
 
 // === Courses disponibles ===
-export const getAvailableOrders = async (lat, lng, radius = 5) => {
+export const getAvailableOrders = async (lat, lng, radius = 50, all = false) => {
+  const params = { lat, lng, radius };
+  if (all) params.all = '1';
   const response = await apiClient.get(API_ENDPOINTS.ORDERS.AVAILABLE, {
-    params: { lat, lng, radius },
+    params,
   });
   return response.data;
 };

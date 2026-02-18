@@ -83,7 +83,7 @@ function MainTabs() {
         tabBarInactiveTintColor: COLORS.textSecondary,
         tabBarStyle: {
           height: 60 + insets.bottom,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          paddingBottom: Math.max(insets.bottom, 10),
           paddingTop: 10,
           borderTopWidth: 1,
           borderTopColor: COLORS.border,

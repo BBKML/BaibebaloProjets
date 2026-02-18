@@ -404,7 +404,7 @@ class AuthService {
             restaurantData.district || null,
             restaurantData.latitude,
             restaurantData.longitude,
-            restaurantData.delivery_radius || 10.0,
+            restaurantData.delivery_radius || 15.0,
             restaurantData.mobile_money_number || null,
             restaurantData.mobile_money_provider || null
           ]

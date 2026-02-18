@@ -75,9 +75,10 @@ const useDeliveryStore = create((set, get) => ({
   /**
    * Charge le dashboard en 1 seul appel (earnings + commandes actives + historique).
    * Évite 3 requêtes → moins de timeouts et "- - ms - -".
+   * @param {{ force?: boolean }} [opts] - force: true pour forcer le rafraîchissement (focus, app foreground)
    */
-  loadDashboardData: async () => {
-    if (__loadDashboardInProgress || get().loadInProgress) return;
+  loadDashboardData: async (opts = {}) => {
+    if (!opts.force && (__loadDashboardInProgress || get().loadInProgress)) return;
     __loadDashboardInProgress = true;
     const g = typeof global !== 'undefined' ? global : typeof self !== 'undefined' ? self : null;
     if (g && g.__dashboardAbortController) {
@@ -102,10 +103,14 @@ const useDeliveryStore = create((set, get) => ({
     getDashboard({ signal })
       .then((res) => {
         if (!res?.success || !res?.data) return;
-        const { earnings, orders, deliveries } = res.data;
+        const { earnings, orders, deliveries, profile } = res.data;
         const ordersList = Array.isArray(orders) ? orders : [];
         const rawDeliveries = Array.isArray(deliveries) ? deliveries : [];
         const earningsData = earnings || {};
+        const completedToday = rawDeliveries.length > 0
+          ? rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length
+          : 0;
+        const avgRating = profile?.average_rating != null ? parseFloat(profile.average_rating) : null;
         set({
           earningsData: {
             available_balance: earningsData.available_balance ?? 0,
@@ -115,7 +120,12 @@ const useDeliveryStore = create((set, get) => ({
             this_week: earningsData.this_week ?? 0,
             this_month: earningsData.this_month ?? 0,
           },
-          todayStats: { ...get().todayStats, earnings: earningsData.today ?? 0 },
+          todayStats: {
+            ...get().todayStats,
+            earnings: earningsData.today ?? 0,
+            deliveries: earningsData.today_deliveries ?? completedToday,
+            rating: avgRating ?? get().todayStats.rating,
+          },
           activeOrders: ordersList,
           currentDelivery: ordersList.length > 0 ? ordersList[0] : null,
         });
@@ -129,7 +139,6 @@ const useDeliveryStore = create((set, get) => ({
             rating: d.delivery_rating ?? null,
             date: formatRelativeDate(d.delivered_at || d.created_at),
           }));
-          const completedToday = rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length;
           set({
             recentDeliveries: mapped,
             dailyGoal: { ...get().dailyGoal, completed: completedToday },

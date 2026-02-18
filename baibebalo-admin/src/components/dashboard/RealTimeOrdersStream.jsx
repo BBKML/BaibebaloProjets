@@ -100,8 +100,11 @@ const RealTimeOrdersStream = ({ orders }) => {
       accepted: 'Acceptée',
       preparing: 'En préparation',
       ready: 'Prête',
+      picked_up: 'Récupérée',
       delivering: 'En livraison',
+      driver_at_customer: 'Livreur arrivé',
       delivered: 'Livrée',
+      cancelled: 'Annulée',
     };
     return labels[status] || status;
   };

@@ -25,9 +25,9 @@ export default function OrderTrackingScreen({ route, navigation }) {
   const [deliveryLocation, setDeliveryLocation] = useState(null);
   const [socketConnected, setSocketConnected] = useState(false);
 
-  const loadOrder = useCallback(async () => {
+  const loadOrder = useCallback(async (showLoading = true) => {
     try {
-      setLoading(true);
+      if (showLoading) setLoading(true);
       const response = await trackOrder(orderId);
       const orderData = response.data?.order || response.data?.data?.order || response.data;
       
@@ -50,7 +50,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
     } catch (error) {
       console.error('❌ Erreur lors du chargement de la commande:', error);
     } finally {
-      setLoading(false);
+      if (showLoading) setLoading(false);
     }
   }, [orderId]);
 
@@ -79,14 +79,21 @@ export default function OrderTrackingScreen({ route, navigation }) {
           'ready': '📦 Commande prête ! Le livreur va la récupérer',
           'picked_up': '🚴 Commande récupérée par le livreur',
           'delivering': '🚗 Livraison en cours',
+          'driver_at_customer': '📍 Livreur arrivé à votre adresse !',
           'delivered': '✅ Commande livrée !',
         };
         
         if (statusMessages[data.status]) {
+          const isDelivered = data.status === 'delivered';
           Alert.alert(
             'Mise à jour',
             statusMessages[data.status],
-            [{ text: 'OK' }]
+            isDelivered
+              ? [
+                  { text: 'Noter la commande', onPress: () => navigation.navigate('OrderReview', { orderId }) },
+                  { text: 'Plus tard', style: 'cancel' },
+                ]
+              : [{ text: 'OK' }]
           );
         }
         
@@ -98,9 +105,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
           return updated;
         });
         // Recharger pour avoir les données complètes (accepted_at, etc.)
-        setTimeout(() => {
-          loadOrder();
-        }, 500);
+        setTimeout(() => loadOrder(false), 500);
       } else {
         console.log('[Tracking] ⚠️ Événement ignoré (mauvaise commande):', data.order_id, 'vs', orderId);
       }
@@ -150,7 +155,11 @@ export default function OrderTrackingScreen({ route, navigation }) {
       setSocketConnected(data.connected);
     });
 
+    // Polling de secours : rafraîchir le statut toutes les 15s (au cas où le socket rate un événement)
+    const pollInterval = setInterval(() => loadOrder(false), 15000);
+
     return () => {
+      clearInterval(pollInterval);
       unsubscribeStatus();
       unsubscribeDelivery();
       unsubscribePickup();
@@ -169,20 +178,17 @@ export default function OrderTrackingScreen({ route, navigation }) {
     );
   }
 
-  const statusSteps = [
-    'new',
-    'accepted',
-    'preparing',
-    'ready',
-    'picked_up',
-    'delivering',
-    'delivered',
-  ];
+  const isExpress = order.order_type === 'express';
+  const statusSteps = isExpress
+    ? ['ready', 'picked_up', 'delivering', 'delivered']
+    : ['new', 'accepted', 'preparing', 'ready', 'picked_up', 'delivering', 'delivered'];
 
   // Mapper les statuts pour la timeline (accepted peut être considéré comme confirmed)
+  // driver_at_customer = livreur arrivé → considérer comme delivered pour afficher toutes les étapes complétées
   const getStatusForTimeline = (status) => {
     if (status === 'confirmed' || status === 'accepted') return 'accepted';
     if (status === 'pending' || status === 'new') return 'new';
+    if (status === 'driver_at_customer') return 'delivered';
     return status;
   };
 
@@ -194,25 +200,11 @@ export default function OrderTrackingScreen({ route, navigation }) {
   const total = calculateOrderTotal(order);
 
   const handleCallRestaurant = () => {
-    // Essayer plusieurs sources pour le numéro du restaurant
+    if (order.order_type === 'express') return;
     const phone = order.restaurant?.phone || order.restaurant_phone;
-    
-    console.log('📞 Tentative d\'appel restaurant:', {
-      restaurantPhone: order.restaurant?.phone,
-      restaurant_phone: order.restaurant_phone,
-      restaurantId: order.restaurant_id,
-      restaurantName: order.restaurant?.name,
-      phoneFound: !!phone,
-    });
-    
     if (phone) {
       Linking.openURL(`tel:${phone}`);
     } else {
-      console.warn('⚠️ Numéro restaurant non trouvé:', {
-        orderId: order.id,
-        restaurant: order.restaurant,
-        restaurant_phone: order.restaurant_phone,
-      });
       Alert.alert('Contact', 'Le numéro du restaurant n\'est pas disponible.');
     }
   };
@@ -229,7 +221,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
   const handleOpenChat = () => {
     navigation.navigate('OrderChat', {
       orderId: order.id,
-      restaurantName: order.restaurant?.name,
+      restaurantName: order.order_type === 'express' ? 'Livraison express' : order.restaurant?.name,
     });
   };
 
@@ -280,38 +272,44 @@ export default function OrderTrackingScreen({ route, navigation }) {
         })}
       </View>
 
-      {/* Restaurant Info with Call Button */}
-      <View style={styles.contactCard}>
-        <View style={styles.contactHeader}>
-          <View style={styles.contactIcon}>
-            <Ionicons name="restaurant" size={24} color={COLORS.primary} />
+      {/* Restaurant / Point de collecte */}
+      {(!isExpress || order.pickup_address) && (
+        <View style={styles.contactCard}>
+          <View style={styles.contactHeader}>
+            <View style={styles.contactIcon}>
+              <Ionicons name={isExpress ? 'cube-outline' : 'restaurant'} size={24} color={COLORS.primary} />
+            </View>
+            <View style={styles.contactInfo}>
+              <Text style={styles.contactLabel}>{isExpress ? 'Point de collecte' : 'Restaurant'}</Text>
+              <Text style={styles.contactName}>
+                {isExpress ? (order.pickup_address?.address_line || order.pickup_address?.address || 'Collecte') : (order.restaurant?.name || 'Restaurant')}
+              </Text>
+              {!isExpress && order.restaurant?.phone && (
+                <TouchableOpacity onPress={handleCallRestaurant} style={styles.phoneLink}>
+                  <Ionicons name="call-outline" size={14} color={COLORS.primary} />
+                  <Text style={styles.phoneText}>{order.restaurant.phone}</Text>
+                </TouchableOpacity>
+              )}
+              {!isExpress && order.estimated_preparation_time && (
+                <Text style={styles.prepTime}>
+                  Préparation estimée: {order.estimated_preparation_time} min
+                </Text>
+              )}
+            </View>
           </View>
-          <View style={styles.contactInfo}>
-            <Text style={styles.contactLabel}>Restaurant</Text>
-            <Text style={styles.contactName}>{order.restaurant?.name || 'Restaurant'}</Text>
-            {order.restaurant?.phone && (
-              <TouchableOpacity onPress={handleCallRestaurant} style={styles.phoneLink}>
-                <Ionicons name="call-outline" size={14} color={COLORS.primary} />
-                <Text style={styles.phoneText}>{order.restaurant.phone}</Text>
+          <View style={styles.contactButtons}>
+            <TouchableOpacity style={styles.chatButton} onPress={handleOpenChat}>
+              <Ionicons name="chatbubble" size={18} color={COLORS.primary} />
+              <Text style={styles.chatButtonText}>Chat</Text>
+            </TouchableOpacity>
+            {!isExpress && (
+              <TouchableOpacity style={styles.callButton} onPress={handleCallRestaurant}>
+                <Ionicons name="call" size={18} color={COLORS.white} />
               </TouchableOpacity>
             )}
-            {order.estimated_preparation_time && (
-              <Text style={styles.prepTime}>
-                Préparation estimée: {order.estimated_preparation_time} min
-              </Text>
-            )}
           </View>
         </View>
-        <View style={styles.contactButtons}>
-          <TouchableOpacity style={styles.chatButton} onPress={handleOpenChat}>
-            <Ionicons name="chatbubble" size={18} color={COLORS.primary} />
-            <Text style={styles.chatButtonText}>Chat</Text>
-          </TouchableOpacity>
-          <TouchableOpacity style={styles.callButton} onPress={handleCallRestaurant}>
-            <Ionicons name="call" size={18} color={COLORS.white} />
-          </TouchableOpacity>
-        </View>
-      </View>
+      )}
 
       {/* Driver Info with Call Button - shown when driver is assigned */}
       {order.delivery_person && (
@@ -355,6 +353,19 @@ export default function OrderTrackingScreen({ route, navigation }) {
           >
             <Ionicons name="call" size={20} color={COLORS.white} />
             <Text style={styles.callButtonText}>Appeler</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Bouton Noter - affiché quand la commande est livrée */}
+      {order.status === 'delivered' && !order.review && !order.restaurant_rating && (
+        <View style={styles.section}>
+          <TouchableOpacity 
+            style={[styles.primaryButton, { backgroundColor: COLORS.primary }]}
+            onPress={() => navigation.navigate('OrderReview', { orderId })}
+          >
+            <Ionicons name="star" size={20} color={COLORS.white} />
+            <Text style={styles.primaryButtonText}>Noter le restaurant et le livreur</Text>
           </TouchableOpacity>
         </View>
       )}
@@ -662,6 +673,19 @@ const styles = StyleSheet.create({
   },
   timelineLabelTextCompleted: {
     color: COLORS.text,
+    fontWeight: '600',
+  },
+  primaryButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  primaryButtonText: {
+    color: COLORS.white,
+    fontSize: 16,
     fontWeight: '600',
   },
   section: {

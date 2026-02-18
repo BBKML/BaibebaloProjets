@@ -2,6 +2,27 @@ import apiClient from './client';
 import { API_CONFIG } from '../constants/api';
 
 /**
+ * Calculer les frais de livraison EXPRESS (point à point, sans restaurant)
+ */
+export const calculateExpressFees = async (pickupAddressId, deliveryAddressId, pickupAddress, deliveryAddress) => {
+  const body = {};
+  if (pickupAddressId) body.pickup_address_id = pickupAddressId;
+  else if (pickupAddress) body.pickup_address = pickupAddress;
+  if (deliveryAddressId) body.delivery_address_id = deliveryAddressId;
+  else if (deliveryAddress) body.delivery_address = deliveryAddress;
+  const response = await apiClient.post('/orders/express/calculate-fees', body);
+  return response.data;
+};
+
+/**
+ * Créer une commande EXPRESS (livraison point à point)
+ */
+export const createExpressOrder = async (orderData) => {
+  const response = await apiClient.post('/orders/express', orderData);
+  return response.data;
+};
+
+/**
  * Calculer les frais de livraison et de service
  */
 export const calculateFees = async (restaurantId, deliveryAddressId, subtotal) => {

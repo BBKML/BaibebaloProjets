@@ -94,6 +94,10 @@ export default function OrderDetailsScreen({ route, navigation }) {
   };
 
   const handleReorder = () => {
+    if (order.order_type === 'express') {
+      navigation.navigate('ExpressCheckout');
+      return;
+    }
     const restaurantId = order.restaurant?.id;
     if (restaurantId) {
       navigation.navigate('RestaurantDetail', { restaurantId });
@@ -472,7 +476,14 @@ export default function OrderDetailsScreen({ route, navigation }) {
           </TouchableOpacity>
         )}
 
-        {/* Bouton Modifier mon avis - affiché si la commande est livrée et dans les 48h */}
+        {/* Bouton Donner mon avis - affiché si livrée et pas encore d'avis */}
+        {order.status === 'delivered' && !canEditReview && !(order.review || order.restaurant_rating) && (
+          <TouchableOpacity style={styles.editReviewButton} onPress={() => navigation.navigate('OrderReview', { orderId: order.id })}>
+            <Ionicons name="star-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.editReviewButtonText}>Noter le restaurant et le livreur</Text>
+          </TouchableOpacity>
+        )}
+        {/* Bouton Modifier mon avis - affiché si la commande est livrée et dans les 48h avec avis existant */}
         {canEditReview && order.status === 'delivered' && (
           <TouchableOpacity style={styles.editReviewButton} onPress={handleEditReview}>
             <Ionicons name="create-outline" size={18} color={COLORS.primary} />
@@ -480,13 +491,22 @@ export default function OrderDetailsScreen({ route, navigation }) {
           </TouchableOpacity>
         )}
 
-        {/* Bouton Demander un remboursement - affiché si la commande est livrée/annulée et dans les 24h */}
-        {order.status === 'delivered' && (
-          <TouchableOpacity style={styles.refundButton} onPress={handleRequestRefund}>
-            <Ionicons name="card-outline" size={18} color={COLORS.warning} />
-            <Text style={styles.refundButtonText}>Demander un remboursement</Text>
-          </TouchableOpacity>
-        )}
+        {/* Bouton Demander un remboursement - désactivé 1 min après livraison */}
+        {order.status === 'delivered' && (() => {
+          const deliveredAt = order.delivered_at ? new Date(order.delivered_at) : null;
+          const minutesSinceDelivery = deliveredAt ? (Date.now() - deliveredAt.getTime()) / (1000 * 60) : 0;
+          const refundDisabled = minutesSinceDelivery >= 1;
+          return refundDisabled ? (
+            <View style={styles.refundDisabledContainer}>
+              <Text style={styles.refundDisabledText}>Veuillez contacter le support pour toute réclamation.</Text>
+            </View>
+          ) : (
+            <TouchableOpacity style={styles.refundButton} onPress={handleRequestRefund}>
+              <Ionicons name="card-outline" size={18} color={COLORS.warning} />
+              <Text style={styles.refundButtonText}>Demander un remboursement</Text>
+            </TouchableOpacity>
+          );
+        })()}
 
         <TouchableOpacity style={styles.primaryButton} onPress={handleReorder}>
           <Ionicons name="refresh" size={18} color={COLORS.white} />
@@ -1058,6 +1078,19 @@ const styles = StyleSheet.create({
     color: COLORS.warning,
     fontSize: 16,
     fontWeight: '700',
+  },
+  refundDisabledContainer: {
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  refundDisabledText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
   },
   callRestaurantButton: {
     backgroundColor: 'transparent',

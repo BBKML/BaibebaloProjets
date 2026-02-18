@@ -144,7 +144,10 @@ const RestaurantDetails = () => {
       case 'confirmed': return 'Confirmée';
       case 'preparing': return 'En préparation';
       case 'ready': return 'Prête';
-      case 'out_for_delivery': return 'En livraison';
+      case 'picked_up': return 'Récupérée';
+      case 'out_for_delivery':
+      case 'delivering': return 'En livraison';
+      case 'driver_at_customer': return 'Livreur arrivé';
       case 'delivered': return 'Livrée';
       case 'cancelled': return 'Annulée';
       default: return status || 'Inconnu';
@@ -166,7 +169,9 @@ const RestaurantDetails = () => {
     openingHours = restaurant.opening_hours;
   } else if (typeof restaurant.opening_hours === 'string') {
     try {
-      openingHours = JSON.parse(restaurant.opening_hours) || {};
+      let parsed = JSON.parse(restaurant.opening_hours);
+      while (typeof parsed === 'string') parsed = JSON.parse(parsed);
+      openingHours = (parsed && typeof parsed === 'object') ? parsed : {};
     } catch (_) {}
   }
   const hasAnyHours = Object.keys(openingHours).length > 0;

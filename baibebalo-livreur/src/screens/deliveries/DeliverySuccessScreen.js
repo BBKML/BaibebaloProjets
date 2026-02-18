@@ -12,15 +12,19 @@ import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
 
 export default function DeliverySuccessScreen({ navigation, route }) {
-  const { clearCurrentDelivery, incrementDeliveries, addEarnings } = useDeliveryStore();
+  const { clearCurrentDelivery, incrementDeliveries, addEarnings, loadDashboardData } = useDeliveryStore();
   
-  const earnings = route.params?.earnings || 1750;
+  const rawEarnings = route.params?.earnings ?? 1750;
+  const earnings = typeof rawEarnings === 'object' 
+    ? (rawEarnings?.net ?? rawEarnings?.total ?? 1750) 
+    : Number(rawEarnings) || 1750;
   const rating = route.params?.rating || 5;
 
   const handleDone = () => {
     clearCurrentDelivery();
     incrementDeliveries();
     addEarnings(earnings);
+    loadDashboardData({ force: true }); // Rafraîchir gains + courses pour l'onglet Accueil
     navigation.reset({
       index: 0,
       routes: [{ name: 'Main' }],
@@ -31,6 +35,7 @@ export default function DeliverySuccessScreen({ navigation, route }) {
     clearCurrentDelivery();
     incrementDeliveries();
     addEarnings(earnings);
+    loadDashboardData({ force: true }); // Rafraîchir gains + courses pour l'onglet Accueil
     navigation.reset({
       index: 0,
       routes: [

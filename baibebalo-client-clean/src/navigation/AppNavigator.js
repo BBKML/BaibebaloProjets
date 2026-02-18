@@ -60,6 +60,7 @@ import AboutBaibebaloScreen from '../screens/info/AboutBaibebaloScreen';
 import PrivacyPolicyScreen from '../screens/info/PrivacyPolicyScreen';
 import DataStorageScreen from '../screens/settings/DataStorageScreen';
 import MapLocationSelectorScreen from '../screens/location/MapLocationSelectorScreen';
+import ExpressCheckoutScreen from '../screens/express/ExpressCheckoutScreen';
 import LocationAccessPermissionScreen from '../screens/location/LocationAccessPermissionScreen';
 import OrderReceiptScreen from '../screens/orders/OrderReceiptScreen';
 import MyClaimsTrackingScreen from '../screens/support/MyClaimsTrackingScreen';
@@ -91,10 +92,7 @@ function MainTabs() {
 
   // Calculer la hauteur et padding dynamiquement
   const tabBarHeight = 60 + insets.bottom;
-  const tabBarPaddingBottom = insets.bottom > 0 ? insets.bottom : 10;
-
-  console.log('📱 Safe Area Bottom:', insets.bottom);
-  console.log('📏 Tab Bar Height:', tabBarHeight);
+  const tabBarPaddingBottom = Math.max(insets.bottom, 10);
 
   return (
     <Tab.Navigator
@@ -415,6 +413,11 @@ export default function AppNavigator() {
 
             {/* 🛒 GROUPE PANIER & CHECKOUT */}
             <Stack.Group>
+              <Stack.Screen
+                name="ExpressCheckout"
+                component={ExpressCheckoutScreen}
+                options={{ headerShown: false }}
+              />
               <Stack.Screen
                 name="Checkout"
                 component={CheckoutScreen}

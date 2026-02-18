@@ -19,7 +19,7 @@ const faqData = [
   {
     id: '3',
     question: 'Quand suis-je payé ?',
-    answer: 'Vos gains sont disponibles immédiatement après chaque livraison. Vous pouvez demander un retrait vers Mobile Money à partir de 5000 FCFA.',
+    answer: 'Vos gains sont disponibles après chaque livraison. Paiement automatique chaque lundi (dès 1000 FCFA). Pour une demande avant le lundi : minimum 5000 FCFA.',
     icon: 'wallet-outline',
   },
   {
@@ -54,7 +54,7 @@ export default function HelpCenterScreen({ navigation }) {
   };
 
   const handleCallSupport = () => {
-    Linking.openURL('tel:+2250700000000');
+    Linking.openURL('tel:+2250787097996');
   };
 
   return (
@@ -83,6 +83,7 @@ export default function HelpCenterScreen({ navigation }) {
             <Text style={styles.quickActionText}>Appeler</Text>
           </TouchableOpacity>
         </View>
+        <Text style={styles.contactNumbers}>05 85 67 09 40 / 07 87 09 79 96</Text>
 
         {/* FAQ Section */}
         <View style={styles.section}>
@@ -186,6 +187,13 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '600',
     color: COLORS.text,
+  },
+  contactNumbers: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    textAlign: 'center',
+    marginTop: -16,
+    marginBottom: 16,
   },
   section: {
     marginBottom: 24,

@@ -11,8 +11,8 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
+import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import useCartStore from '../../store/cartStore';
 import { getSuggestedItems } from '../../api/restaurants';
 
@@ -26,7 +26,7 @@ export default function ShoppingCartScreen({ navigation }) {
   const [suggestionTips, setSuggestionTips] = useState(null);
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
-  const insets = useSafeAreaInsets();
+  const { paddingTop, tabBarTotalHeight } = useSafeAreaPadding({ withTabBar: true });
 
   const total = getTotal();
   
@@ -68,7 +68,7 @@ export default function ShoppingCartScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop }]}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.iconButton} onPress={() => navigation.goBack()}>
@@ -320,8 +320,8 @@ export default function ShoppingCartScreen({ navigation }) {
             </View>
           </ScrollView>
 
-          {/* Bouton Fixe en Bas - TOUJOURS VISIBLE */}
-          <View style={[styles.fixedFooter, { bottom: insets.bottom + 80 }]}>
+          {/* Bouton Fixe en Bas - au-dessus de la tab bar */}
+          <View style={[styles.fixedFooter, { bottom: tabBarTotalHeight + 16 }]}>
             <TouchableOpacity
               style={styles.checkoutButton}
               onPress={handleCheckout}
@@ -381,7 +381,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   scrollContent: {
-    paddingBottom: 140, // Espace pour le bouton fixe + safe area
+    paddingBottom: 120,
   },
   emptyContainer: {
     flex: 1,

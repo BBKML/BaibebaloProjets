@@ -120,6 +120,7 @@ const OrderDetails = () => {
       case 'ready': return 'Prête';
       case 'picked_up': return 'Récupérée';
       case 'delivering': return 'En livraison';
+      case 'driver_at_customer': return 'Livreur arrivé';
       case 'delivered': return 'Livrée';
       case 'cancelled': return 'Annulée';
       default: return status || 'Inconnu';
@@ -135,6 +136,8 @@ const OrderDetails = () => {
       case 'picked_up':
         return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
       case 'delivering':
+        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+      case 'driver_at_customer':
         return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
       case 'ready':
         return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
@@ -155,7 +158,9 @@ const OrderDetails = () => {
     { key: 'preparing', label: 'En préparation', icon: 'restaurant' },
     { key: 'ready', label: 'Prête', icon: 'done' },
     { key: 'picked_up', label: 'Récupérée', icon: 'inventory_2' },
+    { key: 'delivering', label: 'En livraison', icon: 'local_shipping' },
     { key: 'on_route', label: 'En route', icon: 'local_shipping' },
+    { key: 'driver_at_customer', label: 'Livreur arrivé', icon: 'location_on' },
     { key: 'delivered', label: 'Livrée', icon: 'check' },
   ];
 
@@ -251,28 +256,56 @@ const OrderDetails = () => {
             </div>
           </div>
 
-          {/* Restaurant Info */}
+          {/* Restaurant / Point de collecte */}
           <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
             <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
-              Restaurant
+              {order.order_type === 'express' ? 'Point de collecte' : 'Restaurant'}
             </h3>
             <div className="space-y-3">
-              <h4 
-                className="font-bold text-sm text-slate-900 dark:text-white cursor-pointer hover:text-primary"
-                onClick={() => order.restaurant_id && navigate(`/restaurants/${order.restaurant_id}`)}
-              >
-                {order.restaurant_name || 'N/A'}
-              </h4>
-              <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
-                <div className="flex items-start gap-2">
-                  <span className="material-symbols-outlined text-base mt-0.5">location_on</span>
-                  <span>{order.restaurant_address || 'N/A'}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <span className="material-symbols-outlined text-base">phone</span>
-                  <span>{order.restaurant_phone || 'N/A'}</span>
-                </div>
-              </div>
+              {order.order_type === 'express' ? (
+                <>
+                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">
+                    📦 Livraison express
+                  </h4>
+                  <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="flex items-start gap-2">
+                      <span className="material-symbols-outlined text-base mt-0.5">location_on</span>
+                      <span>{order.pickup_address?.address_line || order.pickup_address?.address || 'N/A'}</span>
+                    </div>
+                    {order.recipient_name && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base">person</span>
+                        <span>Destinataire: {order.recipient_name}</span>
+                      </div>
+                    )}
+                    {order.recipient_phone && (
+                      <div className="flex items-center gap-2">
+                        <span className="material-symbols-outlined text-base">phone</span>
+                        <span>{order.recipient_phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h4 
+                    className="font-bold text-sm text-slate-900 dark:text-white cursor-pointer hover:text-primary"
+                    onClick={() => order.restaurant_id && navigate(`/restaurants/${order.restaurant_id}`)}
+                  >
+                    {order.restaurant_name || 'N/A'}
+                  </h4>
+                  <div className="space-y-2 text-xs text-slate-600 dark:text-slate-400">
+                    <div className="flex items-start gap-2">
+                      <span className="material-symbols-outlined text-base mt-0.5">location_on</span>
+                      <span>{order.restaurant_address || 'N/A'}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="material-symbols-outlined text-base">phone</span>
+                      <span>{order.restaurant_phone || 'N/A'}</span>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
 

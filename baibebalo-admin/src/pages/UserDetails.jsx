@@ -25,6 +25,7 @@ const UserDetails = () => {
   const user = data?.data?.user || {};
   const stats = data?.data?.stats || {};
   const recentOrders = data?.data?.recent_orders || user.recent_orders || [];
+  const reviews = data?.data?.reviews || [];
   const addresses = data?.data?.addresses || user.addresses || [];
   
   // Données pour le graphique d'activité
@@ -148,7 +149,7 @@ const UserDetails = () => {
               <div>
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Revenu Total</p>
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(user.total_revenue || 0)}
+                  {formatCurrency(stats.total_spent ?? user.total_spent ?? user.total_revenue ?? 0)}
                 </h3>
               </div>
               <div className="p-3 bg-emerald-100 dark:bg-emerald-500/10 rounded-lg">
@@ -161,7 +162,7 @@ const UserDetails = () => {
               <div>
                 <p className="text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">Total Commandes</p>
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white">
-                  {user.total_orders || 0}
+                  {stats.total_orders ?? user.total_orders ?? 0}
                 </h3>
               </div>
               <div className="p-3 bg-emerald-100 dark:bg-emerald-500/10 rounded-lg">
@@ -290,12 +291,15 @@ const UserDetails = () => {
                           <div className="flex items-start gap-3">
                             <span className="material-symbols-outlined text-slate-400">location_on</span>
                             <div>
-                              <p className="text-sm font-medium text-slate-900 dark:text-white">{address.label || 'Adresse'}</p>
+                              <p className="text-sm font-medium text-slate-900 dark:text-white">
+                                {address.title || address.label || 'Adresse'}
+                              </p>
                               <p className="text-sm text-slate-500">
-                                {typeof address.address === 'object' 
-                                  ? (address.address?.address_line || address.address?.street || `${address.address?.district || ''} ${address.address?.city || ''}`.trim())
-                                  : (address.address || address.full_address || address.address_line || `${address.district || ''} ${address.city || ''}`.trim() || 'Non définie')
-                                }
+                                {[
+                                  address.address_line || address.address?.address_line || address.address,
+                                  address.district && `Quartier: ${address.district}`,
+                                  address.landmark,
+                                ].filter(Boolean).join(' · ') || 'Non définie'}
                               </p>
                               {address.is_default && (
                                 <span className="inline-flex mt-1 px-2 py-0.5 bg-primary/10 text-primary text-xs font-bold rounded">
@@ -335,7 +339,9 @@ const UserDetails = () => {
                             delivered: { label: 'Livré', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
                             preparing: { label: 'En préparation', class: 'bg-blue-100 text-blue-600' },
                             ready: { label: 'Prêt', class: 'bg-purple-100 text-purple-600' },
+                            picked_up: { label: 'Récupérée', class: 'bg-blue-100 text-blue-600' },
                             delivering: { label: 'En livraison', class: 'bg-indigo-100 text-indigo-600' },
+                            driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500' },
                             in_progress: { label: 'En cours', class: 'bg-semantic-amber/10 text-semantic-amber' },
                             cancelled: { label: 'Annulé', class: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500' },
                             new: { label: 'Nouveau', class: 'bg-blue-100 text-blue-600' },
@@ -383,7 +389,54 @@ const UserDetails = () => {
 
             {activeTab === 'reviews' && (
               <div>
-                <p className="text-slate-500">Aucun avis disponible</p>
+                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-4">Avis laissés</h3>
+                {reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {reviews.map((review) => (
+                      <div
+                        key={review.id}
+                        className="bg-slate-50 dark:bg-slate-800 rounded-lg p-4 border border-slate-100 dark:border-slate-700"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap mb-2">
+                              <span className="font-semibold text-slate-900 dark:text-white">
+                                {review.restaurant_name || 'Restaurant'}
+                              </span>
+                              {review.order_number && (
+                                <span className="text-xs text-slate-500">
+                                  Commande #{review.order_number}
+                                </span>
+                              )}
+                              <span className="text-xs text-slate-500">
+                                {formatDateShort(review.created_at)}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-3 mb-2">
+                              {review.restaurant_rating != null && (
+                                <span className="flex items-center gap-1">
+                                  <span className="material-symbols-outlined text-amber-500 text-sm">star</span>
+                                  <span className="text-sm font-bold">{review.restaurant_rating}/5</span>
+                                </span>
+                              )}
+                              {review.delivery_rating != null && (
+                                <span className="flex items-center gap-1 text-slate-500">
+                                  <span className="material-symbols-outlined text-slate-400 text-sm">delivery_dining</span>
+                                  <span className="text-sm">{review.delivery_rating}/5</span>
+                                </span>
+                              )}
+                            </div>
+                            {review.comment && (
+                              <p className="text-sm text-slate-600 dark:text-slate-300 mt-1">{review.comment}</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-slate-500">Aucun avis disponible</p>
+                )}
               </div>
             )}
 

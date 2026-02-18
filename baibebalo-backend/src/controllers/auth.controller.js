@@ -1,6 +1,5 @@
 const authService = require('../services/auth.service');
 const smsService = require('../services/sms.service');
-const whatsappService = require('../services/whatsapp.service');
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/auth');
 const { query } = require('../database/db');
 const logger = require('../utils/logger');
@@ -309,12 +308,12 @@ class AuthController {
       // Trouver le restaurant par phone ou email
       // Si c'est un numéro (commence par + ou contient que des chiffres), chercher par phone
       // Sinon, chercher par email
-      const isPhone = /^[\+]?[0-9\s\-\(\)]+$/.test(identifier);
+      const isPhone = /^[+]?[0-9\s\-()]+$/.test(identifier);
       let result;
       
       if (isPhone) {
         // Nettoyer le numéro de téléphone (supprimer espaces, tirets, parenthèses, +225)
-        let cleanPhone = identifier.replace(/[\s\-\(\)]/g, '');
+        let cleanPhone = identifier.replace(/[\s\-()]/g, '');
         // Supprimer le préfixe +225 ou 225 si présent
         cleanPhone = cleanPhone.replace(/^\+?225/, '');
         // Si le numéro commence par 0, le garder, sinon ajouter 0

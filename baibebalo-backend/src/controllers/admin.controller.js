@@ -11,7 +11,8 @@ exports.getDashboard = async (req, res) => {
     // Commission restaurants = commission sur subtotal (selon commission_rate du restaurant)
     // Commission livraison = frais de livraison - paiements réels aux livreurs (incluant bonus)
     const config = require('../config');
-    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70); // 30% théorique
+    // eslint-disable-next-line no-unused-vars -- 30% théorique, réservé pour usage futur
+    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70);
     
     const todayStats = await query(`
       SELECT 
@@ -359,12 +360,32 @@ exports.getUserById = async (req, res) => {
       LIMIT 10
     `, [id]);
 
+    // Avis laissés par le client
+    const reviewsResult = await query(`
+      SELECT rv.*, rest.name as restaurant_name, o.order_number
+      FROM reviews rv
+      LEFT JOIN restaurants rest ON rv.restaurant_id = rest.id
+      LEFT JOIN orders o ON rv.order_id = o.id
+      WHERE rv.user_id = $1
+      ORDER BY rv.created_at DESC
+    `, [id]);
+
+    // Adresses enregistrées
+    const addressesResult = await query(`
+      SELECT id, title, address_line, district, landmark, is_default, created_at
+      FROM addresses
+      WHERE user_id = $1
+      ORDER BY is_default DESC, created_at ASC
+    `, [id]);
+
     res.json({
       success: true,
       data: {
         user: userResult.rows[0],
         stats: statsResult.rows[0],
         recent_orders: ordersResult.rows,
+        reviews: reviewsResult.rows,
+        addresses: addressesResult.rows,
       },
     });
   } catch (error) {
@@ -470,6 +491,7 @@ exports.getRestaurants = async (req, res) => {
       success: true,
       data: {
         restaurants: result.rows.map(r => {
+          // eslint-disable-next-line no-unused-vars -- exclure password_hash de la réponse
           const { password_hash, ...rest } = r;
           return rest;
         }),
@@ -770,7 +792,7 @@ exports.approveDeliveryPerson = async (req, res) => {
  */
 exports.getOrders = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, date_from, date_to, restaurant_id, delivery_person_id, user_id, amount_min, amount_max } = req.query;
+    const { page = 1, limit = 20, status, date_from, date_to, restaurant_id, delivery_person_id, user_id, amount_min, amount_max, order_type } = req.query;
     const offset = (page - 1) * limit;
 
     let queryText = `
@@ -836,6 +858,12 @@ exports.getOrders = async (req, res) => {
       paramIndex++;
     }
 
+    if (order_type && ['food', 'express'].includes(order_type)) {
+      queryText += ` AND o.order_type = $${paramIndex}`;
+      values.push(order_type);
+      paramIndex++;
+    }
+
     queryText += ` ORDER BY o.placed_at DESC LIMIT $${paramIndex} OFFSET $${paramIndex + 1}`;
     values.push(limit, offset);
 
@@ -895,6 +923,12 @@ exports.getOrders = async (req, res) => {
     if (amount_max) {
       countQuery += ` AND o.total <= $${countParamIndex}`;
       countValues.push(Number.parseFloat(amount_max));
+      countParamIndex++;
+    }
+
+    if (order_type && ['food', 'express'].includes(order_type)) {
+      countQuery += ` AND o.order_type = $${countParamIndex}`;
+      countValues.push(order_type);
       countParamIndex++;
     }
 
@@ -1728,6 +1762,16 @@ exports.processPayout = async (req, res) => {
         [req.user.id, id]
       );
 
+      // Déduire le montant du solde du livreur (actualisation)
+      if (payout.user_type === 'delivery') {
+        await client.query(
+          `UPDATE delivery_persons 
+           SET available_balance = GREATEST(0, available_balance - $1)
+           WHERE id = $2`,
+          [payout.amount, payout.user_id]
+        );
+      }
+
       // Créer une transaction pour tracer le paiement
       await client.query(
         `INSERT INTO transactions (
@@ -1750,6 +1794,22 @@ exports.processPayout = async (req, res) => {
       // Après avoir effectué le virement, l'admin clique sur "Marquer comme payé"
 
       logger.info(`Payout ${id} traité par admin ${req.user.id} pour ${payout.user_type} ${payout.user_id}`);
+
+      // Notification push au livreur
+      if (payout.user_type === 'delivery') {
+        try {
+          const notificationService = require('../services/notification.service');
+          const amountFormatted = Number(payout.amount).toLocaleString('fr-FR');
+          await notificationService.sendToUser(payout.user_id, 'delivery', {
+            title: 'Paiement reçu',
+            body: `Votre paiement de ${amountFormatted} FCFA a été effectué. Vérifiez votre Mobile Money.`,
+            type: 'payout_completed',
+            data: { payout_id: id, amount: payout.amount, screen: 'Earnings' },
+          });
+        } catch (notifErr) {
+          logger.warn('Notification push payout ignorée:', notifErr?.message);
+        }
+      }
 
       res.json({
         success: true,
@@ -3041,7 +3101,7 @@ exports.requestDeliveryPersonInfo = async (req, res) => {
       });
     }
 
-    const driver = driverResult.rows[0];
+    // driverResult.rows[0] contient les infos du livreur (utilisé pour la notification)
 
     // Créer une notification pour le livreur
     await query(`
@@ -3657,6 +3717,7 @@ exports.getDeliveryPersonById = async (req, res) => {
         AND t.status = 'completed'
     `, [id]);
     
+    // eslint-disable-next-line no-unused-vars -- données utilisées via earningsFromOrders* pour cohérence commission
     const earnings = earningsDetails.rows[0] || {};
     const config = require('../config');
     const deliveryPersonPercentage = config.business.deliveryPersonPercentage || 70;
@@ -3678,12 +3739,6 @@ exports.getDeliveryPersonById = async (req, res) => {
     const deliveryFees7d = parseFloat(deliveryFees.delivery_fees_7d || 0);
     const deliveryFeesToday = parseFloat(deliveryFees.delivery_fees_today || 0);
     const deliveryFeesAllTime = parseFloat(deliveryFees.delivery_fees_all_time || 0);
-    
-    // Gains réels du livreur (depuis les transactions, incluant bonus)
-    const earnings30d = parseFloat(earnings.earnings_30d || 0);
-    const earnings7d = parseFloat(earnings.earnings_7d || 0);
-    const earningsToday = parseFloat(earnings.earnings_today || 0);
-    const earningsAllTime = parseFloat(earnings.total_earnings_all_time || 0);
     
     // Commission Baibebalo = frais de livraison - gains réels du livreur (incluant bonus)
     // Cela tient compte des bonus payés (distance, heure de pointe, week-end, etc.)
@@ -4377,6 +4432,17 @@ exports.getOrderById = async (req, res) => {
         order.delivery_address = JSON.parse(order.delivery_address);
       } catch (e) {
         // Garder la valeur string si le parsing échoue
+      }
+    }
+
+    // Formater pickup_address pour les commandes express
+    if (order.order_type === 'express' && order.pickup_address) {
+      try {
+        order.pickup_address = typeof order.pickup_address === 'string'
+          ? JSON.parse(order.pickup_address)
+          : order.pickup_address;
+      } catch (e) {
+        order.pickup_address = { address_line: order.pickup_address };
       }
     }
 
@@ -5330,13 +5396,38 @@ exports.markPayoutAsPaid = async (req, res) => {
 
       // Recalculer le solde disponible
       if (payout.user_type === 'delivery') {
-        // Pour livreur : déduire le montant de available_balance si pas déjà fait
+        // Pour livreur : déduire le montant de available_balance
         await client.query(
           `UPDATE delivery_persons 
            SET available_balance = GREATEST(0, available_balance - $1)
            WHERE id = $2`,
           [payout.amount, payout.user_id]
         );
+        // IMPORTANT : Créer la transaction payout pour que refreshDeliveryBalance
+        // recalcule correctement (sinon le recalcul réinjecte l'ancien solde)
+        const existingPayoutTx = await client.query(
+          `SELECT 1 FROM transactions 
+           WHERE to_user_type = 'delivery' AND to_user_id = $1 
+           AND transaction_type = 'payout' AND payment_reference = $2 LIMIT 1`,
+          [payout.user_id, `payout_request_${id}`]
+        );
+        if (existingPayoutTx.rows.length === 0) {
+          await client.query(
+            `INSERT INTO transactions (
+              transaction_type, amount,
+              from_user_type, from_user_id,
+              to_user_type, to_user_id,
+              status, payment_method, payment_reference
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+            [
+              'payout', payout.amount,
+              'platform', null,
+              'delivery', payout.user_id,
+              'completed', payout.payment_method || 'mobile_money', `payout_request_${id}`
+            ]
+          );
+        }
       } else if (payout.user_type === 'restaurant') {
         // Pour restaurant : créer transaction de débit si pas déjà fait
         const existingDebit = await client.query(
@@ -5368,6 +5459,22 @@ exports.markPayoutAsPaid = async (req, res) => {
 
       logger.info(`Payout ${id} marqué comme payé par admin ${req.user.id}`);
 
+      // Notification push au livreur
+      if (payout.user_type === 'delivery') {
+        try {
+          const notificationService = require('../services/notification.service');
+          const amountFormatted = Number(payout.amount).toLocaleString('fr-FR');
+          await notificationService.sendToUser(payout.user_id, 'delivery', {
+            title: 'Paiement reçu',
+            body: `Votre paiement de ${amountFormatted} FCFA a été effectué. Vérifiez votre Mobile Money.`,
+            type: 'payout_completed',
+            data: { payout_id: id, amount: payout.amount, screen: 'Earnings' },
+          });
+        } catch (notifErr) {
+          logger.warn('Notification push payout ignorée:', notifErr?.message);
+        }
+      }
+
       res.json({
         success: true,
         message: 'Paiement marqué comme effectué. Solde recalculé.',
@@ -5389,26 +5496,45 @@ exports.markPayoutAsPaid = async (req, res) => {
 
 /**
  * Actualiser le solde d'un livreur (recalculer depuis transactions)
+ * Inclut TOUS les types de transactions affectant le solde :
+ * - Credits: delivery_fee, daily_goal_bonus, bonus_perfect_rating, adjustment (positif)
+ * - Debits: payout, penalty_late, adjustment (négatif)
  */
 exports.refreshDeliveryBalance = async (req, res) => {
   try {
     const { id } = req.params;
 
     return await transaction(async (client) => {
-      // Recalculer le solde depuis les transactions
+      // Recalculer le solde depuis les transactions (formule complète)
       const balanceResult = await client.query(
         `SELECT 
-          COALESCE(SUM(CASE WHEN to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' THEN amount ELSE 0 END), 0) as credits,
-          COALESCE(SUM(CASE WHEN to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'payout' THEN amount ELSE 0 END), 0) as debits
+          -- Credits : montants entrant sur le compte livreur
+          COALESCE(SUM(CASE 
+            WHEN to_user_id = $1 AND to_user_type = 'delivery' AND status = 'completed'
+            AND (
+              transaction_type IN ('delivery_fee', 'daily_goal_bonus', 'bonus_perfect_rating')
+              OR (transaction_type = 'adjustment' AND amount > 0)
+            )
+            THEN amount ELSE 0 
+          END), 0) as credits,
+          -- Debits : montants sortant (payout, pénalités, ajustements négatifs)
+          COALESCE(SUM(CASE 
+            WHEN to_user_id = $1 AND to_user_type = 'delivery' AND status = 'completed' AND transaction_type = 'payout'
+            THEN amount 
+            WHEN from_user_id = $1 AND status = 'completed' AND transaction_type = 'penalty_late'
+            THEN ABS(amount)
+            WHEN from_user_id = $1 AND status = 'completed' AND transaction_type = 'adjustment' AND amount < 0
+            THEN ABS(amount)
+            ELSE 0 
+          END), 0) as debits
         FROM transactions
-        WHERE (to_user_id = $1 OR from_user_id = $1)
-        AND status = 'completed'`,
+        WHERE (to_user_id = $1 OR from_user_id = $1)`,
         [id]
       );
 
       const credits = parseFloat(balanceResult.rows[0].credits) || 0;
       const debits = parseFloat(balanceResult.rows[0].debits) || 0;
-      const calculatedBalance = credits - debits;
+      const calculatedBalance = Math.max(0, credits - debits);
 
       // Mettre à jour available_balance
       await client.query(
@@ -5418,7 +5544,7 @@ exports.refreshDeliveryBalance = async (req, res) => {
         [calculatedBalance, id]
       );
 
-      logger.info(`Solde livreur ${id} actualisé: ${calculatedBalance} FCFA`);
+      logger.info(`Solde livreur ${id} actualisé: ${calculatedBalance} FCFA (credits=${credits}, debits=${debits})`);
 
       res.json({
         success: true,
@@ -5433,6 +5559,68 @@ exports.refreshDeliveryBalance = async (req, res) => {
     });
   } catch (error) {
     logger.error('Erreur refreshDeliveryBalance:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de l\'actualisation' },
+    });
+  }
+};
+
+/**
+ * Recalculer les soldes de TOUS les livreurs depuis les transactions
+ * Utile pour synchroniser admin et app livreur quand les valeurs divergent
+ */
+exports.refreshAllDeliveryBalances = async (req, res) => {
+  try {
+    const { query } = require('../database/db');
+    const idsResult = await query('SELECT id FROM delivery_persons WHERE status = $1', ['active']);
+    const ids = idsResult.rows.map((r) => r.id);
+    let updated = 0;
+    for (const id of ids) {
+      try {
+        const balanceResult = await query(
+          `SELECT 
+            COALESCE(SUM(CASE 
+              WHEN to_user_id = $1 AND to_user_type = 'delivery' AND status = 'completed'
+              AND (
+                transaction_type IN ('delivery_fee', 'daily_goal_bonus', 'bonus_perfect_rating')
+                OR (transaction_type = 'adjustment' AND amount > 0)
+              )
+              THEN amount ELSE 0 
+            END), 0) as credits,
+            COALESCE(SUM(CASE 
+              WHEN to_user_id = $1 AND to_user_type = 'delivery' AND status = 'completed' AND transaction_type = 'payout'
+              THEN amount 
+              WHEN from_user_id = $1 AND status = 'completed' AND transaction_type = 'penalty_late'
+              THEN ABS(amount)
+              WHEN from_user_id = $1 AND status = 'completed' AND transaction_type = 'adjustment' AND amount < 0
+              THEN ABS(amount)
+              ELSE 0 
+            END), 0) as debits
+          FROM transactions
+          WHERE (to_user_id = $1 OR from_user_id = $1)`,
+          [id]
+        );
+        const credits = parseFloat(balanceResult.rows[0]?.credits || 0);
+        const debits = parseFloat(balanceResult.rows[0]?.debits || 0);
+        const calculatedBalance = Math.max(0, credits - debits);
+        await query(
+          'UPDATE delivery_persons SET available_balance = $1 WHERE id = $2',
+          [calculatedBalance, id]
+        );
+        updated++;
+      } catch (e) {
+        logger.warn(`Erreur refresh solde livreur ${id}:`, e?.message);
+      }
+    }
+    logger.info(`Soldes actualisés: ${updated}/${ids.length} livreurs`);
+    return res.json({
+      success: true,
+      message: `Soldes recalculés pour ${updated} livreur(s)`,
+      data: { updated, total: ids.length },
+    });
+  } catch (error) {
+    logger.error('Erreur refreshAllDeliveryBalances:', error);
     res.status(500).json({
       success: false,
       error: { code: 'UPDATE_ERROR', message: 'Erreur lors de l\'actualisation' },
@@ -5470,7 +5658,7 @@ exports.generatePayouts = async (req, res) => {
             [dp.id]
           );
 
-          if (existingPayout.rows.length === 0 && amount >= 5000) {
+          if (existingPayout.rows.length === 0 && amount >= 1000) {
             await client.query(
               `INSERT INTO payout_requests (
                 user_type, user_id, amount, payment_method, account_number, status
@@ -5660,11 +5848,120 @@ exports.rejectPayout = async (req, res) => {
 };
 
 /**
+ * Solde espèces dû par chaque livreur (argent collecté en cash non encore remis)
+ * Permet à l'admin de savoir combien chaque livreur doit reverser
+ */
+exports.getDeliveryCashOwed = async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT dp.id, dp.first_name, dp.last_name, dp.phone,
+              COALESCE(SUM(CASE 
+                WHEN o.payment_method = 'cash' AND o.status = 'delivered' 
+                     AND (o.cash_remittance_id IS NULL 
+                          OR o.cash_remittance_id IN (SELECT id FROM cash_remittances WHERE status = 'rejected'))
+                THEN o.total ELSE 0 
+              END), 0)::numeric(12,2) as cash_to_remit,
+              COUNT(CASE 
+                WHEN o.payment_method = 'cash' AND o.status = 'delivered' 
+                     AND (o.cash_remittance_id IS NULL 
+                          OR o.cash_remittance_id IN (SELECT id FROM cash_remittances WHERE status = 'rejected'))
+                THEN 1 
+              END) as orders_count
+       FROM delivery_persons dp
+       LEFT JOIN orders o ON o.delivery_person_id = dp.id
+       WHERE dp.status = 'active'
+       GROUP BY dp.id, dp.first_name, dp.last_name, dp.phone
+       HAVING COALESCE(SUM(CASE 
+         WHEN o.payment_method = 'cash' AND o.status = 'delivered' 
+              AND (o.cash_remittance_id IS NULL 
+                   OR o.cash_remittance_id IN (SELECT id FROM cash_remittances WHERE status = 'rejected'))
+         THEN o.total ELSE 0 
+       END), 0) > 0
+       ORDER BY cash_to_remit DESC`
+    );
+
+    const totalOwed = result.rows.reduce((sum, r) => sum + parseFloat(r.cash_to_remit || 0), 0);
+
+    res.json({
+      success: true,
+      data: {
+        delivery_persons: result.rows.map((r) => ({
+          id: r.id,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          phone: r.phone,
+          cash_to_remit: parseFloat(r.cash_to_remit) || 0,
+          orders_count: parseInt(r.orders_count, 10) || 0,
+        })),
+        total_owed: totalOwed,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getDeliveryCashOwed:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
+ * Liste des livreurs avec leurs gains (solde à payer) - Vue paiement lundi
+ * Affiche tous les livreurs actifs avec available_balance, Mobile Money, etc.
+ */
+exports.getDeliveryPaymentSummary = async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT dp.id, dp.first_name, dp.last_name, dp.phone,
+              dp.available_balance, dp.total_earnings, dp.total_deliveries,
+              dp.mobile_money_number, dp.mobile_money_provider,
+              (SELECT COALESCE(SUM(pr.amount), 0) FROM payout_requests pr
+               WHERE pr.user_type = 'delivery' AND pr.user_id = dp.id
+               AND pr.status IN ('pending', 'paid')) as pending_payout_amount
+       FROM delivery_persons dp
+       WHERE dp.status = 'active'
+       ORDER BY dp.available_balance DESC NULLS LAST, dp.total_earnings DESC NULLS LAST`
+    );
+
+    const totalToPay = result.rows.reduce((s, r) => s + parseFloat(r.available_balance || 0), 0);
+    const driversWithBalance = result.rows.filter((r) => parseFloat(r.available_balance || 0) >= 1000);
+
+    res.json({
+      success: true,
+      data: {
+        delivery_persons: result.rows.map((r) => ({
+          id: r.id,
+          first_name: r.first_name,
+          last_name: r.last_name,
+          phone: r.phone,
+          available_balance: parseFloat(r.available_balance || 0),
+          total_earnings: parseFloat(r.total_earnings || 0),
+          total_deliveries: parseInt(r.total_deliveries, 10) || 0,
+          mobile_money_number: r.mobile_money_number || null,
+          mobile_money_provider: r.mobile_money_provider || null,
+          pending_payout_amount: parseFloat(r.pending_payout_amount || 0),
+          can_payout: parseFloat(r.available_balance || 0) >= 1000 && !!r.mobile_money_number,
+        })),
+        total_to_pay: totalToPay,
+        drivers_with_balance: driversWithBalance.length,
+        drivers_count: result.rows.length,
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getDeliveryPaymentSummary:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération' },
+    });
+  }
+};
+
+/**
  * Liste des remises espèces (livreurs remettent l'argent à l'agence ou dépôt sur compte)
  */
 exports.getCashRemittances = async (req, res) => {
   try {
-    const { page = 1, limit = 20, status, delivery_person_id } = req.query;
+    const { page = 1, limit = 20, status, delivery_person_id, date_from, date_to } = req.query;
     const offset = (parseInt(page, 10) - 1) * parseInt(limit, 10);
     let q = `
       SELECT r.*, dp.first_name || ' ' || dp.last_name as delivery_name, dp.phone as delivery_phone,
@@ -5685,6 +5982,14 @@ exports.getCashRemittances = async (req, res) => {
       params.push(delivery_person_id);
       q += ` AND r.delivery_person_id = $${idx++}`;
     }
+    if (date_from) {
+      params.push(date_from);
+      q += ` AND r.created_at::date >= $${idx++}`;
+    }
+    if (date_to) {
+      params.push(date_to);
+      q += ` AND r.created_at::date <= $${idx++}`;
+    }
     q += ` ORDER BY r.created_at DESC LIMIT $${idx} OFFSET $${idx + 1}`;
     params.push(parseInt(limit, 10), offset);
     const result = await query(q, params);
@@ -5698,6 +6003,14 @@ exports.getCashRemittances = async (req, res) => {
     if (delivery_person_id) {
       countParams.push(delivery_person_id);
       countQ += ` AND r.delivery_person_id = $${cidx++}`;
+    }
+    if (date_from) {
+      countParams.push(date_from);
+      countQ += ` AND r.created_at::date >= $${cidx++}`;
+    }
+    if (date_to) {
+      countParams.push(date_to);
+      countQ += ` AND r.created_at::date <= $${cidx++}`;
     }
     const countResult = await query(countQ, countParams);
     res.json({
@@ -5768,10 +6081,10 @@ exports.confirmCashRemittance = async (req, res) => {
              processed_by = $1, 
              processed_at = NOW(), 
              notes = COALESCE($2, notes),
-             verified_amount = $3,
-             discrepancy_amount = $4,
+             verified_amount = $3::numeric,
+             discrepancy_amount = $4::numeric,
              verification_notes = CASE 
-               WHEN ABS($4) > 100 THEN 'Écart détecté: ' || $4 || ' FCFA'
+               WHEN ABS($4::numeric) > 100 THEN 'Écart détecté: ' || $4::numeric || ' FCFA'
                ELSE NULL
              END
          WHERE id = $5`,
@@ -6418,7 +6731,8 @@ exports.getRevenue = async (req, res) => {
     // Commission restaurants = commission sur subtotal (selon commission_rate)
     // Commission livraison = 30% des frais de livraison
     const config = require('../config');
-    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70); // 30%
+    // eslint-disable-next-line no-unused-vars -- 30%, réservé pour usage futur
+    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70);
     
     const commissionRestaurantsCalc = useCommissionCol
       ? `COALESCE(o.commission, o.subtotal * COALESCE(o.commission_rate, r.commission_rate, 15.0) / 100.0)`
@@ -9001,7 +9315,8 @@ exports.getFinancialOverview = async (req, res) => {
     // Commission restaurants = commission sur subtotal (selon commission_rate)
     // Commission livraison = frais de livraison - paiements réels aux livreurs (incluant bonus)
     const config = require('../config');
-    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70); // 30% théorique
+    // eslint-disable-next-line no-unused-vars -- 30% théorique, réservé pour usage futur
+    const platformDeliveryPercent = 100 - (config.business.deliveryPersonPercentage || 70);
     
     // Ajouter les dépenses et bénéfice net
     const { period = 'month' } = req.query;

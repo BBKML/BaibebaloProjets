@@ -74,9 +74,13 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           has_logo: !!deliveryData?.restaurant?.logo,
         });
         
-        // Vérifier que les informations du restaurant sont complètes
-        if (!deliveryData?.restaurant?.name || !deliveryData?.restaurant?.address || !deliveryData?.restaurant?.phone) {
-          console.warn('⚠️ Informations restaurant incomplètes après getOrderDetail, tentative trackOrder...');
+        // Vérifier que les informations sont complètes (express: pas de phone requis au point de collecte)
+        const isExpressOrder = deliveryData?.order_type === 'express';
+        const needsMore = isExpressOrder
+          ? !deliveryData?.restaurant?.address
+          : (!deliveryData?.restaurant?.name || !deliveryData?.restaurant?.address || !deliveryData?.restaurant?.phone);
+        if (needsMore) {
+          console.warn('⚠️ Informations incomplètes après getOrderDetail, tentative trackOrder...');
           // Essayer trackOrder pour obtenir les informations complètes
           return trackOrder(orderId);
         } else {
@@ -125,8 +129,12 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
         setDelivery(deliveryData);
         
         // Avertir si les informations sont toujours incomplètes
-        if (!deliveryData?.restaurant?.name || !deliveryData?.restaurant?.address || !deliveryData?.restaurant?.phone) {
-          console.error('❌ Informations restaurant toujours incomplètes après trackOrder:', {
+        const isExpressAfter = deliveryData?.order_type === 'express';
+        const stillIncomplete = isExpressAfter
+          ? !deliveryData?.restaurant?.address
+          : (!deliveryData?.restaurant?.name || !deliveryData?.restaurant?.address || !deliveryData?.restaurant?.phone);
+        if (stillIncomplete) {
+          console.error('❌ Informations toujours incomplètes après trackOrder:', {
             name: deliveryData?.restaurant?.name,
             address: deliveryData?.restaurant?.address,
             phone: deliveryData?.restaurant?.phone,
@@ -151,6 +159,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
     return () => { cancelled = true; };
   }, [orderIdParam, initialDelivery]);
 
+  const isExpress = delivery?.order_type === 'express';
   const restaurantLocation = {
     latitude: delivery?.restaurant?.latitude ?? KORHOGO_FALLBACK.latitude,
     longitude: delivery?.restaurant?.longitude ?? KORHOGO_FALLBACK.longitude,
@@ -188,7 +197,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
   const openExternalNavigation = () => {
     const lat = restaurantLocation.latitude;
     const lng = restaurantLocation.longitude;
-    const label = delivery?.restaurant?.name || 'Restaurant';
+    const label = isExpress ? 'Point de collecte' : (delivery?.restaurant?.name || 'Restaurant');
     const url = Platform.select({
       ios: `maps:0,0?q=${encodeURIComponent(label)}@${lat},${lng}`,
       android: `geo:0,0?q=${lat},${lng}(${label})`,
@@ -199,22 +208,23 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
     }).catch(() => Linking.openURL(`https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`));
   };
 
-  const callRestaurant = () => {
-    const phone = delivery?.restaurant?.phone;
+  const callPickupContact = () => {
+    const phone = delivery?.restaurant?.phone || delivery?.client_phone;
     if (!phone) {
-      Alert.alert('Information', 'Le numéro du restaurant n\'est pas disponible');
+      Alert.alert('Information', isExpress ? 'Le numéro de l\'expéditeur n\'est pas disponible' : 'Le numéro du restaurant n\'est pas disponible');
       return;
     }
     Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
   };
 
   const handleProblem = () => {
+    const callLabel = isExpress ? 'Appeler l\'expéditeur' : 'Appeler le restaurant';
     Alert.alert(
       'Signaler un problème',
       'Que voulez-vous faire ?',
       [
         { text: 'Annuler', style: 'cancel' },
-        { text: 'Appeler le restaurant', onPress: callRestaurant },
+        { text: callLabel, onPress: callPickupContact },
         { text: 'Contacter le support', onPress: () => navigation.navigate('SupportChat') },
       ]
     );
@@ -286,10 +296,10 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
             </View>
           </Marker>
 
-          {/* Restaurant marker */}
+          {/* Restaurant / Point de collecte marker */}
           <Marker coordinate={restaurantLocation}>
             <View style={styles.restaurantMarker}>
-              <Ionicons name="restaurant" size={20} color="#FFFFFF" />
+              <Ionicons name={isExpress ? 'cube' : 'restaurant'} size={20} color="#FFFFFF" />
             </View>
           </Marker>
 
@@ -349,7 +359,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
 
         <View style={styles.restaurantInfo}>
           <View style={styles.restaurantIcon}>
-            {delivery?.restaurant?.logo ? (
+            {!isExpress && delivery?.restaurant?.logo ? (
               <Image 
                 source={{ uri: getImageUrl(delivery.restaurant.logo) }} 
                 style={styles.restaurantLogo}
@@ -359,25 +369,25 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
                 }}
               />
             ) : (
-              <Ionicons name="restaurant" size={24} color={COLORS.primary} />
+              <Ionicons name={isExpress ? 'cube' : 'restaurant'} size={24} color={COLORS.primary} />
             )}
           </View>
           <View style={styles.restaurantDetails}>
             <Text style={styles.restaurantName}>
-              {delivery?.restaurant?.name || 'Restaurant'}
+              {isExpress ? 'Point de collecte' : (delivery?.restaurant?.name || 'Restaurant')}
             </Text>
-            {delivery?.restaurant?.address ? (
+            {(delivery?.restaurant?.address || isExpress) ? (
               <Text style={styles.restaurantAddress}>
-                {delivery.restaurant.address}
+                {delivery?.restaurant?.address || 'Adresse de collecte'}
               </Text>
             ) : (
               <Text style={styles.restaurantAddressMissing}>
                 ⚠️ Adresse non disponible
               </Text>
             )}
-            {delivery?.restaurant?.phone ? (
+            {(delivery?.restaurant?.phone || delivery?.client_phone) ? (
               <Text style={styles.restaurantPhone}>
-                📞 {delivery.restaurant.phone}
+                📞 {delivery?.restaurant?.phone || delivery?.client_phone}
               </Text>
             ) : (
               <Text style={styles.restaurantPhoneMissing}>
@@ -386,11 +396,11 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
             )}
           </View>
           <TouchableOpacity 
-            style={[styles.callButton, !delivery?.restaurant?.phone && styles.callButtonDisabled]} 
-            onPress={callRestaurant}
-            disabled={!delivery?.restaurant?.phone}
+            style={[styles.callButton, !(delivery?.restaurant?.phone || delivery?.client_phone) && styles.callButtonDisabled]} 
+            onPress={callPickupContact}
+            disabled={!(delivery?.restaurant?.phone || delivery?.client_phone)}
           >
-            <Ionicons name="call" size={20} color={delivery?.restaurant?.phone ? COLORS.primary : COLORS.textLight} />
+            <Ionicons name="call" size={20} color={(delivery?.restaurant?.phone || delivery?.client_phone) ? COLORS.primary : COLORS.textLight} />
           </TouchableOpacity>
         </View>
 
@@ -424,13 +434,13 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* Revenu net du restaurant */}
-        {delivery?.restaurant_net_revenue !== null && delivery?.restaurant_net_revenue !== undefined && (
-          <View style={styles.restaurantRevenueInfo}>
-            <View style={styles.revenueHeader}>
-              <Ionicons name="storefront-outline" size={18} color={COLORS.primary} />
-              <Text style={styles.revenueTitle}>Montant à remettre au restaurant</Text>
-            </View>
+        {/* Revenu net (restaurant) - Uniquement pour commandes food */}
+        {!isExpress && (
+        <View style={styles.restaurantRevenueInfo}>
+          <View style={styles.revenueHeader}>
+            <Ionicons name="storefront-outline" size={18} color={COLORS.primary} />
+            <Text style={styles.revenueTitle}>Revenu net (restaurant)</Text>
+          </View>
             <View style={styles.revenueAmountContainer}>
               <Text style={styles.revenueAmount}>
                 {Number.parseFloat(delivery.restaurant_net_revenue || 0).toLocaleString('fr-FR', { 
@@ -447,24 +457,9 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
                 )}
               </Text>
             )}
-          </View>
+        </View>
         )}
 
-        {/* Montant total de la commande */}
-        <View style={styles.orderTotalInfo}>
-          <View style={styles.totalHeader}>
-            <Ionicons name="receipt-outline" size={18} color={COLORS.textSecondary} />
-            <Text style={styles.totalTitle}>Montant total de la commande</Text>
-          </View>
-          <View style={styles.totalAmountContainer}>
-            <Text style={styles.totalAmount}>
-              {Number.parseFloat(delivery?.total || 0).toLocaleString('fr-FR', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })} FCFA
-            </Text>
-          </View>
-        </View>
 
         {/* Mode de paiement */}
         <View style={[
@@ -507,7 +502,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
             <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
           )}
           <Text style={styles.arrivedButtonText}>
-            {arriving ? 'SIGNALEMENT EN COURS...' : 'JE SUIS ARRIVÉ AU RESTAURANT'}
+            {arriving ? 'SIGNALEMENT EN COURS...' : (isExpress ? 'JE SUIS ARRIVÉ AU POINT DE COLLECTE' : 'JE SUIS ARRIVÉ AU RESTAURANT')}
           </Text>
         </TouchableOpacity>
       </View>

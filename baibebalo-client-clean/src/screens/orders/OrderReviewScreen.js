@@ -92,22 +92,27 @@ export default function OrderReviewScreen({ route, navigation }) {
     );
   };
 
+  if (!orderId) {
+    return (
+      <View style={[styles.container, { justifyContent: 'center', alignItems: 'center', padding: 24 }]}>
+        <Text style={{ fontSize: 16, color: COLORS.textSecondary, textAlign: 'center' }}>
+          Commande introuvable. Veuillez revenir à la liste des commandes.
+        </Text>
+        <TouchableOpacity style={[styles.submitButton, { marginTop: 16 }]} onPress={() => navigation.goBack()}>
+          <Text style={styles.submitButtonText}>Retour</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
-      <View style={styles.overlay} />
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
-        <View style={styles.sheetHeader}>
-          <View style={styles.headerSpacer} />
-          <Text style={styles.title}>
-            {isEdit ? 'Modifier votre avis' : 'Votre avis nous intéresse'}
-          </Text>
-          <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
-            <Ionicons name="close" size={20} color={COLORS.text} />
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.contentContainer}
+        showsVerticalScrollIndicator={false}
+        keyboardShouldPersistTaps="handled"
+      >
 
         {/* Restaurant Rating */}
         <View style={styles.section}>
@@ -217,22 +222,21 @@ export default function OrderReviewScreen({ route, navigation }) {
             numberOfLines={4}
           />
         </View>
-      </ScrollView>
 
-      {/* Submit Button */}
-      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
-        <TouchableOpacity
-          style={[styles.submitButton, loading && styles.submitButtonDisabled]}
-          onPress={handleSubmit}
-          disabled={loading}
-        >
-          <Text style={styles.submitButtonText}>
-            {loading ? 'Envoi...' : (isEdit ? 'Modifier mon avis' : 'Envoyer mon avis')}
-          </Text>
-          <Ionicons name="send" size={18} color={COLORS.white} />
-        </TouchableOpacity>
-      </View>
-      </View>
+        {/* Submit Button */}
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
+          <TouchableOpacity
+            style={[styles.submitButton, loading && styles.submitButtonDisabled]}
+            onPress={handleSubmit}
+            disabled={loading}
+          >
+            <Text style={styles.submitButtonText}>
+              {loading ? 'Envoi...' : (isEdit ? 'Modifier mon avis' : 'Envoyer mon avis')}
+            </Text>
+            <Ionicons name="send" size={18} color={COLORS.white} />
+          </TouchableOpacity>
+        </View>
+      </ScrollView>
     </View>
   );
 }
@@ -241,59 +245,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
-    justifyContent: 'flex-end',
   },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  sheet: {
-    backgroundColor: COLORS.background,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    maxHeight: '92%',
-    overflow: 'hidden',
-  },
-  handle: {
-    width: 48,
-    height: 5,
-    borderRadius: 3,
-    backgroundColor: COLORS.border,
-    alignSelf: 'center',
-    marginTop: 8,
-    marginBottom: 4,
-  },
-  sheetHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-  },
-  headerSpacer: {
-    width: 40,
-  },
-  closeButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.white,
-  },
-  content: {
+  scrollView: {
     flex: 1,
-    paddingBottom: 140, // Espace pour le footer + safe area
   },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-    flex: 1,
+  contentContainer: {
+    padding: 16,
+    paddingBottom: 40,
   },
   section: {
     backgroundColor: COLORS.white,
-    marginHorizontal: 16,
     marginBottom: 16,
     padding: 20,
     borderRadius: 16,
@@ -415,15 +376,13 @@ const styles = StyleSheet.create({
     paddingLeft: 4,
   },
   footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
+    marginTop: 8,
     padding: 16,
     paddingBottom: 24,
     backgroundColor: COLORS.white,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   submitButton: {
     backgroundColor: COLORS.primary,

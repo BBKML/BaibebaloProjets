@@ -154,8 +154,8 @@ router.get('/available-orders',
   [
     query('radius')
       .optional()
-      .isFloat({ min: 1, max: 20 })
-      .withMessage('Rayon invalide (1-20 km)')
+      .isFloat({ min: 1, max: 100 })
+      .withMessage('Rayon invalide (1-100 km)')
       .toFloat(),
     query('limit')
       .optional()
@@ -248,9 +248,9 @@ router.put('/orders/:id/pickup',
     body('pickup_code')
       .optional()
       .trim()
-      .isLength({ min: 4, max: 6 })
+      .isLength({ min: 4, max: 10 })
       .isNumeric()
-      .withMessage('Code de récupération invalide'),
+      .withMessage('Code de récupération invalide (4 à 10 chiffres)'),
   ],
   validate,
   deliveryController.confirmPickup
@@ -277,9 +277,9 @@ router.put('/orders/:id/deliver',
     body('delivery_code')
       .optional()
       .trim()
-      .isLength({ min: 4, max: 6 })
+      .isLength({ min: 4, max: 10 })
       .isNumeric()
-      .withMessage('Code de livraison invalide'),
+      .withMessage('Code de livraison invalide (4 à 10 chiffres)'),
     body('signature')
       .optional()
       .trim()
@@ -336,7 +336,7 @@ router.post('/payout-request',
   [
     body('amount')
       .isFloat({ min: 5000 })
-      .withMessage('Montant minimum: 5000 FCFA')
+      .withMessage('Montant minimum pour demande avant lundi: 5000 FCFA')
       .toFloat(),
   ],
   validate,

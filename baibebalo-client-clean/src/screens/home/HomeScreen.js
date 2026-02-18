@@ -10,8 +10,8 @@ import {
   RefreshControl,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
+import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import { getRestaurants, getActivePromotions, getCategories } from '../../api/restaurants';
 import useCartStore from '../../store/cartStore';
 
@@ -21,7 +21,7 @@ export default function HomeScreen({ navigation }) {
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const insets = useSafeAreaInsets();
+  const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
   const { getItemCount } = useCartStore();
 
   useEffect(() => {
@@ -176,12 +176,12 @@ export default function HomeScreen({ navigation }) {
   const cartItemCount = getItemCount();
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop }]}>
       <FlatList
         data={restaurants}
         renderItem={renderRestaurant}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, { paddingBottom: paddingBottom }]}
         refreshControl={
           <RefreshControl refreshing={loading} onRefresh={loadRestaurants} />
         }
@@ -260,6 +260,15 @@ export default function HomeScreen({ navigation }) {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.categoriesRow}
             >
+              <TouchableOpacity
+                style={styles.categoryItem}
+                onPress={() => navigation.navigate('ExpressCheckout')}
+              >
+                <View style={[styles.categoryImage, styles.expressCategoryIcon]}>
+                  <Ionicons name="cube-outline" size={32} color={COLORS.primary} />
+                </View>
+                <Text style={styles.categoryLabel}>Envoyer un colis</Text>
+              </TouchableOpacity>
               {categories.map((cat) => (
                 <TouchableOpacity
                   key={cat.id}
@@ -421,7 +430,7 @@ const styles = StyleSheet.create({
     color: COLORS.textLight,
   },
   listContent: {
-    paddingBottom: 140, // Espace pour les boutons flottants + safe area
+    paddingBottom: 24,
   },
   promoRow: {
     paddingHorizontal: 16,
@@ -517,6 +526,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
     borderWidth: 1,
     borderColor: COLORS.border,
+  },
+  expressCategoryIcon: {
+    backgroundColor: COLORS.primary + '20',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   categoryLabel: {
     fontSize: 12,

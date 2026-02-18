@@ -9,6 +9,9 @@ import Users from './pages/Users';
 import Restaurants from './pages/Restaurants';
 import Support from './pages/Support';
 import Finances from './pages/Finances';
+import CashOwed from './pages/CashOwed';
+import CashRemittances from './pages/CashRemittances';
+import DeliveryPaymentSummary from './pages/DeliveryPaymentSummary';
 import TestCharts from './pages/TestCharts';
 import OrderDetails from './pages/OrderDetails';
 import UserDetails from './pages/UserDetails';
@@ -185,6 +188,30 @@ function App() {
             element={
               <ProtectedRoute>
                 <Finances />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finances/cash-owed"
+            element={
+              <ProtectedRoute>
+                <CashOwed />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finances/cash-remittances"
+            element={
+              <ProtectedRoute>
+                <CashRemittances />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/finances/delivery-payment-summary"
+            element={
+              <ProtectedRoute>
+                <DeliveryPaymentSummary />
               </ProtectedRoute>
             }
           />

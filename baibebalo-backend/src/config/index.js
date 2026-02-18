@@ -355,8 +355,8 @@ const config = {
     // Temps maximum de livraison (minutes)
     maxDeliveryTime: parseInt(process.env.MAX_DELIVERY_TIME, 10) || 45,
     
-    // Distance maximum de livraison (km)
-    maxDeliveryDistance: parseInt(process.env.MAX_DELIVERY_DISTANCE, 10) || 10,
+    // Distance maximum de livraison (km) — max 20 km, défaut 15 km
+    maxDeliveryDistance: parseInt(process.env.MAX_DELIVERY_DISTANCE, 10) || 20,
     
     // === FRAIS DE LIVRAISON ===
     // Frais de base (FCFA) - appliqué pour les 5 premiers km
@@ -398,8 +398,12 @@ const config = {
     deliveryDailyGoalBonusAmount: parseInt(process.env.DELIVERY_DAILY_GOAL_BONUS, 10) || 2000, // FCFA
     
     // Numéro Baibebalo pour dépôt Mobile Money (remise espèces quotidienne)
-    baibebaloMobileMoneyNumber: process.env.BAIBEBALO_MOBILE_MONEY_NUMBER || '+225XXXXXXXXX',
+    baibebaloMobileMoneyNumber: process.env.BAIBEBALO_MOBILE_MONEY_NUMBER || '+2250787097996',
     baibebaloMobileMoneyProvider: process.env.BAIBEBALO_MOBILE_MONEY_PROVIDER || 'orange_money', // orange_money, mtn_money, waves
+
+    // Contacts support Baibebalo (05 85 67 09 40 / 07 87 09 79 96)
+    baibebaloContactPhone: process.env.BAIBEBALO_CONTACT_PHONE || '+2250787097996',
+    baibebaloContactPhoneAlt: process.env.BAIBEBALO_CONTACT_PHONE_ALT || '+2250585670940',
     
     // Pénalités
     deliveryPenaltyLateThreshold: parseInt(process.env.DELIVERY_PENALTY_LATE_MINUTES, 10) || 15, // minutes

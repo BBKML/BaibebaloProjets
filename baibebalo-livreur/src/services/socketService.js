@@ -12,7 +12,7 @@ let API_BASE;
 if (forceProduction) {
   API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || 'https://baibebaloprojets.onrender.com';
 } else if (isDev) {
-  API_BASE = 'http://192.168.1.5:5000';
+  API_BASE = 'http://192.168.1.16:5000';
 } else {
   API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || 'https://baibebaloprojets.onrender.com';
 }

@@ -1,10 +1,24 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  SafeAreaView,
+  TouchableOpacity,
+  TextInput,
+  Alert,
+  ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { confirmDelivery } from '../../api/orders';
 
 export default function ConfirmationCodeScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const [code, setCode] = useState('');
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState('');
@@ -12,7 +26,7 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
 
   // Valider le code et confirmer la livraison
   const handleValidate = async () => {
-    if (code.length < 4 || confirming) return;
+    if (code.length < 5 || confirming) return;
 
     setError('');
     setConfirming(true);
@@ -29,8 +43,11 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
         
         console.log('✅ Livraison confirmée:', response);
         
-        // Récupérer les gains depuis la réponse si disponibles
-        const finalEarnings = response?.data?.earnings || earnings;
+        // Récupérer les gains depuis la réponse (earnings peut être un objet { total, net, breakdown })
+        const rawEarnings = response?.data?.earnings || earnings;
+        const finalEarnings = typeof rawEarnings === 'object' 
+          ? (rawEarnings?.net ?? rawEarnings?.total ?? 0) 
+          : Number(rawEarnings) || earnings;
         
         navigation.navigate('DeliverySuccess', { 
           earnings: finalEarnings,
@@ -70,82 +87,101 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
-          <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-        </TouchableOpacity>
-        <Text style={styles.title}>Code de confirmation</Text>
-        <View style={styles.placeholder} />
-      </View>
-      <View style={styles.content}>
-        <Ionicons name="keypad" size={64} color={COLORS.primary} />
-        <Text style={styles.message}>Demandez le code au client</Text>
-        
-        {/* Afficher le montant à collecter si paiement cash */}
-        {delivery?.payment_method === 'cash' && (
-          <View style={styles.cashInfo}>
-            <Ionicons name="cash-outline" size={20} color={COLORS.warning} />
-            <Text style={styles.cashText}>
-              Montant à collecter : <Text style={styles.cashAmount}>{(delivery?.total || delivery?.order_total || 0).toLocaleString()} FCFA</Text>
-            </Text>
-          </View>
-        )}
-        
-        <TextInput
-          style={[styles.codeInput, error && styles.codeInputError]}
-          value={code}
-          onChangeText={(text) => {
-            setCode(text);
-            setError('');
-          }}
-          placeholder="- - - -"
-          placeholderTextColor={COLORS.textLight}
-          keyboardType="number-pad"
-          maxLength={4}
-          textAlign="center"
-          editable={!confirming}
-        />
-        
-        {error ? (
-          <Text style={styles.errorText}>{error}</Text>
-        ) : null}
-        
-        <TouchableOpacity 
-          style={[styles.primaryButton, (code.length < 4 || confirming) && styles.primaryButtonDisabled]}
-          onPress={handleValidate}
-          disabled={code.length < 4 || confirming}
+      <KeyboardAvoidingView
+        style={styles.keyboardView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+      >
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Code de confirmation</Text>
+          <View style={styles.placeholder} />
+        </View>
+
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={[styles.content, { paddingBottom: insets.bottom + 40 }]}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="none"
+          showsVerticalScrollIndicator={false}
         >
-          {confirming ? (
-            <ActivityIndicator size="small" color="#FFFFFF" />
-          ) : (
-            <Text style={styles.primaryButtonText}>VALIDER LA LIVRAISON</Text>
+          <Ionicons name="keypad" size={64} color={COLORS.primary} />
+          <Text style={styles.message}>Demandez le code au client</Text>
+          <Text style={styles.codeHint}>
+            Code = tous les chiffres du n° commande (ex: BAIB-4567891234 → 4567891234)
+          </Text>
+
+          {/* Afficher le montant à collecter si paiement cash */}
+          {delivery?.payment_method === 'cash' && (
+            <View style={styles.cashInfo}>
+              <Ionicons name="cash-outline" size={20} color={COLORS.warning} />
+              <Text style={styles.cashText}>
+                Montant à collecter : <Text style={styles.cashAmount}>{(delivery?.total || delivery?.order_total || 0).toLocaleString()} FCFA</Text>
+              </Text>
+            </View>
           )}
-        </TouchableOpacity>
-        
-        {/* Option si le client n'a pas de code */}
-        <TouchableOpacity 
-          style={styles.noCodeButton}
-          onPress={() => Alert.alert(
-            'Client sans code',
-            'Demandez au client de vérifier ses SMS ou de contacter le support.',
-            [{ text: 'OK' }]
-          )}
-        >
-          <Text style={styles.noCodeText}>Le client n'a pas de code ?</Text>
-        </TouchableOpacity>
-      </View>
+
+          <TextInput
+            style={[styles.codeInput, error && styles.codeInputError]}
+            value={code}
+            onChangeText={(text) => {
+              setCode(text);
+              setError('');
+            }}
+            placeholder="Ex: 4567891234"
+            placeholderTextColor={COLORS.textLight}
+            keyboardType="number-pad"
+            maxLength={10}
+            textAlign="center"
+            editable={!confirming}
+          />
+
+          {error ? (
+            <Text style={styles.errorText}>{error}</Text>
+          ) : null}
+
+          <TouchableOpacity
+            style={[styles.primaryButton, (code.length < 5 || confirming) && styles.primaryButtonDisabled]}
+            onPress={handleValidate}
+            disabled={code.length < 5 || confirming}
+          >
+            {confirming ? (
+              <ActivityIndicator size="small" color="#FFFFFF" />
+            ) : (
+              <Text style={styles.primaryButtonText}>VALIDER LA LIVRAISON</Text>
+            )}
+          </TouchableOpacity>
+
+          {/* Option si le client n'a pas de code */}
+          <TouchableOpacity
+            style={styles.noCodeButton}
+            onPress={() => Alert.alert(
+              'Client sans code',
+              'Demandez au client de vérifier ses SMS ou de contacter le support.',
+              [{ text: 'OK' }]
+            )}
+          >
+            <Text style={styles.noCodeText}>Le client n'a pas de code ?</Text>
+          </TouchableOpacity>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: COLORS.background },
+  keyboardView: { flex: 1 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   backButton: { width: 40, height: 40, borderRadius: 20, backgroundColor: COLORS.white, alignItems: 'center', justifyContent: 'center' },
   title: { fontSize: 18, fontWeight: 'bold', color: COLORS.text },
   placeholder: { width: 40 },
-  content: { flex: 1, alignItems: 'center', justifyContent: 'center', padding: 24 },
-  message: { fontSize: 16, color: COLORS.textSecondary, marginTop: 16, marginBottom: 24 },
+  scroll: { flex: 1 },
+  content: { flexGrow: 1, alignItems: 'center', justifyContent: 'center', padding: 24, minHeight: 400 },
+  message: { fontSize: 16, color: COLORS.textSecondary, marginTop: 16, marginBottom: 8 },
+  codeHint: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 24, textAlign: 'center', fontStyle: 'italic' },
   cashInfo: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -159,12 +195,12 @@ const styles = StyleSheet.create({
   cashText: { fontSize: 14, color: COLORS.text },
   cashAmount: { fontWeight: 'bold', color: COLORS.warning },
   codeInput: { 
-    fontSize: 36, 
+    fontSize: 28, 
     fontWeight: 'bold', 
     color: COLORS.text, 
-    letterSpacing: 16, 
+    letterSpacing: 8, 
     marginBottom: 16, 
-    width: 200,
+    width: 280,
     backgroundColor: COLORS.white,
     borderRadius: 12,
     padding: 16,

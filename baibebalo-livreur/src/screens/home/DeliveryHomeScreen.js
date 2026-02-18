@@ -4,17 +4,17 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   ScrollView,
   Image,
   Switch,
-  Dimensions,
   Platform,
   RefreshControl,
   ActivityIndicator,
-  Alert
+  AppState,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Circle, PROVIDER_DEFAULT } from 'react-native-maps';
 import SafeMapView from '../../components/SafeMapView';
@@ -23,9 +23,6 @@ import { getImageUrl } from '../../utils/url';
 import useAuthStore from '../../store/authStore';
 import useDeliveryStore from '../../store/deliveryStore';
 import socketService from '../../services/socketService';
-import { acceptOrder, declineOrder } from '../../api/orders';
-
-const { width } = Dimensions.get('window');
 
 // Zones de forte demande simulées (Korhogo, Côte d'Ivoire)
 const hotZones = [
@@ -58,6 +55,7 @@ const statusLabels = {
 };
 
 export default function DeliveryHomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const { 
     status, 
@@ -114,6 +112,26 @@ export default function DeliveryHomeScreen({ navigation }) {
     };
   }, [loadDashboardData, cancelDashboardLoad]);
 
+  // Rafraîchir à chaque fois que l'écran Accueil est affiché (changement d'onglet)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (Date.now() - lastDashboardLoadRef.current > 1000) {
+        loadDashboardData({ force: true }).then(() => { lastDashboardLoadRef.current = Date.now(); });
+      }
+    }, [loadDashboardData])
+  );
+
+  // Rafraîchir quand l'app revient au premier plan (solde, courses, etc.)
+  useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active' && Date.now() - lastDashboardLoadRef.current > 2000) {
+        lastDashboardLoadRef.current = Date.now();
+        loadDashboardData({ force: true });
+      }
+    });
+    return () => sub?.remove();
+  }, [loadDashboardData]);
+
   useEffect(() => {
     // Connecter au WebSocket (ne pas faire crasher l’app si erreur)
     try {
@@ -122,94 +140,28 @@ export default function DeliveryHomeScreen({ navigation }) {
       console.warn('[Home] Socket connect:', e?.message || e);
     }
 
-    // Écouter les nouvelles livraisons disponibles
-    const unsubscribeNewDelivery = socketService.on('new_delivery_available', (data) => {
-      console.log('[Home] Nouvelle livraison disponible:', data);
-      Alert.alert(
-        '🚴 Nouvelle livraison disponible !',
-        `${data.restaurant_name}\n${data.delivery_fee} FCFA`,
-        [
-          { text: 'Ignorer', style: 'cancel' },
-          { 
-            text: 'Voir', 
-            onPress: () => navigation.navigate('AvailableDeliveries')
-          },
-        ],
-        { cancelable: true }
-      );
-      // Recharger les données (debounce pour éviter doublons)
+    // Les alertes Socket sont gérées globalement par useDeliverySocketAlerts (AppNavigator)
+    // On garde uniquement le rechargement des données pour new_delivery_available et order_cancelled
+    const unsubscribeNewDelivery = socketService.on('new_delivery_available', () => {
       if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
         lastDashboardLoadRef.current = Date.now();
-        loadDashboardData();
+        loadDashboardData({ force: true });
       }
     });
 
-    // Écouter les commandes prêtes (si livreur assigné)
-    const unsubscribeOrderReady = socketService.on('order_ready', (data) => {
-      console.log('[Home] Commande prête:', data);
-      Alert.alert(
-        '📦 Commande prête !',
-        `La commande ${data.order_number} est prête à récupérer chez ${data.restaurant_name}`,
-        [
-          { text: 'OK', onPress: () => navigation.navigate('NavigationToRestaurant', { orderId: data.order_id }) },
-        ]
-      );
-    });
-
-    // Écouter les commandes annulées
-    const unsubscribeOrderCancelled = socketService.on('order_cancelled', (data) => {
-      console.log('[Home] Commande annulée:', data);
-      Alert.alert(
-        '❌ Commande annulée',
-        `La commande ${data.order_number} a été annulée par le client.`
-      );
+    const unsubscribeOrderCancelled = socketService.on('order_cancelled', () => {
       if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
         lastDashboardLoadRef.current = Date.now();
-        loadDashboardData();
+        loadDashboardData({ force: true });
       }
     });
 
-    // Course proposée (attribution auto type Glovo) — Accepter ou Refuser
-    const unsubscribeOrderProposed = socketService.on('order_proposed', (data) => {
-      const expiresMin = data.expires_in_seconds ? Math.floor(data.expires_in_seconds / 60) : 2;
-      Alert.alert(
-        '📦 Course proposée',
-        `${data.restaurant_name}\n${data.delivery_fee || data.total} FCFA\n\nAcceptez dans les ${expiresMin} min.`,
-        [
-          {
-            text: 'Refuser',
-            style: 'cancel',
-            onPress: async () => {
-              try {
-                await declineOrder(data.order_id, 'Refus proposition');
-                if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
-                  lastDashboardLoadRef.current = Date.now();
-                  loadDashboardData();
-                }
-              } catch (e) {
-                console.warn('[Home] decline proposed:', e?.message || e);
-              }
-            },
-          },
-          {
-            text: 'Accepter',
-            onPress: async () => {
-              try {
-                await acceptOrder(data.order_id);
-                navigation.navigate('NavigationToRestaurant', { orderId: data.order_id });
-                if (Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
-                  lastDashboardLoadRef.current = Date.now();
-                  loadDashboardData();
-                }
-              } catch (e) {
-                console.warn('[Home] accept proposed:', e?.message || e);
-                Alert.alert('Erreur', e?.response?.data?.error?.message || 'Impossible d\'accepter la course.');
-              }
-            },
-          },
-        ],
-        { cancelable: false }
-      );
+    // Livraison confirmée → actualiser gains et nombre de courses
+    const unsubscribeOrderDelivered = socketService.on('order_status_changed', (data) => {
+      if (data?.status === 'delivered' && Date.now() - lastDashboardLoadRef.current > DEBOUNCE_MS) {
+        lastDashboardLoadRef.current = Date.now();
+        loadDashboardData({ force: true });
+      }
     });
 
     // Mettre à jour le statut de disponibilité sur le serveur
@@ -217,17 +169,16 @@ export default function DeliveryHomeScreen({ navigation }) {
 
     return () => {
       unsubscribeNewDelivery();
-      unsubscribeOrderReady();
       unsubscribeOrderCancelled();
-      unsubscribeOrderProposed();
+      unsubscribeOrderDelivered?.();
     };
-  }, [status, navigation]);
+  }, [status, navigation, loadDashboardData]);
 
   // Rafraîchir les données
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
-      await loadDashboardData();
+      await loadDashboardData({ force: true });
     } catch (e) {
       console.warn('[Home] refresh error:', e?.message || e);
     }
@@ -260,7 +211,7 @@ export default function DeliveryHomeScreen({ navigation }) {
   );
   if (showInitialLoading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={COLORS.primary} />
@@ -271,12 +222,12 @@ export default function DeliveryHomeScreen({ navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       <StatusBar barStyle="dark-content" />
       
       <ScrollView 
         style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: 80 + Math.max(insets.bottom, 16) }]}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -354,6 +305,19 @@ export default function DeliveryHomeScreen({ navigation }) {
           />
         </View>
 
+        {/* Bouton courses disponibles (visible quand disponible) */}
+        {isAvailable && (
+          <TouchableOpacity
+            style={styles.availableOrdersButton}
+            onPress={() => navigation.navigate('AvailableDeliveries')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="bicycle" size={24} color="#FFF" />
+            <Text style={styles.availableOrdersButtonText}>Voir les demandes de course</Text>
+            <Ionicons name="chevron-forward" size={20} color="#FFF" />
+          </TouchableOpacity>
+        )}
+
         {/* Stats Grid */}
         <View style={styles.statsGrid}>
           <View style={styles.statCard}>
@@ -369,7 +333,11 @@ export default function DeliveryHomeScreen({ navigation }) {
           <View style={styles.statCard}>
             <Text style={styles.statLabel}>NOTE</Text>
             <View style={styles.ratingContainer}>
-              <Text style={styles.statValue}>{todayStats?.rating ?? '4.8'}</Text>
+              <Text style={styles.statValue}>
+                {(todayStats?.rating != null && todayStats.rating > 0) 
+                  ? Number(todayStats.rating).toFixed(1) 
+                  : (user?.average_rating != null ? Number(user.average_rating).toFixed(1) : '–')}
+              </Text>
               <Ionicons name="star" size={16} color={COLORS.rating} />
             </View>
           </View>
@@ -667,6 +635,27 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  availableOrdersButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 10,
+    backgroundColor: COLORS.primary,
+    marginHorizontal: 16,
+    marginVertical: 8,
+    padding: 16,
+    borderRadius: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 4,
+    elevation: 3,
+  },
+  availableOrdersButtonText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#FFF',
   },
   statusCard: {
     flexDirection: 'row',

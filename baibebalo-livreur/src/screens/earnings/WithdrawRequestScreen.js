@@ -5,7 +5,7 @@ import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
 import { requestPayout } from '../../api/earnings';
 
-const MIN_WITHDRAWAL = 5000;
+const MIN_WITHDRAWAL = 5000; // Demande avant le lundi (paiement automatique le lundi à partir de 1000 F)
 
 export default function WithdrawRequestScreen({ navigation }) {
   const { earningsData, fetchEarnings } = useDeliveryStore();
@@ -110,7 +110,7 @@ export default function WithdrawRequestScreen({ navigation }) {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle-outline" size={20} color={COLORS.info} />
           <Text style={styles.infoText}>
-            Les retraits sont traités sous 24-48h via Mobile Money
+            Demande avant le lundi (min. 5000 F). Sinon, paiement automatique chaque lundi dès 1000 F. Traitement sous 24-48h via Mobile Money.
           </Text>
         </View>
         

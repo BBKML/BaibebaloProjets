@@ -83,6 +83,20 @@ export default function DashboardScreen({ navigation }) {
     });
   };
 
+  const getOrderNetRevenue = (order) => {
+    let netRevenue = (order.netRevenue != null) ? order.netRevenue : order.net_revenue;
+    if (netRevenue == null) {
+      const subtotal = Number.parseFloat(order.subtotal || 0);
+      const commission = Number.parseFloat(order.commission || 0);
+      const commissionRate = Number.parseFloat(order.commission_rate || 15);
+      const actualCommission = commission > 0 ? commission : (subtotal * commissionRate) / 100;
+      netRevenue = Math.max(0, subtotal - actualCommission);
+    } else {
+      netRevenue = Number.parseFloat(netRevenue);
+    }
+    return netRevenue;
+  };
+
   const formatTimeRemaining = (order) => {
     // Calculer le temps restant basé sur estimated_delivery_time
     if (order.estimated_delivery_time) {
@@ -177,38 +191,43 @@ export default function DashboardScreen({ navigation }) {
               </TouchableOpacity>
             </View>
 
-            {newOrders.map((order) => (
-              <View key={order.id} style={styles.orderCard}>
-                <View style={styles.orderCardContent}>
-                  <View style={styles.orderInfo}>
-                    <View style={styles.orderHeaderRow}>
-                      <Text style={styles.orderUrgentLabel}>Urgent</Text>
-                      <Text style={styles.orderTime}>• Il y a 2 min</Text>
+            {newOrders.map(function(order) {
+              const itemsCount = order.items ? order.items.length : (order.itemsCount || 0);
+              const netRev = getOrderNetRevenue(order);
+              const orderNum = order.order_number || (order.id ? order.id.slice(0, 6) : '');
+              return (
+                <View key={order.id} style={styles.orderCard}>
+                  <View style={styles.orderCardContent}>
+                    <View style={styles.orderInfo}>
+                      <View style={styles.orderHeaderRow}>
+                        <Text style={styles.orderUrgentLabel}>Urgent</Text>
+                        <Text style={styles.orderTime}>• Il y a 2 min</Text>
+                      </View>
+                      <Text style={styles.orderNumber}>Commande #{orderNum}</Text>
+                      <Text style={styles.orderItems}>
+                        {itemsCount}x articles • {formatCurrency(netRev)} FCFA
+                      </Text>
                     </View>
-                    <Text style={styles.orderNumber}>Commande #{order.order_number || order.id?.slice(0, 6)}</Text>
-                    <Text style={styles.orderItems}>
-                      {order.items?.length || order.itemsCount || 0}x articles • {formatCurrency(order.total || order.total_amount || 0)} FCFA
-                    </Text>
-                  </View>
-                  <View style={styles.timerContainer}>
-                    <View style={styles.timerBox}>
-                      <Text style={styles.timerValue}>04</Text>
-                      <Text style={styles.timerLabel}>min</Text>
+                    <View style={styles.timerContainer}>
+                      <View style={styles.timerBox}>
+                        <Text style={styles.timerValue}>04</Text>
+                        <Text style={styles.timerLabel}>min</Text>
+                      </View>
+                      <View style={styles.timerBox}>
+                        <Text style={styles.timerValue}>55</Text>
+                        <Text style={styles.timerLabel}>sec</Text>
+                      </View>
+                      <TouchableOpacity
+                        style={styles.acceptButton}
+                        onPress={() => navigation.navigate('OrderDetails', { orderId: order.id })}
+                      >
+                        <Text style={styles.acceptButtonText}>Accepter</Text>
+                      </TouchableOpacity>
                     </View>
-                    <View style={styles.timerBox}>
-                      <Text style={styles.timerValue}>55</Text>
-                      <Text style={styles.timerLabel}>sec</Text>
-                    </View>
-                    <TouchableOpacity
-                      style={styles.acceptButton}
-                      onPress={() => navigation.navigate('OrderDetails', { orderId: order.id })}
-                    >
-                      <Text style={styles.acceptButtonText}>Accepter</Text>
-                    </TouchableOpacity>
                   </View>
                 </View>
-              </View>
-            ))}
+              );
+            })}
           </View>
         )}
 

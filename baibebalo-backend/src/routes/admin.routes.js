@@ -313,6 +313,17 @@ router.get('/orders/problematic',
  * ═══════════════════════════════════════════════════════════
  */
 
+// Solde espèces dû par chaque livreur (DOIT être avant /finances/delivery/:id)
+router.get('/finances/delivery-payment-summary',
+  requireAdminPermission('view_finances'),
+  adminController.getDeliveryPaymentSummary
+);
+
+router.get('/finances/delivery-cash-owed',
+  requireAdminPermission('view_finances'),
+  adminController.getDeliveryCashOwed
+);
+
 // Vue d'ensemble financière
 router.get('/finances/overview', 
   requireAdminPermission('view_finances'),
@@ -372,6 +383,12 @@ router.put('/finances/delivery/:id/refresh-balance',
   requireAdminPermission('process_payouts'),
   uuidValidator('id', 'Delivery Person ID'),
   adminController.refreshDeliveryBalance
+);
+
+// Recalculer les soldes de tous les livreurs (synchroniser admin / app)
+router.post('/finances/delivery/refresh-all-balances',
+  requireAdminPermission('process_payouts'),
+  adminController.refreshAllDeliveryBalances
 );
 
 // Actualiser le solde d'un restaurant

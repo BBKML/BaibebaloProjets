@@ -75,13 +75,28 @@ export const financesAPI = {
     return response.data;
   },
 
+  // Liste des livreurs avec gains (vue paiement lundi)
+  getDeliveryPaymentSummary: async () => {
+    const response = await apiClient.get('/admin/finances/delivery-payment-summary');
+    return response.data;
+  },
+
+  // Solde espèces dû par chaque livreur (ce qu'ils doivent reverser)
+  getDeliveryCashOwed: async () => {
+    const response = await apiClient.get('/admin/finances/delivery-cash-owed');
+    return response.data;
+  },
+
   // Remises espèces (livreurs remettent l'argent à l'agence ou dépôt sur compte)
   getCashRemittances: async (params = {}) => {
     const response = await apiClient.get('/admin/finances/cash-remittances', { params });
     return response.data;
   },
-  confirmCashRemittance: async (id, notes) => {
-    const response = await apiClient.put(`/admin/finances/cash-remittances/${id}/confirm`, { notes });
+  confirmCashRemittance: async (id, notes, verified_amount) => {
+    const response = await apiClient.put(`/admin/finances/cash-remittances/${id}/confirm`, {
+      notes: notes || undefined,
+      verified_amount: verified_amount ?? undefined,
+    });
     return response.data;
   },
   rejectCashRemittance: async (id, reason) => {
@@ -104,6 +119,10 @@ export const financesAPI = {
   },
   refreshDeliveryBalance: async (id) => {
     const response = await apiClient.put(`/admin/finances/delivery/${id}/refresh-balance`);
+    return response.data;
+  },
+  refreshAllDeliveryBalances: async () => {
+    const response = await apiClient.post('/admin/finances/delivery/refresh-all-balances');
     return response.data;
   },
   refreshRestaurantBalance: async (id) => {

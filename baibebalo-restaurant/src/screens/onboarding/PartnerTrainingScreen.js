@@ -5,7 +5,6 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
-  Dimensions,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Video } from 'expo-av';
@@ -159,8 +158,6 @@ export default function PartnerTrainingScreen({ navigation }) {
   );
 }
 
-const { width } = Dimensions.get('window');
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -191,7 +188,7 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: '100%',
-    height: width * 0.56, // 16:9 aspect ratio
+    aspectRatio: 16 / 9,
     backgroundColor: COLORS.black,
     borderRadius: 12,
     overflow: 'hidden',

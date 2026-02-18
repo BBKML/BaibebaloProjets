@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useFocusEffect } from '@react-navigation/native';
 import { 
   View, 
   Text, 
@@ -34,6 +35,13 @@ export default function DeliveriesScreen({ navigation }) {
     loadData();
   }, []);
 
+  // Recharger les courses actives quand l'onglet Courses redevient visible (retour dans l'app)
+  useFocusEffect(
+    React.useCallback(() => {
+      if (activeTab === 0) fetchActiveOrders();
+    }, [activeTab, fetchActiveOrders])
+  );
+
   useEffect(() => {
     if (activeTab === 1 && historyDeliveries.length === 0) {
       loadHistory();
@@ -64,19 +72,26 @@ export default function DeliveriesScreen({ navigation }) {
   };
 
   // Formater les données de livraison depuis le backend
-  const formatDelivery = (delivery) => ({
+  const formatDelivery = (delivery) => {
+    const pickupAddr = delivery.order_type === 'express' && delivery.pickup_address
+      ? (typeof delivery.pickup_address === 'string' ? (() => { try { return JSON.parse(delivery.pickup_address); } catch (e) { return {}; } })() : delivery.pickup_address)
+      : null;
+    const pickupLabel = pickupAddr?.address_line || pickupAddr?.address || 'Point de collecte';
+    return {
     id: delivery.id,
     time: delivery.delivered_at 
       ? new Date(delivery.delivered_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })
       : new Date(delivery.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
-    restaurant: delivery.restaurant_name || 'Restaurant',
-    destination: delivery.delivery_address?.address_line || delivery.client_first_name || 'Client',
+    restaurant: delivery.order_type === 'express' ? pickupLabel : (delivery.restaurant_name || 'Restaurant'),
+    destination: delivery.delivery_address?.address_line || delivery.recipient_name || delivery.client_first_name || 'Client',
     status: delivery.status,
     amount: delivery.delivery_fee || 0,
     rating: delivery.delivery_rating || null,
     date: formatRelativeDate(delivery.delivered_at || delivery.created_at),
     orderNumber: delivery.order_number,
-  });
+    order_type: delivery.order_type,
+  };
+  };
 
   const renderDeliveryItem = ({ item }) => (
     <TouchableOpacity 
@@ -112,7 +127,8 @@ export default function DeliveriesScreen({ navigation }) {
             item.status !== 'delivered' && { color: COLORS.warning }
           ]}>
             {item.status === 'delivered' ? 'Livrée' : 
-             item.status === 'delivering' ? 'En cours' : 
+             item.status === 'delivering' || item.status === 'picked_up' ? 'En cours' : 
+             item.status === 'driver_at_customer' ? 'Chez le client' :
              item.status === 'ready' ? 'À récupérer' : item.status}
           </Text>
         </View>
@@ -135,11 +151,23 @@ export default function DeliveriesScreen({ navigation }) {
     </TouchableOpacity>
   );
 
+  // Naviguer vers l'écran approprié selon le statut (reprise après sortie de l'app)
+  const handleContinueDelivery = (item) => {
+    const status = (item.status || '').toLowerCase();
+    if (status === 'driver_at_customer') {
+      navigation.navigate('ConfirmationCode', { delivery: item });
+    } else if (status === 'picked_up' || status === 'delivering') {
+      navigation.navigate('NavigationToCustomer', { delivery: item });
+    } else {
+      navigation.navigate('NavigationToRestaurant', { delivery: item });
+    }
+  };
+
   // Rendu des commandes actives
   const renderActiveOrderItem = ({ item }) => (
     <TouchableOpacity 
       style={[styles.deliveryCard, styles.activeOrderCard]}
-      onPress={() => navigation.navigate('NavigationToRestaurant', { delivery: item })}
+      onPress={() => handleContinueDelivery(item)}
     >
       <View style={styles.activeOrderBadge}>
         <Text style={styles.activeOrderBadgeText}>EN COURS</Text>
@@ -226,6 +254,13 @@ export default function DeliveriesScreen({ navigation }) {
             <Text style={styles.emptySubtitle}>
               Activez votre statut pour recevoir des courses
             </Text>
+            <TouchableOpacity
+              style={styles.availableButton}
+              onPress={() => navigation.navigate('AvailableDeliveries')}
+            >
+              <Ionicons name="list" size={20} color="#FFF" />
+              <Text style={styles.availableButtonText}>Voir les courses disponibles</Text>
+            </TouchableOpacity>
           </View>
         )
       ) : loadingHistory ? (
@@ -404,6 +439,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: COLORS.textSecondary,
     textAlign: 'center',
+  },
+  availableButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    marginTop: 20,
+  },
+  availableButtonText: {
+    color: '#FFF',
+    fontSize: 15,
+    fontWeight: '600',
   },
   loadingContainer: {
     flex: 1,

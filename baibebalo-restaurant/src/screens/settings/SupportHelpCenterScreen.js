@@ -77,9 +77,9 @@ export default function SupportHelpCenterScreen({ navigation }) {
     if (method === 'chat') {
       navigation.navigate('LiveChatSupport');
     } else if (method === 'email') {
-      Linking.openURL('mailto:support@baibebalo.com');
+      Linking.openURL('mailto:support@baibebalo.ci');
     } else if (method === 'phone') {
-      Linking.openURL('tel:+225XXXXXXXXX');
+      Linking.openURL('tel:+2250787097996');
     }
   };
 
@@ -97,6 +97,7 @@ export default function SupportHelpCenterScreen({ navigation }) {
         {/* Contact rapide */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Besoin d'aide ?</Text>
+          <Text style={styles.contactNumbers}>05 85 67 09 40 / 07 87 09 79 96</Text>
           <View style={styles.contactButtons}>
             <TouchableOpacity
               style={styles.contactButton}
@@ -241,6 +242,11 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: '600',
     color: COLORS.text,
+    marginBottom: 8,
+  },
+  contactNumbers: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
     marginBottom: 16,
   },
   contactButtons: {

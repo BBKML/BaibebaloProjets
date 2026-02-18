@@ -22,6 +22,9 @@ const calculateDeliveryFee = (distance) => {
   return mapsService.calculateDeliveryFee(distance);
 };
 
+/** Prix minimum livraison express (FCFA) */
+const EXPRESS_MIN_FEE = 500;
+
 /**
  * Calculer les frais de livraison et de service
  * API pour le client avant de créer la commande
@@ -80,8 +83,8 @@ exports.calculateFees = async (req, res) => {
         parseFloat(address.longitude)
       );
 
-      // Rayon max = choix du restaurant (BDD), sinon limite plateforme (config)
-      const platformMaxKm = config.business.maxDeliveryDistance ?? 10;
+      // Rayon max = choix du restaurant (BDD), sinon défaut 15 km
+      const platformMaxKm = 15;
       const maxRadius = Number(restaurant.delivery_radius) || platformMaxKm;
       if (distance > maxRadius) {
         return res.status(400).json({
@@ -129,8 +132,8 @@ exports.calculateFees = async (req, res) => {
     const serviceFee = 0;
     const serviceFeePercentDisplay = 0;
 
-    // Rayon max livraison = restaurant (BDD), sinon config (ex. 10 km)
-    const platformMaxKm = config.business.maxDeliveryDistance ?? 10;
+    // Rayon max livraison = restaurant (BDD), sinon défaut 15 km
+    const platformMaxKm = 15;
     const deliveryRadiusKm = Number(restaurant.delivery_radius) || platformMaxKm;
 
     // Total = sous-total + frais de livraison (avec bonus inclus)
@@ -197,6 +200,399 @@ exports.calculateFees = async (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'CALCULATION_ERROR', message: 'Erreur lors du calcul des frais' },
+    });
+  }
+};
+
+/**
+ * Calculer les frais de livraison EXPRESS (point à point, sans restaurant)
+ * pickup_address → delivery_address
+ */
+exports.calculateExpressFees = async (req, res) => {
+  try {
+    const { pickup_address_id, delivery_address_id, pickup_address, delivery_address } = req.body;
+    const userId = req.user.id;
+
+    let pickupLat, pickupLon, pickupAddressLine;
+    let deliveryLat, deliveryLon, deliveryAddressLine;
+
+    // Point de collecte : ID d'adresse ou objet
+    if (pickup_address_id) {
+      const pickupResult = await query(
+        'SELECT latitude, longitude, address_line FROM addresses WHERE id = $1 AND user_id = $2',
+        [pickup_address_id, userId]
+      );
+      if (pickupResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'PICKUP_ADDRESS_NOT_FOUND', message: 'Adresse de collecte non trouvée' },
+        });
+      }
+      const p = pickupResult.rows[0];
+      pickupLat = p.latitude;
+      pickupLon = p.longitude;
+      pickupAddressLine = p.address_line;
+    } else if (pickup_address && typeof pickup_address === 'object') {
+      pickupLat = parseFloat(pickup_address.latitude);
+      pickupLon = parseFloat(pickup_address.longitude);
+      pickupAddressLine = pickup_address.address_line || pickup_address.address || '';
+      if (!pickupLat || !pickupLon) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_PICKUP', message: 'Coordonnées de collecte requises (latitude, longitude)' },
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'PICKUP_REQUIRED', message: 'Point de collecte requis (pickup_address_id ou pickup_address)' },
+      });
+    }
+
+    // Adresse de livraison : ID ou objet
+    if (delivery_address_id) {
+      const deliveryResult = await query(
+        'SELECT latitude, longitude, address_line FROM addresses WHERE id = $1 AND user_id = $2',
+        [delivery_address_id, userId]
+      );
+      if (deliveryResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'DELIVERY_ADDRESS_NOT_FOUND', message: 'Adresse de livraison non trouvée' },
+        });
+      }
+      const d = deliveryResult.rows[0];
+      deliveryLat = d.latitude;
+      deliveryLon = d.longitude;
+      deliveryAddressLine = d.address_line;
+    } else if (delivery_address && typeof delivery_address === 'object') {
+      deliveryLat = parseFloat(delivery_address.latitude);
+      deliveryLon = parseFloat(delivery_address.longitude);
+      deliveryAddressLine = delivery_address.address_line || delivery_address.address || '';
+      if (!deliveryLat || !deliveryLon) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_DELIVERY', message: 'Coordonnées de livraison requises (latitude, longitude)' },
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'DELIVERY_REQUIRED', message: 'Adresse de livraison requise (delivery_address_id ou delivery_address)' },
+      });
+    }
+
+    const maxRadiusKm = 20;
+    const distance = mapsService.calculateDistance(pickupLat, pickupLon, deliveryLat, deliveryLon);
+
+    if (distance > maxRadiusKm) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'OUT_OF_DELIVERY_RANGE',
+          message: `Distance trop longue (${distance.toFixed(1)} km). Maximum: ${maxRadiusKm} km`,
+        },
+      });
+    }
+
+    const baseDeliveryFee = calculateDeliveryFee(distance);
+    const { calculateDeliveryBonuses } = require('../utils/earnings');
+    const bonuses = calculateDeliveryBonuses(baseDeliveryFee, distance, new Date());
+    const deliveryFee = Math.max(EXPRESS_MIN_FEE, baseDeliveryFee + bonuses.totalBonus);
+    const total = deliveryFee;
+
+    const deliveryFeeDetails = mapsService.getDeliveryFeeDetails(distance);
+
+    res.json({
+      success: true,
+      data: {
+        order_type: 'express',
+        pickup_address: pickupAddressLine,
+        delivery_address: deliveryAddressLine,
+        distance_km: parseFloat(distance.toFixed(2)),
+        delivery_fee: deliveryFee,
+        base_delivery_fee: baseDeliveryFee,
+        bonuses: {
+          long_distance: bonuses.breakdown.bonus_long_distance,
+          peak_hour: bonuses.breakdown.bonus_peak_hour,
+          weekend: bonuses.breakdown.bonus_weekend,
+          total: bonuses.totalBonus,
+        },
+        total,
+        delivery_details: {
+          label: deliveryFeeDetails.label,
+          description: deliveryFeeDetails.description,
+        },
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur calculateExpressFees:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'CALCULATION_ERROR', message: 'Erreur lors du calcul des frais' },
+    });
+  }
+};
+
+/**
+ * Créer une commande EXPRESS (livraison point à point, sans restaurant)
+ */
+exports.createExpressOrder = async (req, res) => {
+  try {
+    const {
+      pickup_address_id,
+      delivery_address_id,
+      pickup_address,
+      delivery_address,
+      recipient_name,
+      recipient_phone,
+      special_instructions,
+      payment_method,
+      express_description,
+    } = req.body;
+
+    const ALLOWED_PAYMENT_METHODS = ['cash'];
+    if (!ALLOWED_PAYMENT_METHODS.includes(payment_method)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'PAYMENT_METHOD_DISABLED',
+          message: 'Seul le paiement à la livraison (cash) est accepté pour le moment.',
+        },
+      });
+    }
+
+    const userId = req.user.id;
+
+    let pickupLat, pickupLon, pickupAddressLine, pickupDistrict, pickupLandmark;
+    let deliveryLat, deliveryLon, deliveryAddressLine, deliveryDistrict, deliveryLandmark;
+    let recipientName = recipient_name || '';
+    let recipientPhone = recipient_phone || '';
+
+    // Résoudre le point de collecte
+    if (pickup_address_id) {
+      const pickupResult = await query(
+        'SELECT latitude, longitude, address_line, district, landmark FROM addresses WHERE id = $1 AND user_id = $2',
+        [pickup_address_id, userId]
+      );
+      if (pickupResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'PICKUP_ADDRESS_NOT_FOUND', message: 'Adresse de collecte non trouvée' },
+        });
+      }
+      const p = pickupResult.rows[0];
+      pickupLat = p.latitude;
+      pickupLon = p.longitude;
+      pickupAddressLine = p.address_line;
+      pickupDistrict = p.district;
+      pickupLandmark = p.landmark;
+    } else if (pickup_address && typeof pickup_address === 'object') {
+      pickupLat = parseFloat(pickup_address.latitude);
+      pickupLon = parseFloat(pickup_address.longitude);
+      pickupAddressLine = pickup_address.address_line || pickup_address.address || '';
+      pickupDistrict = pickup_address.district || null;
+      pickupLandmark = pickup_address.landmark || null;
+      if (!pickupLat || !pickupLon) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_PICKUP', message: 'Coordonnées de collecte requises' },
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'PICKUP_REQUIRED', message: 'Point de collecte requis' },
+      });
+    }
+
+    // Résoudre l'adresse de livraison
+    if (delivery_address_id) {
+      const deliveryResult = await query(
+        'SELECT latitude, longitude, address_line, district, landmark FROM addresses WHERE id = $1 AND user_id = $2',
+        [delivery_address_id, userId]
+      );
+      if (deliveryResult.rows.length === 0) {
+        return res.status(404).json({
+          success: false,
+          error: { code: 'DELIVERY_ADDRESS_NOT_FOUND', message: 'Adresse de livraison non trouvée' },
+        });
+      }
+      const d = deliveryResult.rows[0];
+      deliveryLat = d.latitude;
+      deliveryLon = d.longitude;
+      deliveryAddressLine = d.address_line;
+      deliveryDistrict = d.district;
+      deliveryLandmark = d.landmark;
+    } else if (delivery_address && typeof delivery_address === 'object') {
+      deliveryLat = parseFloat(delivery_address.latitude);
+      deliveryLon = parseFloat(delivery_address.longitude);
+      deliveryAddressLine = delivery_address.address_line || delivery_address.address || '';
+      deliveryDistrict = delivery_address.district || null;
+      deliveryLandmark = delivery_address.landmark || null;
+      recipientName = recipient_name || delivery_address.recipient_name || '';
+      recipientPhone = recipient_phone || delivery_address.recipient_phone || '';
+      if (!deliveryLat || !deliveryLon) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_DELIVERY', message: 'Coordonnées de livraison requises' },
+        });
+      }
+    } else {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'DELIVERY_REQUIRED', message: 'Adresse de livraison requise' },
+      });
+    }
+
+    const maxRadiusKm = 20;
+    const distance = mapsService.calculateDistance(pickupLat, pickupLon, deliveryLat, deliveryLon);
+    if (distance > maxRadiusKm) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'OUT_OF_DELIVERY_RANGE',
+          message: `Distance trop longue (${distance.toFixed(1)} km). Maximum: ${maxRadiusKm} km`,
+        },
+      });
+    }
+
+    const baseDeliveryFee = mapsService.calculateDeliveryFee(distance);
+    const { calculateDeliveryBonuses } = require('../utils/earnings');
+    const bonuses = calculateDeliveryBonuses(baseDeliveryFee, distance, new Date());
+    const deliveryFee = Math.max(EXPRESS_MIN_FEE, baseDeliveryFee + bonuses.totalBonus);
+    const total = deliveryFee;
+
+    return await transaction(async (client) => {
+      const order_number = generateOrderNumber();
+
+      const pickupAddressJson = {
+        address_line: pickupAddressLine,
+        district: pickupDistrict,
+        landmark: pickupLandmark,
+        latitude: pickupLat,
+        longitude: pickupLon,
+      };
+
+      const deliveryAddressJson = {
+        address_line: deliveryAddressLine,
+        district: deliveryDistrict,
+        landmark: deliveryLandmark,
+        latitude: deliveryLat,
+        longitude: deliveryLon,
+        recipient_name: recipientName,
+        recipient_phone: recipientPhone,
+      };
+
+      const orderResult = await client.query(
+        `INSERT INTO orders (
+          order_number, user_id, restaurant_id,
+          order_type, pickup_address, delivery_address,
+          recipient_name, recipient_phone, express_description,
+          subtotal, delivery_fee, discount, commission, total,
+          special_instructions, payment_method, payment_status, status,
+          delivery_distance, estimated_delivery_time
+        )
+        VALUES ($1, $2, NULL, 'express', $3, $4, $5, $6, $7, 0, $8, 0, 0, $9, $10, $11, 'pending', 'ready', $12, $13)
+        RETURNING *`,
+        [
+          order_number, userId,
+          JSON.stringify(pickupAddressJson),
+          JSON.stringify(deliveryAddressJson),
+          recipientName || null,
+          recipientPhone || null,
+          express_description || null,
+          deliveryFee,
+          total,
+          special_instructions || null,
+          payment_method,
+          distance,
+          Math.round((distance / 15) * 60) + 10,
+        ]
+      );
+
+      const order = orderResult.rows[0];
+
+      await client.query(
+        `INSERT INTO transactions (
+          order_id, transaction_type, amount,
+          from_user_type, from_user_id,
+          to_user_type, to_user_id,
+          status, payment_method
+        )
+        VALUES ($1, 'order_payment', $2, 'client', $3, 'delivery', NULL, 'pending', $4)`,
+        [order.id, total, userId, payment_method]
+      );
+
+      const io = req.app.get('io');
+      const partnersIo = req.app.get('partnersIo');
+      const { notifyNewOrder } = require('../utils/socket');
+      notifyNewOrder(io, order);
+
+      const deliveryProposalService = require('../services/deliveryProposal.service');
+      const proposalResult = await deliveryProposalService.proposeOrderToDelivery(order.id, req.app);
+
+      if (!proposalResult.proposed) {
+        logger.info(`Aucun livreur disponible pour commande express ${order.order_number}`);
+      }
+
+      const userResult = await client.query('SELECT first_name, phone FROM users WHERE id = $1', [userId]);
+      const user = userResult.rows[0];
+
+      try {
+        const smsService = require('../services/sms.service');
+        if (user?.phone) {
+          await smsService.sendOrderNotification(
+            user.phone,
+            order.order_number,
+            'express_created'
+          );
+        }
+      } catch (smsErr) {
+        logger.warn('SMS express non envoyé', { error: smsErr.message });
+      }
+
+      try {
+        await notificationService.sendOrderNotification(order.id, 'client', 'order_confirmed');
+      } catch (notifErr) {
+        logger.warn('Notification push express ignorée', { error: notifErr.message });
+      }
+
+      res.status(201).json({
+        success: true,
+        message: 'Commande express créée. Un livreur va être assigné.',
+        data: {
+          order: {
+            id: order.id,
+            order_number: order.order_number,
+            order_type: 'express',
+            status: order.status,
+            pickup_address: pickupAddressJson,
+            delivery_address: deliveryAddressJson,
+            recipient_name: order.recipient_name,
+            recipient_phone: order.recipient_phone,
+            express_description: order.express_description,
+            subtotal: 0,
+            delivery_fee: order.delivery_fee,
+            total: order.total,
+            payment_method: order.payment_method,
+            payment_status: order.payment_status,
+            delivery_distance: order.delivery_distance,
+            estimated_delivery_time: order.estimated_delivery_time,
+            placed_at: order.placed_at,
+            items: [],
+          },
+        },
+      });
+    });
+  } catch (error) {
+    logger.error('Erreur createExpressOrder:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'ORDER_CREATION_ERROR',
+        message: 'Erreur lors de la création de la commande express',
+      },
     });
   }
 };
@@ -390,7 +786,7 @@ exports.createOrder = async (req, res) => {
       // 4. Calculer les frais de livraison (distance)
       const restaurantLat = parseFloat(restaurant.latitude);
       const restaurantLon = parseFloat(restaurant.longitude);
-      const deliveryRadius = parseFloat(restaurant.delivery_radius) || 10; // Par défaut 10km
+      const deliveryRadius = parseFloat(restaurant.delivery_radius) || 15; // Par défaut 15 km
       
       const distance = await calculateDistance(
         restaurantLat,
@@ -992,33 +1388,26 @@ exports.getOrderById = async (req, res) => {
     }
 
     // Structurer les données du restaurant pour correspondre à l'attendu du frontend
-    // Vérifier si les données du restaurant sont disponibles, sinon les récupérer directement
+    // Pour les commandes express, pas de restaurant
     let restaurantPhone = order.restaurant_phone;
     let restaurantAddress = order.restaurant_address;
     
-    // Si les données ne sont pas dans le JOIN, les récupérer directement
-    if (!restaurantPhone || !restaurantAddress) {
+    if (order.restaurant_id && (!restaurantPhone || !restaurantAddress)) {
       try {
         const restaurantResult = await query(
           'SELECT phone, address FROM restaurants WHERE id = $1',
           [order.restaurant_id]
         );
-        if (restaurantResult.rows.length > 0) {
+        if (restaurantResult.rows[0]) {
           restaurantPhone = restaurantPhone || restaurantResult.rows[0].phone;
           restaurantAddress = restaurantAddress || restaurantResult.rows[0].address;
-          logger.debug('Données restaurant récupérées directement:', {
-            orderId: order.id,
-            restaurantId: order.restaurant_id,
-            phone: restaurantPhone,
-            address: restaurantAddress,
-          });
         }
       } catch (restaurantError) {
         logger.warn('Erreur récupération restaurant:', restaurantError);
       }
     }
     
-    order.restaurant = {
+    order.restaurant = order.restaurant_id ? {
       id: order.restaurant_id,
       name: order.restaurant_name,
       phone: restaurantPhone || null,
@@ -1026,7 +1415,11 @@ exports.getOrderById = async (req, res) => {
       address: restaurantAddress || null,
       latitude: order.restaurant_latitude,
       longitude: order.restaurant_longitude,
-    };
+    } : null;
+    order.order_type = order.order_type || 'food';
+    if (order.order_type === 'express' && order.pickup_address) {
+      order.pickup_address = typeof order.pickup_address === 'string' ? JSON.parse(order.pickup_address) : order.pickup_address;
+    }
     
     // Logger pour déboguer
     logger.debug('Données restaurant structurées (getOrderById):', {
@@ -1154,8 +1547,8 @@ exports.getOrderById = async (req, res) => {
       formula: `${subtotal} + ${deliveryFee} - ${discount} = ${recalculatedTotal}`,
     });
 
-    // Calculer les gains estimés pour les livreurs
-    if (req.user.type === 'delivery' && order.delivery_fee) {
+    // Calculer les gains estimés et revenu net restaurant pour les livreurs
+    if ((req.user.type === 'delivery' || req.user.type === 'delivery_person') && order.delivery_fee) {
       const { calculateEstimatedEarnings } = require('../utils/earnings');
       order.estimated_earnings = calculateEstimatedEarnings(
         parseFloat(order.delivery_fee || 0),
@@ -1163,13 +1556,15 @@ exports.getOrderById = async (req, res) => {
         order.placed_at ? new Date(order.placed_at) : new Date()
       );
       
-      // Calculer le revenu net du restaurant pour que le livreur sache combien le restaurant doit recevoir
-      const { getCommission, getNetRestaurantRevenue } = require('../utils/commission');
-      const commissionRate = parseFloat(order.commission_rate) || 15;
-      const netRestaurantRevenue = getNetRestaurantRevenue(subtotal, commissionRate, order.commission);
-      order.restaurant_net_revenue = netRestaurantRevenue;
-      order.restaurant_subtotal = subtotal;
-      order.restaurant_commission = order.commission || getCommission(subtotal, commissionRate).commission;
+      // Calculer le revenu net du restaurant pour que le livreur sache combien le restaurant doit recevoir (commandes food uniquement)
+      if (order.restaurant_id) {
+        const { getCommission, getNetRestaurantRevenue } = require('../utils/commission');
+        const commissionRate = parseFloat(order.commission_rate) || 15;
+        const netRestaurantRevenue = getNetRestaurantRevenue(subtotal, commissionRate, order.commission);
+        order.restaurant_net_revenue = netRestaurantRevenue;
+        order.restaurant_subtotal = subtotal;
+        order.restaurant_commission = order.commission || getCommission(subtotal, commissionRate).commission;
+      }
     }
 
     // S'assurer que client_phone est bien présent dans la réponse
@@ -1649,7 +2044,7 @@ exports.markOrderReady = async (req, res) => {
     const result = await query(
       `UPDATE orders 
        SET status = 'ready', ready_at = NOW()
-       WHERE id = $1 AND restaurant_id = $2 AND status = 'preparing'
+       WHERE id = $1 AND restaurant_id = $2 AND status IN ('accepted', 'preparing')
        RETURNING *`,
       [id, req.user.id]
     );
@@ -1988,6 +2383,14 @@ exports.trackOrder = async (req, res) => {
     
     // Utiliser le total recalculé (source de vérité)
     order.total = recalculatedTotal;
+
+    // Calculer le revenu net du restaurant pour le livreur (subtotal - commission)
+    const { getCommission, getNetRestaurantRevenue } = require('../utils/commission');
+    const commissionRate = parseFloat(order.commission_rate) || 15;
+    const netRestaurantRevenue = getNetRestaurantRevenue(subtotal, commissionRate, order.commission);
+    order.restaurant_net_revenue = netRestaurantRevenue;
+    order.restaurant_subtotal = subtotal;
+    order.restaurant_commission = order.commission ?? getCommission(subtotal, commissionRate).commission;
 
     // Logger pour vérifier que tous les champs nécessaires aux calculs sont présents
     logger.info('trackOrder - Total recalculé:', {

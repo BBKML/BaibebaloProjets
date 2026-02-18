@@ -107,7 +107,7 @@ export default function RegisterStep4Screen({ navigation, route }) {
         landmark: step2Data.landmark,
         latitude: step2Data.latitude,
         longitude: step2Data.longitude,
-        delivery_radius: 5,
+        delivery_radius: 15,
         
         // Étape 3 - Documents
         document_rccm: step3Data.rccm,

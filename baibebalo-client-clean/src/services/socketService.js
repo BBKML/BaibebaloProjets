@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Vibration, Platform } from 'react-native';
 
 // URL du serveur Socket.IO (même que l'API sans /api/v1)
-const SOCKET_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.5:5000/api/v1').replace('/api/v1', '');
+const SOCKET_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.16:5000/api/v1').replace('/api/v1', '');
 
 class SocketService {
   constructor() {
@@ -18,10 +18,10 @@ class SocketService {
    */
   async connect() {
     try {
-      const token = await AsyncStorage.getItem('token');
+      const token = await AsyncStorage.getItem('accessToken') || await AsyncStorage.getItem('token');
       
       if (!token) {
-        console.log('[Socket] Pas de token, connexion ignorée');
+        console.log('[Socket] Pas de token (accessToken), connexion ignorée');
         return;
       }
 

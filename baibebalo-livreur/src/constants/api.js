@@ -2,7 +2,7 @@
 // EAS build injecte EXPO_PUBLIC_API_URL depuis eas.json ; fallback pour dev et sécurité build
 // IMPORTANT: Mettez à jour l'IP ci-dessous avec l'IP affichée par le serveur backend au démarrage
 const PRODUCTION_API_URL = 'https://baibebaloprojets.onrender.com/api/v1';
-const DEV_API_URL = 'http://192.168.1.3:5000/api/v1'; // IP locale pour développement
+const DEV_API_URL = 'http://192.168.1.16:5000/api/v1'; // IP locale pour développement (même que backend)
 
 // En développement, toujours utiliser l'URL locale (même si EXPO_PUBLIC_API_URL est défini)
 // Pour forcer l'URL de production, définissez FORCE_PRODUCTION=true dans .env

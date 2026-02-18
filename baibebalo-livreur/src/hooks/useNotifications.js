@@ -54,6 +54,9 @@ export const useNotifications = (isAuthenticated) => {
           navigation.navigate('AvailableDeliveries');
         } else if (data?.orderId) {
           navigation.navigate('NavigationToRestaurant', { orderId: data.orderId });
+        } else if (data?.type === 'payout_completed' || data?.screen === 'Earnings') {
+          // Paiement reçu : aller à l'onglet Gains (solde à jour)
+          navigation.navigate('Main', { screen: 'Earnings' });
         } else if (data?.screen) {
           navigation.navigate(data.screen, data.params || {});
         }

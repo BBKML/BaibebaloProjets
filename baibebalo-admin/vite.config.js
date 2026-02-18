@@ -8,7 +8,7 @@ export default defineConfig({
     port: 5173, // Port différent du backend
     proxy: {
       '/api': {
-        target: process.env.VITE_API_URL || 'http://localhost:5000', // Backend sur port 5000
+        target: process.env.VITE_BACKEND_URL || 'http://192.168.1.16:5000', // Backend (IP locale pour dev)
         changeOrigin: true,
         secure: false,
         ws: true, // Pour WebSocket si nécessaire

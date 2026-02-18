@@ -37,6 +37,45 @@ router.post('/calculate-fees',
 );
 
 /**
+ * @route   POST /api/v1/orders/express/calculate-fees
+ * @desc    Calculer les frais de livraison express (point à point)
+ * @access  Private (User)
+ */
+router.post('/express/calculate-fees',
+  authorize('user', 'client'),
+  [
+    body('pickup_address_id').optional().isUUID().withMessage('ID adresse collecte invalide'),
+    body('delivery_address_id').optional().isUUID().withMessage('ID adresse livraison invalide'),
+    body('pickup_address').optional().isObject().withMessage('pickup_address doit être un objet'),
+    body('delivery_address').optional().isObject().withMessage('delivery_address doit être un objet'),
+  ],
+  validate,
+  orderController.calculateExpressFees
+);
+
+/**
+ * @route   POST /api/v1/orders/express
+ * @desc    Créer une commande express (livraison point à point, sans restaurant)
+ * @access  Private (User)
+ */
+router.post('/express',
+  authorize('user', 'client'),
+  [
+    body('pickup_address_id').optional().isUUID().withMessage('ID adresse collecte invalide'),
+    body('delivery_address_id').optional().isUUID().withMessage('ID adresse livraison invalide'),
+    body('pickup_address').optional().isObject().withMessage('pickup_address doit être un objet'),
+    body('delivery_address').optional().isObject().withMessage('delivery_address doit être un objet'),
+    body('recipient_name').optional().trim().isLength({ max: 255 }),
+    body('recipient_phone').optional().trim().isLength({ max: 20 }),
+    body('special_instructions').optional().trim().isLength({ max: 500 }),
+    body('payment_method').isIn(['cash', 'orange_money', 'mtn_money', 'moov_money', 'waves']).withMessage('Méthode de paiement invalide'),
+    body('express_description').optional().trim().isLength({ max: 500 }),
+  ],
+  validate,
+  orderController.createExpressOrder
+);
+
+/**
  * @route   POST /api/v1/orders
  * @desc    Créer une nouvelle commande
  * @access  Private (User)

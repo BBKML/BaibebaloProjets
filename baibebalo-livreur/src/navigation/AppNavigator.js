@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../store/authStore';
 import { COLORS } from '../constants/colors';
 import { useNotifications } from '../hooks/useNotifications';
+import { useDeliverySocketAlerts } from '../hooks/useDeliverySocketAlerts';
 import { checkMaintenanceMode, invalidateSettingsCache } from '../services/settingsService';
 
 // Écrans d'authentification
@@ -43,6 +44,7 @@ import SettingsScreen from '../screens/settings/SettingsScreen';
 
 // Écrans de course
 import NewDeliveryAlertScreen from '../screens/deliveries/NewDeliveryAlertScreen';
+import AvailableDeliveriesScreen from '../screens/deliveries/AvailableDeliveriesScreen';
 import DeliveryDetailsScreen from '../screens/deliveries/DeliveryDetailsScreen';
 import NavigationToRestaurantScreen from '../screens/deliveries/NavigationToRestaurantScreen';
 import OrderVerificationScreen from '../screens/deliveries/OrderVerificationScreen';
@@ -101,6 +103,14 @@ function NotificationBridge() {
   return null;
 }
 
+// Pont pour les alertes Socket.IO livreur (nouvelles courses, commandes prêtes, etc.) - actif sur tous les écrans
+function DeliverySocketAlertsBridge() {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isActivated = useAuthStore((s) => s.isActivated);
+  useDeliverySocketAlerts(isAuthenticated && isActivated);
+  return null;
+}
+
 // Navigation principale avec tabs
 function MainTabs() {
   const insets = useSafeAreaInsets();
@@ -113,7 +123,7 @@ function MainTabs() {
         tabBarInactiveTintColor: COLORS.textSecondary,
         tabBarStyle: {
           height: 60 + insets.bottom,
-          paddingBottom: insets.bottom > 0 ? insets.bottom : 10,
+          paddingBottom: Math.max(insets.bottom, 10),
           paddingTop: 10,
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
@@ -297,6 +307,7 @@ export default function AppNavigator() {
   return (
     <NavigationContainer ref={navigationRef}>
       <NotificationBridge />
+      <DeliverySocketAlertsBridge />
       <Stack.Navigator 
         screenOptions={{ headerShown: false }}
         initialRouteName={getInitialRoute()}
@@ -339,6 +350,7 @@ export default function AppNavigator() {
               component={NewDeliveryAlertScreen}
               options={{ presentation: 'fullScreenModal' }}
             />
+            <Stack.Screen name="AvailableDeliveries" component={AvailableDeliveriesScreen} />
             <Stack.Screen name="DeliveryDetails" component={DeliveryDetailsScreen} />
             <Stack.Screen name="NavigationToRestaurant" component={NavigationToRestaurantScreen} />
             <Stack.Screen name="OrderVerification" component={OrderVerificationScreen} />

@@ -23,6 +23,14 @@ export function orderToDeliveryShape(order) {
   }
   
   const lat = (v) => (v != null && v !== '' && v !== undefined) ? parseFloat(v) : null;
+
+  // Revenu net restaurant = subtotal - commission (calculé côté backend, fallback si manquant)
+  const subtotal = parseFloat(order.subtotal) || 0;
+  const commissionRate = parseFloat(order.commission_rate) || 15;
+  const commissionAmount = order.commission != null ? parseFloat(order.commission) : (subtotal * commissionRate) / 100;
+  const restaurantNetRevenue = order.restaurant_net_revenue != null && order.restaurant_net_revenue !== ''
+    ? parseFloat(order.restaurant_net_revenue)
+    : Math.max(0, subtotal - commissionAmount);
   
   // Utiliser estimated_earnings si disponible, sinon calculer à partir de delivery_fee
   // Pour une estimation basique, on prend 70% du delivery_fee (gain de base minimum)
@@ -56,35 +64,52 @@ export function orderToDeliveryShape(order) {
     order_user_id: order.user_id,
   });
   
+  const isExpress = order.order_type === 'express';
+  let pickupAddr = {};
+  if (isExpress && order.pickup_address) {
+    pickupAddr = typeof order.pickup_address === 'string' ? (() => { try { return JSON.parse(order.pickup_address); } catch (e) { return {}; } })() : order.pickup_address;
+  }
+
+  const restaurantOrPickup = isExpress ? {
+    name: 'Point de collecte',
+    address: pickupAddr?.address_line || pickupAddr?.address || '',
+    latitude: lat(pickupAddr?.latitude),
+    longitude: lat(pickupAddr?.longitude),
+    phone: order.client_phone || order.customer?.phone || '',
+    logo: null,
+    distance: order.restaurant_distance,
+  } : {
+    name: order.restaurant_name || order.restaurant?.name || '',
+    address: order.restaurant_address || order.restaurant?.address || '',
+    latitude: lat(order.restaurant_latitude) ?? lat(order.restaurant?.latitude),
+    longitude: lat(order.restaurant_longitude) ?? lat(order.restaurant?.longitude),
+    phone: order.restaurant_phone || order.restaurant?.phone || '',
+    logo: order.restaurant_logo || order.restaurant?.logo || null,
+    distance: order.restaurant_distance,
+  };
+
   return {
     id: order.id,
     order_id: order.id,
     order_number: order.order_number,
+    order_type: order.order_type || 'food',
     status: order.status,
     delivery_fee: order.delivery_fee,
     earnings: estimatedEarnings,
     payment_method: order.payment_method || 'waves',
     total: order.total || 0,
-    restaurant_net_revenue: order.restaurant_net_revenue || null, // Revenu net du restaurant (subtotal - commission)
-    restaurant_subtotal: order.restaurant_subtotal || null, // Sous-total des articles
-    restaurant_commission: order.restaurant_commission || null, // Commission Baibebalo
-    restaurant: {
-      name: order.restaurant_name || order.restaurant?.name || '',
-      address: order.restaurant_address || order.restaurant?.address || '',
-      latitude: lat(order.restaurant_latitude) ?? lat(order.restaurant?.latitude),
-      longitude: lat(order.restaurant_longitude) ?? lat(order.restaurant?.longitude),
-      phone: order.restaurant_phone || order.restaurant?.phone || '',
-      logo: order.restaurant_logo || order.restaurant?.logo || null,
-      distance: order.restaurant_distance,
-    },
+    restaurant_net_revenue: isExpress ? 0 : restaurantNetRevenue,
+    restaurant_subtotal: isExpress ? 0 : (order.restaurant_subtotal ?? subtotal),
+    restaurant_commission: isExpress ? 0 : (order.restaurant_commission ?? commissionAmount),
+    restaurant: restaurantOrPickup,
     customer: {
-      name: clientName,
+      name: order.recipient_name || clientName,
       area: customerArea,
       address: customerAddress,
       landmark: customerLandmark,
       latitude: lat(addr.latitude) ?? lat(order.customer?.latitude),
       longitude: lat(addr.longitude) ?? lat(order.customer?.longitude),
-      phone: customerPhone,
+      phone: order.recipient_phone || customerPhone,
       totalDistance: order.delivery_distance || order.customer?.totalDistance,
     },
     delivery_address: addr,

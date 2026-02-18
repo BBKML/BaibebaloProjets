@@ -105,6 +105,7 @@ const STATUTS_FR = {
   ready: { label: 'Prête', class: 'bg-primary/10 text-primary' },
   picked_up: { label: 'Récupérée', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
   delivering: { label: 'En livraison', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
+  driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500' },
   delivered: { label: 'Livrée', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
   cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500' },
 };
@@ -119,6 +120,7 @@ const Orders = () => {
     user_id: '',
     delivery_person_id: '',
     restaurant_id: '',
+    order_type: '',
     page: 1,
     limit: 20,
   });
@@ -270,6 +272,18 @@ const Orders = () => {
               onChange={(id) => applyFilters({ restaurant_id: id })}
             />
             <div>
+              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Type</label>
+              <select
+                value={filters.order_type}
+                onChange={(e) => applyFilters({ order_type: e.target.value })}
+                className="px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
+              >
+                <option value="">Tous les types</option>
+                <option value="food">Restaurant</option>
+                <option value="express">Express</option>
+              </select>
+            </div>
+            <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Statut</label>
               <select
                 value={filters.status}
@@ -284,7 +298,7 @@ const Orders = () => {
             </div>
             <button
               type="button"
-              onClick={() => setFilters({ status: '', date_from: '', date_to: '', user_id: '', delivery_person_id: '', restaurant_id: '', page: 1, limit: 20 })}
+              onClick={() => setFilters({ status: '', date_from: '', date_to: '', user_id: '', delivery_person_id: '', restaurant_id: '', order_type: '', page: 1, limit: 20 })}
               className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
               Réinitialiser
@@ -344,7 +358,13 @@ const Orders = () => {
                           </div>
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                          {order.restaurant_name || '—'}
+                          {order.order_type === 'express' ? (
+                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-semibold">
+                              📦 Express
+                            </span>
+                          ) : (
+                            order.restaurant_name || '—'
+                          )}
                         </td>
                         <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
                           {order.delivery_name || '—'}

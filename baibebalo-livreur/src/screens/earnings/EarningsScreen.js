@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { 
   View, 
   Text, 
@@ -8,8 +8,10 @@ import {
   StatusBar,
   ScrollView,
   RefreshControl,
-  ActivityIndicator
+  ActivityIndicator,
+  AppState
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
@@ -24,9 +26,20 @@ export default function EarningsScreen({ navigation }) {
   
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    fetchEarnings();
-  }, []);
+  // Rafraîchir à chaque fois que l'écran Gains est affiché (changement d'onglet)
+  useFocusEffect(
+    React.useCallback(() => {
+      fetchEarnings();
+    }, [fetchEarnings])
+  );
+
+  // Rafraîchir quand l'app revient au premier plan (ex: après notification de paiement)
+  React.useEffect(() => {
+    const sub = AppState.addEventListener('change', (state) => {
+      if (state === 'active') fetchEarnings();
+    });
+    return () => sub?.remove();
+  }, [fetchEarnings]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -87,7 +100,7 @@ export default function EarningsScreen({ navigation }) {
           >
             <Ionicons name="wallet-outline" size={20} color="#FFFFFF" />
             <Text style={styles.withdrawButtonText}>
-              {balance < 5000 ? 'Min. 5 000 F' : 'Demander un paiement'}
+              {balance < 5000 ? 'Min. 5 000 F (avant lundi)' : 'Demander un paiement'}
             </Text>
           </TouchableOpacity>
         </View>

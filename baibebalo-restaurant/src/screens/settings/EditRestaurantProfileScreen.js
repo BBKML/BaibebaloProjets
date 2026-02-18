@@ -29,7 +29,7 @@ export default function EditRestaurantProfileScreen({ navigation }) {
     email: '',
     address: '',
     neighborhood: '',
-    deliveryRadius: 5,
+    deliveryRadius: 15,
   });
   const [logo, setLogo] = useState(null);
   const [banner, setBanner] = useState(null);
@@ -46,7 +46,7 @@ export default function EditRestaurantProfileScreen({ navigation }) {
         email: restaurant.email || '',
         address: restaurant.address || '',
         neighborhood: restaurant.neighborhood || restaurant.district || '',
-        deliveryRadius: restaurant.deliveryRadius || restaurant.delivery_radius || 5,
+        deliveryRadius: restaurant.deliveryRadius || restaurant.delivery_radius || 15,
       });
       // Charger les images existantes (comme objets avec uri pour affichage)
       if (restaurant.logo) {
@@ -472,14 +472,14 @@ export default function EditRestaurantProfileScreen({ navigation }) {
                 <View
                   style={[
                     styles.sliderFill,
-                    { width: `${(formData.deliveryRadius / 10) * 100}%` },
+                    { width: `${(formData.deliveryRadius / 20) * 100}%` },
                   ]}
                 />
               </View>
               <TouchableOpacity
                 style={styles.sliderButton}
                 onPress={() => {
-                  if (formData.deliveryRadius < 10) {
+                  if (formData.deliveryRadius < 20) {
                     setFormData({ ...formData, deliveryRadius: formData.deliveryRadius + 1 });
                   }
                 }}

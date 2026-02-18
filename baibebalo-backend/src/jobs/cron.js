@@ -74,7 +74,7 @@ cron.schedule('0 9 * * 1', async () => {
         [dp.id]
       );
 
-      if (existingPayout.rows.length === 0 && amount >= 5000) {
+      if (existingPayout.rows.length === 0 && amount >= 1000) {
         await query(
           `INSERT INTO payout_requests (
             user_type, user_id, amount, payment_method, account_number, status
@@ -332,9 +332,10 @@ function init(app) {
       const { query } = require('../database/db');
       const deliveryProposalService = require('../services/deliveryProposal.service');
       const expired = await query(
-        `SELECT id, order_number FROM orders
-         WHERE status = 'ready' AND delivery_person_id IS NULL
-           AND proposed_delivery_person_id IS NOT NULL AND proposal_expires_at < NOW()`
+        `SELECT o.id, o.order_number FROM orders o
+         WHERE o.status = 'ready' AND o.delivery_person_id IS NULL
+           AND EXISTS (SELECT 1 FROM order_delivery_proposals p WHERE p.order_id = o.id)
+           AND NOT EXISTS (SELECT 1 FROM order_delivery_proposals p WHERE p.order_id = o.id AND p.expires_at > NOW())`
       );
       for (const row of expired.rows) {
         await deliveryProposalService.clearProposalAndProposeNext(row.id, app);

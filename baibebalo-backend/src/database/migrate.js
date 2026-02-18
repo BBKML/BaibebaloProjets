@@ -106,7 +106,7 @@ const migrations = [
     latitude DECIMAL(10,8),
     longitude DECIMAL(11,8),
     opening_hours JSONB DEFAULT '{}',
-    delivery_radius DECIMAL(5,2) DEFAULT 10.0 CHECK (delivery_radius > 0),
+    delivery_radius DECIMAL(5,2) DEFAULT 15.0 CHECK (delivery_radius > 0),
     is_open BOOLEAN DEFAULT true,
     commission_rate DECIMAL(5,2) DEFAULT 15.0 CHECK (commission_rate BETWEEN 0 AND 100),
     mobile_money_number VARCHAR(20),
@@ -632,6 +632,24 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_orders_proposal ON orders(proposed_delivery_person_id, proposal_expires_at) WHERE proposed_delivery_person_id IS NOT NULL;`,
 
   // ======================================
+  // Migration 17b: Table order_delivery_proposals (propositions multiples aux 3 livreurs les plus proches)
+  // ======================================
+  `CREATE TABLE IF NOT EXISTS order_delivery_proposals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    order_id UUID NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+    delivery_person_id UUID NOT NULL REFERENCES delivery_persons(id) ON DELETE CASCADE,
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(order_id, delivery_person_id)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_order_proposals_order ON order_delivery_proposals(order_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_order_proposals_delivery ON order_delivery_proposals(delivery_person_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_order_proposals_expires ON order_delivery_proposals(expires_at);`,
+
+  // Rayon de livraison : défaut 15 km, max 20 km
+  `ALTER TABLE restaurants ALTER COLUMN delivery_radius SET DEFAULT 15.0;`,
+
+  // ======================================
   // Migration 18: Table support_tickets
   // ======================================
   `CREATE TABLE IF NOT EXISTS support_tickets (
@@ -980,6 +998,29 @@ const migrations = [
   `ALTER TABLE loyalty_transactions ADD CONSTRAINT loyalty_transactions_type_check 
    CHECK (type IN ('earned', 'redeemed', 'expired', 'adjustment', 'referral_bonus'));`,
 
+  // Mettre à jour transactions pour supporter bonus_perfect_rating, daily_goal_bonus et penalty_late
+  `ALTER TABLE transactions DROP CONSTRAINT IF EXISTS transactions_type_check;`,
+  `ALTER TABLE transactions DROP CONSTRAINT IF EXISTS transactions_transaction_type_check;`,
+  `ALTER TABLE transactions ADD CONSTRAINT transactions_type_check 
+   CHECK (transaction_type IN ('order_payment', 'commission', 'delivery_fee', 'refund', 'payout', 'adjustment', 'bonus_perfect_rating', 'daily_goal_bonus', 'penalty_late'));`,
+
+  // ======================================
+  // Migration: Table referrals (Parrainage)
+  // ======================================
+  `CREATE TABLE IF NOT EXISTS referrals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    referrer_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    referee_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    status VARCHAR(20) DEFAULT 'pending' CHECK (status IN ('pending', 'completed', 'expired')),
+    completed_at TIMESTAMP,
+    first_order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(referrer_id, referee_id)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_referrals_referrer ON referrals(referrer_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_referrals_referee ON referrals(referee_id);`,
+  `CREATE INDEX IF NOT EXISTS idx_referrals_status ON referrals(status);`,
+
   // ======================================
   // Migration: Table restaurant_ads (Publicités restaurants)
   // ======================================
@@ -1120,6 +1161,28 @@ const migrations = [
   // Ajouter le type admin_password_reset dans le CHECK constraint
   `ALTER TABLE otp_codes DROP CONSTRAINT IF EXISTS otp_codes_type_check;`,
   `ALTER TABLE otp_codes ADD CONSTRAINT otp_codes_type_check CHECK (type IN ('login', 'registration', 'password_reset', 'verification', 'admin_password_reset'));`,
+
+  // Statuts commandes : ajouter picked_up et driver_at_customer pour le flux livreur
+  `ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_status_check;`,
+  `ALTER TABLE orders ADD CONSTRAINT orders_status_check CHECK (status IN ('new', 'accepted', 'preparing', 'ready', 'picked_up', 'delivering', 'driver_at_customer', 'delivered', 'cancelled'));`,
+
+  // ======================================
+  // Migration: Livraison Express (Client → Livreur → Destinataire, sans restaurant)
+  // ======================================
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS order_type VARCHAR(20) DEFAULT 'food' CHECK (order_type IN ('food', 'express'));`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS pickup_address JSONB;`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS recipient_name VARCHAR(255);`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS recipient_phone VARCHAR(20);`,
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS express_description TEXT;`,
+  // Rendre restaurant_id nullable pour les commandes express
+  `ALTER TABLE orders ALTER COLUMN restaurant_id DROP NOT NULL;`,
+  // Contrainte: food = restaurant requis, express = pickup requis
+  `ALTER TABLE orders DROP CONSTRAINT IF EXISTS orders_express_check;`,
+  `ALTER TABLE orders ADD CONSTRAINT orders_express_check CHECK (
+    (order_type = 'food' AND restaurant_id IS NOT NULL) OR
+    (order_type = 'express' AND restaurant_id IS NULL AND pickup_address IS NOT NULL)
+  );`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_order_type ON orders(order_type);`,
 ];
 
 // Fonction pour vérifier si une table existe
@@ -1202,7 +1265,7 @@ const runMigrations = async () => {
       ['commission_rates', { restaurant: 15, delivery: 30 }, 'Taux de commission'],
       ['default_delivery_fee', 500, 'Frais de livraison par défaut (FCFA)'],
       ['min_order_amount', 1000, 'Montant minimum de commande (FCFA)'],
-      ['max_delivery_radius', 10, 'Rayon maximum de livraison (km)'],
+      ['max_delivery_radius', 20, 'Rayon maximum de livraison (km)'],
       ['loyalty_points_rate', 0.01, 'Points de fidélité par FCFA dépensé'],
       ['referrer_reward', 500, 'Récompense parrain (FCFA)'],
       ['referee_discount', 50, 'Réduction filleul première commande (%)'],
@@ -1218,6 +1281,7 @@ const runMigrations = async () => {
         [key, JSON.stringify(value), description, true]
       );
     }
+    await query(`UPDATE app_settings SET value = '20'::jsonb WHERE key = 'max_delivery_radius'`);
     
     logger.info('✓ Paramètres par défaut insérés');
     
@@ -1229,7 +1293,7 @@ const runMigrations = async () => {
     
     const tables = [
       'users', 'addresses', 'restaurants', 'menu_categories', 'menu_items',
-      'delivery_persons', 'orders', 'order_items', 'favorites', 'reviews',
+      'delivery_persons', 'orders', 'order_items', 'order_delivery_proposals', 'favorites', 'reviews',
       'promotions', 'transactions', 'notifications', 'otp_codes', 'admins',
       'payout_requests', 'support_tickets', 'ticket_messages', 'app_settings', 
       'audit_logs', 'expenses', 'training_quizzes', 'quiz_results', 'activity_logs',
@@ -1267,7 +1331,7 @@ const resetDatabase = async () => {
       'audit_logs',
       'ticket_messages', 'support_tickets', 'payout_requests',
       'notifications', 'transactions', 'promotions', 'favorites',
-      'reviews', 'order_items', 'orders', 'menu_items', 'menu_categories',
+      'reviews', 'order_items', 'order_delivery_proposals', 'orders', 'menu_items', 'menu_categories',
       'delivery_persons', 'restaurants', 'addresses', 'users',
       'otp_codes', 'admins', 'app_settings'
     ];

@@ -156,6 +156,8 @@ export default function OrderHistoryScreen({ navigation }) {
   const getStatusLabel = (status) => {
     const labels = {
       delivered: 'Livrée',
+      picked_up: 'Récupérée',
+      delivering: 'En livraison',
       cancelled: 'Annulée',
       refused: 'Refusée',
     };

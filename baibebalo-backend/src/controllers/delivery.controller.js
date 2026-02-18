@@ -193,46 +193,89 @@ exports.updateLocation = async (req, res) => {
   }
 };
 
+/** Coordonnées Korhogo par défaut si position livreur absente */
+const KORHOGO_FALLBACK = { lat: 9.4581, lng: -5.6296 };
+
 /**
  * Obtenir les commandes disponibles à proximité
+ * Si lat/lng non fournis, utilise la position du livreur (current_latitude/longitude) ou Korhogo.
  */
 exports.getAvailableOrders = async (req, res) => {
   try {
-    const { lat, lng, radius = 5 } = req.query;
+    let lat = parseFloat(req.query.lat);
+    let lng = parseFloat(req.query.lng);
+    const radius = parseFloat(req.query.radius) || 50;
+    const skipDistance = req.query.all === '1' || req.query.all === 'true';
 
-    if (!lat || !lng) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'LOCATION_REQUIRED',
-          message: 'Position GPS requise',
-        },
-      });
+    if (!lat || !lng || Number.isNaN(lat) || Number.isNaN(lng)) {
+      const posResult = await query(
+        'SELECT current_latitude, current_longitude FROM delivery_persons WHERE id = $1',
+        [req.user.id]
+      );
+      const dp = posResult.rows[0];
+      if (dp?.current_latitude != null && dp?.current_longitude != null) {
+        lat = parseFloat(dp.current_latitude);
+        lng = parseFloat(dp.current_longitude);
+      } else {
+        lat = KORHOGO_FALLBACK.lat;
+        lng = KORHOGO_FALLBACK.lng;
+      }
     }
 
+    // Inclure les commandes proposées à ce livreur (order_delivery_proposals) ou sans proposition valide
+    // Support food (restaurant) et express (pickup_address)
     const result = await query(
       `SELECT o.*,
+              o.order_type,
+              o.pickup_address,
               r.name as restaurant_name, 
               r.address as restaurant_address,
               r.latitude as restaurant_latitude,
               r.longitude as restaurant_longitude,
-              earth_distance(
-                ll_to_earth(r.latitude, r.longitude),
-                ll_to_earth($1, $2)
-              ) / 1000 as distance_km
+              CASE 
+                WHEN o.order_type = 'express' AND o.pickup_address IS NOT NULL 
+                     AND (o.pickup_address->>'latitude') IS NOT NULL AND (o.pickup_address->>'longitude') IS NOT NULL
+                THEN earth_distance(
+                  ll_to_earth((o.pickup_address->>'latitude')::decimal, (o.pickup_address->>'longitude')::decimal),
+                  ll_to_earth($1, $2)
+                ) / 1000
+                WHEN r.latitude IS NOT NULL AND r.longitude IS NOT NULL 
+                THEN earth_distance(ll_to_earth(r.latitude, r.longitude), ll_to_earth($1, $2)) / 1000
+                ELSE COALESCE(o.delivery_distance, 0)
+              END as distance_km
        FROM orders o
-       JOIN restaurants r ON o.restaurant_id = r.id
+       LEFT JOIN restaurants r ON o.restaurant_id = r.id
        WHERE o.status = 'ready'
          AND o.delivery_person_id IS NULL
-         AND (o.proposed_delivery_person_id IS NULL OR o.proposed_delivery_person_id = $4 OR o.proposal_expires_at < NOW())
-         AND earth_distance(
-           ll_to_earth(r.latitude, r.longitude),
-           ll_to_earth($1, $2)
-         ) / 1000 <= $3
+         AND (
+           NOT EXISTS (SELECT 1 FROM order_delivery_proposals p WHERE p.order_id = o.id AND p.expires_at > NOW())
+           OR EXISTS (SELECT 1 FROM order_delivery_proposals p WHERE p.order_id = o.id AND p.delivery_person_id = $4 AND p.expires_at > NOW())
+         )
+         AND (
+           $5 = true
+           OR (
+             (o.order_type = 'express' AND o.pickup_address IS NOT NULL 
+              AND (o.pickup_address->>'latitude') IS NOT NULL AND (o.pickup_address->>'longitude') IS NOT NULL
+              AND earth_distance(
+                ll_to_earth((o.pickup_address->>'latitude')::decimal, (o.pickup_address->>'longitude')::decimal),
+                ll_to_earth($1, $2)
+              ) / 1000 <= $3)
+             OR (r.latitude IS NOT NULL AND r.longitude IS NOT NULL
+                 AND earth_distance(ll_to_earth(r.latitude, r.longitude), ll_to_earth($1, $2)) / 1000 <= $3)
+           )
+         )
        ORDER BY o.placed_at ASC
        LIMIT 20`,
-      [parseFloat(lat), parseFloat(lng), parseFloat(radius), req.user.id]
+      [lat, lng, radius, req.user.id, skipDistance]
     );
+
+    logger.debug('getAvailableOrders', {
+      lat,
+      lng,
+      radius,
+      count: result.rows.length,
+      orderIds: result.rows.map((r) => r.id),
+    });
 
     res.json({
       success: true,
@@ -261,16 +304,17 @@ exports.acceptDelivery = async (req, res) => {
     const { id } = req.params;
 
     return await transaction(async (client) => {
-      // Vérifier que la commande est disponible (ou proposée à ce livreur et non expirée)
+      // Vérifier que la commande est disponible : soit ce livreur a une proposition valide, soit aucune proposition (course visible à tous)
       const orderResult = await client.query(
-        `SELECT o.*, r.name as restaurant_name, r.address as restaurant_address, 
+        `SELECT o.*, o.order_type, o.pickup_address,
+                r.name as restaurant_name, r.address as restaurant_address, 
                 r.latitude as restaurant_lat, r.longitude as restaurant_lng
          FROM orders o
-         JOIN restaurants r ON o.restaurant_id = r.id
+         LEFT JOIN restaurants r ON o.restaurant_id = r.id
          WHERE o.id = $1 AND o.status = 'ready' AND o.delivery_person_id IS NULL
            AND (
-             o.proposed_delivery_person_id IS NULL
-             OR (o.proposed_delivery_person_id = $2 AND o.proposal_expires_at > NOW())
+             NOT EXISTS (SELECT 1 FROM order_delivery_proposals p WHERE p.order_id = o.id AND p.expires_at > NOW())
+             OR EXISTS (SELECT 1 FROM order_delivery_proposals p WHERE p.order_id = o.id AND p.delivery_person_id = $2 AND p.expires_at > NOW())
            )
          FOR UPDATE OF o`,
         [id, req.user.id]
@@ -288,7 +332,8 @@ exports.acceptDelivery = async (req, res) => {
 
       const order = orderResult.rows[0];
 
-      // Assigner le livreur et effacer la proposition (garder statut 'ready' jusqu'au pickup)
+      // Annuler les propositions aux autres livreurs et assigner ce livreur
+      await client.query(`DELETE FROM order_delivery_proposals WHERE order_id = $1`, [id]);
       await client.query(
         `UPDATE orders 
          SET delivery_person_id = $1, assigned_at = NOW(),
@@ -326,8 +371,8 @@ exports.acceptDelivery = async (req, res) => {
         },
       });
 
-      // Notifier le restaurant
-      if (partnersIo) {
+      // Notifier le restaurant (uniquement pour commandes food)
+      if (partnersIo && order.restaurant_id) {
         partnersIo.to(`restaurant_${order.restaurant_id}`).emit('delivery_assigned', {
           order_id: id,
           order_number: order.order_number,
@@ -493,8 +538,8 @@ exports.confirmPickup = async (req, res) => {
       status: 'picked_up',
     });
 
-    // Notifier le restaurant - commande partie
-    if (partnersIo) {
+    // Notifier le restaurant - commande partie (uniquement pour commandes food)
+    if (partnersIo && order.restaurant_id) {
       partnersIo.to(`restaurant_${order.restaurant_id}`).emit('order_picked_up', {
         order_id: id,
         order_number: order.order_number,
@@ -561,12 +606,13 @@ exports.confirmPickup = async (req, res) => {
 exports.confirmDelivery = async (req, res) => {
   try {
     const { id } = req.params;
-    const { confirmation_code } = req.body;
+    const { delivery_code, confirmation_code } = req.body;
+    const code = delivery_code || confirmation_code;
 
     return await transaction(async (client) => {
       const orderResult = await client.query(
         `SELECT * FROM orders 
-         WHERE id = $1 AND delivery_person_id = $2 AND status IN ('picked_up', 'delivering')`,
+         WHERE id = $1 AND delivery_person_id = $2 AND status IN ('picked_up', 'delivering', 'driver_at_customer')`,
         [id, req.user.id]
       );
 
@@ -582,6 +628,21 @@ exports.confirmDelivery = async (req, res) => {
 
       const order = orderResult.rows[0];
 
+      // Valider le code de confirmation : utilise les chiffres de l'ID commande (ex: BAIB-40031 → 40031)
+      if (code && typeof code === 'string') {
+        const expectedCode = (order.order_number || '').replace(/^[A-Za-z_-]+/, '').replace(/\D/g, '');
+        const providedCode = String(code).replace(/\D/g, '');
+        if (expectedCode && providedCode && expectedCode !== providedCode) {
+          return res.status(400).json({
+            success: false,
+            error: {
+              code: 'INVALID_CODE',
+              message: 'Code incorrect. Utilisez les chiffres du numéro de commande.',
+            },
+          });
+        }
+      }
+
       // Marquer comme livrée (et paiement espèces reçu du client si cash)
       await client.query(
         `UPDATE orders 
@@ -592,11 +653,11 @@ exports.confirmDelivery = async (req, res) => {
       );
 
       // === CRÉDIT RESTAURANT (flux Glovo : plateforme crédite le restaurant une fois livré + payé) ===
-      // IMPORTANT : Ne pas créditer si le livreur a déjà payé le restaurant à l'avance
+      // Uniquement pour commandes food (express n'a pas de restaurant)
       const paymentStatusAfterDelivery = order.payment_method === 'cash' ? 'paid' : order.payment_status;
       const restaurantAlreadyPaidByDelivery = order.restaurant_paid_by_delivery === true;
       
-      if (paymentStatusAfterDelivery === 'paid' && !restaurantAlreadyPaidByDelivery) {
+      if (order.restaurant_id && paymentStatusAfterDelivery === 'paid' && !restaurantAlreadyPaidByDelivery) {
         const existingCredit = await client.query(
           `SELECT 1 FROM transactions WHERE order_id = $1 AND to_user_type = 'restaurant' AND to_user_id = $2 AND status = 'completed' LIMIT 1`,
           [order.id, order.restaurant_id]
@@ -626,7 +687,7 @@ exports.confirmDelivery = async (req, res) => {
             logger.info(`Restaurant ${order.restaurant_id} crédité: ${netRestaurant} FCFA (commande ${order.order_number})`);
           }
         }
-      } else if (restaurantAlreadyPaidByDelivery) {
+      } else if (order.restaurant_id && restaurantAlreadyPaidByDelivery) {
         logger.info(`Restaurant ${order.restaurant_id} déjà payé par livreur pour commande ${order.order_number} - Pas de crédit plateforme`);
       }
 
@@ -637,24 +698,26 @@ exports.confirmDelivery = async (req, res) => {
       const config = require('../config');
       const businessConfig = config.business;
       const now = new Date();
-      const deliveryDistance = parseFloat(order.delivery_distance) || 0;
+      const deliveryFee = parseFloat(order.delivery_fee) || 0;
+      const deliveryDistance = (parseFloat(order.delivery_distance) || 0);
+      const safeDistance = Number.isFinite(deliveryDistance) ? deliveryDistance : 0;
       
       // Les bonus sont déjà inclus dans order.delivery_fee (payé par le client)
       // Calculer 70% du total (frais + bonus)
       const deliveryPersonPercentage = businessConfig.deliveryPersonPercentage || 70;
-      const deliveryEarnings = Math.round((order.delivery_fee * deliveryPersonPercentage) / 100);
+      const deliveryEarnings = Math.round((deliveryFee * deliveryPersonPercentage) / 100);
       
       // Calculer ce que Baibebalo garde (30%)
-      const platformCommission = order.delivery_fee - deliveryEarnings;
+      const platformCommission = deliveryFee - deliveryEarnings;
       
       // Détail des gains pour le log et la transaction
       const earningsBreakdown = {
-        delivery_fee_total: order.delivery_fee, // Total payé par le client (frais + bonus)
+        delivery_fee_total: deliveryFee, // Total payé par le client (frais + bonus)
         delivery_person_percentage: deliveryPersonPercentage,
         delivery_person_earnings: deliveryEarnings, // 70% du total
         platform_commission: platformCommission, // 30% du total
         details: {
-          distance_km: deliveryDistance,
+          distance_km: safeDistance,
           hour: now.getHours(),
           day_of_week: now.getDay(),
         },
@@ -670,7 +733,7 @@ exports.confirmDelivery = async (req, res) => {
              available_balance = available_balance + $1,
              total_distance = COALESCE(total_distance, 0) + $2
          WHERE id = $3`,
-        [deliveryEarnings, deliveryDistance, req.user.id]
+        [deliveryEarnings, safeDistance, req.user.id]
       );
 
       // Créer la transaction principale pour le livreur
@@ -831,9 +894,9 @@ exports.confirmDelivery = async (req, res) => {
         [order.user_id]
       );
 
-      // Notifier le restaurant
+      // Notifier le restaurant (uniquement pour commandes food)
       const partnersIo = req.app.get('partnersIo');
-      if (partnersIo) {
+      if (partnersIo && order.restaurant_id) {
         partnersIo.to(`restaurant_${order.restaurant_id}`).emit('order_delivered', {
           order_id: id,
           order_number: order.order_number,
@@ -869,7 +932,8 @@ exports.confirmDelivery = async (req, res) => {
 
       // === ATTRIBUTION DES POINTS DE FIDÉLITÉ ===
       // Formule: 1 point pour chaque tranche de 100 FCFA (arrondi à l'inférieur)
-      const loyaltyPointsEarned = Math.floor(order.total / 100);
+      const orderTotal = parseFloat(order.total) || 0;
+      const loyaltyPointsEarned = Math.floor(orderTotal / 100);
       
       if (loyaltyPointsEarned > 0) {
         // Mettre à jour les points du client
@@ -889,7 +953,7 @@ exports.confirmDelivery = async (req, res) => {
           [
             order.user_id,
             'earned',
-            Math.floor(order.total), // amount en FCFA (entier)
+            Math.floor(orderTotal), // amount en FCFA (entier)
             loyaltyPointsEarned, // points gagnés
             `Points gagnés pour commande #${order.order_number}`,
             order.id,
@@ -1075,6 +1139,7 @@ exports.getDashboard = async (req, res) => {
       total_earnings: 0,
       total_deliveries: 0,
       today: 0,
+      today_deliveries: 0,
       this_week: 0,
       this_month: 0,
       cash_to_remit: 0, // Solde espèces à reverser
@@ -1087,14 +1152,19 @@ exports.getDashboard = async (req, res) => {
   try {
     const uid = req.user.id;
     const run = async () => {
-      const [deliveryRow, todayRow, weekRow, monthRow, cashOrdersResult, activeOrdersRows, historyRows] = await Promise.all([
+      const [deliveryRow, todayRow, todayDeliveriesRow, weekRow, monthRow, cashOrdersResult, activeOrdersRows, historyRows] = await Promise.all([
         query(
-          `SELECT total_earnings, total_deliveries, available_balance FROM delivery_persons WHERE id = $1`,
+          `SELECT total_earnings, total_deliveries, available_balance, average_rating FROM delivery_persons WHERE id = $1`,
           [uid]
         ),
         query(
           `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
            WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= CURRENT_DATE`,
+          [uid]
+        ),
+        query(
+          `SELECT COUNT(*)::int as count FROM orders
+           WHERE delivery_person_id = $1 AND status = 'delivered' AND DATE(delivered_at) = CURRENT_DATE`,
           [uid]
         ),
         query(
@@ -1120,7 +1190,7 @@ exports.getDashboard = async (req, res) => {
                   o.placed_at, o.ready_at, o.delivering_at,
                   (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
            FROM orders o
-           WHERE o.delivery_person_id = $1 AND o.status IN ('ready', 'delivering')
+           WHERE o.delivery_person_id = $1 AND o.status IN ('ready', 'picked_up', 'delivering', 'driver_at_customer')
            ORDER BY o.created_at DESC LIMIT 20`,
           [uid]
         ),
@@ -1137,22 +1207,26 @@ exports.getDashboard = async (req, res) => {
 
       const delivery = deliveryRow.rows[0];
       const today = parseFloat(todayRow.rows[0]?.v || 0);
+      const todayDeliveries = parseInt(todayDeliveriesRow.rows[0]?.count || 0, 10);
       const week = parseFloat(weekRow.rows[0]?.v || 0);
       const month = parseFloat(monthRow.rows[0]?.v || 0);
       const cashToRemit = parseFloat(cashOrdersResult.rows[0]?.cash_to_remit || 0);
       const orders = Array.isArray(activeOrdersRows.rows) ? activeOrdersRows.rows : [];
       const deliveries = Array.isArray(historyRows.rows) ? historyRows.rows : [];
 
+      const averageRating = delivery ? parseFloat(delivery.average_rating) || 0 : 0;
       return {
         earnings: {
           available_balance: delivery ? parseFloat(delivery.available_balance ?? 0) : 0,
           total_earnings: delivery ? parseFloat(delivery.total_earnings || 0) : 0,
           total_deliveries: delivery ? Number(delivery.total_deliveries) || 0 : 0,
           today,
+          today_deliveries: todayDeliveries,
           this_week: week,
           this_month: month,
           cash_to_remit: cashToRemit, // Solde espèces à reverser à Baibebalo
         },
+        profile: { average_rating: averageRating },
         orders,
         deliveries,
         pagination: { page: 1, limit: 5, total: deliveries.length, pages: 1 },
@@ -1169,63 +1243,60 @@ exports.getDashboard = async (req, res) => {
 
 /**
  * Demander un retrait
+ * Crée une payout_request visible par l'admin (pas de déduction immédiate, déduction au paiement)
  */
 exports.requestPayout = async (req, res) => {
   try {
     const { amount } = req.body;
 
     return await transaction(async (client) => {
-      // Vérifier le solde disponible
       const deliveryResult = await client.query(
-        'SELECT available_balance, mobile_money_number FROM delivery_persons WHERE id = $1',
+        'SELECT available_balance, mobile_money_number, mobile_money_provider FROM delivery_persons WHERE id = $1',
         [req.user.id]
       );
 
       const delivery = deliveryResult.rows[0];
+      const balance = parseFloat(delivery.available_balance || 0);
 
-      if (parseFloat(delivery.available_balance) < amount) {
+      if (balance < amount) {
         return res.status(400).json({
           success: false,
-          error: {
-            code: 'INSUFFICIENT_BALANCE',
-            message: 'Solde insuffisant',
-          },
+          error: { code: 'INSUFFICIENT_BALANCE', message: 'Solde insuffisant' },
         });
       }
 
       if (amount < 5000) {
         return res.status(400).json({
           success: false,
-          error: {
-            code: 'MINIMUM_AMOUNT',
-            message: 'Montant minimum: 5000 FCFA',
-          },
+          error: { code: 'MINIMUM_AMOUNT', message: 'Pour une demande avant le lundi, montant minimum: 5000 FCFA' },
         });
       }
 
-      // Déduire du solde
-      await client.query(
-        'UPDATE delivery_persons SET available_balance = available_balance - $1 WHERE id = $2',
-        [amount, req.user.id]
-      );
+      if (!delivery.mobile_money_number) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'MOBILE_MONEY_REQUIRED', message: 'Configurez votre numéro Mobile Money dans les paramètres' },
+        });
+      }
 
-      // Créer la transaction de retrait
+      // Vérifier qu'il n'y a pas déjà un payout en attente
+      const existing = await client.query(
+        `SELECT id FROM payout_requests 
+         WHERE user_type = 'delivery' AND user_id = $1 AND status IN ('pending', 'paid')`,
+        [req.user.id]
+      );
+      if (existing.rows.length > 0) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'PENDING_PAYOUT', message: 'Vous avez déjà une demande de retrait en cours' },
+        });
+      }
+
+      // Créer la demande de retrait (visible par l'admin)
       await client.query(
-        `INSERT INTO transactions (
-          transaction_type, amount, 
-          from_user_type, from_user_id,
-          to_user_type, to_user_id,
-          status, payment_method,
-          payment_reference
-        )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
-        [
-          'payout', amount,
-          'platform', null,
-          'delivery', req.user.id,
-          'pending', 'mobile_money',
-          delivery.mobile_money_number
-        ]
+        `INSERT INTO payout_requests (user_type, user_id, amount, payment_method, account_number, status)
+         VALUES ($1, $2, $3, $4, $5, 'pending')`,
+        ['delivery', req.user.id, amount, delivery.mobile_money_provider || 'mobile_money', delivery.mobile_money_number]
       );
 
       logger.info(`Demande de retrait: ${amount} FCFA pour livreur ${req.user.id}`);
@@ -1235,7 +1306,7 @@ exports.requestPayout = async (req, res) => {
         message: 'Demande de retrait enregistrée. Traitement sous 24-48h.',
         data: {
           amount,
-          new_balance: parseFloat(delivery.available_balance) - amount,
+          new_balance: balance,
         },
       });
     });
@@ -1295,13 +1366,13 @@ exports.createCashRemittance = async (req, res) => {
     if (!amount || amount <= 0 || !method || !order_ids || !Array.isArray(order_ids) || order_ids.length === 0) {
       return res.status(400).json({
         success: false,
-        error: { code: 'INVALID_INPUT', message: 'Montant, méthode (agency ou bank_deposit) et liste de commandes requis' },
+        error: { code: 'INVALID_INPUT', message: 'Montant, méthode (agency, bank_deposit ou mobile_money_deposit) et liste de commandes requis' },
       });
     }
-    if (!['agency', 'bank_deposit'].includes(method)) {
+    if (!['agency', 'bank_deposit', 'mobile_money_deposit'].includes(method)) {
       return res.status(400).json({
         success: false,
-        error: { code: 'INVALID_METHOD', message: 'Méthode doit être agency (remise à l\'agence) ou bank_deposit (dépôt sur compte)' },
+        error: { code: 'INVALID_METHOD', message: 'Méthode doit être agency, bank_deposit ou mobile_money_deposit' },
       });
     }
 
@@ -1408,7 +1479,7 @@ exports.getMyCashRemittances = async (req, res) => {
     let q = `
       SELECT r.*, a.full_name as processed_by_name,
              (SELECT COUNT(*) FROM cash_remittance_orders WHERE remittance_id = r.id) as orders_count,
-             (SELECT json_agg(json_build_object('order_id', o.id, 'order_number', o.order_number, 'order_total', o.order_total))
+             (SELECT json_agg(json_build_object('order_id', o.id, 'order_number', o.order_number, 'order_total', cro.order_total))
               FROM cash_remittance_orders cro JOIN orders o ON o.id = cro.order_id WHERE cro.remittance_id = r.id) as orders
       FROM cash_remittances r
       LEFT JOIN admins a ON r.processed_by = a.id
@@ -1459,7 +1530,7 @@ exports.getCashRemittanceInfo = async (req, res) => {
     res.json({
       success: true,
       data: {
-        baibebalo_mobile_money_number: businessConfig.baibebaloMobileMoneyNumber || '+225XXXXXXXXX',
+        baibebalo_mobile_money_number: businessConfig.baibebaloMobileMoneyNumber || '+2250787097996',
         baibebalo_mobile_money_provider: businessConfig.baibebaloMobileMoneyProvider || 'orange_money',
       },
     });
@@ -1826,7 +1897,7 @@ exports.getActiveOrders = async (req, res) => {
                 (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
          FROM orders o
          WHERE o.delivery_person_id = $1
-           AND o.status IN ('ready', 'delivering')
+           AND o.status IN ('ready', 'picked_up', 'delivering', 'driver_at_customer')
          ORDER BY o.created_at DESC
          LIMIT 20`,
         [req.user.id]
@@ -1945,10 +2016,17 @@ exports.declineDelivery = async (req, res) => {
       } catch (e) {
         // Ignorer l'erreur de notification
       }
-    } else if (!order.delivery_person_id && order.proposed_delivery_person_id === req.user.id) {
-      // Refus de la proposition (course pas encore acceptée) — pas de pénalité, proposer au suivant
-      const deliveryProposalService = require('../services/deliveryProposal.service');
-      await deliveryProposalService.clearProposalAndProposeNext(id, req.app);
+    } else if (!order.delivery_person_id) {
+      // Vérifier si ce livreur a une proposition en cours
+      const propResult = await query(
+        `SELECT 1 FROM order_delivery_proposals WHERE order_id = $1 AND delivery_person_id = $2 AND expires_at > NOW()`,
+        [id, req.user.id]
+      );
+      if (propResult.rows.length > 0) {
+        // Refus de la proposition — pas de pénalité, proposer aux 3 suivants
+        const deliveryProposalService = require('../services/deliveryProposal.service');
+        await deliveryProposalService.clearProposalAndProposeNext(id, req.app);
+      }
     }
 
     // Logger le refus
@@ -1996,7 +2074,8 @@ exports.arriveAtRestaurant = async (req, res) => {
 
     const result = await query(
       `UPDATE orders 
-       SET arrived_at_restaurant = NOW()
+       SET arrived_at_restaurant = NOW(),
+           status = CASE WHEN status = 'ready' THEN 'delivering' ELSE status END
        WHERE id = $1 AND delivery_person_id = $2 AND status IN ('ready', 'delivering', 'accepted', 'picked_up')
        RETURNING *`,
       [id, req.user.id]
@@ -2011,11 +2090,20 @@ exports.arriveAtRestaurant = async (req, res) => {
 
     const order = result.rows[0];
 
-    // Notifier le restaurant
+    // Notifier le restaurant (uniquement pour commandes food)
     const io = req.app.get('io');
-    io.to(`restaurant_${order.restaurant_id}`).emit('delivery_arrived', {
+    if (order.restaurant_id) {
+      io.to(`restaurant_${order.restaurant_id}`).emit('delivery_arrived', {
+        order_id: id,
+        order_number: order.order_number,
+      });
+    }
+
+    // Notifier le client : statut "Livraison en cours"
+    const { emitToOrder } = require('../utils/socketEmitter');
+    emitToOrder(req.app, id, 'order_status_changed', {
       order_id: id,
-      order_number: order.order_number,
+      status: order.status,
     });
 
     logger.info(`Livreur arrivé au restaurant pour commande ${order.order_number}`);
@@ -2043,7 +2131,7 @@ exports.arriveAtCustomer = async (req, res) => {
     const result = await query(
       `UPDATE orders 
        SET arrived_at_customer = NOW(),
-           status = CASE WHEN status = 'picked_up' THEN 'delivering' ELSE status END
+           status = 'driver_at_customer'
        WHERE id = $1 AND delivery_person_id = $2 AND status IN ('picked_up', 'delivering')
        RETURNING *`,
       [id, req.user.id]
@@ -2058,11 +2146,15 @@ exports.arriveAtCustomer = async (req, res) => {
 
     const order = result.rows[0];
 
-    // Notifier le client
+    // Notifier le client : statut "Livrée" (livreur arrivé chez le client)
     const { emitToOrder } = require('../utils/socketEmitter');
     emitToOrder(req.app, id, 'delivery_arrived_at_customer', {
       order_id: id,
       message: 'Votre livreur est arrivé!',
+    });
+    emitToOrder(req.app, id, 'order_status_changed', {
+      order_id: id,
+      status: 'driver_at_customer',
     });
 
     // Envoyer SMS au client
@@ -2096,7 +2188,7 @@ exports.arriveAtCustomer = async (req, res) => {
 };
 
 /**
- * Obtenir les demandes de paiement
+ * Obtenir les demandes de paiement du livreur (depuis payout_requests)
  */
 exports.getPayoutRequests = async (req, res) => {
   try {
@@ -2104,19 +2196,16 @@ exports.getPayoutRequests = async (req, res) => {
     const offset = (page - 1) * limit;
 
     const result = await query(
-      `SELECT id, amount, status, payment_reference, created_at, completed_at
-       FROM transactions
-       WHERE to_user_id = $1 
-       AND to_user_type = 'delivery'
-       AND transaction_type = 'payout'
+      `SELECT id, amount, status, payment_transaction_id as payment_reference, created_at, paid_at as completed_at
+       FROM payout_requests
+       WHERE user_type = 'delivery' AND user_id = $1
        ORDER BY created_at DESC
        LIMIT $2 OFFSET $3`,
       [req.user.id, parseInt(limit), parseInt(offset)]
     );
 
     const countResult = await query(
-      `SELECT COUNT(*) FROM transactions
-       WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'payout'`,
+      `SELECT COUNT(*) FROM payout_requests WHERE user_type = 'delivery' AND user_id = $1`,
       [req.user.id]
     );
 

@@ -283,12 +283,11 @@ export default function CheckoutScreen({ navigation, route }) {
     fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CheckoutScreen.js:180',message:'openPaymentSelection called',data:{paymentMethod,itemsLength:items.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
     // #endregion
     const currentTotal = getTotal();
-    const currentDeliveryFee = 1000;
     navigation.navigate('PaymentMethod', {
       selectedMethod: paymentMethod,
       itemsCount: items.length,
       itemsTotal: currentTotal,
-      deliveryFee: currentDeliveryFee,
+      deliveryFee: deliveryFee,
       returnRoute: 'Checkout',
     });
   };

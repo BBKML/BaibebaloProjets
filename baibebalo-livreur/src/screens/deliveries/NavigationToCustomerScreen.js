@@ -380,15 +380,15 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
         <View style={styles.orderInfo}>
           <Ionicons name="cube-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.orderInfoText}>
-            Commande #{delivery?.order_number || delivery?.id || 'BAIB-12345'} • {delivery?.restaurant?.name || 'Restaurant'}
+            Commande #{delivery?.order_number || delivery?.id || 'BAIB-12345'} • {delivery?.order_type === 'express' ? 'Livraison express' : (delivery?.restaurant?.name || 'Restaurant')}
           </Text>
         </View>
         
-        {/* Informations du restaurant */}
+        {/* Informations restaurant / point de collecte (optionnel, pour rappel) */}
         {delivery?.restaurant?.name && (
           <View style={styles.restaurantInfo}>
             <View style={styles.restaurantIcon}>
-              {delivery?.restaurant?.logo ? (
+              {delivery?.order_type !== 'express' && delivery?.restaurant?.logo ? (
                 <Image 
                   source={{ uri: normalizeImageUrl(delivery.restaurant.logo) }} 
                   style={styles.restaurantLogo}
@@ -398,27 +398,29 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
                   }}
                 />
               ) : (
-                <Ionicons name="restaurant" size={18} color={COLORS.primary} />
+                <Ionicons name={delivery?.order_type === 'express' ? 'cube' : 'restaurant'} size={18} color={COLORS.primary} />
               )}
             </View>
             <View style={styles.restaurantDetails}>
-              <Text style={styles.restaurantName}>{delivery.restaurant.name}</Text>
+              <Text style={styles.restaurantName}>
+                {delivery?.order_type === 'express' ? 'Point de collecte' : delivery.restaurant.name}
+              </Text>
               {delivery?.restaurant?.address ? (
                 <Text style={styles.restaurantAddress}>{delivery.restaurant.address}</Text>
               ) : (
                 <Text style={styles.restaurantAddressMissing}>⚠️ Adresse non disponible</Text>
               )}
-              {delivery?.restaurant?.phone ? (
-                <Text style={styles.restaurantPhone}>📞 {delivery.restaurant.phone}</Text>
+              {(delivery?.restaurant?.phone || delivery?.client_phone) ? (
+                <Text style={styles.restaurantPhone}>📞 {delivery?.restaurant?.phone || delivery?.client_phone}</Text>
               ) : (
                 <Text style={styles.restaurantPhoneMissing}>⚠️ Numéro non disponible</Text>
               )}
             </View>
-            {delivery?.restaurant?.phone && (
+            {(delivery?.restaurant?.phone || delivery?.client_phone) && (
               <TouchableOpacity 
                 style={styles.callRestaurantButton}
                 onPress={() => {
-                  const phone = delivery.restaurant.phone;
+                  const phone = delivery?.restaurant?.phone || delivery?.client_phone;
                   if (phone) {
                     Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
                   }
@@ -430,11 +432,11 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
           </View>
         )}
 
-        {/* Montant total de la commande */}
+        {/* Montant total à payer (visible dans l'application client) */}
         <View style={styles.orderTotalInfo}>
           <View style={styles.totalHeader}>
             <Ionicons name="receipt-outline" size={18} color={COLORS.textSecondary} />
-            <Text style={styles.totalTitle}>Montant total de la commande</Text>
+            <Text style={styles.totalTitle}>Montant total à payer</Text>
           </View>
           <View style={styles.totalAmountContainer}>
             <Text style={styles.totalAmount}>

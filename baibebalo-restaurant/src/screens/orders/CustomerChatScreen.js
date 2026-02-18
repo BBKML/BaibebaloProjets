@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   FlatList,
@@ -12,11 +11,13 @@ import {
   ActivityIndicator,
   Alert,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { restaurantOrders } from '../../api/orders';
 
 export default function CustomerChatScreen({ route, navigation }) {
+  const insets = useSafeAreaInsets();
   const { orderId, customerName, orderNumber } = route.params;
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
@@ -249,7 +250,7 @@ export default function CustomerChatScreen({ route, navigation }) {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <View style={styles.header}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
@@ -267,7 +268,7 @@ export default function CustomerChatScreen({ route, navigation }) {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
       {/* Header */}
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
@@ -340,7 +341,7 @@ export default function CustomerChatScreen({ route, navigation }) {
         )}
 
         {/* Input */}
-        <View style={styles.inputContainer}>
+        <View style={[styles.inputContainer, { paddingBottom: 12 + Math.max(insets.bottom, 16) }]}>
           <TextInput
             ref={inputRef}
             style={styles.input}

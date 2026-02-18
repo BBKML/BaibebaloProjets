@@ -1105,7 +1105,7 @@ exports.registerRestaurant = async (req, res) => {
         name, slug, category, cuisine_type || null, description,
         phone, email, password_hash, address, district, landmark || null,
         parseFloat(latitude) || null, parseFloat(longitude) || null, 
-        JSON.stringify(parsedOpeningHours || {}), parseInt(delivery_radius) || 5,
+        JSON.stringify(parsedOpeningHours || {}), parseInt(delivery_radius) || 15,
         mobile_money_number, mobile_money_provider, account_holder_name || null, bank_rib || null,
         JSON.stringify(documents), logoUrl, bannerUrl, 
         photos.length > 0 ? photos : null, // PostgreSQL array format
@@ -1853,7 +1853,22 @@ exports.updateMyProfile = async (req, res) => {
           return;
         } else if (key === 'opening_hours') {
           updates.push(`${key} = $${paramIndex++}`);
-          values.push(JSON.stringify(value));
+          // Normaliser : objet (JSON body) ou chaîne (FormData) → toujours stocker un JSON valide
+          let toStore;
+          if (typeof value === 'object' && value !== null) {
+            toStore = JSON.stringify(value);
+          } else if (typeof value === 'string') {
+            try {
+              let parsed = JSON.parse(value);
+              while (typeof parsed === 'string') parsed = JSON.parse(parsed);
+              toStore = parsed && typeof parsed === 'object' ? JSON.stringify(parsed) : value;
+            } catch (_) {
+              toStore = value;
+            }
+          } else {
+            toStore = JSON.stringify(value);
+          }
+          values.push(toStore);
         } else {
           updates.push(`${key} = $${paramIndex++}`);
           values.push(value);

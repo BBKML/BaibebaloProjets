@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import { getMyProfile } from '../../api/users';
@@ -17,6 +18,7 @@ import { getNotifications } from '../../api/notifications';
 import { normalizeUploadUrl } from '../../utils/url';
 
 export default function ProfileScreen({ navigation }) {
+  const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
   const { user, logout, setUser } = useAuthStore();
   const [profile, setProfile] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
@@ -132,7 +134,11 @@ export default function ProfileScreen({ navigation }) {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingTop, paddingBottom }}
+      showsVerticalScrollIndicator={false}
+    >
       <View style={styles.topBar}>
         <Text style={styles.topBarTitle}>Profil</Text>
         <TouchableOpacity 

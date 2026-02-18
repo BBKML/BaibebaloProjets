@@ -58,9 +58,25 @@ export default function OrdersScreen({ navigation }) {
     // Écouter les nouvelles commandes
     const unsubscribeNewOrder = socketService.on('new_order', (data) => {
       console.log('📱 Nouvelle commande reçue dans OrdersScreen:', data);
-      // Recharger les commandes pour inclure la nouvelle
+      const total = data.total ? `${Number(data.total).toLocaleString()} FCFA` : '';
+      const items = data.items_count ? `${data.items_count} article(s)` : '';
+      Alert.alert(
+        '🆕 Nouvelle commande !',
+        `${data.customer_name || 'Un client'} a passé une commande.\n\n${items ? items + '\n' : ''}${total ? 'Total: ' + total : ''}`,
+        [
+          {
+            text: 'Voir la commande',
+            onPress: () => {
+              setSelectedTab('new');
+              if (data.orderId || data.order_id) {
+                navigation.navigate('OrderDetails', { orderId: data.orderId || data.order_id });
+              }
+            },
+          },
+          { text: 'OK', style: 'cancel' },
+        ]
+      );
       loadOrders();
-      // Passer à l'onglet "Nouvelles"
       setSelectedTab('new');
     });
 
@@ -290,7 +306,13 @@ export default function OrdersScreen({ navigation }) {
         return 'En préparation';
       }
       if (item.status === 'ready') {
-        return 'Prêt';
+        return item.delivery_person_id ? 'Livreur en route' : 'Prêt';
+      }
+      if (item.status === 'picked_up') {
+        return 'Récupérée';
+      }
+      if (item.status === 'delivering') {
+        return 'En livraison';
       }
       if (item.status === 'delivered') {
         return 'Livré';

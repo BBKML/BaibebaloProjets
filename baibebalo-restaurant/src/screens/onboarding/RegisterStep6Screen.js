@@ -171,7 +171,7 @@ export default function RegisterStep6Screen({ navigation, route }) {
         landmark: step2Data.landmark,
         latitude: step2Data.latitude,
         longitude: step2Data.longitude,
-        delivery_radius: step2Data.deliveryRadius || 5,
+        delivery_radius: step2Data.deliveryRadius || 15,
         
         // Étape 3 - Horaires
         opening_hours: step3Data,

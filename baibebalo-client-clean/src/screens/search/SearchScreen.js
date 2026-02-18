@@ -10,6 +10,7 @@ import {
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import { COLORS } from '../../constants/colors';
 import { getRestaurants, getCategories, getPopularSearches } from '../../api/restaurants';
 import { searchCatalog } from '../../api/search';
@@ -17,6 +18,7 @@ import SearchFiltersModal from './SearchFiltersModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function SearchScreen({ navigation }) {
+  const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
   const [searchQuery, setSearchQuery] = useState('');
   const [results, setResults] = useState([]);
   const [dishResultsFromApi, setDishResultsFromApi] = useState([]);
@@ -288,7 +290,7 @@ export default function SearchScreen({ navigation }) {
   );
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { paddingTop }]}>
       {/* Barre de recherche */}
       <View style={styles.searchBarContainer}>
         <View style={styles.searchBar}>
@@ -320,7 +322,7 @@ export default function SearchScreen({ navigation }) {
             data={filteredResults}
             renderItem={renderRestaurant}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[styles.listContent, { paddingBottom }]}
             ListHeaderComponent={
               <View style={styles.resultsHeader}>
                 <Text style={styles.sectionTitle}>
@@ -388,7 +390,7 @@ export default function SearchScreen({ navigation }) {
           </ScrollView>
         ) : null
       ) : (
-        <View style={styles.trendingContainer}>
+        <View style={[styles.trendingContainer, { paddingBottom }]}>
           {recentSearches.length > 0 && (
             <>
               <Text style={styles.sectionTitle}>Historique des recherches</Text>
@@ -424,7 +426,7 @@ export default function SearchScreen({ navigation }) {
             data={filteredTrending}
             renderItem={renderRestaurant}
             keyExtractor={(item) => item.id.toString()}
-            contentContainerStyle={styles.listContent}
+            contentContainerStyle={[styles.listContent, { paddingBottom }]}
           />
         </View>
       )}

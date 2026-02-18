@@ -395,9 +395,12 @@ const AnalyticsOverview = () => {
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {highValueOrders.map((order) => {
                   const statusConfig = {
-                    confirmed: { label: 'Confirmed', class: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
-                    processing: { label: 'Processing', class: 'bg-blue-100 dark:bg-blue-900/30 text-primary' },
-                    pending: { label: 'Pending Review', class: 'bg-orange-100 dark:bg-orange-900/30 text-orange-500' },
+                    confirmed: { label: 'Confirmée', class: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
+                    processing: { label: 'En cours', class: 'bg-blue-100 dark:bg-blue-900/30 text-primary' },
+                    pending: { label: 'En attente', class: 'bg-orange-100 dark:bg-orange-900/30 text-orange-500' },
+                    delivering: { label: 'En livraison', class: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-500' },
+                    driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 dark:bg-purple-900/30 text-purple-500' },
+                    delivered: { label: 'Livrée', class: 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' },
                   };
                   const status = statusConfig[order.status] || { label: order.status, class: 'bg-slate-100 text-slate-600' };
                   return (

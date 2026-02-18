@@ -32,7 +32,7 @@ async function generatePayouts() {
         [dp.id]
       );
 
-      if (existingPayout.rows.length === 0 && amount >= 5000) {
+      if (existingPayout.rows.length === 0 && amount >= 1000) {
         await query(
           `INSERT INTO payout_requests (
             user_type, user_id, amount, payment_method, account_number, status
@@ -43,8 +43,8 @@ async function generatePayouts() {
         deliveryPayoutsCreated++;
       } else if (existingPayout.rows.length > 0) {
         console.log(`⏭️  Livreur ${dp.first_name} ${dp.last_name} a déjà un payout en cours`);
-      } else if (amount < 5000) {
-        console.log(`⏭️  Livreur ${dp.first_name} ${dp.last_name}: solde trop faible (${amount} < 5000)`);
+      } else if (amount < 1000) {
+        console.log(`⏭️  Livreur ${dp.first_name} ${dp.last_name}: solde trop faible (${amount} < 1000)`);
       }
     }
 

@@ -40,7 +40,8 @@ export const getDeliveryHistory = async (page = 1, limit = 20, status = 'deliver
 };
 
 /**
- * Demande un retrait (minimum 5000 FCFA)
+ * Demande un retrait avant le lundi (minimum 5000 FCFA).
+ * Le paiement automatique chaque lundi est à partir de 1000 FCFA.
  */
 export const requestPayout = async (amount) => {
   const response = await apiClient.post(API_ENDPOINTS.EARNINGS.PAYOUT_REQUEST, {
