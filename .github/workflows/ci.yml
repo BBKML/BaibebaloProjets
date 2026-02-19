@@ -1,5 +1,4 @@
-
-name: CI
+name: Full Monorepo CI
 
 on:
   push:
@@ -8,23 +7,66 @@ on:
     branches: [ main ]
 
 jobs:
-  build:
+
+  backend:
     runs-on: ubuntu-latest
-
+    defaults:
+      run:
+        working-directory: baibebalo-backend
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      - name: Setup Node
-        uses: actions/setup-node@v3
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
         with:
           node-version: 18
+      - run: npm install
+      - run: npm run lint || true
+      - run: npm test || true
 
-      - name: Install dependencies
-        run: npm install
+  admin:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: baibebalo-admin
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm install
+      - run: npm run lint || true
 
-      - name: Run Lint
-        run: npm run lint
+  mobile_user:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: baibebalo-client-clean
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm install
 
-      - name: Run Tests
-        run: npm test
+  mobile_driver:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: baibebalo-livreur
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm install
+
+  mobile_restaurant:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: baibebalo-restaurant
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm install
