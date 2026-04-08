@@ -1,23 +1,50 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   RefreshControl,
   ActivityIndicator,
   Alert,
   TextInput,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import {
   getOrdersPendingCashRemittance,
   createCashRemittance,
-  getCashRemittanceInfo,
 } from '../../api/earnings';
+import { getPublicSettings, getCompanyValue } from '../../services/settingsService';
+
+// Associe le nom du contact (admin) au provider Mobile Money
+const PROVIDER_CONTACT_NAMES = {
+  orange_money: 'ORANGE',
+  mtn_money: 'MTN',
+  moov_money: 'MOOV',
+  waves: 'WAVE',
+};
+
+function buildProviderNumbers(settings) {
+  const map = { orange_money: null, mtn_money: null, moov_money: null, waves: null };
+  if (!settings) return map;
+  const nameToProvider = {};
+  Object.entries(PROVIDER_CONTACT_NAMES).forEach(([provider, name]) => {
+    nameToProvider[name.toUpperCase()] = provider;
+  });
+  for (let n = 1; n <= 4; n++) {
+    const name = (getCompanyValue(settings, `company_contact_${n}_name`) || '').toString().trim().toUpperCase();
+    const phone = getCompanyValue(settings, `company_contact_${n}_phone`);
+    if (!name || !phone) continue;
+    const provider = nameToProvider[name];
+    if (provider) map[provider] = String(phone).trim();
+  }
+  return map;
+}
 
 export default function CashRemittanceScreen({ navigation }) {
   const [orders, setOrders] = useState([]);
@@ -29,7 +56,10 @@ export default function CashRemittanceScreen({ navigation }) {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [baibebaloMobileMoneyNumber, setBaibebaloMobileMoneyNumber] = useState('+2250787097996');
+  const [companySettings, setCompanySettings] = useState(null);
+
+  const providerNumbers = useMemo(() => buildProviderNumbers(companySettings), [companySettings]);
+  const displayedNumber = providerNumbers[mobileMoneyProvider] || '+2250787097996';
 
   const loadPending = useCallback(async () => {
     try {
@@ -54,6 +84,14 @@ export default function CashRemittanceScreen({ navigation }) {
   useEffect(() => {
     loadPending();
   }, [loadPending]);
+
+  useEffect(() => {
+    let cancelled = false;
+    getPublicSettings().then((s) => {
+      if (!cancelled) setCompanySettings(s || null);
+    });
+    return () => { cancelled = true; };
+  }, []);
 
   const onRefresh = () => {
     setRefreshing(true);
@@ -171,9 +209,17 @@ export default function CashRemittanceScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
+      <KeyboardAvoidingView
+        style={styles.flex1}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0}
+      >
       <ScrollView
         style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
+        keyboardShouldPersistTaps="always"
+        keyboardDismissMode="none"
+        showsVerticalScrollIndicator={true}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[COLORS.primary]} />
         }
@@ -232,7 +278,7 @@ export default function CashRemittanceScreen({ navigation }) {
                         : ''}
                     </Text>
                   </View>
-                  <Text style={styles.orderTotal}>{parseFloat(order.total || 0).toLocaleString()} F</Text>
+                  <Text style={styles.orderTotal}>{Math.round(parseFloat(order.total || 0)).toLocaleString('fr-FR')} F</Text>
                 </TouchableOpacity>
               ))}
             </View>
@@ -241,7 +287,7 @@ export default function CashRemittanceScreen({ navigation }) {
               <>
                 <View style={styles.totalCard}>
                   <Text style={styles.totalLabel}>Total à remettre</Text>
-                  <Text style={styles.totalAmount}>{selectedTotal.toLocaleString()} FCFA</Text>
+                  <Text style={styles.totalAmount}>{Math.round(selectedTotal).toLocaleString('fr-FR')} FCFA</Text>
                 </View>
 
                 <Text style={styles.methodLabel}>Comment remettez-vous l'argent ?</Text>
@@ -288,15 +334,7 @@ export default function CashRemittanceScreen({ navigation }) {
                 
                 {method === 'mobile_money_deposit' && (
                   <>
-                    <View style={styles.mobileMoneyInfo}>
-                      <Ionicons name="information-circle-outline" size={20} color={COLORS.info} />
-                      <Text style={styles.mobileMoneyInfoText}>
-                        Faites un dépôt Mobile Money sur le numéro Baibebalo :{' '}
-                        <Text style={styles.mobileMoneyNumber}>{baibebaloMobileMoneyNumber}</Text>
-                      </Text>
-                    </View>
-                    
-                    <Text style={styles.providerLabel}>Provider Mobile Money</Text>
+                    <Text style={styles.providerLabel}>Choisir le provider puis déposer sur le numéro indiqué</Text>
                     <View style={styles.providerRow}>
                       <TouchableOpacity
                         style={[styles.providerButton, mobileMoneyProvider === 'orange_money' && styles.providerButtonActive]}
@@ -314,6 +352,16 @@ export default function CashRemittanceScreen({ navigation }) {
                           MTN MoMo
                         </Text>
                       </TouchableOpacity>
+                    </View>
+                    <View style={styles.providerRow}>
+                      <TouchableOpacity
+                        style={[styles.providerButton, mobileMoneyProvider === 'moov_money' && styles.providerButtonActive]}
+                        onPress={() => setMobileMoneyProvider('moov_money')}
+                      >
+                        <Text style={[styles.providerButtonText, mobileMoneyProvider === 'moov_money' && styles.providerButtonTextActive]}>
+                          Moov Money
+                        </Text>
+                      </TouchableOpacity>
                       <TouchableOpacity
                         style={[styles.providerButton, mobileMoneyProvider === 'waves' && styles.providerButtonActive]}
                         onPress={() => setMobileMoneyProvider('waves')}
@@ -323,14 +371,26 @@ export default function CashRemittanceScreen({ navigation }) {
                         </Text>
                       </TouchableOpacity>
                     </View>
+                    <View style={styles.mobileMoneyInfo}>
+                      <Ionicons name="call-outline" size={20} color={COLORS.primary} />
+                      <Text style={styles.mobileMoneyInfoText}>
+                        Numéro Baibebalo pour ce provider :{' '}
+                        <Text style={styles.mobileMoneyNumber}>{displayedNumber}</Text>
+                      </Text>
+                    </View>
                     
-                    <TextInput
-                      style={styles.referenceInput}
-                      placeholder="Numéro de transaction Mobile Money (obligatoire)"
-                      placeholderTextColor={COLORS.textLight}
-                      value={reference}
-                      onChangeText={setReference}
-                    />
+                    <View style={styles.transactionInputWrap} collapsable={false}>
+                      <TextInput
+                        key="mobile_money_transaction_input"
+                        style={styles.referenceInput}
+                        placeholder="Numéro de transaction Mobile Money (obligatoire)"
+                        placeholderTextColor={COLORS.textLight}
+                        value={reference}
+                        onChangeText={setReference}
+                        blurOnSubmit={false}
+                        returnKeyType="done"
+                      />
+                    </View>
                   </>
                 )}
 
@@ -350,11 +410,13 @@ export default function CashRemittanceScreen({ navigation }) {
           </>
         )}
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  flex1: { flex: 1 },
   container: { flex: 1, backgroundColor: COLORS.background },
   header: {
     flexDirection: 'row',
@@ -497,6 +559,9 @@ const styles = StyleSheet.create({
   },
   providerButtonTextActive: {
     color: '#FFF',
+  },
+  transactionInputWrap: {
+    marginBottom: 20,
   },
   referenceInput: {
     backgroundColor: COLORS.white,

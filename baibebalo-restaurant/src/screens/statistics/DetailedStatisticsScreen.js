@@ -6,15 +6,20 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
 import { COLORS } from '../../constants/colors';
+import { restaurantApi } from '../../api/restaurant';
 
 export default function DetailedStatisticsScreen({ navigation }) {
   const [period, setPeriod] = useState('month');
   const [stats, setStats] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -73,6 +78,25 @@ export default function DetailedStatisticsScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const result = await restaurantApi.exportData('json');
+      const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+      await Clipboard.setStringAsync(text);
+      Alert.alert(
+        'Export copié',
+        'Les données ont été copiées dans le presse-papier. Collez-les dans un fichier ou partagez-les par email.',
+        [{ text: 'OK' }]
+      );
+    } catch (err) {
+      console.error('Export:', err);
+      Alert.alert('Erreur', err?.error?.message || err?.message || 'Impossible d\'exporter les données.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   const periods = [
     { key: 'today', label: "Aujourd'hui" },
     { key: 'week', label: 'Cette semaine' },
@@ -95,7 +119,17 @@ export default function DetailedStatisticsScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Statistiques détaillées</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity
+          style={styles.exportButton}
+          onPress={handleExport}
+          disabled={exporting}
+        >
+          {exporting ? (
+            <ActivityIndicator size="small" color={COLORS.primary} />
+          ) : (
+            <Ionicons name="download-outline" size={24} color={COLORS.primary} />
+          )}
+        </TouchableOpacity>
       </View>
 
       <ScrollView
@@ -238,6 +272,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 12,
+  },
+  exportButton: {
+    padding: 8,
+    minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     flex: 1,

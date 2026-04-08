@@ -407,6 +407,17 @@ router.put('/:id/messages/read',
  */
 
 /**
+ * @route   POST /api/v1/orders/:id/reorder
+ * @desc    Reorder en 1 clic — recrée le panier depuis une ancienne commande
+ * @access  Private (User)
+ */
+router.post('/:id/reorder',
+  authorize('user', 'client'),
+  uuidValidator('id', 'Order ID'),
+  orderController.reorder
+);
+
+/**
  * @route   GET /api/v1/orders/search
  * @desc    Rechercher des commandes
  * @access  Private (Admin, Restaurant, Delivery)

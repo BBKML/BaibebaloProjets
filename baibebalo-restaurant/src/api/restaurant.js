@@ -43,40 +43,32 @@ export const restaurantApi = {
                 name: value.name || `${key}_${Date.now()}.jpg`,
               };
               if (!fileData.uri || (!fileData.uri.startsWith('file://') && !fileData.uri.startsWith('content://') && !fileData.uri.startsWith('http'))) {
-                console.error(`❌ URI invalide pour ${key}:`, fileData.uri);
-                throw new Error(`URI d'image invalide pour ${key}`);
+                if (__DEV__) console.error(`URI invalide pour ${key}`);
+                throw new Error(`Image invalide pour ${key}`);
               }
               formData.append(key, fileData);
-              console.log(`📎 Ajout ${key} au FormData:`, { 
-                uri: fileData.uri.substring(0, 80) + '...', 
-                type: fileData.type, 
-                name: fileData.name,
-              });
             } else if (value && typeof value === 'string') {
               formData.append(key, value);
-              console.log(`📎 Ajout ${key} (URL existante) au FormData`);
             }
           }
           // Gérer le tableau de photos - seulement nouvelles
           else if (key === 'photos' && Array.isArray(value)) {
             value.forEach((photo, index) => {
-              if (photo?.uri && !photo?.isExisting) {
+                if (photo?.uri && !photo?.isExisting) {
                 const fileData = {
                   uri: photo.uri,
                   type: photo.type || 'image/jpeg',
                   name: photo.name || `photo_${Date.now()}_${index}.jpg`,
                 };
                 if (!fileData.uri || (!fileData.uri.startsWith('file://') && !fileData.uri.startsWith('content://') && !fileData.uri.startsWith('http'))) {
-                  console.error(`❌ URI invalide pour photo[${index}]:`, fileData.uri);
+                  if (__DEV__) console.warn('URI photo invalide');
                   return;
                 }
                 formData.append('photos', fileData);
-                console.log(`📎 Ajout photo[${index}] au FormData`);
               }
             });
             if (data.existingPhotos && Array.isArray(data.existingPhotos)) {
               formData.append('existingPhotos', JSON.stringify(data.existingPhotos));
-              console.log('📎 Ajout photos existantes:', data.existingPhotos.length);
             }
           }
           // Gérer les objets JSON
@@ -88,18 +80,9 @@ export const restaurantApi = {
             formData.append(key, String(value));
           }
         });
-        
-        console.log('📤 Envoi FormData avec images via fetch natif:', {
-          hasLogo: !!(data.logo && data.logo.uri && !data.logo.isExisting),
-          hasBanner: !!(data.banner && data.banner.uri && !data.banner.isExisting),
-          newPhotosCount: data.photos ? data.photos.filter(p => p.uri && !p.isExisting).length : 0,
-        });
-        
         // Utiliser fetch natif au lieu d'axios pour les uploads de fichiers
         // car fetch gère mieux FormData avec des fichiers dans React Native
         const token = useAuthStore.getState().token;
-        console.log('🚀 Envoi requête PUT avec fetch natif...');
-        
         const response = await fetch(API_ENDPOINTS.RESTAURANT.UPDATE_PROFILE, {
           method: 'PUT',
           headers: {
@@ -110,13 +93,6 @@ export const restaurantApi = {
         });
         
         const responseData = await response.json();
-        
-        console.log('✅ Réponse reçue du serveur:', {
-          status: response.status,
-          ok: response.ok,
-          success: responseData?.success,
-        });
-        
         if (!response.ok) {
           throw { response: { data: responseData, status: response.status } };
         }
@@ -139,12 +115,7 @@ export const restaurantApi = {
         return response.data;
       }
     } catch (error) {
-      console.error('❌ Erreur updateProfile:', error);
-      console.error('❌ Détails:', {
-        message: error.message,
-        status: error.response?.status,
-        data: error.response?.data,
-      });
+      if (__DEV__) console.error('Erreur updateProfile:', error?.message);
       throw error.response?.data || error.message || error;
     }
   },
@@ -178,6 +149,19 @@ export const restaurantApi = {
     try {
       const response = await api.get(API_ENDPOINTS.RESTAURANT.EARNINGS, {
         params: filters,
+      });
+      return response.data;
+    } catch (error) {
+      throw error.response?.data || error.message;
+    }
+  },
+
+  // Export des données (RGPD) - format 'json' ou 'csv'
+  exportData: async (format = 'json') => {
+    try {
+      const response = await api.get(API_ENDPOINTS.RESTAURANT.EXPORT, {
+        params: { format },
+        responseType: format === 'csv' ? 'text' : 'json',
       });
       return response.data;
     } catch (error) {

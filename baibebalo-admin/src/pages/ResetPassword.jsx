@@ -49,8 +49,13 @@ const ResetPassword = () => {
       return;
     }
 
+    if (formData.newPassword.length < 12) {
+      toast.error('Le mot de passe doit contenir au moins 12 caractères');
+      return;
+    }
+
     if (passwordStrength < 2) {
-      toast.error('Le mot de passe doit être plus fort');
+      toast.error('Le mot de passe doit être plus fort (majuscules, chiffres, symboles)');
       return;
     }
 

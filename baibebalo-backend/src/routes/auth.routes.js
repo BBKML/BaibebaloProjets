@@ -41,4 +41,7 @@ router.post('/admin/reset-password', authLimiter, authController.adminResetPassw
 // Rafraîchir le token
 router.post('/refresh-token', authController.refreshToken);
 
+// Déconnexion
+router.post('/logout', authController.logout);
+
 module.exports = router;

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,15 +11,58 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import { normalizeUploadUrl } from '../../utils/url';
+
+const SETTINGS_STORAGE_KEY = 'client_settings_toggles';
 
 export default function SettingsScreen({ navigation }) {
   const { user, logout } = useAuthStore();
   const [notificationsEnabled, setNotificationsEnabled] = React.useState(true);
   const [locationEnabled, setLocationEnabled] = React.useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = React.useState(false);
+  const [emailNotificationsEnabled, setEmailNotificationsEnabled] = React.useState(false);
+
+  useEffect(() => {
+    AsyncStorage.getItem(SETTINGS_STORAGE_KEY).then((stored) => {
+      if (stored) {
+        try {
+          const saved = JSON.parse(stored);
+          if (saved.notificationsEnabled != null) setNotificationsEnabled(saved.notificationsEnabled);
+          if (saved.locationEnabled != null) setLocationEnabled(saved.locationEnabled);
+          if (saved.darkModeEnabled != null) setDarkModeEnabled(saved.darkModeEnabled);
+          if (saved.emailNotificationsEnabled != null) setEmailNotificationsEnabled(saved.emailNotificationsEnabled);
+        } catch (_) {}
+      }
+    });
+  }, []);
+
+  const persistToggle = async (key, value) => {
+    try {
+      const stored = await AsyncStorage.getItem(SETTINGS_STORAGE_KEY);
+      const current = stored ? JSON.parse(stored) : {};
+      await AsyncStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify({ ...current, [key]: value }));
+    } catch (_) {}
+  };
+
+  const handleNotificationsToggle = (value) => {
+    setNotificationsEnabled(value);
+    persistToggle('notificationsEnabled', value);
+  };
+  const handleLocationToggle = (value) => {
+    setLocationEnabled(value);
+    persistToggle('locationEnabled', value);
+  };
+  const handleDarkModeToggle = (value) => {
+    setDarkModeEnabled(value);
+    persistToggle('darkModeEnabled', value);
+  };
+  const handleEmailNotificationsToggle = (value) => {
+    setEmailNotificationsEnabled(value);
+    persistToggle('emailNotificationsEnabled', value);
+  };
 
   const displayName =
     user?.full_name ||
@@ -62,21 +105,21 @@ export default function SettingsScreen({ navigation }) {
           icon: 'notifications-outline',
           label: 'Notifications push',
           value: notificationsEnabled,
-          onToggle: setNotificationsEnabled,
+          onToggle: handleNotificationsToggle,
           type: 'toggle',
         },
         {
           icon: 'mail-outline',
           label: 'Notifications email',
-          value: false,
-          onToggle: () => {},
+          value: emailNotificationsEnabled,
+          onToggle: handleEmailNotificationsToggle,
           type: 'toggle',
         },
         {
           icon: 'moon-outline',
           label: 'Mode sombre',
           value: darkModeEnabled,
-          onToggle: setDarkModeEnabled,
+          onToggle: handleDarkModeToggle,
           type: 'toggle',
         },
         {
@@ -89,7 +132,7 @@ export default function SettingsScreen({ navigation }) {
           icon: 'location-outline',
           label: 'Autoriser la localisation',
           value: locationEnabled,
-          onToggle: setLocationEnabled,
+          onToggle: handleLocationToggle,
           type: 'toggle',
         },
       ],

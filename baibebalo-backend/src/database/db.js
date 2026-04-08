@@ -109,62 +109,59 @@ const query = async (text, params, retries = 3) => {
   throw lastError;
 };
 
-// Fonction pour les transactions avec retry
+// Fonction pour les transactions avec retry (client.release() toujours dans finally pour éviter les fuites)
 const transaction = async (callback, retries = 2) => {
   const client = await pool.connect();
-  let lastError;
-
-  for (let attempt = 1; attempt <= retries; attempt++) {
-    try {
-      await client.query('BEGIN');
-      logger.debug('Transaction démarrée');
-
-      const result = await callback(client);
-      
-      await client.query('COMMIT');
-      logger.debug('Transaction committée avec succès', {
-        attempt: attempt > 1 ? attempt : undefined,
-      });
-      
-      return result;
-    } catch (error) {
-      lastError = error;
-      
+  try {
+    let lastError;
+    for (let attempt = 1; attempt <= retries; attempt++) {
       try {
-        await client.query('ROLLBACK');
-        logger.warn('Transaction rollback', {
-          error: error.message,
-          attempt,
-        });
-      } catch (rollbackError) {
-        logger.error('Erreur lors du rollback', {
-          error: rollbackError.message,
-        });
-      }
+        await client.query('BEGIN');
+        logger.debug('Transaction démarrée');
 
-      // Ne pas retry sur erreurs métier
-      if (error.code?.startsWith('23') || attempt === retries) {
-        logger.error('Transaction échouée', {
-          error: error.message,
-          code: error.code,
-          attempt,
-        });
-        throw error;
-      }
+        const result = await callback(client);
 
-      // Attendre avant retry
-      const delay = Math.min(1000 * Math.pow(2, attempt - 1), 3000);
-      logger.info(`Transaction retry in ${delay}ms`, { attempt });
-      await new Promise(resolve => setTimeout(resolve, delay));
-    } finally {
-      if (attempt === retries) {
-        client.release();
+        await client.query('COMMIT');
+        logger.debug('Transaction committée avec succès', {
+          attempt: attempt > 1 ? attempt : undefined,
+        });
+
+        return result;
+      } catch (error) {
+        lastError = error;
+
+        try {
+          await client.query('ROLLBACK');
+          logger.warn('Transaction rollback', {
+            error: error.message,
+            attempt,
+          });
+        } catch (rollbackError) {
+          logger.error('Erreur lors du rollback', {
+            error: rollbackError.message,
+          });
+        }
+
+        // Ne pas retry sur erreurs métier
+        if (error.code?.startsWith('23') || attempt === retries) {
+          logger.error('Transaction échouée', {
+            error: error.message,
+            code: error.code,
+            attempt,
+          });
+          throw error;
+        }
+
+        // Attendre avant retry
+        const delay = Math.min(1000 * Math.pow(2, attempt - 1), 3000);
+        logger.info(`Transaction retry in ${delay}ms`, { attempt });
+        await new Promise(resolve => setTimeout(resolve, delay));
       }
     }
+    throw lastError;
+  } finally {
+    client.release();
   }
-
-  client.release();
-  throw lastError;
 };
 
 // Helper pour les requêtes paginées

@@ -20,6 +20,7 @@ import { COLORS } from '../../constants/colors';
 import { STATUS_LABELS, STATUS_COLORS } from '../../constants/orderStatus';
 import { getOrderDetail, cancelOrder, reviewOrder } from '../../api/orders';
 import { formatDateTime, formatCurrency, calculateOrderTotal, calculateOrderSubtotal } from '../../utils/format';
+import { getImageUrl } from '../../utils/url';
 
 export default function OrderDetailsScreen({ route, navigation }) {
   const { orderId } = route.params;
@@ -363,7 +364,7 @@ export default function OrderDetailsScreen({ route, navigation }) {
           >
             {item.menu_item?.image_url && (
               <Image
-                source={{ uri: item.menu_item.image_url }}
+                source={{ uri: getImageUrl(item.menu_item.image_url) }}
                 style={styles.itemImage}
               />
             )}

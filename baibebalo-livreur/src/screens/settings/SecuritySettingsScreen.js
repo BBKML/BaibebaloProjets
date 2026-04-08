@@ -1,13 +1,37 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Switch, ScrollView, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Switch, ScrollView, Alert } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
+
+const SECURITY_STORAGE_KEY = 'livreur_security_settings';
 
 export default function SecuritySettingsScreen({ navigation }) {
   const { user } = useAuthStore();
   const [biometricEnabled, setBiometricEnabled] = useState(false);
   const [notifyLogin, setNotifyLogin] = useState(true);
+
+  useEffect(() => {
+    AsyncStorage.getItem(SECURITY_STORAGE_KEY).then((stored) => {
+      if (stored) {
+        try {
+          const saved = JSON.parse(stored);
+          if (saved.biometricEnabled != null) setBiometricEnabled(saved.biometricEnabled);
+          if (saved.notifyLogin != null) setNotifyLogin(saved.notifyLogin);
+        } catch (_) {}
+      }
+    });
+  }, []);
+
+  const persist = async (key, value) => {
+    try {
+      const stored = await AsyncStorage.getItem(SECURITY_STORAGE_KEY);
+      const current = stored ? JSON.parse(stored) : {};
+      await AsyncStorage.setItem(SECURITY_STORAGE_KEY, JSON.stringify({ ...current, [key]: value }));
+    } catch (_) {}
+  };
 
   const handleBiometricToggle = (value) => {
     if (value) {
@@ -16,12 +40,18 @@ export default function SecuritySettingsScreen({ navigation }) {
         'Voulez-vous utiliser votre empreinte digitale ou Face ID pour vous connecter plus rapidement ?',
         [
           { text: 'Annuler', style: 'cancel' },
-          { text: 'Activer', onPress: () => setBiometricEnabled(true) },
+          { text: 'Activer', onPress: () => { setBiometricEnabled(true); persist('biometricEnabled', true); } },
         ]
       );
     } else {
       setBiometricEnabled(false);
+      persist('biometricEnabled', false);
     }
+  };
+
+  const handleNotifyLoginToggle = (value) => {
+    setNotifyLogin(value);
+    persist('notifyLogin', value);
   };
 
   return (
@@ -101,7 +131,7 @@ export default function SecuritySettingsScreen({ navigation }) {
               </View>
               <Switch
                 value={notifyLogin}
-                onValueChange={setNotifyLogin}
+                onValueChange={handleNotifyLoginToggle}
                 trackColor={{ false: COLORS.border, true: COLORS.primary + '50' }}
                 thumbColor={notifyLogin ? COLORS.primary : '#f4f3f4'}
               />

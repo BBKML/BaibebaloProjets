@@ -5,18 +5,30 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  ToastAndroid,
+  Platform,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 
+const showToast = (message) => {
+  if (Platform.OS === 'android') {
+    ToastAndroid.show(message, ToastAndroid.SHORT);
+  }
+};
+
 export default function PaymentMethodScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const [selectedMethod, setSelectedMethod] = useState(
     route?.params?.selectedMethod || 'cash'
   );
-  const itemsCount = route?.params?.itemsCount || 3;
-  const itemsTotal = route?.params?.itemsTotal || 4950;
-  const deliveryFee = route?.params?.deliveryFee || 500;
-  const totalAmount = itemsTotal + deliveryFee;
+  const itemsCount = route?.params?.itemsCount ?? 0;
+  const itemsTotal = route?.params?.itemsTotal ?? 0;
+  const deliveryFee = route?.params?.deliveryFee ?? 0;
+  const promoDiscount = route?.params?.promoDiscount ?? 0;
+  const totalAmount = route?.params?.totalAmount ?? Math.max(0, itemsTotal + deliveryFee - promoDiscount);
 
   const PAYMENT_METHODS = [
     {
@@ -49,14 +61,11 @@ export default function PaymentMethodScreen({ navigation, route }) {
   const availableMethods = PAYMENT_METHODS.filter(m => m.enabled);
 
   const handleSelect = () => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'PaymentMethodScreen.js:45',message:'handleSelect called',data:{selectedMethod,returnRoute:route?.params?.returnRoute},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'F'})}).catch(()=>{});
-    // #endregion
     const returnRoute = route?.params?.returnRoute || 'Checkout';
-    // Passer le résultat via navigation au lieu d'une fonction callback
+    const methodLabel = PAYMENT_METHODS.find(m => m.id === selectedMethod)?.name || selectedMethod;
+    showToast(`Méthode sélectionnée : ${methodLabel}`);
     navigation.navigate(returnRoute, {
       selectedPaymentMethod: selectedMethod,
-      // Préserver les autres params existants
       ...(route?.params?.selectedAddressId && { selectedAddressId: route.params.selectedAddressId }),
     });
   };
@@ -124,13 +133,21 @@ export default function PaymentMethodScreen({ navigation, route }) {
           <View style={styles.summaryRow}>
             <Text style={styles.summaryLabel}>Frais de livraison</Text>
             <Text style={styles.summaryValue}>
-              {deliveryFee.toLocaleString('fr-FR')} FCFA
+              {deliveryFee === 0 ? 'Gratuit' : `${deliveryFee.toLocaleString('fr-FR')} FCFA`}
             </Text>
           </View>
+          {promoDiscount > 0 && (
+            <View style={styles.summaryRow}>
+              <Text style={styles.summaryLabel}>Réduction</Text>
+              <Text style={[styles.summaryValue, styles.discountValue]}>
+                -{promoDiscount.toLocaleString('fr-FR')} FCFA
+              </Text>
+            </View>
+          )}
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <View style={styles.totalRow}>
           <Text style={styles.totalLabel}>Montant Total</Text>
           <Text style={styles.totalValue}>
@@ -300,6 +317,9 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '600',
     color: COLORS.text,
+  },
+  discountValue: {
+    color: COLORS.primary,
   },
   footer: {
     padding: 16,

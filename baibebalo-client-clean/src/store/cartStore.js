@@ -1,4 +1,33 @@
 import { create } from 'zustand';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const CART_STORAGE_KEY = 'baibebalo_cart';
+
+// Normalise les customisations pour une comparaison cohérente (deep sort)
+const normalizeCustomizations = (cust) => {
+  if (!cust) return null;
+  if (Array.isArray(cust)) {
+    return JSON.stringify([...cust].sort((a, b) => String(a).localeCompare(String(b))));
+  }
+  if (typeof cust === 'object') {
+    const sorted = Object.keys(cust).sort().reduce((acc, key) => {
+      acc[key] = Array.isArray(cust[key]) ? [...cust[key]].sort() : cust[key];
+      return acc;
+    }, {});
+    return JSON.stringify(sorted);
+  }
+  return JSON.stringify(cust);
+};
+
+const saveCartToStorage = async (state) => {
+  try {
+    await AsyncStorage.setItem(CART_STORAGE_KEY, JSON.stringify({
+      items: state.items,
+      restaurantId: state.restaurantId,
+      restaurantName: state.restaurantName,
+    }));
+  } catch (_) {}
+};
 
 const useCartStore = create((set, get) => ({
   // État
@@ -6,12 +35,27 @@ const useCartStore = create((set, get) => ({
   restaurantId: null,
   restaurantName: null,
 
+  // Charger le panier sauvegardé au démarrage
+  loadCart: async () => {
+    try {
+      const stored = await AsyncStorage.getItem(CART_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && Array.isArray(parsed.items)) {
+          set({
+            items: parsed.items,
+            restaurantId: parsed.restaurantId || null,
+            restaurantName: parsed.restaurantName || null,
+          });
+        }
+      }
+    } catch (_) {}
+  },
+
   // Actions
   addItem: (item, restaurantId, restaurantName, options = {}) => {
-    console.log('🛒 addItem appelé:', { restaurantId, restaurantName, item: item.name });
     const { items, restaurantId: currentRestaurantId } = get();
-    console.log('🛒 État actuel:', { currentRestaurantId, itemsCount: items.length });
-    
+
     // Si on ajoute un item d'un autre restaurant, vider le panier
     if (currentRestaurantId && currentRestaurantId !== restaurantId && !options.force) {
       return {
@@ -23,68 +67,55 @@ const useCartStore = create((set, get) => ({
       };
     }
     if (currentRestaurantId && currentRestaurantId !== restaurantId && options.force) {
-      set({
+      const newState = {
         items: [{ ...item, quantity: 1 }],
         restaurantId,
         restaurantName,
-      });
-      console.log('✅ Panier remplacé, restaurantId:', restaurantId);
+      };
+      set(newState);
+      saveCartToStorage(newState);
       return { replaced: true };
     }
 
-    // Vérifier si l'item existe déjà
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'cartStore.js:36',message:'Finding existing item',data:{itemId:item.id,itemCustomizations:item.customizations,itemsCount:items.length},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
-    const normalizeCustomizations = (cust) => {
-      if (!cust) return null;
-      if (typeof cust === 'object') {
-        const sorted = Object.keys(cust).sort().reduce((acc, key) => {
-          acc[key] = cust[key];
-          return acc;
-        }, {});
-        return JSON.stringify(sorted);
-      }
-      return JSON.stringify(cust);
-    };
+    // Vérifier si l'item existe déjà (avec même id + mêmes customisations)
     const existingItemIndex = items.findIndex(
-      (i) => i.id === item.id && normalizeCustomizations(i.customizations) === normalizeCustomizations(item.customizations)
+      (i) => i.id === item.id &&
+        normalizeCustomizations(i.customizations) === normalizeCustomizations(item.customizations)
     );
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'cartStore.js:48',message:'Existing item search result',data:{existingItemIndex,found:existingItemIndex>=0},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'E'})}).catch(()=>{});
-    // #endregion
 
     if (existingItemIndex >= 0) {
-      // Incrémenter la quantité
-      const newItems = [...items];
-      newItems[existingItemIndex].quantity += 1;
-      set({ items: newItems, restaurantId, restaurantName });
-      console.log('✅ Quantité mise à jour, restaurantId:', restaurantId);
+      const newItems = items.map((i, idx) =>
+        idx === existingItemIndex ? { ...i, quantity: i.quantity + 1 } : i
+      );
+      const newState = { items: newItems, restaurantId, restaurantName };
+      set(newState);
+      saveCartToStorage(newState);
       return { updated: true };
     } else {
-      // Ajouter un nouvel item
-      set({
+      const newState = {
         items: [...items, { ...item, quantity: 1 }],
         restaurantId,
         restaurantName,
-      });
-      console.log('✅ Item ajouté, restaurantId sauvegardé:', restaurantId);
+      };
+      set(newState);
+      saveCartToStorage(newState);
       return { added: true };
     }
   },
 
   removeItem: (itemId, customizations) => {
     const { items } = get();
+    const normTarget = normalizeCustomizations(customizations);
     const newItems = items.filter(
-      (item) => !(item.id === itemId && JSON.stringify(item.customizations) === JSON.stringify(customizations))
+      (item) => !(item.id === itemId && normalizeCustomizations(item.customizations) === normTarget)
     );
-    set({ items: newItems });
-    
-    // Si le panier est vide, réinitialiser le restaurant
-    if (newItems.length === 0) {
-      set({ restaurantId: null, restaurantName: null });
-      console.log('🗑️ Panier vidé, restaurantId réinitialisé');
-    }
+    const newState = {
+      items: newItems,
+      restaurantId: newItems.length === 0 ? null : get().restaurantId,
+      restaurantName: newItems.length === 0 ? null : get().restaurantName,
+    };
+    set(newState);
+    saveCartToStorage(newState);
   },
 
   updateQuantity: (itemId, customizations, quantity) => {
@@ -92,28 +123,27 @@ const useCartStore = create((set, get) => ({
       get().removeItem(itemId, customizations);
       return;
     }
-
     const { items } = get();
-    const newItems = items.map((item) => {
-      if (item.id === itemId && JSON.stringify(item.customizations) === JSON.stringify(customizations)) {
-        return { ...item, quantity };
-      }
-      return item;
-    });
-    set({ items: newItems });
+    const normTarget = normalizeCustomizations(customizations);
+    const newItems = items.map((item) =>
+      item.id === itemId && normalizeCustomizations(item.customizations) === normTarget
+        ? { ...item, quantity }
+        : item
+    );
+    const newState = { items: newItems, restaurantId: get().restaurantId, restaurantName: get().restaurantName };
+    set(newState);
+    saveCartToStorage(newState);
   },
 
-  clearCart: () => {
+  clearCart: async () => {
     set({ items: [], restaurantId: null, restaurantName: null });
-    console.log('🗑️ clearCart appelé, tout réinitialisé');
+    try { await AsyncStorage.removeItem(CART_STORAGE_KEY); } catch (_) {}
   },
 
   // Getters
   getTotal: () => {
     const { items } = get();
-    return items.reduce((total, item) => {
-      return total + parseFloat(item.price) * item.quantity;
-    }, 0);
+    return Math.round(items.reduce((total, item) => total + Math.round(Number.parseFloat(item.price)) * item.quantity, 0));
   },
 
   getItemCount: () => {

@@ -181,7 +181,7 @@ export default function RegisterStep3Screen({ navigation, route }) {
           })}
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 40) }]}>
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>Suivant</Text>
             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
   header: {
     marginBottom: 20,

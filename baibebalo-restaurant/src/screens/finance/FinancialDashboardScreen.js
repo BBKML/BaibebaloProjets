@@ -6,17 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import * as Clipboard from 'expo-clipboard';
 import { COLORS } from '../../constants/colors';
 import { restaurantFinance } from '../../api/finance';
+import { restaurantApi } from '../../api/restaurant';
 import useRestaurantStore from '../../store/restaurantStore';
 
 export default function FinancialDashboardScreen({ navigation }) {
   const { setFinancialData } = useRestaurantStore();
   const [financialData, setLocalFinancialData] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [exporting, setExporting] = useState(false);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
@@ -56,6 +61,25 @@ export default function FinancialDashboardScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const handleExport = async () => {
+    setExporting(true);
+    try {
+      const result = await restaurantApi.exportData('json');
+      const text = typeof result === 'string' ? result : JSON.stringify(result, null, 2);
+      await Clipboard.setStringAsync(text);
+      Alert.alert(
+        'Export copié',
+        'Les données ont été copiées dans le presse-papier. Collez-les dans un fichier ou partagez-les par email.',
+        [{ text: 'OK' }]
+      );
+    } catch (err) {
+      console.error('Export:', err);
+      Alert.alert('Erreur', err?.error?.message || err?.message || 'Impossible d\'exporter les données.');
+    } finally {
+      setExporting(false);
+    }
+  };
+
   if (!financialData) {
     return (
       <View style={styles.container}>
@@ -71,12 +95,14 @@ export default function FinancialDashboardScreen({ navigation }) {
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
         <Text style={styles.title}>Gestion Financière</Text>
-        <View style={styles.placeholder} />
+        <TouchableOpacity style={styles.exportButton} onPress={handleExport} disabled={exporting}>
+          {exporting ? <ActivityIndicator size="small" color={COLORS.primary} /> : <Ionicons name="download-outline" size={24} color={COLORS.primary} />}
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         style={styles.content}
-        contentContainerStyle={styles.scrollContent}
+        contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 20) }]}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
         {/* Solde disponible */}
@@ -238,6 +264,12 @@ const styles = StyleSheet.create({
   },
   backButton: {
     marginRight: 12,
+  },
+  exportButton: {
+    padding: 8,
+    minWidth: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
     flex: 1,

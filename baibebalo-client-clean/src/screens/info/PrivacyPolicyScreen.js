@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -6,9 +6,22 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
+import { getPublicSettings, invalidateSettingsCache, getCompanyValue } from '../../services/settingsService';
 
 export default function PrivacyPolicyScreen({ navigation }) {
+  const [companyEmail, setCompanyEmail] = useState('support@baibebalo.ci');
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateSettingsCache();
+      getPublicSettings().then((s) => {
+        const email = getCompanyValue(s, 'company_email');
+        setCompanyEmail(email || 'support@baibebalo.ci');
+      });
+    }, [])
+  );
   const sections = [
     {
       title: '1. Collecte des informations',
@@ -89,7 +102,7 @@ export default function PrivacyPolicyScreen({ navigation }) {
         <View style={styles.contactSection}>
           <Text style={styles.contactTitle}>Questions ?</Text>
           <Text style={styles.contactText}>
-            Contactez-nous : support@baibebalo.ci
+            Contactez-nous : {companyEmail}
           </Text>
         </View>
       </ScrollView>

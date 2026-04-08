@@ -3,7 +3,6 @@ import {
   View, 
   Text, 
   StyleSheet, 
-  SafeAreaView, 
   TouchableOpacity, 
   TextInput, 
   ScrollView, 
@@ -13,20 +12,23 @@ import {
   ActionSheetIOS,
   Platform
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
-import { getProfile, updateProfile } from '../../api/delivery';
+import { getProfile, updateProfile, uploadDocument } from '../../api/delivery';
 import { getImageUrl } from '../../utils/url';
-import apiClient from '../../api/client';
 
 export default function EditProfileScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { user, updateUser } = useAuthStore();
   const [firstName, setFirstName] = useState(user?.first_name || '');
   const [lastName, setLastName] = useState(user?.last_name || '');
   const [vehicleType, setVehicleType] = useState(user?.vehicle_type || 'moto');
   const [vehiclePlate, setVehiclePlate] = useState(user?.vehicle_plate || '');
+  const [mobileMoneyNumber, setMobileMoneyNumber] = useState(user?.mobile_money_number || '');
+  const [mobileMoneyProvider, setMobileMoneyProvider] = useState(user?.mobile_money_provider || 'orange_money');
   const [profilePhoto, setProfilePhoto] = useState(user?.profile_photo || null);
   const [loading, setLoading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -45,6 +47,8 @@ export default function EditProfileScreen({ navigation }) {
         setLastName(profile.last_name || '');
         setVehicleType(profile.vehicle_type || 'moto');
         setVehiclePlate(profile.vehicle_plate || '');
+        setMobileMoneyNumber(profile.mobile_money_number || '');
+        setMobileMoneyProvider(profile.mobile_money_provider || 'orange_money');
         if (profile.profile_photo) {
           setProfilePhoto(profile.profile_photo);
         }
@@ -85,80 +89,82 @@ export default function EditProfileScreen({ navigation }) {
   };
 
   const takePhoto = async () => {
-    const { status } = await ImagePicker.requestCameraPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour utiliser la caméra');
-      return;
-    }
-
-    const result = await ImagePicker.launchCameraAsync({
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      uploadPhoto(result.assets[0]);
+    try {
+      const { status } = await ImagePicker.requestCameraPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour utiliser la caméra');
+        return;
+      }
+      const result = await ImagePicker.launchCameraAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      if (!result.canceled && result.assets?.[0]) {
+        uploadPhoto(result.assets[0]);
+      }
+    } catch (e) {
+      console.warn('Prise de photo:', e?.message);
+      Alert.alert('Erreur', e?.message || 'Impossible d\'ouvrir la caméra.');
     }
   };
 
   const pickImage = async () => {
-    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (status !== 'granted') {
-      Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour accéder à vos photos');
-      return;
-    }
-
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.7,
-    });
-
-    if (!result.canceled && result.assets[0]) {
-      uploadPhoto(result.assets[0]);
+    try {
+      const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission refusée', 'Nous avons besoin de la permission pour accéder à vos photos');
+        return;
+      }
+      const result = await ImagePicker.launchImageLibraryAsync({
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+      });
+      if (!result.canceled && result.assets?.[0]) {
+        uploadPhoto(result.assets[0]);
+      }
+    } catch (e) {
+      console.warn('Choix image:', e?.message);
+      Alert.alert('Erreur', e?.message || 'Impossible d\'ouvrir la galerie.');
     }
   };
 
   const uploadPhoto = async (imageAsset) => {
+    if (!imageAsset?.uri) return;
     setUploadingPhoto(true);
     try {
-      // Créer FormData pour l'upload
+      const filename = `profile_${Date.now()}.jpg`;
       const formData = new FormData();
-      const filename = imageAsset.uri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-
       formData.append('file', {
         uri: imageAsset.uri,
-        name: filename || 'profile.jpg',
-        type,
+        name: filename,
+        type: 'image/jpeg',
       });
       formData.append('document_type', 'profile_photo');
 
-      // Upload vers le serveur
-      const response = await apiClient.post('/delivery/upload-document', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const result = await uploadDocument(formData);
 
-      if (response.data?.success && response.data?.data?.url) {
-        const photoUrl = response.data.data.url;
+      if (result?.success && result?.data?.url) {
+        const photoUrl = result.data.url;
         setProfilePhoto(photoUrl);
         await updateUser({ profile_photo: photoUrl });
         Alert.alert('Succès', 'Photo de profil mise à jour');
       } else {
-        // Utiliser l'URI locale comme fallback
         setProfilePhoto(imageAsset.uri);
         await updateUser({ profile_photo: imageAsset.uri });
         Alert.alert('Info', 'Photo sauvegardée localement');
       }
     } catch (error) {
-      console.error('Erreur upload photo:', error);
-      // Utiliser l'URI locale comme fallback
-      setProfilePhoto(imageAsset.uri);
-      await updateUser({ profile_photo: imageAsset.uri });
-      Alert.alert('Info', 'Photo sauvegardée localement. Elle sera synchronisée plus tard.');
+      console.warn('Erreur upload photo:', error?.message);
+      if (imageAsset?.uri) {
+        setProfilePhoto(imageAsset.uri);
+        await updateUser({ profile_photo: imageAsset.uri });
+      }
+      Alert.alert(
+        'Upload échoué',
+        error?.message || 'La photo n\'a pas pu être envoyée. Elle est sauvegardée localement.'
+      );
     } finally {
       setUploadingPhoto(false);
     }
@@ -173,20 +179,26 @@ export default function EditProfileScreen({ navigation }) {
     setLoading(true);
     try {
       // Appeler l'API backend pour mettre à jour le profil
+      const mobileNumber = mobileMoneyNumber.trim().replace(/\s/g, '');
+      const mobileForApi = mobileNumber ? (mobileNumber.startsWith('+') ? mobileNumber : (mobileNumber.startsWith('225') ? `+${mobileNumber}` : `+225${mobileNumber}`)) : null;
+
       const response = await updateProfile({
         first_name: firstName.trim(),
         last_name: lastName.trim(),
         vehicle_type: vehicleType,
         vehicle_plate: vehiclePlate.trim() || null,
+        mobile_money_number: mobileForApi || '',
+        mobile_money_provider: mobileForApi ? mobileMoneyProvider : '',
       });
 
       if (response?.success) {
-        // Mettre à jour le store local
         await updateUser({
           first_name: firstName.trim(),
           last_name: lastName.trim(),
           vehicle_type: vehicleType,
           vehicle_plate: vehiclePlate.trim() || null,
+          mobile_money_number: mobileForApi || null,
+          mobile_money_provider: mobileForApi ? mobileMoneyProvider : null,
         });
         Alert.alert('Succès', 'Profil mis à jour avec succès');
         navigation.goBack();
@@ -346,6 +358,39 @@ export default function EditProfileScreen({ navigation }) {
             </View>
           )}
 
+          {/* Mobile Money (obligatoire pour recevoir les paiements) */}
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Numéro Mobile Money</Text>
+            <Text style={styles.hint}>Requis pour recevoir vos paiements (retraits). Ex: 07 12 34 56 78 ou +2250712345678</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="07 12 34 56 78 ou +2250712345678"
+              placeholderTextColor={COLORS.textLight}
+              value={mobileMoneyNumber}
+              onChangeText={setMobileMoneyNumber}
+              keyboardType="phone-pad"
+            />
+            <Text style={[styles.label, { marginTop: 12 }]}>Opérateur</Text>
+            <View style={styles.vehicleOptions}>
+              {[
+                { value: 'orange_money', label: 'Orange' },
+                { value: 'mtn_money', label: 'MTN' },
+                { value: 'moov_money', label: 'Moov' },
+                { value: 'waves', label: 'Wave' },
+              ].map((opt) => (
+                <TouchableOpacity
+                  key={opt.value}
+                  style={[styles.vehicleOption, mobileMoneyProvider === opt.value && styles.vehicleOptionActive]}
+                  onPress={() => setMobileMoneyProvider(opt.value)}
+                >
+                  <Text style={[styles.vehicleOptionText, mobileMoneyProvider === opt.value && styles.vehicleOptionTextActive]}>
+                    {opt.label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+
           {/* Info sécurité */}
           <View style={styles.infoCard}>
             <Ionicons name="shield-checkmark-outline" size={20} color={COLORS.primary} />
@@ -357,7 +402,7 @@ export default function EditProfileScreen({ navigation }) {
       </ScrollView>
 
       {/* Bouton Enregistrer */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           onPress={handleSave}

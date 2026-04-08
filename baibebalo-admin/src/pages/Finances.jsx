@@ -131,6 +131,7 @@ const Finances = () => {
   const [activeTab, setActiveTab] = useState('delivery');
   const [selectedPayments, setSelectedPayments] = useState([]);
   const [paymentProofModal, setPaymentProofModal] = useState({ isOpen: false, payment: null });
+  const [isGeneratingPayouts, setIsGeneratingPayouts] = useState(false);
   const [searchInput, setSearchInput] = useState(''); // État local pour l'input de recherche
   const debounceTimerRef = useRef(null);
   const [filters, setFilters] = useState({
@@ -331,14 +332,14 @@ const Finances = () => {
         {/* Header */}
         <div className="flex flex-wrap justify-between items-end gap-4">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              {activeTab === 'delivery' 
-                ? 'Paiements Livreurs en Attente' 
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+              {activeTab === 'delivery'
+                ? 'Paiements Livreurs'
                 : activeTab === 'restaurant'
-                ? 'Paiements Restaurants en Attente'
-                : 'Paiements Payés'}
+                ? 'Paiements Restaurants'
+                : 'Paiements Effectués'}
             </h1>
-            <p className="text-slate-500 dark:text-slate-400 text-base">
+            <p className="text-slate-500 dark:text-slate-400 text-sm mt-1">
               {activeTab === 'delivery' 
                 ? 'Gérez et validez les soldes en attente pour vos livreurs partenaires.'
                 : activeTab === 'restaurant'
@@ -349,45 +350,53 @@ const Finances = () => {
           <div className="flex gap-3">
             {activeTab === 'delivery' && (
               <button
+                disabled={isGeneratingPayouts}
                 onClick={async () => {
                   if (window.confirm('Générer les payouts pour tous les livreurs avec solde > 1000 FCFA et numéro Mobile Money configuré ?')) {
+                    setIsGeneratingPayouts(true);
                     try {
                       await financesAPI.generatePayouts('delivery');
                       toast.success('Payouts livreurs générés avec succès');
                       queryClient.invalidateQueries(['delivery-payments']);
                     } catch (error) {
                       toast.error(error.response?.data?.error?.message || 'Erreur lors de la génération');
+                    } finally {
+                      setIsGeneratingPayouts(false);
                     }
                   }
                 }}
-                className="flex items-center gap-2 px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors"
+                className="flex items-center gap-2 px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-xl">add_circle</span>
-                <span>Générer les payouts livreurs</span>
+                <span>{isGeneratingPayouts ? 'Génération...' : 'Générer les payouts livreurs'}</span>
               </button>
             )}
             {activeTab === 'restaurant' && (
               <button
+                disabled={isGeneratingPayouts}
                 onClick={async () => {
                   if (window.confirm('Générer les payouts pour tous les restaurants avec solde > 10000 FCFA ?')) {
+                    setIsGeneratingPayouts(true);
                     try {
                       await financesAPI.generatePayouts('restaurant');
                       toast.success('Payouts restaurants générés avec succès');
                       queryClient.invalidateQueries(['restaurant-payments']);
                     } catch (error) {
                       toast.error(error.response?.data?.error?.message || 'Erreur lors de la génération');
+                    } finally {
+                      setIsGeneratingPayouts(false);
                     }
                   }
                 }}
-                className="flex items-center gap-2 px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors"
+                className="flex items-center gap-2 px-4 h-11 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <span className="material-symbols-outlined text-xl">add_circle</span>
-                <span>Générer les payouts restaurants</span>
+                <span>{isGeneratingPayouts ? 'Génération...' : 'Générer les payouts restaurants'}</span>
               </button>
             )}
             <button 
               onClick={() => {
-                toast.info('Fonctionnalité d\'export en cours de développement');
+                toast('Fonctionnalité d\'export en cours de développement');
               }}
               className="flex items-center gap-2 px-4 h-11 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg text-slate-900 dark:text-white text-sm font-bold hover:bg-gray-50 dark:hover:bg-slate-800 transition-colors"
             >
@@ -423,90 +432,95 @@ const Finances = () => {
           </div>
         )}
 
-        {/* Lien vers Vue paiement livreurs (liste + gains pour chaque lundi) */}
-        <Link
-          to="/finances/delivery-payment-summary"
-          className="flex items-center gap-3 p-4 bg-primary/10 dark:bg-primary/20 border border-primary/30 rounded-xl hover:bg-primary/20 dark:hover:bg-primary/30 transition-colors"
-        >
-          <span className="material-symbols-outlined text-2xl text-primary">
-            list_alt
-          </span>
-          <div>
-            <p className="font-semibold text-slate-900 dark:text-white">
-              Vue paiement livreurs
-            </p>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Liste des livreurs avec leurs gains à payer. Vue pour chaque lundi.
-            </p>
+        {/* Raccourcis : liens utiles regroupés */}
+        <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/30 p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Raccourcis</p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            <Link
+              to="/finances/benefits"
+              className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl">trending_up</span>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">Bénéfices par période</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Mois, année ou entre deux dates</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-400 text-lg ml-auto shrink-0">arrow_forward</span>
+            </Link>
+            <Link
+              to="/finances/delivery-payment-summary"
+              className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/40 hover:bg-primary/5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-primary text-xl">list_alt</span>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">Vue paiement livreurs</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Gains par livreur (lundi)</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-400 text-lg ml-auto shrink-0">arrow_forward</span>
+            </Link>
+            <Link
+              to="/finances/cash-owed"
+              className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-amber-500/40 hover:bg-amber-500/5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 text-xl">account_balance_wallet</span>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">Espèces dues</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Cash à reverser par livreur</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-400 text-lg ml-auto shrink-0">arrow_forward</span>
+            </Link>
+            <Link
+              to="/finances/cash-remittances"
+              className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-emerald-500/40 hover:bg-emerald-500/5 transition-colors"
+            >
+              <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 text-xl">payments</span>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">Remises espèces</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Valider les remises déclarées</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-400 text-lg ml-auto shrink-0">arrow_forward</span>
+            </Link>
+            <button
+              type="button"
+              onClick={handleViewHistory}
+              className="flex items-center gap-3 p-3 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-primary/40 hover:bg-primary/5 transition-colors text-left w-full"
+            >
+              <span className="material-symbols-outlined text-primary text-xl">history</span>
+              <div className="min-w-0">
+                <p className="font-semibold text-slate-900 dark:text-white text-sm">Historique complet</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">Tous les paiements effectués</p>
+              </div>
+              <span className="material-symbols-outlined text-slate-400 text-lg ml-auto shrink-0">arrow_forward</span>
+            </button>
           </div>
-          <span className="material-symbols-outlined text-primary ml-auto">
-            arrow_forward
-          </span>
-        </Link>
+        </div>
 
-        {/* Guide : Comment payer les livreurs */}
+        {/* Guide : Comment payer (livreurs uniquement, compact) */}
         {activeTab === 'delivery' && (
-          <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl p-4">
-            <p className="text-sm font-semibold text-blue-900 dark:text-blue-100 mb-2">
-              Comment payer vos livreurs ?
-            </p>
-            <ol className="text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
-              <li>Cliquez sur <strong>Générer les payouts livreurs</strong> pour créer les demandes de paiement (livreurs avec solde &gt; 1000 FCFA et Mobile Money configuré).</li>
-              <li>Sélectionnez les paiements à effectuer, puis cliquez sur <strong>Payer la sélection</strong>.</li>
-              <li>Effectuez le virement Mobile Money vers le numéro indiqué pour chaque livreur.</li>
-              <li>Optionnel : utilisez <strong>Marquer comme payé</strong> pour enregistrer la preuve (référence TX ou capture d&apos;écran).</li>
+          <details className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-xl overflow-hidden group">
+            <summary className="p-4 cursor-pointer list-none flex items-center justify-between text-sm font-semibold text-blue-900 dark:text-blue-100">
+              <span className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-blue-600 dark:text-blue-400">info</span>
+                Comment payer vos livreurs ?
+              </span>
+              <span className="material-symbols-outlined text-blue-600 dark:text-blue-400 transition-transform group-open:rotate-180">expand_more</span>
+            </summary>
+            <ol className="px-4 pb-4 text-sm text-blue-800 dark:text-blue-200 space-y-1 list-decimal list-inside">
+              <li>Cliquez sur <strong>Générer les payouts livreurs</strong> pour créer les demandes (solde &gt; 1000 FCFA et Mobile Money configuré).</li>
+              <li>Sélectionnez les lignes puis <strong>Payer la sélection</strong>.</li>
+              <li>Effectuez le virement Mobile Money vers le numéro indiqué.</li>
+              <li>Optionnel : <strong>Marquer comme payé</strong> pour enregistrer la preuve (réf. TX ou capture).</li>
             </ol>
-          </div>
+          </details>
         )}
-
-        {/* Lien vers Espèces dues (ce que les livreurs doivent) */}
-        <Link
-          to="/finances/cash-owed"
-          className="flex items-center gap-3 p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
-        >
-          <span className="material-symbols-outlined text-2xl text-amber-600 dark:text-amber-400">
-            account_balance_wallet
-          </span>
-          <div>
-            <p className="font-semibold text-amber-900 dark:text-amber-100">
-              Espèces dues par les livreurs
-            </p>
-            <p className="text-sm text-amber-700 dark:text-amber-300">
-              Voir combien chaque livreur doit reverser (paiements cash non remis)
-            </p>
-          </div>
-          <span className="material-symbols-outlined text-amber-600 dark:text-amber-400 ml-auto">
-            arrow_forward
-          </span>
-        </Link>
-
-        {/* Lien vers Remises espèces (valider les remises déclarées) */}
-        <Link
-          to="/finances/cash-remittances"
-          className="flex items-center gap-3 p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
-        >
-          <span className="material-symbols-outlined text-2xl text-emerald-600 dark:text-emerald-400">
-            payments
-          </span>
-          <div>
-            <p className="font-semibold text-emerald-900 dark:text-emerald-100">
-              Remises espèces
-            </p>
-            <p className="text-sm text-emerald-700 dark:text-emerald-300">
-              Valider ou refuser les remises déclarées par les livreurs (agence, dépôt, Mobile Money)
-            </p>
-          </div>
-          <span className="material-symbols-outlined text-emerald-600 dark:text-emerald-400 ml-auto">
-            arrow_forward
-          </span>
-        </Link>
 
         {/* Filtres de recherche */}
         <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+          <p className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 mb-3">Filtres</p>
           <div className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Recherche par numéro
+                Numéro de téléphone ou Mobile Money
               </label>
               <div className="relative">
                 <input
@@ -603,9 +617,9 @@ const Finances = () => {
           </div>
         </div>
 
-        {/* Tabs */}
+        {/* Onglets : Livreurs | Restaurants | Payés */}
         <div className="px-0 mt-4">
-          <div className="flex border-b border-slate-200 dark:border-slate-800 gap-8">
+          <div className="flex border-b border-slate-200 dark:border-slate-800 gap-6">
             <button
               onClick={() => setActiveTab('delivery')}
               className={`flex items-center gap-2 border-b-[3px] pb-3 pt-4 transition-colors ${
@@ -615,13 +629,8 @@ const Finances = () => {
               }`}
             >
               <span className="text-sm font-bold tracking-tight">Livreurs</span>
-              {deliveryData?.data?.payouts?.length > 0 && (
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
-                  {deliveryData.data.payouts.length}
-                </span>
-              )}
-              <span className="bg-primary/10 text-primary text-[10px] font-black px-1.5 py-0.5 rounded-full">
-                {deliveryData?.data?.pagination?.total || 0}
+              <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                {deliveryData?.data?.pagination?.total ?? 0}
               </span>
             </button>
             <button
@@ -633,11 +642,9 @@ const Finances = () => {
               }`}
             >
               <span className="text-sm font-bold tracking-tight">Restaurants</span>
-              {restaurantData?.data?.payouts?.length > 0 && (
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
-                  {restaurantData.data.payouts.length}
-                </span>
-              )}
+              <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                {restaurantData?.data?.pagination?.total ?? 0}
+              </span>
             </button>
             <button
               onClick={() => setActiveTab('paid')}
@@ -648,17 +655,9 @@ const Finances = () => {
               }`}
             >
               <span className="text-sm font-bold tracking-tight">Payés</span>
-              {paidData?.data?.payouts?.length > 0 && (
-                <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-xs font-bold">
-                  {paidData.data.payouts.length}
-                </span>
-              )}
-            </button>
-            <button 
-              onClick={handleViewHistory}
-              className="flex items-center gap-2 border-b-[3px] border-transparent text-slate-500 pb-3 pt-4 hover:text-primary transition-colors"
-            >
-              <span className="text-sm font-bold tracking-tight">Historique complet</span>
+              <span className="bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold px-2 py-0.5 rounded-full min-w-5 text-center">
+                {paidData?.data?.pagination?.total ?? 0}
+              </span>
             </button>
           </div>
         </div>
@@ -687,7 +686,7 @@ const Finances = () => {
                       : 'Bénéficiaire'}
                   </th>
                   <th className="px-6 py-4">Montant à régler</th>
-                  <th className="px-6 py-4">Période</th>
+                  <th className="px-6 py-4">Date demande</th>
                   <th className="px-6 py-4 text-center">Statut</th>
                   <th className="px-6 py-4 text-right">Actions</th>
                 </tr>
@@ -721,44 +720,38 @@ const Finances = () => {
                         {/* Text Content */}
                         <div className="space-y-4">
                           <span className="px-3 py-1 rounded-full bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-extrabold uppercase tracking-widest">
-                            Opérations à jour
+                            {activeTab === 'paid' ? 'Aucun enregistrement' : 'Opérations à jour'}
                           </span>
                           <h3 className="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white">
-                            Aucun paiement en attente
+                            {activeTab === 'paid'
+                              ? 'Aucun paiement dans cette liste'
+                              : activeTab === 'restaurant'
+                              ? 'Aucun paiement restaurant en attente'
+                              : 'Aucun paiement en attente'}
                           </h3>
                           <p className="text-slate-500 dark:text-slate-400 max-w-sm mx-auto leading-relaxed">
-                            Tout est parfaitement synchronisé ! Il n'y a actuellement aucune transaction en attente de
-                            traitement pour vos livreurs.
+                            {activeTab === 'paid'
+                              ? 'Les paiements marqués comme payés ou traités apparaîtront ici. Utilisez les filtres ou l\'historique complet pour voir plus.'
+                              : activeTab === 'restaurant'
+                              ? 'Aucun restaurant n\'a de solde en attente. Les payouts sont générés automatiquement le lundi à 9h ou manuellement ci-dessus.'
+                              : 'Aucun livreur n\'a de solde en attente pour le moment. Générez les payouts ou consultez l\'historique.'}
                           </p>
                         </div>
-                        {/* Action Area */}
                         <div className="mt-10 flex flex-col sm:flex-row gap-4">
                           <button 
                             onClick={handleViewHistory}
                             className="bg-primary hover:bg-primary/90 text-white px-8 py-3.5 rounded-xl font-bold transition-all hover:shadow-xl hover:shadow-primary/30 flex items-center gap-2 group"
                           >
                             <span className="material-symbols-outlined group-hover:-translate-x-0.5 transition-transform">history</span>
-                            Vérifier l'historique
-                          </button>
-                          <button className="bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 px-8 py-3.5 rounded-xl font-bold transition-all border border-slate-200 dark:border-slate-700">
-                            Configurer les seuils
+                            Vérifier l&apos;historique
                           </button>
                         </div>
-                        {/* Stats Footer Hint */}
-                        <div className="mt-16 grid grid-cols-3 gap-8 w-full max-w-md pt-8 border-t border-slate-200 dark:border-slate-800">
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Dernier Run</p>
-                            <p className="text-sm font-extrabold text-slate-900 dark:text-white">Il y a 2h</p>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Automatisé</p>
-                            <span className="material-symbols-outlined text-emerald-500 text-sm">check_circle</span>
-                          </div>
-                          <div className="text-center">
-                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Total Payé (24h)</p>
+                        {activeTab !== 'paid' && (
+                          <div className="mt-12 pt-6 border-t border-slate-200 dark:border-slate-800 w-full max-w-md">
+                            <p className="text-[10px] uppercase tracking-wider text-slate-500 font-bold mb-1">Total payé (24h)</p>
                             <p className="text-sm font-extrabold text-primary">{formatCurrency(totalPaid24h)}</p>
                           </div>
-                        </div>
+                        )}
                       </div>
                     </td>
                   </tr>

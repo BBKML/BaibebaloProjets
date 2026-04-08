@@ -90,7 +90,7 @@ export default function RegisterStep2Screen({ navigation, route }) {
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Localisation</Text>
-          <Text style={styles.stepText}>Étape 2 sur 3</Text>
+          <Text style={styles.stepText}>Étape 2 sur 4</Text>
         </View>
 
         {/* Indicateur de progression */}
@@ -174,7 +174,7 @@ export default function RegisterStep2Screen({ navigation, route }) {
           </View>
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 40) }]}>
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>Suivant</Text>
             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
   header: {
     marginBottom: 20,

@@ -141,7 +141,7 @@ const BulkUserActions = () => {
           </div>
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
             <div>
-              <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white mb-2">
                 Actions en Masse - Clients
               </h2>
               <p className="text-slate-500 dark:text-slate-400 max-w-2xl">

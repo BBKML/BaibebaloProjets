@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { confirmPickup } from '../../api/orders';
@@ -18,6 +19,7 @@ const checklistExpress = [
 ];
 
 export default function OrderVerificationScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const [checked, setChecked] = useState({});
   const [confirming, setConfirming] = useState(false);
   const delivery = route.params?.delivery;
@@ -44,7 +46,7 @@ export default function OrderVerificationScreen({ navigation, route }) {
       // Même en cas d'erreur, permettre de continuer
       Alert.alert(
         'Information',
-        'Erreur de synchronisation. Vous pouvez continuer.',
+        'Connexion interrompue. Vous pouvez continuer.',
         [{ text: 'OK', onPress: () => navigation.navigate('NavigationToCustomer', { delivery }) }]
       );
     } finally {
@@ -74,7 +76,7 @@ export default function OrderVerificationScreen({ navigation, route }) {
           </TouchableOpacity>
         ))}
       </ScrollView>
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={[styles.primaryButton, confirming && styles.primaryButtonDisabled]}
           onPress={handleConfirmPickup}

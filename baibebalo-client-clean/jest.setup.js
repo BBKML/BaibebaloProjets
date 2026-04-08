@@ -1,0 +1,12 @@
+/** Polyfill localStorage pour Jest (environnement Node) */
+if (typeof global.localStorage === 'undefined') {
+  const store = new Map();
+  global.localStorage = {
+    getItem: (k) => store.get(k) ?? null,
+    setItem: (k, v) => store.set(k, String(v)),
+    removeItem: (k) => store.delete(k),
+    clear: () => store.clear(),
+    get length() { return store.size; },
+    key: (i) => [...store.keys()][i] ?? null,
+  };
+}

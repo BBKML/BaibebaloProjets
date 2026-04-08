@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import PropTypes from 'prop-types';
@@ -131,7 +133,10 @@ export default function AddAddressScreen({ route, navigation }) {
     : 'Enregistrer l\'adresse';
 
   return (
-    <View style={styles.overlay}>
+    <KeyboardAvoidingView
+      style={styles.overlay}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
       <View style={styles.sheet}>
         <View style={styles.handle} />
         <View style={styles.sheetHeader}>
@@ -268,7 +273,7 @@ export default function AddAddressScreen({ route, navigation }) {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </KeyboardAvoidingView>
   );
 }
 

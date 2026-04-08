@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import { formatCurrency } from '../utils/format';
@@ -160,13 +161,18 @@ const PendingDriverPayments = () => {
 
         {/* Page Heading & Actions */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Paiements Livreurs en Attente
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400">
-              Gérez et validez les soldes en attente pour vos livreurs partenaires.
-            </p>
+          <div className="flex items-center gap-3">
+            <Link to="/finances" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div className="space-y-1">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Paiements Livreurs en Attente
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400">
+                Gérez et validez les soldes en attente pour vos livreurs partenaires.
+              </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">

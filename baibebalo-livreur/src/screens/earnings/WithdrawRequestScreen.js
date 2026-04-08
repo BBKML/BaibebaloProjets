@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, TextInput, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, TextInput, Alert, ActivityIndicator, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
@@ -57,6 +58,7 @@ export default function WithdrawRequestScreen({ navigation }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
@@ -66,7 +68,7 @@ export default function WithdrawRequestScreen({ navigation }) {
       </View>
       <View style={styles.content}>
         <Text style={styles.balanceLabel}>Solde disponible</Text>
-        <Text style={styles.balance}>{balance.toLocaleString()} FCFA</Text>
+        <Text style={styles.balance}>{Math.round(balance).toLocaleString('fr-FR')} FCFA</Text>
         
         <TextInput
           style={[styles.input, !isValidAmount && amount && styles.inputError]}
@@ -80,7 +82,7 @@ export default function WithdrawRequestScreen({ navigation }) {
         {amount && !isValidAmount && (
           <Text style={styles.errorText}>
             {parsedAmount < MIN_WITHDRAWAL 
-              ? `Minimum ${MIN_WITHDRAWAL.toLocaleString()} FCFA` 
+              ? `Minimum ${MIN_WITHDRAWAL.toLocaleString('fr-FR')} FCFA`
               : 'Solde insuffisant'}
           </Text>
         )}
@@ -93,7 +95,7 @@ export default function WithdrawRequestScreen({ navigation }) {
               onPress={() => setAmount(String(val))}
             >
               <Text style={[styles.quickButtonText, parsedAmount === val && styles.quickButtonTextActive]}>
-                {val.toLocaleString()}
+                {val.toLocaleString('fr-FR')}
               </Text>
             </TouchableOpacity>
           ))}
@@ -126,6 +128,7 @@ export default function WithdrawRequestScreen({ navigation }) {
           )}
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -132,88 +132,74 @@ export default function SettingsScreen({ navigation }) {
   const status = restaurant?.status || 'active';
   const statusConfig = STATUS_CONFIG[status] || STATUS_CONFIG.active;
 
+  const restaurantName = restaurant?.name || 'Mon restaurant';
+  const restaurantPhone = restaurant?.phone || '';
+
+  const SettingRow = ({ icon, iconBg, label, subtitle, onPress, right, danger }) => (
+    <TouchableOpacity
+      style={styles.row}
+      onPress={onPress}
+      activeOpacity={onPress ? 0.7 : 1}
+      disabled={!onPress}
+    >
+      <View style={[styles.rowIcon, { backgroundColor: iconBg || COLORS.primary + '15' }]}>
+        <Ionicons name={icon} size={20} color={danger ? COLORS.error : COLORS.primary} />
+      </View>
+      <View style={styles.rowContent}>
+        <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
+        {subtitle ? <Text style={styles.rowSub}>{subtitle}</Text> : null}
+      </View>
+      {right || (onPress && !danger ? (
+        <Ionicons name="chevron-forward" size={18} color={COLORS.border} />
+      ) : null)}
+    </TouchableOpacity>
+  );
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <ScrollView style={styles.scrollView}>
-        <View style={styles.header}>
-          <Text style={styles.title}>Paramètres</Text>
+      {/* Header avec avatar */}
+      <View style={styles.header}>
+        <View style={styles.avatar}>
+          <Ionicons name="storefront" size={28} color={COLORS.primary} />
         </View>
-
-        {/* Statut du compte */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Statut du compte</Text>
-          <View style={[styles.statusCard, { borderColor: statusConfig.color }]}>
-            <View style={[styles.statusIconContainer, { backgroundColor: statusConfig.color + '20' }]}>
-              <Ionicons name={statusConfig.icon} size={28} color={statusConfig.color} />
-            </View>
-            <View style={styles.statusContent}>
-              <View style={styles.statusHeader}>
-                <Text style={[styles.statusLabel, { color: statusConfig.color }]}>
-                  {statusConfig.label}
-                </Text>
-                <View style={[styles.statusBadge, { backgroundColor: statusConfig.color }]}>
-                  <Text style={styles.statusBadgeText}>{status.toUpperCase()}</Text>
-                </View>
-              </View>
-              <Text style={styles.statusDescription}>{statusConfig.description}</Text>
-            </View>
-          </View>
-          {(status === 'suspended' || status === 'rejected') && (
-            <TouchableOpacity
-              style={styles.contactSupportButton}
-              onPress={() => navigation.navigate('SupportHelpCenter')}
-            >
-              <Ionicons name="chatbubble-ellipses" size={18} color={COLORS.white} />
-              <Text style={styles.contactSupportText}>Contacter le support</Text>
-            </TouchableOpacity>
-          )}
+        <View style={styles.headerInfo}>
+          <Text style={styles.restaurantName} numberOfLines={1}>{restaurantName}</Text>
+          {restaurantPhone ? <Text style={styles.restaurantPhone}>{restaurantPhone}</Text> : null}
         </View>
+        <View style={[styles.accountBadge, { backgroundColor: statusConfig.color + '20' }]}>
+          <Text style={[styles.accountBadgeText, { color: statusConfig.color }]}>
+            {statusConfig.label}
+          </Text>
+        </View>
+      </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Restaurant</Text>
-          
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        {/* Alerte suspension */}
+        {(status === 'suspended' || status === 'rejected') && (
           <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => navigation.navigate('EditRestaurantProfile')}
+            style={styles.alertBanner}
+            onPress={() => navigation.navigate('SupportHelpCenter')}
           >
-            <Ionicons name="restaurant" size={24} color={COLORS.primary} />
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Informations du restaurant</Text>
-              <Text style={styles.settingDescription}>Modifier les informations</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
+            <Ionicons name="warning" size={18} color="#92400e" />
+            <Text style={styles.alertText}>{statusConfig.description}</Text>
+            <Ionicons name="chevron-forward" size={16} color="#92400e" />
           </TouchableOpacity>
+        )}
 
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => navigation.navigate('PaymentInfo')}
-          >
-            <Ionicons name="wallet" size={24} color={COLORS.primary} />
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Informations de paiement</Text>
-              <Text style={styles.settingDescription}>Mobile Money, opérateur, titulaire, RIB</Text>
+        {/* Ouverture rapide */}
+        <View style={styles.card}>
+          <View style={styles.row}>
+            <View style={[styles.rowIcon, { backgroundColor: isOpen ? '#f0fdf4' : '#fef2f2' }]}>
+              <Ionicons name="power" size={20} color={isOpen ? '#10b981' : COLORS.error} />
             </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.settingItem}
-            onPress={() => navigation.navigate('OpeningHours')}
-          >
-            <Ionicons name="time" size={24} color={COLORS.primary} />
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Horaires</Text>
-              <Text style={styles.settingDescription}>Voir détails ci-dessous</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-
-          <View style={styles.settingItem}>
-            <Ionicons name="power" size={24} color={isOpen ? COLORS.success : COLORS.error} />
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Fermer temporairement</Text>
-              <Text style={[styles.settingDescription, { color: isOpen ? COLORS.success : COLORS.error }]}>
-                {isOpen ? '🟢 Restaurant ouvert' : '🔴 Restaurant fermé'}
+            <View style={styles.rowContent}>
+              <Text style={styles.rowLabel}>Statut du restaurant</Text>
+              <Text style={[styles.rowSub, { color: isOpen ? '#10b981' : COLORS.error }]}>
+                {isOpen ? 'Ouvert — Commandes actives' : 'Fermé — Aucune commande'}
               </Text>
             </View>
             {isToggling ? (
@@ -222,54 +208,110 @@ export default function SettingsScreen({ navigation }) {
               <Switch
                 value={isOpen}
                 onValueChange={handleToggleStatus}
-                trackColor={{ false: COLORS.error, true: COLORS.success }}
-                thumbColor={isOpen ? COLORS.white : COLORS.white}
-                disabled={isToggling}
+                trackColor={{ false: '#e2e8f0', true: COLORS.primary + '55' }}
+                thumbColor={isOpen ? COLORS.primary : '#94a3b8'}
+                ios_backgroundColor="#e2e8f0"
               />
             )}
           </View>
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Notifications</Text>
-          
-          <TouchableOpacity
-            style={styles.settingItem}
+        {/* Section Restaurant */}
+        <Text style={styles.sectionLabel}>RESTAURANT</Text>
+        <View style={styles.card}>
+          <SettingRow
+            icon="storefront-outline"
+            label="Informations"
+            subtitle="Nom, description, photos"
+            onPress={() => navigation.navigate('EditRestaurantProfile')}
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="time-outline"
+            label="Horaires d'ouverture"
+            subtitle="Jours et créneaux"
+            onPress={() => navigation.navigate('OpeningHours')}
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="wallet-outline"
+            label="Coordonnées de paiement"
+            subtitle="Mobile Money, compte bancaire"
+            onPress={() => navigation.navigate('PaymentInfo')}
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="pricetag-outline"
+            label="Promotions"
+            subtitle="Gérer les offres et réductions"
+            onPress={() => navigation.navigate('MarketingOverview')}
+          />
+        </View>
+
+        {/* Section Finances */}
+        <Text style={styles.sectionLabel}>FINANCES</Text>
+        <View style={styles.card}>
+          <SettingRow
+            icon="bar-chart-outline"
+            iconBg="#10b98115"
+            label="Tableau de bord financier"
+            subtitle="Revenus, transactions"
+            onPress={() => navigation.navigate('FinancialDashboard')}
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="arrow-up-circle-outline"
+            iconBg="#3b82f615"
+            label="Demander un retrait"
+            subtitle="Retirer vos gains"
+            onPress={() => navigation.navigate('WithdrawalRequest')}
+          />
+        </View>
+
+        {/* Section Notifications */}
+        <Text style={styles.sectionLabel}>NOTIFICATIONS</Text>
+        <View style={styles.card}>
+          <SettingRow
+            icon="notifications-outline"
+            label="Préférences"
+            subtitle="Sons, alertes commandes"
             onPress={() => navigation.navigate('NotificationPreferences')}
-          >
-            <Ionicons name="notifications" size={24} color={COLORS.primary} />
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Préférences</Text>
-              <Text style={styles.settingDescription}>Gérer les notifications</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
+          />
         </View>
 
-        <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Support</Text>
-          
-          <TouchableOpacity
-            style={styles.settingItem}
+        {/* Section Support */}
+        <Text style={styles.sectionLabel}>AIDE & SUPPORT</Text>
+        <View style={styles.card}>
+          <SettingRow
+            icon="help-circle-outline"
+            label="Centre d'aide"
+            subtitle="FAQ et tutoriels"
             onPress={() => navigation.navigate('SupportHelpCenter')}
-          >
-            <Ionicons name="help-circle" size={24} color={COLORS.primary} />
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>Centre d'aide</Text>
-              <Text style={styles.settingDescription}>FAQ, tutoriels et support</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
-          </TouchableOpacity>
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="chatbubble-ellipses-outline"
+            label="Chat support"
+            subtitle="Parler à un agent"
+            onPress={() => navigation.navigate('LiveChatSupport')}
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="warning-outline"
+            label="Signaler un problème"
+            onPress={() => navigation.navigate('ReportProblem')}
+          />
         </View>
 
-        <View style={styles.section}>
-          <TouchableOpacity
-            style={[styles.settingItem, styles.logoutItem]}
+        {/* Déconnexion */}
+        <View style={[styles.card, styles.cardLast]}>
+          <SettingRow
+            icon="log-out-outline"
+            iconBg="#fef2f2"
+            label="Déconnexion"
+            danger
             onPress={handleLogout}
-          >
-            <Ionicons name="log-out" size={24} color={COLORS.error} />
-            <Text style={styles.logoutText}>Déconnexion</Text>
-          </TouchableOpacity>
+          />
         </View>
       </ScrollView>
     </View>
@@ -277,123 +319,80 @@ export default function SettingsScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  scrollView: {
-    flex: 1,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     paddingHorizontal: 20,
     paddingVertical: 16,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: COLORS.text,
+  avatar: {
+    width: 52, height: 52, borderRadius: 16,
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: COLORS.primary + '30',
   },
-  section: {
-    marginTop: 24,
-    paddingHorizontal: 20,
+  headerInfo: { flex: 1 },
+  restaurantName: { fontSize: 16, fontWeight: '800', color: COLORS.text },
+  restaurantPhone: { fontSize: 12, color: COLORS.textSecondary, marginTop: 1 },
+  accountBadge: {
+    paddingHorizontal: 10, paddingVertical: 4, borderRadius: 20,
   },
-  sectionTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.textSecondary,
-    marginBottom: 12,
-    textTransform: 'uppercase',
+  accountBadgeText: { fontSize: 11, fontWeight: '700' },
+
+  scrollView: { flex: 1 },
+  scrollContent: { paddingVertical: 20, paddingHorizontal: 16, gap: 0, paddingBottom: 60 },
+
+  alertBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 10,
+    backgroundColor: '#fef3c7', borderRadius: 12, padding: 14,
+    marginBottom: 16, borderWidth: 1, borderColor: '#fbbf24',
   },
-  settingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  alertText: { flex: 1, fontSize: 13, fontWeight: '600', color: '#92400e' },
+
+  sectionLabel: {
+    fontSize: 11, fontWeight: '700', color: COLORS.textSecondary,
+    letterSpacing: 0.8, marginTop: 20, marginBottom: 8, marginLeft: 4,
+  },
+  card: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    gap: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+    marginBottom: 0,
   },
-  settingContent: {
-    flex: 1,
+  cardLast: { marginTop: 16 },
+
+  row: {
+    flexDirection: 'row', alignItems: 'center',
+    paddingHorizontal: 16, paddingVertical: 14, gap: 12,
   },
-  settingLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: COLORS.text,
-    marginBottom: 4,
+  rowIcon: {
+    width: 38, height: 38, borderRadius: 10,
+    alignItems: 'center', justifyContent: 'center',
   },
-  settingDescription: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
+  rowContent: { flex: 1 },
+  rowLabel: { fontSize: 15, fontWeight: '600', color: COLORS.text },
+  rowLabelDanger: { color: COLORS.error },
+  rowSub: { fontSize: 12, color: COLORS.textSecondary, marginTop: 1 },
+  separator: {
+    height: 1, backgroundColor: COLORS.border + '60', marginLeft: 66,
   },
-  logoutItem: {
-    justifyContent: 'center',
-  },
-  logoutText: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.error,
-  },
-  statusCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 14,
-  },
-  statusIconContainer: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  statusContent: {
-    flex: 1,
-  },
-  statusHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  statusLabel: {
-    fontSize: 16,
-    fontWeight: '700',
-  },
-  statusBadge: {
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 6,
-  },
-  statusBadgeText: {
-    fontSize: 10,
-    fontWeight: '700',
-    color: COLORS.white,
-  },
-  statusDescription: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    lineHeight: 18,
-  },
-  contactSupportButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.error,
-    borderRadius: 10,
-    padding: 14,
-    marginTop: 12,
-    gap: 8,
-  },
-  contactSupportText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
+
+  // Garder ces styles pour compatibilité
+  statusCard: { display: 'none' },
+  statusIconContainer: { display: 'none' },
+  statusContent: { display: 'none' },
+  statusHeader: { display: 'none' },
+  statusLabel: { display: 'none' },
+  statusBadge: { display: 'none' },
+  statusBadgeText: { display: 'none' },
+  statusDescription: { display: 'none' },
+  contactSupportButton: { display: 'none' },
+  contactSupportText: { display: 'none' },
 });

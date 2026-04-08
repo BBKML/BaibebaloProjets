@@ -4,13 +4,13 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   ScrollView,
   Image,
   Alert,
   ActivityIndicator
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
@@ -25,6 +25,7 @@ const documents = [
 ];
 
 export default function DocumentUploadVeloScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { updateRegistrationData, registrationData } = useAuthStore();
   const [uploadedDocs, setUploadedDocs] = useState(registrationData.documents || {});
   const [uploading, setUploading] = useState(null);
@@ -204,7 +205,7 @@ export default function DocumentUploadVeloScreen({ navigation }) {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={[
             styles.primaryButton,

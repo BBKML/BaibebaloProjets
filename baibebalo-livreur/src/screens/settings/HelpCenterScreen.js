@@ -1,7 +1,10 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { getPublicSettings, invalidateSettingsCache, getCompanyValue } from '../../services/settingsService';
 
 const faqData = [
   {
@@ -42,8 +45,27 @@ const faqData = [
   },
 ];
 
+function formatContactNumbers(settings, getCompanyValue) {
+  if (!settings) return '05 85 67 09 40 / 07 87 09 79 96';
+  const phones = [1, 2, 3, 4]
+    .map((n) => getCompanyValue(settings, `company_contact_${n}_phone`))
+    .filter(Boolean);
+  return phones.length > 0 ? phones.join(' / ') : '05 85 67 09 40 / 07 87 09 79 96';
+}
+
 export default function HelpCenterScreen({ navigation }) {
   const [expandedId, setExpandedId] = useState(null);
+  const [settings, setSettings] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateSettingsCache();
+      getPublicSettings().then((s) => setSettings(s || null));
+    }, [])
+  );
+
+  const supportPhone = getCompanyValue(settings, 'company_contact_1_phone') || getCompanyValue(settings, 'company_whatsapp') || '+2250787097996';
+  const contactNumbersText = formatContactNumbers(settings, getCompanyValue);
 
   const toggleExpand = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -54,7 +76,7 @@ export default function HelpCenterScreen({ navigation }) {
   };
 
   const handleCallSupport = () => {
-    Linking.openURL('tel:+2250787097996');
+    if (supportPhone) Linking.openURL(`tel:${supportPhone.replace(/\s/g, '')}`);
   };
 
   return (
@@ -83,7 +105,7 @@ export default function HelpCenterScreen({ navigation }) {
             <Text style={styles.quickActionText}>Appeler</Text>
           </TouchableOpacity>
         </View>
-        <Text style={styles.contactNumbers}>05 85 67 09 40 / 07 87 09 79 96</Text>
+        <Text style={styles.contactNumbers}>{contactNumbersText}</Text>
 
         {/* FAQ Section */}
         <View style={styles.section}>

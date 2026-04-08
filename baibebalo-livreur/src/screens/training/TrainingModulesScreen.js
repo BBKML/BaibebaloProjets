@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  SafeAreaView,
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   StatusBar,
-  ScrollView
+  ScrollView,
+  Alert,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
@@ -53,7 +54,14 @@ export default function TrainingModulesScreen({ navigation }) {
   const progressPercent = (completedCount / moduleList.length) * 100;
 
   const handleStartModule = (module) => {
-    if (module.locked) return;
+    if (module.locked) {
+      const prevModule = moduleList[module.id - 2];
+      const reason = prevModule
+        ? `Terminez d'abord le module "${prevModule.title}" pour débloquer ce contenu.`
+        : 'Complétez les modules précédents pour débloquer ce contenu.';
+      Alert.alert('Module verrouillé', reason, [{ text: 'OK' }]);
+      return;
+    }
     navigation.navigate('TrainingModuleDetail', { moduleId: module.id });
   };
 

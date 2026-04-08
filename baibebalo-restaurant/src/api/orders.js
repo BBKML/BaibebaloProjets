@@ -1,6 +1,11 @@
 import api from './auth';
 import { API_ENDPOINTS } from '../constants/api';
 
+/**
+ * Workflow commande (aligné backend / client / livreur) :
+ * new → accept (restaurant, délai 2 min) → accepted → [preparing] → ready → picked_up (livreur) → delivering → delivered
+ * Événements Socket côté restaurant : new_order, order_update, order_picked_up, order_cancelled
+ */
 export const restaurantOrders = {
   // Liste des commandes
   getOrders: async (filters = {}) => {

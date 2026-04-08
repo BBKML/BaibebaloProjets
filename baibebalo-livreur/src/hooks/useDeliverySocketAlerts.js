@@ -1,25 +1,24 @@
 /**
  * Hook pour afficher les alertes Socket.IO sur tous les écrans du livreur.
- * Les alertes s'affichent même lorsque l'utilisateur est sur DeliveriesScreen,
- * pendant une livraison, etc.
+ * Connexion uniquement quand enabled ET token sont prêts (évite "Pas de token livreur").
  */
 import { useEffect } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import socketService from '../services/socketService';
-import { acceptOrder, declineOrder } from '../api/orders';
+import useAuthStore from '../store/authStore';
 
 export const useDeliverySocketAlerts = (enabled) => {
   const navigation = useNavigation();
+  const token = useAuthStore((s) => s.token);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || !token) return;
 
-    try {
-      socketService.connect();
-    } catch (e) {
-      console.warn('[SocketAlerts] Connexion:', e?.message || e);
-    }
+    let cancelled = false;
+    socketService.connect(token).catch((e) => {
+      if (!cancelled) console.warn('[SocketAlerts] Connexion:', e?.message || e);
+    });
 
     const unsubscribeNewDelivery = socketService.on('new_delivery_available', (data) => {
       Alert.alert(
@@ -57,44 +56,18 @@ export const useDeliverySocketAlerts = (enabled) => {
     });
 
     const unsubscribeOrderProposed = socketService.on('order_proposed', (data) => {
-      const expiresMin = data.expires_in_seconds ? Math.floor(data.expires_in_seconds / 60) : 2;
-      Alert.alert(
-        '📦 Course proposée',
-        `${data.restaurant_name || 'Restaurant'}\n${(data.delivery_fee || data.total || 0).toLocaleString()} FCFA\n\nAcceptez dans les ${expiresMin} min.`,
-        [
-          {
-            text: 'Refuser',
-            style: 'cancel',
-            onPress: async () => {
-              try {
-                await declineOrder(data.order_id || data.orderId, 'Refus proposition');
-              } catch (e) {
-                const msg = e?.response?.data?.error?.message || e?.message || 'Impossible de refuser';
-                Alert.alert('Erreur', msg);
-              }
-            },
-          },
-          {
-            text: 'Accepter',
-            onPress: async () => {
-              try {
-                await acceptOrder(data.order_id);
-                navigation.navigate('NavigationToRestaurant', { orderId: data.order_id });
-              } catch (e) {
-                Alert.alert('Erreur', e?.response?.data?.error?.message || 'Impossible d\'accepter la course.');
-              }
-            },
-          },
-        ],
-        { cancelable: false }
-      );
+      const orderId = data.order_id || data.orderId;
+      if (!orderId) return;
+      navigation.navigate('NewDeliveryAlert', { proposal: { ...data, order_id: orderId } });
     });
 
     return () => {
+      cancelled = true;
       unsubscribeNewDelivery();
       unsubscribeOrderReady();
       unsubscribeOrderCancelled();
       unsubscribeOrderProposed();
+      socketService.disconnect();
     };
-  }, [enabled, navigation]);
+  }, [enabled, token, navigation]);
 };

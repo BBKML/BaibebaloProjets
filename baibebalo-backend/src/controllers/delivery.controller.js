@@ -1,6 +1,7 @@
 const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const { uploadService } = require('../services/upload.service');
+const { generateAccessToken, generateRefreshToken } = require('../middlewares/auth');
 
 /** Timeout en ms pour éviter de laisser la requête sans réponse (ex: client APK qui coupe) */
 const HANDLER_TIMEOUT_MS = 10000;
@@ -80,13 +81,28 @@ exports.registerDeliveryPerson = async (req, res) => {
       ]
     );
 
-    logger.info(`Nouveau livreur inscrit: ${result.rows[0].id}`);
+    const row = result.rows[0];
+    logger.info(`Nouveau livreur inscrit: ${row.id}`);
+
+    const accessToken = generateAccessToken({
+      id: row.id,
+      phone: row.phone,
+      type: 'delivery_person',
+    });
+    const refreshToken = generateRefreshToken({
+      id: row.id,
+      type: 'delivery_person',
+      tokenVersion: 0,
+    });
 
     res.status(201).json({
       success: true,
       message: 'Inscription réussie. Votre profil sera validé sous 24-48h.',
       data: {
-        delivery_person: result.rows[0],
+        delivery_person: row,
+        token: accessToken,
+        accessToken,
+        refreshToken,
       },
     });
   } catch (error) {
@@ -606,7 +622,7 @@ exports.confirmPickup = async (req, res) => {
 exports.confirmDelivery = async (req, res) => {
   try {
     const { id } = req.params;
-    const { delivery_code, confirmation_code } = req.body;
+    const { delivery_code, confirmation_code, photo } = req.body;
     const code = delivery_code || confirmation_code;
 
     return await transaction(async (client) => {
@@ -643,13 +659,17 @@ exports.confirmDelivery = async (req, res) => {
         }
       }
 
-      // Marquer comme livrée (et paiement espèces reçu du client si cash)
+      // Marquer comme livrée (et paiement espèces reçu du client si cash), optionnellement photo preuve (URL ou chemin)
+      const hasPhoto = photo && typeof photo === 'string' && photo.trim().length > 0;
+      const photoClause = hasPhoto ? ', delivery_proof_photo = $2' : '';
+      const photoParam = hasPhoto ? [id, photo.trim()] : [id];
       await client.query(
         `UPDATE orders 
          SET status = 'delivered', delivered_at = NOW()
          ${order.payment_method === 'cash' ? ", payment_status = 'paid', paid_at = NOW()" : ''}
+         ${photoClause}
          WHERE id = $1`,
-        [id]
+        photoParam
       );
 
       // === CRÉDIT RESTAURANT (flux Glovo : plateforme crédite le restaurant une fois livré + payé) ===
@@ -693,26 +713,28 @@ exports.confirmDelivery = async (req, res) => {
 
       // === CALCUL DES GAINS DU LIVREUR ===
       // NOUVEAU MODÈLE : Les bonus sont inclus dans les frais de livraison payés par le client
-      // Le livreur reçoit 70% du total (frais de base + bonus)
-      // Baibebalo garde 30% du total
+      // En livraison gratuite : Baibebalo paie le livreur (freeDeliveryDriverFee)
       const config = require('../config');
       const businessConfig = config.business;
       const now = new Date();
-      const deliveryFee = parseFloat(order.delivery_fee) || 0;
+      let deliveryFee = parseFloat(order.delivery_fee) || 0;
       const deliveryDistance = (parseFloat(order.delivery_distance) || 0);
       const safeDistance = Number.isFinite(deliveryDistance) ? deliveryDistance : 0;
-      
-      // Les bonus sont déjà inclus dans order.delivery_fee (payé par le client)
-      // Calculer 70% du total (frais + bonus)
+
+      const isFreeDelivery = deliveryFee <= 0;
+      if (isFreeDelivery) {
+        deliveryFee = businessConfig.freeDeliveryDriverFee || 500;
+      }
+
+      // Les bonus sont déjà inclus dans order.delivery_fee (payé par le client) ; en gratuit, plateforme paie
       const deliveryPersonPercentage = businessConfig.deliveryPersonPercentage || 70;
       const deliveryEarnings = Math.round((deliveryFee * deliveryPersonPercentage) / 100);
-      
-      // Calculer ce que Baibebalo garde (30%)
       const platformCommission = deliveryFee - deliveryEarnings;
-      
+
       // Détail des gains pour le log et la transaction
       const earningsBreakdown = {
-        delivery_fee_total: deliveryFee, // Total payé par le client (frais + bonus)
+        delivery_fee_total: deliveryFee, // Client ou plateforme (livraison gratuite)
+        free_delivery_paid_by_platform: isFreeDelivery,
         delivery_person_percentage: deliveryPersonPercentage,
         delivery_person_earnings: deliveryEarnings, // 70% du total
         platform_commission: platformCommission, // 30% du total
@@ -882,6 +904,11 @@ exports.confirmDelivery = async (req, res) => {
       emitToOrder(req.app, id, 'order_status_changed', {
         order_id: id,
         status: 'delivered',
+      });
+      emitToOrder(req.app, id, 'order_delivered', {
+        order_id: id,
+        order_number: order.order_number,
+        delivered_at: new Date(),
       });
       
       // Notifier les admins du dashboard
@@ -1152,81 +1179,80 @@ exports.getDashboard = async (req, res) => {
   try {
     const uid = req.user.id;
     const run = async () => {
-      const [deliveryRow, todayRow, todayDeliveriesRow, weekRow, monthRow, cashOrdersResult, activeOrdersRows, historyRows] = await Promise.all([
-        query(
-          `SELECT total_earnings, total_deliveries, available_balance, average_rating FROM delivery_persons WHERE id = $1`,
-          [uid]
-        ),
-        query(
-          `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
-           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= CURRENT_DATE`,
-          [uid]
-        ),
-        query(
-          `SELECT COUNT(*)::int as count FROM orders
-           WHERE delivery_person_id = $1 AND status = 'delivered' AND DATE(delivered_at) = CURRENT_DATE`,
-          [uid]
-        ),
-        query(
-          `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
-           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('week', CURRENT_DATE)`,
-          [uid]
-        ),
-        query(
-          `SELECT COALESCE(SUM(amount), 0) as v FROM transactions
-           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('month', CURRENT_DATE)`,
-          [uid]
-        ),
-        // Calculer le solde à reverser (espèces collectées - déjà remises)
-        query(
-          `SELECT 
-            COALESCE(SUM(CASE WHEN o.payment_method = 'cash' AND o.status = 'delivered' AND (o.cash_remittance_id IS NULL OR o.cash_remittance_id IN (SELECT id FROM cash_remittances WHERE status = 'rejected')) THEN o.total ELSE 0 END), 0) as cash_to_remit
-           FROM orders o
-           WHERE o.delivery_person_id = $1 AND o.payment_method = 'cash' AND o.status = 'delivered'`,
-          [uid]
-        ),
-        query(
-          `SELECT o.id, o.order_number, o.status, o.restaurant_id, o.delivery_fee, o.delivery_address,
-                  o.placed_at, o.ready_at, o.delivering_at,
-                  (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
-           FROM orders o
-           WHERE o.delivery_person_id = $1 AND o.status IN ('ready', 'picked_up', 'delivering', 'driver_at_customer')
-           ORDER BY o.created_at DESC LIMIT 20`,
-          [uid]
-        ),
-        query(
-          `SELECT o.id, o.order_number, o.status, o.delivery_fee, o.delivery_address,
-                  o.placed_at, o.delivered_at, o.created_at,
-                  (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) as restaurant_name
-           FROM orders o
-           WHERE o.delivery_person_id = $1 AND o.status = 'delivered'
-           ORDER BY o.created_at DESC LIMIT 5`,
-          [uid]
-        ),
-      ]);
-
-      const delivery = deliveryRow.rows[0];
-      const today = parseFloat(todayRow.rows[0]?.v || 0);
-      const todayDeliveries = parseInt(todayDeliveriesRow.rows[0]?.count || 0, 10);
-      const week = parseFloat(weekRow.rows[0]?.v || 0);
-      const month = parseFloat(monthRow.rows[0]?.v || 0);
-      const cashToRemit = parseFloat(cashOrdersResult.rows[0]?.cash_to_remit || 0);
-      const orders = Array.isArray(activeOrdersRows.rows) ? activeOrdersRows.rows : [];
-      const deliveries = Array.isArray(historyRows.rows) ? historyRows.rows : [];
-
-      const averageRating = delivery ? parseFloat(delivery.average_rating) || 0 : 0;
+      const sql = `
+        SELECT
+          dp.available_balance,
+          dp.total_earnings,
+          dp.total_deliveries,
+          dp.average_rating,
+          (SELECT COALESCE(SUM(amount), 0) FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= CURRENT_DATE) AS today_fees,
+          (SELECT COUNT(*)::int FROM orders
+           WHERE delivery_person_id = $1 AND status = 'delivered' AND DATE(delivered_at) = CURRENT_DATE) AS today_deliveries_count,
+          (SELECT COALESCE(SUM(amount), 0) FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('week', CURRENT_DATE)) AS week_fees,
+          (SELECT COALESCE(SUM(amount), 0) FROM transactions
+           WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= DATE_TRUNC('month', CURRENT_DATE)) AS month_fees,
+          (SELECT COALESCE(SUM(CASE WHEN o.payment_method = 'cash' AND o.status = 'delivered' AND (o.cash_remittance_id IS NULL OR o.cash_remittance_id IN (SELECT id FROM cash_remittances WHERE status = 'rejected')) THEN o.total ELSE 0 END), 0)
+           FROM orders o WHERE o.delivery_person_id = $1 AND o.payment_method = 'cash' AND o.status = 'delivered') AS cash_to_remit,
+          COALESCE((
+            SELECT json_agg(t)
+            FROM (
+              SELECT o.id, o.order_number, o.status, o.restaurant_id, o.delivery_fee, o.delivery_address,
+                     o.placed_at, o.ready_at, o.delivering_at,
+                     (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) AS restaurant_name
+              FROM orders o
+              WHERE o.delivery_person_id = $1 AND o.status IN ('ready', 'picked_up', 'delivering', 'driver_at_customer')
+              ORDER BY o.created_at DESC LIMIT 20
+            ) t
+          ), '[]'::json) AS active_orders,
+          COALESCE((
+            SELECT json_agg(t)
+            FROM (
+              SELECT o.id, o.order_number, o.status, o.delivery_fee, o.delivery_address,
+                     o.placed_at, o.delivered_at, o.created_at,
+                     (SELECT r.name FROM restaurants r WHERE r.id = o.restaurant_id LIMIT 1) AS restaurant_name
+              FROM orders o
+              WHERE o.delivery_person_id = $1 AND o.status = 'delivered'
+              ORDER BY o.created_at DESC LIMIT 5
+            ) t
+          ), '[]'::json) AS history
+        FROM delivery_persons dp
+        WHERE dp.id = $1`;
+      const result = await query(sql, [uid]);
+      const row = result.rows[0];
+      if (!row) {
+        return {
+          earnings: { available_balance: 0, total_earnings: 0, total_deliveries: 0, today: 0, today_deliveries: 0, this_week: 0, this_month: 0, cash_to_remit: 0 },
+          profile: { average_rating: 0 },
+          orders: [],
+          deliveries: [],
+          pagination: { page: 1, limit: 5, total: 0, pages: 1 },
+        };
+      }
+      const today = parseFloat(row.today_fees ?? 0);
+      const todayDeliveries = parseInt(row.today_deliveries_count ?? 0, 10);
+      const week = parseFloat(row.week_fees ?? 0);
+      const month = parseFloat(row.month_fees ?? 0);
+      const cashToRemit = parseFloat(row.cash_to_remit ?? 0);
+      let orders = row.active_orders;
+      let deliveries = row.history;
+      if (typeof orders === 'string') try { orders = JSON.parse(orders); } catch (_) { orders = []; }
+      if (typeof deliveries === 'string') try { deliveries = JSON.parse(deliveries); } catch (_) { deliveries = []; }
+      if (!Array.isArray(orders)) orders = [];
+      if (!Array.isArray(deliveries)) deliveries = [];
       return {
         earnings: {
-          available_balance: delivery ? parseFloat(delivery.available_balance ?? 0) : 0,
-          total_earnings: delivery ? parseFloat(delivery.total_earnings || 0) : 0,
-          total_deliveries: delivery ? Number(delivery.total_deliveries) || 0 : 0,
+          available_balance: parseFloat(row.available_balance ?? 0),
+          total_earnings: parseFloat(row.total_earnings ?? 0),
+          total_deliveries: Number(row.total_deliveries) || 0,
           today,
           today_deliveries: todayDeliveries,
           this_week: week,
           this_month: month,
-          cash_to_remit: cashToRemit, // Solde espèces à reverser à Baibebalo
+          cash_to_remit: cashToRemit,
         },
-        profile: { average_rating: averageRating },
+        profile: { average_rating: parseFloat(row.average_rating) || 0 },
         orders,
         deliveries,
         pagination: { page: 1, limit: 5, total: deliveries.length, pages: 1 },
@@ -1345,7 +1371,7 @@ exports.getOrdersPendingCashRemittance = async (req, res) => {
       success: true,
       data: {
         orders: result.rows,
-        total_pending_amount: Math.round(totalPending * 100) / 100,
+        total_pending_amount: Math.round(totalPending),
       },
     });
   } catch (error) {
@@ -1619,21 +1645,103 @@ exports.getDeliveryHistory = async (req, res) => {
 };
 
 /**
+ * Upload preuve de livraison en base64 uniquement (route dédiée sans multer, pour éviter Network Error en RN)
+ */
+exports.uploadDeliveryProof = async (req, res) => {
+  try {
+    const { photo_base64 } = req.body || {};
+    const base64Data = (typeof photo_base64 === 'string' && photo_base64.includes(','))
+      ? photo_base64.split(',')[1]
+      : photo_base64;
+    if (!base64Data) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BASE64', message: 'Données image base64 requises' },
+      });
+    }
+    const buffer = Buffer.from(base64Data, 'base64');
+    if (buffer.length === 0 || buffer.length > 5 * 1024 * 1024) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_IMAGE', message: 'Image trop grande ou vide (max 5 Mo)' },
+      });
+    }
+    const file = {
+      buffer,
+      originalname: `proof_${Date.now()}.jpg`,
+      mimetype: 'image/jpeg',
+      size: buffer.length,
+    };
+    const result = await uploadService.uploadToLocal(file, 'delivery-proofs', {
+      baseUrl: req.headers.host ? `http://${req.headers.host}` : undefined,
+    });
+    if (!result.success) throw new Error('Échec upload');
+    logger.info(`Preuve livraison uploadée par livreur ${req.user.id}`);
+    return res.json({
+      success: true,
+      message: 'Photo envoyée',
+      data: { url: result.url, key: result.key },
+    });
+  } catch (error) {
+    logger.error('Erreur uploadDeliveryProof:', error);
+    return res.status(500).json({
+      success: false,
+      error: { code: 'UPLOAD_ERROR', message: 'Erreur lors de l\'envoi de la photo' },
+    });
+  }
+};
+
+/**
  * Upload un document (CNI, permis, photo profil, etc.)
+ * Accepte soit multipart (file) soit JSON avec photo_base64 (tous types, fallback RN pour éviter Network Error multipart)
  */
 exports.uploadDocument = async (req, res) => {
   try {
-    const file = req.file;
-    const { document_type } = req.body;
+    let file = req.file;
+    const { document_type, photo_base64 } = req.body || {};
+
+    // Fallback pour app React Native : envoi en base64 (évite les soucis multipart / Network Error)
+    if (!file && photo_base64 && document_type) {
+      try {
+        const base64Data = (typeof photo_base64 === 'string' && photo_base64.includes(','))
+          ? photo_base64.split(',')[1]
+          : photo_base64;
+        if (!base64Data) {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'INVALID_BASE64', message: 'Données image base64 invalides' },
+          });
+        }
+        const buffer = Buffer.from(base64Data, 'base64');
+        if (buffer.length === 0 || buffer.length > (5 * 1024 * 1024)) {
+          return res.status(400).json({
+            success: false,
+            error: { code: 'INVALID_IMAGE', message: 'Image trop grande ou vide (max 5 Mo)' },
+          });
+        }
+        file = {
+          buffer,
+          originalname: `doc_${document_type}_${Date.now()}.jpg`,
+          mimetype: 'image/jpeg',
+          size: buffer.length,
+        };
+      } catch (e) {
+        logger.warn('Upload document base64 échoué:', e.message);
+        return res.status(400).json({
+          success: false,
+          error: { code: 'INVALID_BASE64', message: 'Format base64 invalide' },
+        });
+      }
+    }
 
     if (!file) {
       return res.status(400).json({
         success: false,
-        error: { code: 'NO_FILE', message: 'Aucun fichier fourni' },
+        error: { code: 'NO_FILE', message: 'Aucun fichier fourni (envoyez "file" en multipart ou "photo_base64" + document_type en JSON pour preuve de livraison)' },
       });
     }
 
-    // Types de documents valides (incluant recto/verso)
+    // Types de documents valides (incluant recto/verso + preuve de livraison)
     const validTypes = [
       'id_card', 'id_card_recto', 'id_card_verso',
       'driver_license', 'driver_license_recto', 'driver_license_verso',
@@ -1642,7 +1750,8 @@ exports.uploadDocument = async (req, res) => {
       // Types utilisés dans l'inscription
       'cni_recto', 'cni_verso', 'permis_recto', 'permis_verso',
       'carte_grise_recto', 'carte_grise_verso', 'assurance', 'photo_moto',
-      'certificat_residence', 'photo_recente'
+      'certificat_residence', 'photo_recente',
+      'delivery_proof', 'incident_photo'
     ];
     
     if (document_type && !validTypes.includes(document_type)) {
@@ -1653,7 +1762,13 @@ exports.uploadDocument = async (req, res) => {
     }
 
     // Déterminer le dossier selon le type
-    const folder = document_type === 'profile_photo' ? 'delivery-profiles' : 'delivery-documents';
+    const folder = document_type === 'profile_photo'
+      ? 'delivery-profiles'
+      : document_type === 'delivery_proof'
+        ? 'delivery-proofs'
+        : document_type === 'incident_photo'
+          ? 'delivery-incidents'
+          : 'delivery-documents';
 
     // Upload le fichier
     const result = await uploadService.uploadToLocal(file, folder, {
@@ -1686,7 +1801,7 @@ exports.uploadDocument = async (req, res) => {
         'id_card', 'id_card_recto', 'id_card_verso',
         'driver_license', 'driver_license_recto', 'driver_license_verso',
         'vehicle_registration', 'vehicle_registration_recto', 'vehicle_registration_verso',
-        'insurance_document', 'profile_photo'
+        'insurance_document', 'profile_photo', 'vehicle_photo'
       ];
       
       if (validColumns.includes(columnName)) {
@@ -1819,15 +1934,17 @@ exports.updateMyProfile = async (req, res) => {
     }
     if (vehicle_plate !== undefined) {
       updates.push(`vehicle_plate = $${paramIndex++}`);
-      values.push(vehicle_plate);
+      values.push(vehicle_plate && String(vehicle_plate).trim() ? String(vehicle_plate).trim() : null);
     }
-    if (mobile_money_number) {
+    if (mobile_money_number !== undefined) {
+      const trimmed = String(mobile_money_number || '').trim().replace(/\s/g, '');
+      const normalized = trimmed.startsWith('+') ? trimmed : (trimmed.startsWith('225') ? `+${trimmed}` : `+225${trimmed}`);
       updates.push(`mobile_money_number = $${paramIndex++}`);
-      values.push(mobile_money_number);
+      values.push(normalized || null);
     }
-    if (mobile_money_provider) {
+    if (mobile_money_provider !== undefined) {
       updates.push(`mobile_money_provider = $${paramIndex++}`);
-      values.push(mobile_money_provider);
+      values.push(mobile_money_provider && String(mobile_money_provider).trim() ? String(mobile_money_provider).trim() : null);
     }
     if (availability_hours !== undefined) {
       updates.push(`availability_hours = $${paramIndex++}`);
@@ -2090,13 +2207,21 @@ exports.arriveAtRestaurant = async (req, res) => {
 
     const order = result.rows[0];
 
-    // Notifier le restaurant (uniquement pour commandes food)
-    const io = req.app.get('io');
+    // Notifier le restaurant (Socket + push)
+    const partnersIoArrived = req.app.get('partnersIo');
     if (order.restaurant_id) {
-      io.to(`restaurant_${order.restaurant_id}`).emit('delivery_arrived', {
-        order_id: id,
-        order_number: order.order_number,
-      });
+      if (partnersIoArrived) {
+        partnersIoArrived.to(`restaurant_${order.restaurant_id}`).emit('delivery_arrived', {
+          order_id: id,
+          order_number: order.order_number,
+        });
+      }
+      try {
+        const notificationService = require('../services/notification.service');
+        await notificationService.sendOrderNotification(id, 'restaurant', 'delivery_arrived');
+      } catch (notifErr) {
+        logger.warn('Push restaurant (arrive au restaurant) ignorée', { error: notifErr.message });
+      }
     }
 
     // Notifier le client : statut "Livraison en cours"
@@ -2146,7 +2271,7 @@ exports.arriveAtCustomer = async (req, res) => {
 
     const order = result.rows[0];
 
-    // Notifier le client : statut "Livrée" (livreur arrivé chez le client)
+    // Notifier le client : Socket + push "Livreur arrivé chez vous"
     const { emitToOrder } = require('../utils/socketEmitter');
     emitToOrder(req.app, id, 'delivery_arrived_at_customer', {
       order_id: id,
@@ -2156,6 +2281,12 @@ exports.arriveAtCustomer = async (req, res) => {
       order_id: id,
       status: 'driver_at_customer',
     });
+    try {
+      const notificationService = require('../services/notification.service');
+      await notificationService.sendOrderNotification(id, 'client', 'delivery_arrived_at_customer');
+    } catch (notifErr) {
+      logger.warn('Push client (arrivée chez le client) ignorée', { error: notifErr.message });
+    }
 
     // Envoyer SMS au client
     const userResult = await query('SELECT phone FROM users WHERE id = $1', [order.user_id]);
@@ -3099,6 +3230,391 @@ exports.reportEmergency = async (req, res) => {
       success: false,
       error: { code: 'EMERGENCY_ERROR', message: 'Erreur lors du signalement d\'urgence' },
     });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// PROFIL ÉTENDU
+// ═══════════════════════════════════════════════════════════
+
+exports.updateAvailability = async (req, res) => {
+  try {
+    const { availability_hours } = req.body;
+    await query(
+      'UPDATE delivery_persons SET availability_hours = $1 WHERE id = $2',
+      [JSON.stringify(availability_hours), req.user.id]
+    );
+    res.json({ success: true, message: 'Planning de disponibilité mis à jour' });
+  } catch (error) {
+    logger.error('Erreur updateAvailability:', error);
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' } });
+  }
+};
+
+exports.updateVehicle = async (req, res) => {
+  try {
+    const { vehicle_type, vehicle_plate } = req.body;
+    const updates = [];
+    const values = [];
+    let idx = 1;
+    if (vehicle_type) { updates.push(`vehicle_type = $${idx++}`); values.push(vehicle_type); }
+    if (vehicle_plate !== undefined) { updates.push(`vehicle_plate = $${idx++}`); values.push(vehicle_plate || null); }
+    if (updates.length === 0) return res.status(400).json({ success: false, error: { code: 'NO_DATA', message: 'Aucune donnée à mettre à jour' } });
+    values.push(req.user.id);
+    await query(`UPDATE delivery_persons SET ${updates.join(', ')} WHERE id = $${idx}`, values);
+    res.json({ success: true, message: 'Informations du véhicule mises à jour' });
+  } catch (error) {
+    logger.error('Erreur updateVehicle:', error);
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' } });
+  }
+};
+
+exports.updateZones = async (req, res) => {
+  try {
+    const { work_zones } = req.body;
+    await query(
+      'UPDATE delivery_persons SET work_zones = $1 WHERE id = $2',
+      [JSON.stringify(work_zones), req.user.id]
+    );
+    res.json({ success: true, message: 'Zones de livraison mises à jour' });
+  } catch (error) {
+    logger.error('Erreur updateZones:', error);
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' } });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// MOBILE MONEY
+// ═══════════════════════════════════════════════════════════
+
+exports.verifyMobileMoney = async (req, res) => {
+  try {
+    const { mobile_money_number, mobile_money_provider } = req.body;
+    if (!mobile_money_number || !mobile_money_provider) {
+      return res.status(400).json({ success: false, error: { code: 'MISSING_FIELDS', message: 'Numéro et opérateur requis' } });
+    }
+    // Vérification basique du format
+    const digits = String(mobile_money_number).replace(/\s/g, '').replace(/^\+/, '');
+    const valid = /^225?(0[1457]|[4-7])\d{8}$/.test(digits) || /^(0[1457]|[4-7])\d{8}$/.test(digits);
+    if (!valid) {
+      return res.status(400).json({ success: false, error: { code: 'INVALID_NUMBER', message: 'Numéro Mobile Money invalide' } });
+    }
+    res.json({ success: true, data: { verified: true, mobile_money_number, mobile_money_provider } });
+  } catch (error) {
+    logger.error('Erreur verifyMobileMoney:', error);
+    res.status(500).json({ success: false, error: { code: 'VERIFY_ERROR', message: 'Erreur lors de la vérification' } });
+  }
+};
+
+exports.updateMobileMoney = async (req, res) => {
+  try {
+    const { mobile_money_number, mobile_money_provider } = req.body;
+    await query(
+      'UPDATE delivery_persons SET mobile_money_number = $1, mobile_money_provider = $2 WHERE id = $3',
+      [mobile_money_number || null, mobile_money_provider || null, req.user.id]
+    );
+    res.json({ success: true, message: 'Compte Mobile Money mis à jour' });
+  } catch (error) {
+    logger.error('Erreur updateMobileMoney:', error);
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' } });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// FORMATION & ONBOARDING
+// ═══════════════════════════════════════════════════════════
+
+exports.getTrainingModules = async (req, res) => {
+  try {
+    const result = await query(
+      `SELECT id, training_modules_completed, quiz_passed, contract_signed, status
+       FROM delivery_persons WHERE id = $1`,
+      [req.user.id]
+    );
+    const dp = result.rows[0] || {};
+    const completedModules = dp.training_modules_completed
+      ? (typeof dp.training_modules_completed === 'string' ? JSON.parse(dp.training_modules_completed) : dp.training_modules_completed)
+      : [];
+
+    const modules = [
+      { id: 'module_1', title: 'Bienvenue chez Baibebalo', description: 'Introduction à la plateforme', duration_minutes: 5, order: 1, completed: completedModules.includes('module_1') },
+      { id: 'module_2', title: 'Comment accepter et gérer une livraison', description: 'Processus complet de livraison', duration_minutes: 10, order: 2, completed: completedModules.includes('module_2') },
+      { id: 'module_3', title: 'Service client et professionnalisme', description: 'Interaction avec les clients et restaurants', duration_minutes: 8, order: 3, completed: completedModules.includes('module_3') },
+      { id: 'module_4', title: 'Sécurité et urgences', description: 'Procédures d\'urgence et sécurité', duration_minutes: 7, order: 4, completed: completedModules.includes('module_4') },
+    ];
+
+    res.json({ success: true, data: { modules, total_completed: completedModules.length, total: modules.length } });
+  } catch (error) {
+    logger.error('Erreur getTrainingModules:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des modules' } });
+  }
+};
+
+exports.getModuleDetail = async (req, res) => {
+  try {
+    const { moduleId } = req.params;
+    const moduleContent = {
+      module_1: { id: 'module_1', title: 'Bienvenue chez Baibebalo', content: 'Contenu du module 1...', video_url: null, duration_minutes: 5 },
+      module_2: { id: 'module_2', title: 'Comment accepter et gérer une livraison', content: 'Contenu du module 2...', video_url: null, duration_minutes: 10 },
+      module_3: { id: 'module_3', title: 'Service client et professionnalisme', content: 'Contenu du module 3...', video_url: null, duration_minutes: 8 },
+      module_4: { id: 'module_4', title: 'Sécurité et urgences', content: 'Contenu du module 4...', video_url: null, duration_minutes: 7 },
+    };
+    const module = moduleContent[moduleId];
+    if (!module) return res.status(404).json({ success: false, error: { code: 'MODULE_NOT_FOUND', message: 'Module non trouvé' } });
+    res.json({ success: true, data: module });
+  } catch (error) {
+    logger.error('Erreur getModuleDetail:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération du module' } });
+  }
+};
+
+exports.completeModule = async (req, res) => {
+  try {
+    const { moduleId } = req.params;
+    const result = await query('SELECT training_modules_completed FROM delivery_persons WHERE id = $1', [req.user.id]);
+    const dp = result.rows[0] || {};
+    const completed = dp.training_modules_completed
+      ? (typeof dp.training_modules_completed === 'string' ? JSON.parse(dp.training_modules_completed) : dp.training_modules_completed)
+      : [];
+    if (!completed.includes(moduleId)) completed.push(moduleId);
+    await query('UPDATE delivery_persons SET training_modules_completed = $1 WHERE id = $2', [JSON.stringify(completed), req.user.id]);
+    res.json({ success: true, message: 'Module complété', data: { completed_modules: completed } });
+  } catch (error) {
+    logger.error('Erreur completeModule:', error);
+    res.status(500).json({ success: false, error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' } });
+  }
+};
+
+exports.getQuiz = async (req, res) => {
+  try {
+    const quiz = {
+      id: 'quiz_certification',
+      title: 'Quiz de certification Baibebalo',
+      questions: [
+        { id: 'q1', question: 'Que faire si le client est absent ?', options: ['Repartir immédiatement', 'Attendre 10 minutes et contacter le client', 'Appeler le support', 'Laisser la commande devant la porte'], correct_index: 1 },
+        { id: 'q2', question: 'Quelle est la durée maximale d\'attente au restaurant ?', options: ['5 minutes', '10 minutes', '15 minutes', '20 minutes'], correct_index: 2 },
+        { id: 'q3', question: 'Que faire en cas d\'accident ?', options: ['Continuer la livraison', 'Appuyer sur le bouton d\'urgence', 'Contacter le client', 'Abandonner la commande'], correct_index: 1 },
+      ],
+      passing_score: 70,
+    };
+    res.json({ success: true, data: quiz });
+  } catch (error) {
+    logger.error('Erreur getQuiz:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération du quiz' } });
+  }
+};
+
+exports.submitQuiz = async (req, res) => {
+  try {
+    const { answers } = req.body;
+    const correctAnswers = { q1: 1, q2: 2, q3: 1 };
+    let correct = 0;
+    const total = Object.keys(correctAnswers).length;
+    if (answers && typeof answers === 'object') {
+      Object.entries(correctAnswers).forEach(([qId, correctIdx]) => {
+        if (answers[qId] === correctIdx) correct++;
+      });
+    }
+    const score = Math.round((correct / total) * 100);
+    const passed = score >= 70;
+    if (passed) {
+      await query('UPDATE delivery_persons SET quiz_passed = true WHERE id = $1', [req.user.id]);
+    }
+    res.json({ success: true, data: { score, passed, correct, total } });
+  } catch (error) {
+    logger.error('Erreur submitQuiz:', error);
+    res.status(500).json({ success: false, error: { code: 'SUBMIT_ERROR', message: 'Erreur lors de la soumission du quiz' } });
+  }
+};
+
+exports.signContract = async (req, res) => {
+  try {
+    await query('UPDATE delivery_persons SET contract_signed = true, contract_signed_at = NOW() WHERE id = $1', [req.user.id]);
+    res.json({ success: true, message: 'Contrat signé avec succès', data: { contract_signed: true, signed_at: new Date().toISOString() } });
+  } catch (error) {
+    logger.error('Erreur signContract:', error);
+    res.status(500).json({ success: false, error: { code: 'SIGN_ERROR', message: 'Erreur lors de la signature du contrat' } });
+  }
+};
+
+exports.getStarterKit = async (req, res) => {
+  try {
+    res.json({
+      success: true,
+      data: {
+        items: [
+          { id: 'bag', name: 'Sac isotherme Baibebalo', price: 5000, required: true },
+          { id: 'tshirt', name: 'T-shirt Baibebalo (uniforme)', price: 3000, required: false },
+        ],
+        total_price: 8000,
+        pickup_address: 'Siège Baibebalo, Abidjan',
+        contact_phone: '+2250787097996',
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getStarterKit:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération du kit' } });
+  }
+};
+
+exports.orderStarterKit = async (req, res) => {
+  try {
+    res.json({ success: true, message: 'Demande de kit de démarrage enregistrée. L\'équipe Baibebalo vous contactera.' });
+  } catch (error) {
+    logger.error('Erreur orderStarterKit:', error);
+    res.status(500).json({ success: false, error: { code: 'ORDER_ERROR', message: 'Erreur lors de la commande du kit' } });
+  }
+};
+
+// ═══════════════════════════════════════════════════════════
+// LOCALISATION
+// ═══════════════════════════════════════════════════════════
+
+exports.getHeatMap = async (req, res) => {
+  try {
+    // Retourne les zones à forte demande basées sur les commandes récentes
+    const result = await query(
+      `SELECT
+         ROUND(CAST(delivery_latitude AS NUMERIC), 3) AS lat,
+         ROUND(CAST(delivery_longitude AS NUMERIC), 3) AS lng,
+         COUNT(*) AS order_count
+       FROM orders
+       WHERE created_at > NOW() - INTERVAL '7 days'
+         AND delivery_latitude IS NOT NULL
+         AND delivery_longitude IS NOT NULL
+       GROUP BY 1, 2
+       ORDER BY order_count DESC
+       LIMIT 50`,
+      []
+    );
+    res.json({ success: true, data: { points: result.rows } });
+  } catch (error) {
+    logger.error('Erreur getHeatMap:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération de la carte de chaleur' } });
+  }
+};
+
+exports.getNearbyRestaurants = async (req, res) => {
+  try {
+    const { latitude, longitude, radius = 5 } = req.query;
+    if (!latitude || !longitude) {
+      return res.status(400).json({ success: false, error: { code: 'MISSING_LOCATION', message: 'Latitude et longitude requises' } });
+    }
+    const result = await query(
+      `SELECT id, name, address, latitude, longitude,
+         ROUND(CAST(
+           6371 * acos(
+             cos(radians($1)) * cos(radians(latitude)) *
+             cos(radians(longitude) - radians($2)) +
+             sin(radians($1)) * sin(radians(latitude))
+           ) AS NUMERIC
+         ), 2) AS distance_km
+       FROM restaurants
+       WHERE is_open = true AND status = 'active'
+         AND latitude IS NOT NULL AND longitude IS NOT NULL
+       HAVING 6371 * acos(
+         cos(radians($1)) * cos(radians(latitude)) *
+         cos(radians(longitude) - radians($2)) +
+         sin(radians($1)) * sin(radians(latitude))
+       ) <= $3
+       ORDER BY distance_km
+       LIMIT 20`,
+      [parseFloat(latitude), parseFloat(longitude), parseFloat(radius)]
+    );
+    res.json({ success: true, data: { restaurants: result.rows } });
+  } catch (error) {
+    logger.error('Erreur getNearbyRestaurants:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des restaurants' } });
+  }
+};
+
+exports.getSuggestedZones = async (req, res) => {
+  try {
+    // Zones suggérées basées sur le volume de commandes par quartier
+    const result = await query(
+      `SELECT
+         delivery_address_district AS zone,
+         COUNT(*) AS order_count,
+         AVG(delivery_fee) AS avg_fee
+       FROM orders
+       WHERE created_at > NOW() - INTERVAL '7 days'
+         AND delivery_address_district IS NOT NULL
+       GROUP BY delivery_address_district
+       ORDER BY order_count DESC
+       LIMIT 10`,
+      []
+    );
+    res.json({ success: true, data: { zones: result.rows } });
+  } catch (error) {
+    logger.error('Erreur getSuggestedZones:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des zones' } });
+  }
+};
+
+exports.getPerformanceBonuses = async (req, res) => {
+  try {
+    const deliveryPersonId = req.deliveryPerson?.id;
+    if (!deliveryPersonId) {
+      return res.status(401).json({ success: false, error: { code: 'UNAUTHORIZED', message: 'Non autorisé' } });
+    }
+
+    // Livraisons aujourd'hui
+    const todayResult = await query(
+      `SELECT COUNT(*) AS count
+       FROM orders
+       WHERE assigned_driver_id = $1
+         AND status = 'delivered'
+         AND completed_at >= CURRENT_DATE
+         AND completed_at < CURRENT_DATE + INTERVAL '1 day'`,
+      [deliveryPersonId]
+    );
+    const todayCount = parseInt(todayResult.rows[0]?.count || 0, 10);
+
+    // Bonus potentiel aujourd'hui
+    let potentialBonus = 0;
+    if (todayCount >= 20) potentialBonus = 1500;
+    else if (todayCount >= 10) potentialBonus = 500;
+
+    // Bonus déjà attribués (30 derniers jours)
+    const bonusResult = await query(
+      `SELECT bonus_date, deliveries_count, bonus_amount, status
+       FROM delivery_performance_bonuses
+       WHERE delivery_person_id = $1
+         AND bonus_date >= CURRENT_DATE - INTERVAL '30 days'
+       ORDER BY bonus_date DESC
+       LIMIT 15`,
+      [deliveryPersonId]
+    );
+
+    // Prochain palier
+    let nextThreshold = null;
+    let deliveriesNeeded = 0;
+    if (todayCount < 10) {
+      nextThreshold = 500;
+      deliveriesNeeded = 10 - todayCount;
+    } else if (todayCount < 20) {
+      nextThreshold = 1500;
+      deliveriesNeeded = 20 - todayCount;
+    }
+
+    res.json({
+      success: true,
+      data: {
+        today_deliveries: todayCount,
+        potential_bonus: potentialBonus,
+        next_threshold: nextThreshold,
+        deliveries_needed: deliveriesNeeded,
+        recent_bonuses: bonusResult.rows.map((b) => ({
+          date: b.bonus_date,
+          deliveries: parseInt(b.deliveries_count, 10),
+          amount: parseInt(b.bonus_amount, 10),
+          status: b.status,
+        })),
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getPerformanceBonuses:', error);
+    res.status(500).json({ success: false, error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des bonus' } });
   }
 };
 

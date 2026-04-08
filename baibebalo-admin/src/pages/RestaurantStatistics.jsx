@@ -92,7 +92,7 @@ const RestaurantStatistics = () => {
               <span className="material-symbols-outlined text-sm">arrow_back</span>
               Retour
             </button>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Statistiques Détaillées
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">

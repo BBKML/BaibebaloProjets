@@ -1,14 +1,31 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { useMaintenanceRetry } from '../../contexts/MaintenanceContext';
 
-export default function AppMaintenanceScreen({ navigation }) {
+export default function AppMaintenanceScreen() {
+  const { onRetry } = useMaintenanceRetry() || {};
+  const [isChecking, setIsChecking] = useState(false);
+
+  const handleRefresh = async () => {
+    if (typeof onRetry !== 'function') return;
+    setIsChecking(true);
+    try {
+      await onRetry();
+    } catch (error) {
+      console.error('Erreur lors de la vérification:', error);
+    } finally {
+      setIsChecking(false);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <View style={styles.topBar}>
@@ -40,28 +57,19 @@ export default function AppMaintenanceScreen({ navigation }) {
           <Text style={styles.timeBadgeText}>Retour prévu à 14h00</Text>
         </View>
 
-        <TouchableOpacity 
-          style={styles.refreshButton}
-          onPress={async () => {
-            // Recharger l'app pour vérifier à nouveau le mode maintenance
-            try {
-              const { checkMaintenanceMode, invalidateSettingsCache } = require('../../services/settingsService');
-              invalidateSettingsCache();
-              const stillInMaintenance = await checkMaintenanceMode();
-              if (!stillInMaintenance && navigation) {
-                // Redémarrer l'app si le mode maintenance est désactivé
-                navigation.reset({
-                  index: 0,
-                  routes: [{ name: 'Welcome' }],
-                });
-              }
-            } catch (error) {
-              console.error('Erreur lors de la vérification:', error);
-            }
-          }}
+        <TouchableOpacity
+          style={[styles.refreshButton, isChecking && styles.refreshButtonDisabled]}
+          onPress={handleRefresh}
+          disabled={isChecking}
         >
-          <Ionicons name="refresh" size={18} color={COLORS.white} />
-          <Text style={styles.refreshButtonText}>Actualiser</Text>
+          {isChecking ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Ionicons name="refresh" size={18} color={COLORS.white} />
+          )}
+          <Text style={styles.refreshButtonText}>
+            {isChecking ? 'Vérification...' : 'Actualiser'}
+          </Text>
         </TouchableOpacity>
         <Text style={styles.footerText}>
           Besoin d'aide ? <Text style={styles.footerLink}>Contactez le support</Text>
@@ -208,6 +216,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.3,
     shadowRadius: 8,
     elevation: 4,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.8,
   },
   refreshButtonText: {
     fontSize: 16,

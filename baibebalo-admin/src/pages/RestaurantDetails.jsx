@@ -214,7 +214,7 @@ const RestaurantDetails = () => {
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 {restaurant.name || 'Restaurant'}
               </h1>
               <div className="flex items-center gap-3 mt-2">
@@ -663,11 +663,18 @@ const RestaurantDetails = () => {
                                     <h5 className="font-bold text-slate-900 dark:text-white text-sm">
                                       {item.name}
                                     </h5>
-                                    {!item.is_available && (
-                                      <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs rounded-full whitespace-nowrap">
-                                        Indisponible
-                                      </span>
-                                    )}
+                                    <div className="flex items-center gap-1 flex-wrap">
+                                      {item.is_daily_special && (
+                                        <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 text-xs rounded-full whitespace-nowrap font-bold">
+                                          ⭐ Plat du jour
+                                        </span>
+                                      )}
+                                      {!item.is_available && (
+                                        <span className="px-2 py-0.5 bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400 text-xs rounded-full whitespace-nowrap">
+                                          Indisponible
+                                        </span>
+                                      )}
+                                    </div>
                                   </div>
                                   {item.description && (
                                     <p className="text-xs text-slate-600 dark:text-slate-400 mb-3 line-clamp-2">

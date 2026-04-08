@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
@@ -24,6 +24,7 @@ const Users = () => {
     limit: 20,
   });
   const [searchInput, setSearchInput] = useState('');
+  const searchDebounceRef = useRef(null);
   const [deleteModal, setDeleteModal] = useState({ open: false, user: null });
   const [deleteReason, setDeleteReason] = useState('');
 
@@ -104,8 +105,8 @@ const Users = () => {
       <Layout>
         <div className="space-y-6">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Liste des Utilisateurs</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Gérez tous les utilisateurs de la plateforme</p>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Utilisateurs</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Chargement...</p>
           </div>
           <TableSkeleton rows={10} columns={6} />
         </div>
@@ -128,97 +129,99 @@ const Users = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Liste des Utilisateurs</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Gérez tous les utilisateurs de la plateforme</p>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Utilisateurs</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+              {pagination.total > 0 ? `${pagination.total} utilisateur${pagination.total > 1 ? 's' : ''} enregistré${pagination.total > 1 ? 's' : ''}` : 'Gérez tous les utilisateurs de la plateforme'}
+            </p>
           </div>
           {selectedUsers.length > 0 && (
-            <div className="flex items-center gap-3">
-              <span className="text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-2 flex-shrink-0">
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-full">
                 {selectedUsers.length} sélectionné(s)
               </span>
-              <div className="relative">
-                <button
-                  onClick={() => setShowBulkActions(!showBulkActions)}
-                  className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
-                >
-                  <span className="material-symbols-outlined">more_vert</span>
-                  <span className="text-sm font-semibold">Actions en masse</span>
-                </button>
-                {showBulkActions && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 z-10">
-                    <button
-                      onClick={() => {
-                        setBulkAction('suspend');
-                        setShowBulkModal(true);
-                        setShowBulkActions(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    >
-                      Suspendre
-                    </button>
-                    <button
-                      onClick={() => {
-                        setBulkAction('activate');
-                        setShowBulkModal(true);
-                        setShowBulkActions(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    >
-                      Activer
-                    </button>
-                    <button
-                      onClick={() => {
-                        setBulkAction('delete');
-                        setShowBulkModal(true);
-                        setShowBulkActions(false);
-                      }}
-                      className="w-full text-left px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-slate-100 dark:hover:bg-slate-700"
-                    >
-                      Supprimer
-                    </button>
-                  </div>
-                )}
-              </div>
+              <button
+                onClick={() => { setBulkAction('suspend'); setShowBulkModal(true); }}
+                className="px-3 py-1.5 bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-400 rounded-lg text-xs font-bold hover:bg-amber-100 dark:hover:bg-amber-900/30 transition-colors"
+              >
+                Suspendre
+              </button>
+              <button
+                onClick={() => { setBulkAction('activate'); setShowBulkModal(true); }}
+                className="px-3 py-1.5 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-lg text-xs font-bold hover:bg-emerald-100 dark:hover:bg-emerald-900/30 transition-colors"
+              >
+                Activer
+              </button>
+              <button
+                onClick={() => { setBulkAction('delete'); setShowBulkModal(true); }}
+                className="px-3 py-1.5 bg-rose-50 dark:bg-rose-900/20 text-rose-600 dark:text-rose-400 rounded-lg text-xs font-bold hover:bg-rose-100 dark:hover:bg-rose-900/30 transition-colors"
+              >
+                Supprimer
+              </button>
               <button
                 onClick={() => setSelectedUsers([])}
-                className="px-4 py-2 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white"
+                className="p-1.5 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors"
               >
-                Annuler
+                <span className="material-symbols-outlined text-lg">close</span>
               </button>
             </div>
           )}
         </div>
 
         {/* Filters */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-          <div className="flex flex-wrap gap-4 items-center">
-            <form onSubmit={handleSearch} className="flex gap-2 flex-1 min-w-[200px]">
-              <input
-                type="search"
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                placeholder="Rechercher (nom, email, tél…)"
-                className="flex-1 px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
-              />
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Pills statut */}
+          <div className="flex flex-wrap gap-2">
+            {[
+              { value: '', label: 'Tous' },
+              { value: 'active', label: 'Actifs' },
+              { value: 'suspended', label: 'Suspendus' },
+              { value: 'deleted', label: 'Supprimés' },
+            ].map(({ value, label }) => (
               <button
-                type="submit"
-                className="px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 text-sm font-semibold"
+                key={value}
+                type="button"
+                onClick={() => setFilters(f => ({ ...f, status: value, page: 1 }))}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  filters.status === value
+                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary/50'
+                }`}
               >
-                Rechercher
+                {label}
               </button>
-            </form>
-            <select
-              value={filters.status}
-              onChange={(e) => setFilters((f) => ({ ...f, status: e.target.value, page: 1 }))}
-              className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
-            >
-              <option value="">Tous (hors supprimés)</option>
-              <option value="active">Actifs</option>
-              <option value="suspended">Suspendus</option>
-              <option value="deleted">Supprimés</option>
-            </select>
+            ))}
+          </div>
+
+          {/* Recherche auto-debounce */}
+          <div className="flex-1 max-w-sm ml-auto">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
+              <input
+                type="text"
+                value={searchInput}
+                onChange={(e) => {
+                  const v = e.target.value;
+                  setSearchInput(v);
+                  if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+                  searchDebounceRef.current = setTimeout(() => {
+                    setFilters(f => ({ ...f, search: v.trim(), page: 1 }));
+                  }, 400);
+                }}
+                placeholder="Rechercher un utilisateur..."
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+              />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => { setSearchInput(''); setFilters(f => ({ ...f, search: '', page: 1 })); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              )}
+            </div>
           </div>
         </div>
 

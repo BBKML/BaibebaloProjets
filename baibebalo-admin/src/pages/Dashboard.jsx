@@ -266,214 +266,364 @@ const Dashboard = () => {
   const comparisons = backendData.comparisons || {};
   const categoryDistribution = backendData.category_distribution || [];
   const hourlyActivity = backendData.hourly_activity || [];
-  
-  // Construire les KPIs au format attendu
+
   const kpis = {
     total_revenue: global.total_revenue || 0,
+    today_revenue: today.revenue || 0,
     total_orders: global.total_orders || 0,
+    today_orders: today.orders || 0,
     total_users: global.total_users || 0,
     new_users: comparisons.new_users_today || 0,
-    active_deliveries: today.active_orders || 0,
+    active_orders: today.active_orders || 0,
+    pending_orders: today.pending_orders || 0,
+    active_drivers: today.active_drivers || 0,
+    open_restaurants: today.open_restaurants || 0,
+    open_tickets: comparisons.open_tickets || 0,
     revenue_change: comparisons.revenue_change || 0,
     orders_change: comparisons.orders_change || 0,
     satisfaction: comparisons.satisfaction?.current || 0,
     satisfaction_change: comparisons.satisfaction?.change || 0,
   };
-  
-  // Récupérer les commandes récentes depuis l'endpoint orders
+
   const recent_orders = ordersData?.data?.orders || [];
-  
-  // Mapper les commandes pour correspondre au format attendu
   const mappedOrders = recent_orders.map(order => ({
     id: order.id,
-    customer_name: order.client_name || `${order.user_id?.slice(0, 8)}...`,
-    restaurant_name: order.restaurant_name || 'N/A',
+    customer_name: order.client_name || `Client ${order.user_id?.slice(0, 6)}`,
+    restaurant_name: order.restaurant_name || '—',
     total_amount: order.total || 0,
     status: order.status,
     created_at: order.placed_at || order.created_at,
   }));
-  
+
+  const STATUS_CONFIG = {
+    pending:           { label: 'En attente',    cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+    new:               { label: 'Nouvelle',      cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+    scheduled:         { label: 'Programmée',    cls: 'bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400' },
+    accepted:          { label: 'Acceptée',      cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
+    confirmed:         { label: 'Confirmée',     cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
+    preparing:         { label: 'En préparation',cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+    ready:             { label: 'Prête',         cls: 'bg-primary/10 text-primary' },
+    picked_up:         { label: 'Récupérée',     cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' },
+    delivering:        { label: 'En livraison',  cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' },
+    driver_at_customer:{ label: 'Livreur arrivé',cls: 'bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-400' },
+    delivered:         { label: 'Livré',         cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
+    cancelled:         { label: 'Annulée',       cls: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400' },
+  };
+
+  // Heure de salutation
+  const hour = new Date().getHours();
+  const greeting = hour < 12 ? 'Bonjour' : hour < 18 ? 'Bon après-midi' : 'Bonsoir';
+  const admin = JSON.parse(localStorage.getItem('admin') || '{}');
+  const todayLabel = new Date().toLocaleDateString('fr-FR', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
+
   return (
     <Layout>
-      <div className="space-y-8">
-        {/* KPI Section - Conforme au cahier des charges */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <KPICard
-            title="CA Total"
-            value={formatCurrency(kpis?.total_revenue || 0)}
-            change={kpis?.revenue_change}
-            iconName="payments"
-          />
-          <KPICard
-            title="Commandes"
-            value={kpis?.total_orders || 0}
-            change={kpis?.orders_change}
-            iconName="shopping_bag"
-          />
-          <KPICard
-            title="Utilisateurs"
-            value={kpis?.total_users || 0}
-            change={kpis?.new_users}
-            changeLabel={`+${kpis?.new_users || 0} nouveaux`}
-            iconName="people"
-          />
-          <KPICard
-            title="Satisfaction"
-            value={`${parseFloat(kpis?.satisfaction || 0).toFixed(1)}/5`}
-            change={kpis?.satisfaction_change}
-            iconName="star"
-          />
+      <div className="space-y-7 pb-8">
+
+        {/* ── Entête ── */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+              {greeting}, {admin.full_name?.split(' ')[0] || 'Admin'} 
+            </h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 capitalize">{todayLabel}</p>
+          </div>
+          <div className="flex items-center gap-2">
+            {/* Indicateur WebSocket */}
+            <span className={`flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-full ${
+              socketConnected
+                ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                : 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
+            }`}>
+              <span className={`w-1.5 h-1.5 rounded-full ${socketConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+              {socketConnected ? 'Temps réel actif' : 'Hors ligne'}
+            </span>
+            <button
+              onClick={() => navigate('/orders')}
+              className="flex items-center gap-2 px-4 py-2 bg-primary text-white text-sm font-bold rounded-lg hover:bg-primary/90 transition-colors"
+            >
+              <span className="material-symbols-outlined text-lg" style={{ fontSize: '18px' }}>add</span>
+              Voir commandes
+            </button>
+          </div>
         </div>
-        
-        {/* Flux de commandes en temps réel */}
+
+        {/* ── Bande "Aujourd'hui" ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+          {[
+            {
+              icon: 'receipt_long',
+              label: 'Commandes aujourd\'hui',
+              value: kpis.today_orders,
+              color: 'text-primary bg-primary/10',
+              dot: kpis.pending_orders > 0,
+              dotLabel: `${kpis.pending_orders} en attente`,
+            },
+            {
+              icon: 'payments',
+              label: 'Revenus du jour',
+              value: formatCurrency(kpis.today_revenue),
+              color: 'text-emerald-600 bg-emerald-50 dark:bg-emerald-500/10 dark:text-emerald-400',
+            },
+            {
+              icon: 'delivery_dining',
+              label: 'Livreurs actifs',
+              value: kpis.active_drivers,
+              color: 'text-orange-600 bg-orange-50 dark:bg-orange-500/10 dark:text-orange-400',
+            },
+            {
+              icon: 'restaurant',
+              label: 'Restaurants ouverts',
+              value: kpis.open_restaurants,
+              color: 'text-violet-600 bg-violet-50 dark:bg-violet-500/10 dark:text-violet-400',
+            },
+            {
+              icon: 'support_agent',
+              label: 'Tickets ouverts',
+              value: kpis.open_tickets,
+              color: kpis.open_tickets > 0
+                ? 'text-red-600 bg-red-50 dark:bg-red-500/10 dark:text-red-400'
+                : 'text-slate-500 bg-slate-100 dark:bg-slate-800',
+              dot: kpis.open_tickets > 0,
+              dotLabel: 'À traiter',
+            },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 px-4 py-3 flex items-center gap-3"
+            >
+              <div className={`p-2 rounded-lg ${stat.color}`}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{stat.icon}</span>
+              </div>
+              <div className="min-w-0">
+                <p className="text-xs text-slate-500 dark:text-slate-400 truncate">{stat.label}</p>
+                <p className="text-base font-black text-slate-900 dark:text-white leading-tight">{stat.value}</p>
+                {stat.dot && stat.dotLabel && (
+                  <p className="text-[10px] font-bold text-red-500 leading-none mt-0.5">{stat.dotLabel}</p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Actions rapides ── */}
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { label: 'Valider restaurants', icon: 'storefront', path: '/restaurants?status=pending', color: 'bg-violet-500' },
+            { label: 'Commandes problèmes', icon: 'report_problem', path: '/orders/problematic', color: 'bg-red-500' },
+            { label: 'Suivi livreurs live', icon: 'location_on', path: '/drivers/tracking', color: 'bg-emerald-500' },
+            { label: 'Rapport financier', icon: 'bar_chart', path: '/finances/reports', color: 'bg-primary' },
+          ].map((action) => (
+            <button
+              key={action.path}
+              onClick={() => navigate(action.path)}
+              className="flex items-center gap-3 p-3 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl hover:border-primary/40 hover:shadow-md transition-all group"
+            >
+              <div className={`p-2 rounded-lg ${action.color} text-white shrink-0`}>
+                <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>{action.icon}</span>
+              </div>
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300 text-left leading-tight group-hover:text-primary transition-colors">
+                {action.label}
+              </span>
+              <span className="material-symbols-outlined text-slate-300 dark:text-slate-600 ml-auto opacity-0 group-hover:opacity-100 transition-opacity shrink-0" style={{ fontSize: '16px' }}>
+                arrow_forward
+              </span>
+            </button>
+          ))}
+        </div>
+
+        {/* ── KPI principaux ── */}
+        <div>
+          <h2 className="text-sm font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-4">
+            Indicateurs globaux
+          </h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+            <KPICard
+              title="Chiffre d'affaires total"
+              value={formatCurrency(kpis.total_revenue)}
+              change={kpis.revenue_change}
+              iconName="payments"
+              color="green"
+              subtitle={`Aujourd'hui : ${formatCurrency(kpis.today_revenue)}`}
+              href="/finances"
+            />
+            <KPICard
+              title="Commandes totales"
+              value={kpis.total_orders.toLocaleString('fr-FR')}
+              change={kpis.orders_change}
+              iconName="shopping_bag"
+              color="blue"
+              subtitle={`${kpis.today_orders} aujourd'hui · ${kpis.active_orders} actives`}
+              href="/orders"
+            />
+            <KPICard
+              title="Clients inscrits"
+              value={kpis.total_users.toLocaleString('fr-FR')}
+              change={kpis.new_users}
+              changeLabel={`+${kpis.new_users} aujourd'hui`}
+              iconName="group"
+              color="purple"
+              subtitle={`+${kpis.new_users} nouveaux ce jour`}
+              href="/users"
+            />
+            <KPICard
+              title="Satisfaction client"
+              value={`${parseFloat(kpis.satisfaction || 0).toFixed(1)} / 5`}
+              change={kpis.satisfaction_change}
+              iconName="star"
+              color="orange"
+              subtitle="Note moyenne des livraisons"
+            />
+          </div>
+        </div>
+
+        {/* ── Flux temps réel ── */}
         <RealTimeOrdersStream orders={realTimeOrders || []} />
 
-        {/* Carte géographique */}
-        <GeographicMap 
+        {/* ── Graphiques revenus + objectif ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              <div>
+                <h3 className="font-bold text-slate-900 dark:text-white">Revenus — 30 derniers jours</h3>
+                <p className="text-xs text-slate-400 mt-0.5">Avec moyenne mobile et projection</p>
+              </div>
+              <span className="px-2.5 py-1 text-[11px] font-bold bg-primary/10 text-primary rounded-full uppercase tracking-wide">
+                Live
+              </span>
+            </div>
+            <div className="p-6 flex-1 min-h-75">
+              <RevenueChart
+                data={revenueData?.data?.chartData || []}
+                previousMonthData={revenueData?.data?.previousMonthData || []}
+                forecastData={revenueData?.data?.forecastData || []}
+              />
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="font-bold text-slate-900 dark:text-white mb-1">Objectif mensuel</h3>
+            <p className="text-xs text-slate-400 mb-6">Progression vers l'objectif +30%</p>
+            <SalesGoalChart
+              current={kpis.total_revenue}
+              goal={Math.max(kpis.total_revenue * 1.3, 100000)}
+              directSales={Math.round(kpis.total_revenue * 0.6)}
+              partners={Math.round(kpis.total_revenue * 0.4)}
+            />
+          </div>
+        </div>
+
+        {/* ── Carte géographique ── */}
+        <GeographicMap
           activeOrders={geographicData?.data?.active_orders || []}
           hotZones={geographicData?.data?.hot_zones || []}
           restaurants={geographicData?.data?.restaurants || []}
         />
 
-        {/* Chart & Table Row */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          {/* Chart Section */}
-          <div className="lg:col-span-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden flex flex-col">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <div>
-                <h3 className="font-bold text-slate-900 dark:text-white">Aperçu des Revenus</h3>
-                <p className="text-xs text-slate-500 mt-1">30 derniers jours avec moyenne mobile et prévisions</p>
-              </div>
-            </div>
-            <div className="p-6 flex-1 flex flex-col justify-center min-h-[300px]">
-              <div className="flex-1 min-h-[256px] w-full" style={{ minWidth: 0 }}>
-                <RevenueChart 
-                  data={revenueData?.data?.chartData || []}
-                  previousMonthData={revenueData?.data?.previousMonthData || []}
-                  forecastData={revenueData?.data?.forecastData || []}
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Quick Stats/Activity */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
-            <h3 className="font-bold text-slate-900 dark:text-white mb-6">Objectif de Ventes</h3>
-            {/* Objectif = 30% de plus que le revenu actuel */}
-            <SalesGoalChart 
-              current={kpis?.total_revenue || 0}
-              goal={Math.max((kpis?.total_revenue || 0) * 1.3, 100000)}
-              directSales={kpis?.total_revenue ? Math.round((kpis?.total_revenue || 0) * 0.6) : 0}
-              partners={kpis?.total_revenue ? Math.round((kpis?.total_revenue || 0) * 0.4) : 0}
-            />
-          </div>
-        </div>
-
-        {/* Nouveaux graphiques : Répartition par catégorie et Activité par heure */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          {/* Répartition par catégorie */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-bold text-slate-900 dark:text-white">Répartition par Catégorie</h3>
-              <p className="text-xs text-slate-500 mt-1">30 derniers jours - Commandes livrées</p>
+        {/* ── Catégories + Horaires ── */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-slate-900 dark:text-white">Répartition par catégorie</h3>
+              <p className="text-xs text-slate-400 mt-0.5">30 derniers jours</p>
             </div>
             <div className="p-6">
               <CategoryDistributionChart data={categoryDistribution} />
             </div>
           </div>
 
-          {/* Activité par heure */}
-          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-            <div className="p-6 border-b border-slate-100 dark:border-slate-800">
-              <h3 className="font-bold text-slate-900 dark:text-white">Activité par Heure</h3>
-              <p className="text-xs text-slate-500 mt-1">7 derniers jours - Répartition horaire</p>
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+            <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800">
+              <h3 className="font-bold text-slate-900 dark:text-white">Activité par heure</h3>
+              <p className="text-xs text-slate-400 mt-0.5">7 derniers jours</p>
             </div>
             <div className="p-6">
               <HourlyActivityChart data={hourlyActivity} />
             </div>
           </div>
         </div>
-        
-        {/* Recent Orders Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-            <h3 className="font-bold text-slate-900 dark:text-white">Dernières Commandes</h3>
-            <button 
+
+        {/* ── Dernières commandes ── */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+          <div className="px-6 py-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <div>
+              <h3 className="font-bold text-slate-900 dark:text-white">Dernières commandes</h3>
+              <p className="text-xs text-slate-400 mt-0.5">{mappedOrders.length} commandes récentes</p>
+            </div>
+            <button
               onClick={() => navigate('/orders')}
-              className="text-xs font-bold text-primary hover:underline uppercase tracking-tight"
+              className="flex items-center gap-1.5 text-xs font-bold text-primary hover:text-primary/80 transition-colors uppercase tracking-wide"
             >
               Voir tout
+              <span className="material-symbols-outlined" style={{ fontSize: '14px' }}>arrow_forward</span>
             </button>
           </div>
+
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[11px] font-black uppercase tracking-widest">
-                  <th className="px-6 py-4">ID Commande</th>
-                  <th className="px-6 py-4">Client</th>
-                  <th className="px-6 py-4">Date</th>
-                  <th className="px-6 py-4 text-center">Statut</th>
-                  <th className="px-6 py-4 text-right">Montant</th>
-                  <th className="px-6 py-4"></th>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.1em]">
+                  <th className="px-6 py-3.5">Commande</th>
+                  <th className="px-6 py-3.5">Client</th>
+                  <th className="px-6 py-3.5 hidden md:table-cell">Restaurant</th>
+                  <th className="px-6 py-3.5 hidden sm:table-cell">Date</th>
+                  <th className="px-6 py-3.5 text-center">Statut</th>
+                  <th className="px-6 py-3.5 text-right">Montant</th>
+                  <th className="px-6 py-3.5 text-right"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {mappedOrders.length === 0 ? (
                   <tr>
-                    <td colSpan="6" className="px-6 py-8 text-center text-slate-500">
-                      Aucune commande récente
+                    <td colSpan="7" className="px-6 py-12 text-center">
+                      <span className="material-symbols-outlined text-4xl text-slate-300 dark:text-slate-600 block mb-2">inbox</span>
+                      <p className="text-slate-400 text-sm">Aucune commande récente</p>
                     </td>
                   </tr>
                 ) : (
                   mappedOrders.map((order) => {
-                    const initials = order.customer_name
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2);
-                    
-                    const statusConfig = {
-                      pending: { label: 'En attente', class: 'bg-semantic-amber/10 text-semantic-amber' },
-                      new: { label: 'Nouvelle', class: 'bg-semantic-amber/10 text-semantic-amber' },
-                      accepted: { label: 'Acceptée', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-                      confirmed: { label: 'Confirmé', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-                      preparing: { label: 'Préparation', class: 'bg-semantic-amber/10 text-semantic-amber' },
-                      ready: { label: 'Prête', class: 'bg-primary/10 text-primary' },
-                      picked_up: { label: 'Récupérée', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
-                      shipped: { label: 'Expédié', class: 'bg-primary/10 text-primary' },
-                      delivering: { label: 'En livraison', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
-                      driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500' },
-                      delivered: { label: 'Livré', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-                      cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500' },
-                    };
-                    
-                    const status = statusConfig[order.status] || { label: order.status, class: 'bg-slate-100 text-slate-600' };
-                    
+                    const initials = (order.customer_name || 'C')
+                      .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+                    const sc = STATUS_CONFIG[order.status] || { label: order.status, cls: 'bg-slate-100 text-slate-600' };
                     return (
-                      <tr key={order.id} className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors">
-                        <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
-                          #{order.id.slice(0, 8)}
+                      <tr
+                        key={order.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+                        onClick={() => navigate(`/orders/${order.id}`)}
+                      >
+                        <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white whitespace-nowrap">
+                          #{order.id.slice(0, 8).toUpperCase()}
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-black text-primary shrink-0">
                               {initials}
                             </div>
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">{order.customer_name}</span>
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[120px]">
+                              {order.customer_name}
+                            </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-500">{formatDateShort(order.created_at)}</td>
+                        <td className="px-6 py-4 hidden md:table-cell text-sm text-slate-500 dark:text-slate-400 truncate max-w-[140px]">
+                          {order.restaurant_name}
+                        </td>
+                        <td className="px-6 py-4 hidden sm:table-cell text-sm text-slate-400 whitespace-nowrap">
+                          {formatDateShort(order.created_at)}
+                        </td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${status.class}`}>
-                            {status.label}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${sc.cls}`}>
+                            {sc.label}
                           </span>
                         </td>
-                        <td className="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">
+                        <td className="px-6 py-4 text-right text-sm font-black text-slate-900 dark:text-white whitespace-nowrap">
                           {formatCurrency(order.total_amount)}
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button className="material-symbols-outlined text-slate-400 hover:text-primary transition-colors">more_vert</button>
+                          <span className="material-symbols-outlined text-slate-300 hover:text-primary transition-colors" style={{ fontSize: '18px' }}>
+                            chevron_right
+                          </span>
                         </td>
                       </tr>
                     );
@@ -483,6 +633,7 @@ const Dashboard = () => {
             </table>
           </div>
         </div>
+
       </div>
     </Layout>
   );

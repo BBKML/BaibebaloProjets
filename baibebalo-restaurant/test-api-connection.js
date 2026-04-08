@@ -10,7 +10,7 @@
 const axios = require('axios');
 
 // ⚠️ MODIFIEZ CETTE IP par la vôtre
-const API_BASE_URL = 'http://192.168.1.100:5000/api/v1';
+const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.12:5000/api/v1';
 
 // Couleurs pour la console
 const colors = {

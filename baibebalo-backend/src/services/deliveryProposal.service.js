@@ -64,33 +64,55 @@ async function proposeOrderToDelivery(orderId, app, excludeDeliveryPersonIds = [
   ].filter(Boolean);
 
   // Livreurs actifs et disponibles, triés par distance au point de référence (restaurant ou pickup)
+  // Exclure les livreurs hors de leurs plages horaires planifiées (availability_hours)
+  const nowHour = new Date().getHours();
+  const nowDay = new Date().getDay(); // 0=dim, 1=lun, ... 6=sam
+  const dayNames = ['sunday','monday','tuesday','wednesday','thursday','friday','saturday'];
+  const todayKey = dayNames[nowDay];
+
   const deliveryPersonsResult = await query(
-    `SELECT id, fcm_token, current_latitude, current_longitude
+    `SELECT id, fcm_token, current_latitude, current_longitude, availability_hours
      FROM delivery_persons
      WHERE status = 'active'
        AND delivery_status = 'available'
-       ${excludeIds.length > 0 ? 'AND id != ALL($3::uuid[])' : ''}
+       AND id != ALL($2::uuid[])
      ORDER BY
        CASE
          WHEN current_latitude IS NOT NULL AND current_longitude IS NOT NULL
-              AND $4::decimal IS NOT NULL AND $5::decimal IS NOT NULL
+              AND $3::decimal IS NOT NULL AND $4::decimal IS NOT NULL
          THEN earth_distance(
            ll_to_earth(current_latitude, current_longitude),
-           ll_to_earth($4::decimal, $5::decimal)
+           ll_to_earth($3::decimal, $4::decimal)
          )
          ELSE 999999999
        END ASC,
        id
-     LIMIT $2`,
-    [null, PROPOSAL_COUNT, excludeIds.length > 0 ? excludeIds : [], refLat, refLon]
+     LIMIT $1`,
+    [PROPOSAL_COUNT, excludeIds, refLat, refLon]
   );
 
-  if (deliveryPersonsResult.rows.length === 0) {
+  // Filtrer selon la planification horaire si définie
+  const allCandidates = deliveryPersonsResult.rows;
+  const deliveryPersons = allCandidates.filter((dp) => {
+    if (!dp.availability_hours) return true;
+    try {
+      const schedule = typeof dp.availability_hours === 'string'
+        ? JSON.parse(dp.availability_hours)
+        : dp.availability_hours;
+      const daySchedule = schedule[todayKey];
+      if (!daySchedule || !daySchedule.enabled) return false;
+      const [startH] = (daySchedule.start || '00:00').split(':').map(Number);
+      const [endH] = (daySchedule.end || '23:59').split(':').map(Number);
+      return nowHour >= startH && nowHour < endH;
+    } catch (_) {
+      return true; // En cas d'erreur de parsing, inclure le livreur
+    }
+  });
+
+  if (deliveryPersons.length === 0) {
     logger.info(`Aucun livreur disponible pour la commande ${order.order_number}`);
     return { proposed: false };
   }
-
-  const deliveryPersons = deliveryPersonsResult.rows;
   const expiresAt = new Date(Date.now() + PROPOSAL_EXPIRY_SECONDS * 1000);
 
   for (const dp of deliveryPersons) {

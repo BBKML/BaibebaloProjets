@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import * as Clipboard from 'expo-clipboard';
@@ -17,6 +18,7 @@ import { getReferrals } from '../../api/users';
 const REWARD_PER_COMPLETED = 500;
 
 export default function ReferralProgramScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { user } = useAuthStore();
   const [referralCode, setReferralCode] = useState(user?.referral_code || '');
   const [earnings, setEarnings] = useState(0);
@@ -84,7 +86,7 @@ export default function ReferralProgramScreen({ navigation }) {
         <View style={styles.iconButtonPlaceholder} />
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <View style={styles.heroImage}>
           <View style={styles.heroOverlay} />
           <Ionicons name="people" size={56} color={COLORS.primary} />

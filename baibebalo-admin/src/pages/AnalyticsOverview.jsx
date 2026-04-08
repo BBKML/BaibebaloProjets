@@ -132,7 +132,7 @@ const AnalyticsOverview = () => {
         {/* Header */}
         <div className="flex flex-wrap justify-between items-end gap-4">
           <div className="max-w-2xl">
-            <h2 className="text-3xl font-black tracking-tight mb-2 text-slate-900 dark:text-white">
+            <h2 className="text-2xl font-black tracking-tight mb-2 text-slate-900 dark:text-white">
               Analytics Overview
             </h2>
             <p className="text-slate-500 dark:text-slate-400 font-medium">

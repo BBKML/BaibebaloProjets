@@ -9,14 +9,33 @@ import {
   Linking,
   Alert,
   Image,
+  Platform,
+  Dimensions,
 } from 'react-native';
+import Constants from 'expo-constants';
 import { Ionicons } from '@expo/vector-icons';
+
+// react-native-maps n'est pas disponible dans Expo Go (module natif absent) → chargement conditionnel
+const isExpoGo = Constants.appOwnership === 'expo';
+let MapView, Marker;
+if (!isExpoGo) {
+  try {
+    const Maps = require('react-native-maps');
+    MapView = Maps.default;
+    Marker = Maps.Marker;
+  } catch (e) {
+    // ignore
+  }
+}
 import { COLORS } from '../../constants/colors';
 import { STATUS_LABELS } from '../../constants/orderStatus';
 import { trackOrder } from '../../api/orders';
 import { formatCurrency, calculateOrderTotal, calculateOrderSubtotal } from '../../utils/format';
 import { getImageUrl } from '../../utils/url';
 import socketService from '../../services/socketService';
+
+const MAP_HEIGHT = 200;
+const KORHOGO_REGION = { latitude: 9.4581, longitude: -5.6297, latitudeDelta: 0.05, longitudeDelta: 0.05 };
 
 export default function OrderTrackingScreen({ route, navigation }) {
   const { orderId } = route.params;
@@ -225,8 +244,126 @@ export default function OrderTrackingScreen({ route, navigation }) {
     });
   };
 
+  // Région carte : position livreur > adresse livraison > restaurant > Korhogo par défaut
+  const deliveryLat = order?.delivery_address?.latitude != null
+    ? Number.parseFloat(order.delivery_address.latitude)
+    : null;
+  const deliveryLng = order?.delivery_address?.longitude != null
+    ? Number.parseFloat(order.delivery_address.longitude)
+    : null;
+  const restaurantLat = order?.restaurant?.latitude != null
+    ? Number.parseFloat(order.restaurant.latitude)
+    : null;
+  const restaurantLng = order?.restaurant?.longitude != null
+    ? Number.parseFloat(order.restaurant.longitude)
+    : null;
+  const mapRegion = deliveryLocation
+    ? {
+        latitude: deliveryLocation.latitude,
+        longitude: deliveryLocation.longitude,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      }
+    : (deliveryLat != null && deliveryLng != null)
+      ? { latitude: deliveryLat, longitude: deliveryLng, latitudeDelta: 0.02, longitudeDelta: 0.02 }
+      : (restaurantLat != null && restaurantLng != null)
+        ? { latitude: restaurantLat, longitude: restaurantLng, latitudeDelta: 0.03, longitudeDelta: 0.03 }
+        : KORHOGO_REGION;
+  const showMap = (deliveryLocation || (deliveryLat != null && deliveryLng != null) || (restaurantLat != null && restaurantLng != null));
+
+  const openAddressInMaps = () => {
+    const lat = deliveryLat ?? restaurantLat ?? KORHOGO_REGION.latitude;
+    const lng = deliveryLng ?? restaurantLng ?? KORHOGO_REGION.longitude;
+    const url = Platform.select({
+      ios: `maps:?q=${lat},${lng}`,
+      android: `geo:${lat},${lng}?q=${lat},${lng}`,
+      default: `https://www.google.com/maps/search/?api=1&query=${lat},${lng}`,
+    });
+    Linking.openURL(url).catch(() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`));
+  };
+
+  const canShowNativeMap = showMap && !isExpoGo && MapView && Marker;
+
   return (
     <ScrollView style={styles.container}>
+      {/* Carte GPS : position livreur et/ou adresse de livraison (ou lien vers l'app Cartes si Expo Go) */}
+      {showMap && (
+        <View style={styles.mapContainer}>
+          {canShowNativeMap ? (
+            <>
+              <MapView
+                style={styles.map}
+                initialRegion={mapRegion}
+                showsUserLocation={false}
+                showsMyLocationButton={false}
+              >
+                {deliveryLat != null && deliveryLng != null && (
+                  <Marker
+                    coordinate={{ latitude: deliveryLat, longitude: deliveryLng }}
+                    title="Adresse de livraison"
+                    pinColor={COLORS.primary}
+                  />
+                )}
+                {deliveryLocation && (
+                  <Marker
+                    coordinate={{
+                      latitude: deliveryLocation.latitude,
+                      longitude: deliveryLocation.longitude,
+                    }}
+                    title="Position du livreur"
+                    pinColor={COLORS.success}
+                  />
+                )}
+                {!deliveryLocation && restaurantLat != null && restaurantLng != null && (
+                  <Marker
+                    coordinate={{ latitude: restaurantLat, longitude: restaurantLng }}
+                    title={order?.restaurant?.name || 'Restaurant'}
+                    pinColor={COLORS.warning}
+                  />
+                )}
+              </MapView>
+              <View style={styles.mapLegend}>
+                {deliveryLocation && (
+                  <Text style={styles.mapLegendText}>Position du livreur en temps réel</Text>
+                )}
+              </View>
+            </>
+          ) : (
+            <TouchableOpacity style={styles.mapFallback} onPress={openAddressInMaps} activeOpacity={0.8}>
+              <View style={styles.mapFallbackContent}>
+                <Ionicons name="map" size={40} color={COLORS.primary} />
+                <Text style={styles.mapFallbackTitle}>Voir l'adresse sur la carte</Text>
+                <Text style={styles.mapFallbackHint}>Appuyez pour ouvrir dans Google Maps / Cartes</Text>
+              </View>
+            </TouchableOpacity>
+          )}
+        </View>
+      )}
+
+      {/* Barre de progression globale */}
+      <View style={styles.progressBarContainer}>
+        <View style={styles.progressBarHeader}>
+          <Text style={styles.progressBarLabel}>
+            {STATUS_LABELS[timelineStatus] || 'En cours'}
+          </Text>
+          <Text style={styles.progressBarStep}>
+            Étape {Math.max(currentStatusIndex + 1, 1)} / {statusSteps.length}
+          </Text>
+        </View>
+        <View style={styles.progressBarTrack}>
+          <View
+            style={[
+              styles.progressBarFill,
+              {
+                width: `${Math.round(
+                  ((Math.max(currentStatusIndex, 0)) / (statusSteps.length - 1)) * 100
+                )}%`,
+              },
+            ]}
+          />
+        </View>
+      </View>
+
       {/* Status Timeline */}
       <View style={styles.timelineContainer}>
         {statusSteps.map((status, index) => {
@@ -455,7 +592,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
           <View key={item.id || item.menu_item?.id || index} style={styles.itemCard}>
             {item.menu_item?.image_url && (
               <Image
-                source={{ uri: item.menu_item.image_url }}
+                source={{ uri: getImageUrl(item.menu_item.image_url) }}
                 style={styles.itemImage}
               />
             )}
@@ -501,6 +638,94 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.background,
+  },
+  mapContainer: {
+    height: MAP_HEIGHT,
+    marginBottom: 12,
+    backgroundColor: COLORS.background,
+  },
+  map: {
+    width: '100%',
+    height: MAP_HEIGHT,
+    borderRadius: 8,
+  },
+  mapFallback: {
+    width: '100%',
+    height: MAP_HEIGHT,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary + '12',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '40',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  mapFallbackContent: {
+    alignItems: 'center',
+    padding: 16,
+  },
+  mapFallbackTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginTop: 8,
+  },
+  mapFallbackHint: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 4,
+  },
+  mapLegend: {
+    position: 'absolute',
+    bottom: 8,
+    left: 12,
+    right: 12,
+    backgroundColor: 'rgba(255,255,255,0.9)',
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 6,
+  },
+  mapLegendText: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+  },
+  progressBarContainer: {
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 20,
+    paddingVertical: 16,
+    marginBottom: 8,
+    borderRadius: 12,
+    marginHorizontal: 0,
+  },
+  progressBarHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  progressBarLabel: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  progressBarStep: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: COLORS.primary,
+    backgroundColor: COLORS.primary + '15',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,
+  },
+  progressBarTrack: {
+    height: 8,
+    backgroundColor: COLORS.border,
+    borderRadius: 8,
+    overflow: 'hidden',
+  },
+  progressBarFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 8,
   },
   timelineContainer: {
     backgroundColor: COLORS.white,

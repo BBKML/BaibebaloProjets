@@ -587,12 +587,14 @@ exports.getRestaurantMenu = async (req, res) => {
       return {
         ...item,
         image_url: item.photo || item.photos?.[0] || null,
+        // Alias pour la compatibilité client (DB column = "options")
+        customization_options: item.options || null,
         // Prix effectif = prix promo si actif, sinon prix normal
         effective_price: isPromotionActive ? parseFloat(item.promotional_price) : parseFloat(item.price),
         original_price: parseFloat(item.price),
         is_promotion_active: isPromotionActive,
         savings: isPromotionActive ? parseFloat(item.price) - parseFloat(item.promotional_price) : 0,
-        savings_percent: isPromotionActive ? 
+        savings_percent: isPromotionActive ?
           Math.round((1 - parseFloat(item.promotional_price) / parseFloat(item.price)) * 100) : 0,
       };
     });
@@ -1810,22 +1812,22 @@ exports.updateMyProfile = async (req, res) => {
         } else if (Array.isArray(req.body.existingPhotos)) {
           existingFromBody = req.body.existingPhotos;
         }
-        // Fusionner avec les nouvelles photos uploadées
+        // Fusionner avec les nouvelles photos uploadées — passer le tableau JS directement (colonne TEXT[])
         const allPhotos = [...existingFromBody, ...photoUrls];
         updates.push(`photos = $${paramIndex++}`);
-        values.push(JSON.stringify(allPhotos));
+        values.push(allPhotos);
       } else {
         // Sinon, ajouter aux existantes
         const allPhotos = [...parsedExistingPhotos, ...photoUrls];
         updates.push(`photos = $${paramIndex++}`);
-        values.push(JSON.stringify(allPhotos));
+        values.push(allPhotos);
       }
     } else if (req.body.photos !== undefined) {
       // Si c'est un tableau d'URLs (photos existantes), les garder
       let photosArray = [];
       if (Array.isArray(req.body.photos)) {
         // Extraire les URIs si ce sont des objets avec uri
-        photosArray = req.body.photos.map(photo => 
+        photosArray = req.body.photos.map(photo =>
           typeof photo === 'string' ? photo : (photo.uri || photo)
         );
       } else if (typeof req.body.photos === 'string') {
@@ -1836,8 +1838,9 @@ exports.updateMyProfile = async (req, res) => {
           photosArray = [req.body.photos];
         }
       }
+      // Passer le tableau JS directement (colonne TEXT[])
       updates.push(`photos = $${paramIndex++}`);
-      values.push(JSON.stringify(photosArray));
+      values.push(photosArray);
     }
     
     // Gérer les autres champs
@@ -4347,6 +4350,212 @@ exports.addMessageToTicket = async (req, res) => {
     res.status(500).json({
       success: false,
       error: { code: 'SEND_ERROR', message: 'Erreur lors de l\'envoi du message' },
+    });
+  }
+};
+
+/**
+ * GET /api/v1/restaurants/recommended
+ * Recommandations personnalisées basées sur l'historique de commandes.
+ * Si authentifié : restaurants déjà commandés + similaires non encore essayés.
+ * Si anonyme : restaurants les mieux notés.
+ */
+exports.getRecommendedRestaurants = async (req, res) => {
+  try {
+    const { limit = 8 } = req.query;
+    const userId = req.user?.id;
+    const parsedLimit = Math.min(parseInt(limit, 10) || 8, 20);
+
+    let restaurants = [];
+
+    if (userId) {
+      // Étape 1 : cuisines préférées de l'utilisateur (top 3 cuisines commandées)
+      const prefResult = await query(
+        `SELECT r.cuisine_type, COUNT(*) AS cnt
+         FROM orders o
+         JOIN restaurants r ON r.id = o.restaurant_id
+         WHERE o.user_id = $1 AND o.status = 'delivered'
+         GROUP BY r.cuisine_type
+         ORDER BY cnt DESC
+         LIMIT 3`,
+        [userId]
+      );
+      const preferredCuisines = prefResult.rows.map((r) => r.cuisine_type).filter(Boolean);
+
+      // Étape 2 : restaurants avec ces cuisines, pas encore commandés, actifs
+      if (preferredCuisines.length > 0) {
+        const recResult = await query(
+          `SELECT r.id, r.name, r.cuisine_type, r.logo, r.banner,
+                  r.average_rating, r.delivery_radius, r.delivery_fee,
+                  r.is_open, r.average_price, r.speciality
+           FROM restaurants r
+           WHERE r.status = 'active'
+             AND r.cuisine_type = ANY($1::text[])
+             AND r.id NOT IN (
+               SELECT DISTINCT restaurant_id FROM orders
+               WHERE user_id = $2 AND status = 'delivered'
+             )
+           ORDER BY r.average_rating DESC, r.total_orders DESC
+           LIMIT $3`,
+          [preferredCuisines, userId, parsedLimit]
+        );
+        restaurants = recResult.rows;
+      }
+
+      // Compléter avec les plus commandés par l'utilisateur si pas assez
+      if (restaurants.length < parsedLimit) {
+        const needed = parsedLimit - restaurants.length;
+        const existingIds = restaurants.map((r) => r.id);
+        const repeatResult = await query(
+          `SELECT r.id, r.name, r.cuisine_type, r.logo, r.banner,
+                  r.average_rating, r.delivery_radius, r.delivery_fee,
+                  r.is_open, r.average_price, r.speciality,
+                  COUNT(o.id) AS order_count
+           FROM orders o
+           JOIN restaurants r ON r.id = o.restaurant_id
+           WHERE o.user_id = $1 AND o.status = 'delivered'
+             AND r.status = 'active'
+             AND r.id <> ALL($2::uuid[])
+           GROUP BY r.id
+           ORDER BY order_count DESC, r.average_rating DESC
+           LIMIT $3`,
+          [userId, existingIds.length > 0 ? existingIds : [null], needed]
+        );
+        restaurants = [...restaurants, ...repeatResult.rows];
+      }
+    }
+
+    // Fallback anonyme ou complément : meilleurs restaurants actifs
+    if (restaurants.length < parsedLimit) {
+      const needed = parsedLimit - restaurants.length;
+      const existingIds = restaurants.map((r) => r.id);
+      const topResult = await query(
+        `SELECT id, name, cuisine_type, logo, banner,
+                average_rating, delivery_radius, delivery_fee,
+                is_open, average_price, speciality
+         FROM restaurants
+         WHERE status = 'active'
+           AND id <> ALL($1::uuid[])
+         ORDER BY average_rating DESC, total_orders DESC
+         LIMIT $2`,
+        [existingIds.length > 0 ? existingIds : [null], needed]
+      );
+      restaurants = [...restaurants, ...topResult.rows];
+    }
+
+    res.json({
+      success: true,
+      data: { restaurants },
+    });
+  } catch (error) {
+    logger.error('Erreur getRecommendedRestaurants:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors du chargement des recommandations' },
+    });
+  }
+};
+
+/**
+ * Toggle plat du jour sur un article du menu
+ * PUT /api/v1/restaurants/me/menu/:itemId/daily-special
+ */
+exports.toggleDailySpecial = async (req, res) => {
+  try {
+    const restaurantId = req.user.restaurantId || req.user.restaurant_id;
+    const { itemId } = req.params;
+
+    const itemResult = await query(
+      'SELECT id, name, is_daily_special FROM menu_items WHERE id = $1 AND restaurant_id = $2',
+      [itemId, restaurantId]
+    );
+
+    if (itemResult.rows.length === 0) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'ITEM_NOT_FOUND', message: 'Article non trouvé' },
+      });
+    }
+
+    const item = itemResult.rows[0];
+    const newValue = !item.is_daily_special;
+
+    // Si on active le plat du jour, désactiver les autres du même restaurant d'abord
+    if (newValue) {
+      await query(
+        'UPDATE menu_items SET is_daily_special = false, daily_special_date = NULL WHERE restaurant_id = $1',
+        [restaurantId]
+      );
+    }
+
+    await query(
+      `UPDATE menu_items
+       SET is_daily_special = $1, daily_special_date = $2, updated_at = NOW()
+       WHERE id = $3`,
+      [newValue, newValue ? new Date().toISOString().split('T')[0] : null, itemId]
+    );
+
+    res.json({
+      success: true,
+      message: newValue ? `"${item.name}" est maintenant le plat du jour` : `"${item.name}" n'est plus le plat du jour`,
+      data: { item: { id: item.id, name: item.name, is_daily_special: newValue } },
+    });
+  } catch (error) {
+    logger.error('Erreur toggleDailySpecial:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour' },
+    });
+  }
+};
+
+/**
+ * Récupérer les plats du jour de tous les restaurants
+ * GET /api/v1/restaurants/daily-specials
+ */
+exports.getDailySpecials = async (req, res) => {
+  try {
+    const result = await query(`
+      SELECT
+        mi.id, mi.name, mi.description, mi.photo, mi.price,
+        mi.preparation_time, mi.tags,
+        r.id AS restaurant_id, r.name AS restaurant_name,
+        r.logo AS restaurant_logo, r.address AS restaurant_address
+      FROM menu_items mi
+      JOIN restaurants r ON r.id = mi.restaurant_id
+      WHERE mi.is_daily_special = true
+        AND mi.is_available = true
+        AND mi.daily_special_date = CURRENT_DATE
+        AND r.status = 'active'
+        AND r.is_open = true
+      ORDER BY r.name ASC
+    `);
+
+    res.json({
+      success: true,
+      data: {
+        daily_specials: result.rows.map(item => ({
+          id: item.id,
+          name: item.name,
+          description: item.description,
+          photo: item.photo,
+          price: Math.round(parseFloat(item.price)),
+          preparation_time: item.preparation_time,
+          tags: item.tags,
+          restaurant: {
+            id: item.restaurant_id,
+            name: item.restaurant_name,
+            logo: item.restaurant_logo,
+            address: item.restaurant_address,
+          },
+        })),
+      },
+    });
+  } catch (error) {
+    logger.error('Erreur getDailySpecials:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors du chargement des plats du jour' },
     });
   }
 };

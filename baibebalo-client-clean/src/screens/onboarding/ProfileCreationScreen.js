@@ -9,6 +9,7 @@ import {
   Image,
   Alert,
   Platform,
+  KeyboardAvoidingView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -69,10 +70,7 @@ export default function ProfileCreationScreen({ navigation, route }) {
         return;
       }
 
-      const mediaTypeImages =
-        ImagePicker.MediaType?.Images ?? ImagePicker.MediaTypeOptions?.Images;
       const result = await ImagePicker.launchImageLibraryAsync({
-        ...(mediaTypeImages ? { mediaTypes: mediaTypeImages } : {}),
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -170,6 +168,10 @@ export default function ProfileCreationScreen({ navigation, route }) {
   };
 
   return (
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
     <ScrollView style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -304,7 +306,7 @@ export default function ProfileCreationScreen({ navigation, route }) {
         <View style={styles.pattern} />
       </View>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <TouchableOpacity
           style={[styles.saveButton, loading && styles.saveButtonDisabled]}
           onPress={handleSave}
@@ -316,6 +318,7 @@ export default function ProfileCreationScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 

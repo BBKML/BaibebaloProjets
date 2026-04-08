@@ -59,7 +59,7 @@ export default function InvoicesReceiptsScreen({ navigation }) {
 
   const handleDownload = async (invoiceId) => {
     try {
-      Alert.alert('Info', 'La génération de factures PDF sera disponible prochainement');
+      Alert.alert('Info', 'Génération PDF bientôt disponible.');
       // TODO: Implémenter la génération PDF côté backend
     } catch (error) {
       Alert.alert('Erreur', 'Impossible de télécharger la facture');
@@ -68,7 +68,7 @@ export default function InvoicesReceiptsScreen({ navigation }) {
 
   const handleEmail = async (invoiceId) => {
     try {
-      Alert.alert('Info', 'L\'envoi par email sera disponible prochainement');
+      Alert.alert('Info', 'Envoi par email bientôt disponible.');
       // TODO: Implémenter l'envoi par email côté backend
     } catch (error) {
       Alert.alert('Erreur', 'Impossible d\'envoyer la facture');

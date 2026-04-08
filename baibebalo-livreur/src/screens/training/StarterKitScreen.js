@@ -4,10 +4,10 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   ScrollView
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
@@ -18,6 +18,7 @@ const kitItems = [
 ];
 
 export default function StarterKitScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [selectedItems, setSelectedItems] = useState([]);
   const [paymentMethod, setPaymentMethod] = useState('deduction');
 
@@ -162,7 +163,7 @@ export default function StarterKitScreen({ navigation }) {
       </ScrollView>
 
       {/* Bottom */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={styles.skipButton}
           onPress={handleContinue}

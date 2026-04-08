@@ -85,6 +85,21 @@ router.get('/popular-searches',
 );
 
 /**
+ * @route   GET /api/v1/restaurants/recommended
+ * @desc    Recommandations personnalisées (basées sur historique commandes)
+ * @access  Public (optionnel auth pour personnalisation)
+ * IMPORTANT: Cette route doit être AVANT /:id pour éviter les conflits
+ */
+router.get('/recommended',
+  authenticateOptional,
+  [
+    query('limit').optional().isInt({ min: 1, max: 20 }).toInt(),
+  ],
+  validate,
+  restaurantController.getRecommendedRestaurants
+);
+
+/**
  * @route   POST /api/v1/restaurants/register
  * @desc    Inscription d'un nouveau restaurant
  * @access  Public
@@ -302,9 +317,19 @@ router.delete('/me/menu/:itemId',
  * @desc    Activer/désactiver un article
  * @access  Private (Restaurant)
  */
-router.put('/me/menu/:itemId/toggle-availability', 
+router.put('/me/menu/:itemId/toggle-availability',
   uuidValidator('itemId', 'Menu Item ID'),
   restaurantController.toggleItemAvailability
+);
+
+/**
+ * @route   PUT /api/v1/restaurants/me/menu/:itemId/daily-special
+ * @desc    Toggle plat du jour
+ * @access  Private (Restaurant)
+ */
+router.put('/me/menu/:itemId/daily-special',
+  uuidValidator('itemId', 'Menu Item ID'),
+  restaurantController.toggleDailySpecial
 );
 
 /**
@@ -619,8 +644,8 @@ router.post('/me/support/tickets',
       .withMessage('Type de problème invalide'),
     body('description')
       .trim()
-      .isLength({ min: 10, max: 2000 })
-      .withMessage('Description requise (10-2000 caractères)'),
+      .isLength({ min: 2, max: 2000 })
+      .withMessage('Description requise (2-2000 caractères)'),
     body('email')
       .optional()
       .isEmail()
@@ -674,12 +699,22 @@ router.post('/me/support/tickets/:ticketId/messages',
  */
 
 /**
+ * @route   GET /api/v1/restaurants/daily-specials
+ * @desc    Plats du jour de tous les restaurants
+ * @access  Public
+ * IMPORTANT: Cette route doit être AVANT /:id pour éviter les conflits de routing
+ */
+router.get('/daily-specials',
+  restaurantController.getDailySpecials
+);
+
+/**
  * @route   GET /api/v1/restaurants/:id
  * @desc    Détails d'un restaurant
  * @access  Public (optional auth pour favoris)
- * IMPORTANT: Cette route doit être APRÈS toutes les routes /me pour éviter les conflits
+ * IMPORTANT: Cette route doit être APRÈS toutes les routes statiques pour éviter les conflits
  */
-router.get('/:id', 
+router.get('/:id',
   authenticateOptional,
   uuidValidator('id', 'Restaurant ID'),
   restaurantController.getRestaurantById

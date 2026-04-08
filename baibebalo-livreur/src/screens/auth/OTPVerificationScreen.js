@@ -11,13 +11,14 @@ import {
   Alert,
   ActivityIndicator
 } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { verifyOTP, sendOTP } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 
 export default function OTPVerificationScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { phone, isLogin } = route.params;
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
@@ -232,7 +233,7 @@ export default function OTPVerificationScreen({ navigation, route }) {
         </View>
 
         {/* Bottom Button */}
-        <View style={styles.bottomContainer}>
+        <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
           <TouchableOpacity 
             style={[
               styles.primaryButton,

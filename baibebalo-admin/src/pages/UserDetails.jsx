@@ -119,7 +119,7 @@ const UserDetails = () => {
                 {(user.first_name?.[0] || user.name?.[0] || 'U').toUpperCase()}
               </div>
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                   {user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || 'Utilisateur'}
                 </h1>
                 <div className="flex items-center gap-3 mt-1">

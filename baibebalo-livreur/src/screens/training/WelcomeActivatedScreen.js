@@ -4,16 +4,17 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   Image
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import { getImageUrl } from '../../utils/url';
 
 export default function WelcomeActivatedScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { user, setIsActivated } = useAuthStore();
 
   const handleStart = async () => {
@@ -77,7 +78,7 @@ export default function WelcomeActivatedScreen({ navigation }) {
       </View>
 
       {/* Bottom */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={styles.primaryButton}
           onPress={handleStart}

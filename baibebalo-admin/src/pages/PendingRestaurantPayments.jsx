@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import { financesAPI } from '../api/finances';
@@ -170,7 +170,7 @@ const PendingRestaurantPayments = () => {
   // Fonction pour voir les détails d'un paiement
   const handleViewDetails = (paymentId) => {
     // TODO: Naviguer vers une page de détails ou ouvrir un modal
-    toast.info('Fonctionnalité de détails à venir');
+    toast('Fonctionnalité de détails à venir');
     // navigate(`/finances/payments/restaurants/${paymentId}`);
   };
 
@@ -189,13 +189,18 @@ const PendingRestaurantPayments = () => {
       <div className="space-y-6">
         {/* Page Heading & Actions */}
         <div className="flex flex-wrap justify-between items-end gap-4">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <div className="flex items-center gap-3">
+            <Link to="/finances" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div className="flex flex-col gap-2">
+            <h2 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Paiements Restaurants en Attente
             </h2>
             <p className="text-slate-500 dark:text-slate-400 text-base">
               Gérez les versements hebdomadaires et effectuez les virements groupés.
             </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button

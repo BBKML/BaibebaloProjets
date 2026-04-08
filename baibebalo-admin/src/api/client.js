@@ -31,30 +31,18 @@ const apiClient = axios.create({
 // Intercepteur pour gérer FormData (doit être AVANT celui qui ajoute le token)
 apiClient.interceptors.request.use(
   (config) => {
-    // Si les données sont une instance de FormData, supprimer Content-Type
-    // pour laisser axios définir automatiquement le bon Content-Type avec boundary
     if (config.data instanceof FormData) {
       delete config.headers['Content-Type'];
-      if (import.meta.env.DEV) {
-        console.log('📎 FormData détecté, Content-Type supprimé pour laisser axios le définir');
-      }
     }
     return config;
   },
-  (error) => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Log en mode développement
 if (import.meta.env.DEV) {
   const baseURL = getBaseURL();
-  const backendPort = import.meta.env.VITE_BACKEND_PORT || '5000';
-  console.log('🔧 API Client configuré:', {
-    baseURL,
-    mode: baseURL.startsWith('http') ? 'URL directe' : 'Proxy',
-    backend: `http://localhost:${backendPort}`,
-  });
+  console.log(`🔧 API: ${baseURL}`);
 }
 
 // Intercepteur pour ajouter le token
@@ -63,28 +51,10 @@ apiClient.interceptors.request.use(
     const token = localStorage.getItem('accessToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
-      if (import.meta.env.DEV) {
-        console.log('🔑 Token ajouté au header');
-      }
-    } else {
-      if (import.meta.env.DEV) {
-        console.warn('⚠️ Aucun token trouvé dans localStorage');
-      }
-    }
-    if (import.meta.env.DEV) {
-      console.log('📤 Requête:', {
-        method: config.method?.toUpperCase(),
-        url: config.url,
-        baseURL: config.baseURL,
-        fullURL: `${config.baseURL}${config.url}`,
-      });
     }
     return config;
   },
-  (error) => {
-    console.error('❌ Erreur intercepteur request:', error);
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 // Intercepteur pour gérer les erreurs
@@ -95,51 +65,46 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Erreur 401 - Token expiré
+    // Erreur 401 - Token expiré ou absent
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      try {
-        const refreshToken = localStorage.getItem('refreshToken');
-        if (refreshToken) {
-          const refreshURL = import.meta.env.DEV 
+      const refreshToken = localStorage.getItem('refreshToken');
+      if (refreshToken) {
+        try {
+          const refreshURL = import.meta.env.DEV
             ? getBaseURL() + '/auth/refresh-token'
             : '/api/v1/auth/refresh-token';
-          const response = await axios.post(refreshURL, {
-            refreshToken,
-          });
-
+          const response = await axios.post(refreshURL, { refreshToken });
           const { accessToken } = response.data.data;
           localStorage.setItem('accessToken', accessToken);
           originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-
           return apiClient(originalRequest);
+        } catch (_) {
+          // Refresh token invalide - déconnexion forcée
         }
-      } catch (refreshError) {
-        // Refresh token invalide - déconnexion
-        localStorage.removeItem('accessToken');
-        localStorage.removeItem('refreshToken');
-        localStorage.removeItem('admin');
-        window.location.href = '/login';
-        return Promise.reject(refreshError);
       }
+      // Pas de refresh token ou refresh échoué → déconnexion
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('admin');
+      toast.error('Session expirée. Veuillez vous reconnecter.');
+      globalThis.location.href = '/login';
+      throw error;
     }
 
-    // Afficher les erreurs (sauf 401 qui est géré ci-dessus)
+    // Afficher les erreurs (sauf 401 déjà traité ci-dessus)
     if (error.response?.status !== 401) {
-      if (error.response?.data?.error?.message) {
-        toast.error(error.response.data.error.message);
+      const message = error.response?.data?.error?.message;
+      if (message) {
+        toast.error(message);
       } else if (error.message) {
-        // Ne pas afficher les erreurs de réseau génériques
-        if (!error.message.includes('Network Error') && !error.message.includes('timeout')) {
-          toast.error(error.message);
-        } else {
-          toast.error('Erreur de connexion au serveur. Vérifiez que le backend est démarré.');
-        }
+        const isNetworkError = error.message.includes('Network Error') || error.message.includes('timeout');
+        toast.error(isNetworkError ? 'Erreur de connexion au serveur. Vérifiez que le backend est démarré.' : error.message);
       }
     }
 
-    return Promise.reject(error);
+    throw error;
   }
 );
 

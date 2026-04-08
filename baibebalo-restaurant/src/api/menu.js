@@ -85,8 +85,6 @@ export const restaurantMenu = {
           name: itemData.photo.name || `menu_${Date.now()}.jpg`,
         });
         
-        console.log('📸 Upload photo article:', { uri: itemData.photo.uri.substring(0, 50) + '...' });
-        
         const token = useAuthStore.getState().token;
         const response = await fetch(API_ENDPOINTS.MENU.CREATE_ITEM, {
           method: 'POST',
@@ -116,7 +114,7 @@ export const restaurantMenu = {
         return response.data;
       }
     } catch (error) {
-      console.error('❌ Erreur createItem:', error);
+      if (__DEV__) console.error('Erreur createItem:', error?.message);
       throw error.response?.data || error.message;
     }
   },
@@ -146,8 +144,6 @@ export const restaurantMenu = {
           type: itemData.photo.type || 'image/jpeg',
           name: itemData.photo.name || `menu_${Date.now()}.jpg`,
         });
-        
-        console.log('📸 Upload nouvelle photo article:', { uri: itemData.photo.uri.substring(0, 50) + '...' });
         
         const token = useAuthStore.getState().token;
         const response = await fetch(API_ENDPOINTS.MENU.UPDATE_ITEM(itemId), {
@@ -179,7 +175,7 @@ export const restaurantMenu = {
         return response.data;
       }
     } catch (error) {
-      console.error('❌ Erreur updateItem:', error);
+      if (__DEV__) console.error('Erreur updateItem:', error?.message);
       throw error.response?.data || error.message;
     }
   },
@@ -192,7 +188,7 @@ export const restaurantMenu = {
       });
       return response.data;
     } catch (error) {
-      console.error('❌ Erreur updateItemOptions:', error);
+      if (__DEV__) console.error('Erreur updateItemOptions:', error?.message);
       throw error.response?.data || error.message;
     }
   },

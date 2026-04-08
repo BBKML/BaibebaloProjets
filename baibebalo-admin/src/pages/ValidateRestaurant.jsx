@@ -135,7 +135,7 @@ const ValidateRestaurant = () => {
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 Validation de Restaurant
               </h1>
               {pendingDays > 0 && (
@@ -154,11 +154,14 @@ const ValidateRestaurant = () => {
             {/* Banner */}
             {restaurant.banner && (
               <div className="mb-4 rounded-xl overflow-hidden">
-                <img 
-                  src={getImageUrl(restaurant.banner)} 
+                <img
+                  src={getImageUrl(restaurant.banner) || ''}
                   alt={`Banner de ${restaurant.name}`}
                   className="w-full h-48 object-cover"
-                  onError={(e) => e.target.style.display = 'none'}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.parentElement.innerHTML = '<div class="w-full h-48 bg-slate-200 dark:bg-slate-700 flex items-center justify-center rounded-xl"><span class="text-slate-400 text-sm">Image non disponible</span></div>';
+                  }}
                 />
               </div>
             )}
@@ -167,7 +170,7 @@ const ValidateRestaurant = () => {
               {/* Logo */}
               {restaurant.logo ? (
                 <img 
-                  src={getImageUrl(restaurant.logo)} 
+                  src={getImageUrl(restaurant.logo) || ''}
                   alt={`Logo de ${restaurant.name}`}
                   className="w-20 h-20 rounded-xl object-cover border-2 border-slate-200 dark:border-slate-700"
                   onError={(e) => {
@@ -210,9 +213,9 @@ const ValidateRestaurant = () => {
                       <p className="text-xs text-slate-500">Registre du Commerce</p>
                     </div>
                     {restaurant.documents?.rccm ? (
-                      <a 
-                        href={restaurant.documents.rccm} 
-                        target="_blank" 
+                      <a
+                        href={getImageUrl(restaurant.documents.rccm)}
+                        target="_blank"
                         rel="noopener noreferrer"
                         className="text-primary hover:text-primary/70"
                       >
@@ -224,11 +227,11 @@ const ValidateRestaurant = () => {
                   </div>
                   {restaurant.documents?.rccm && (
                     <div className="mt-3">
-                      <img 
-                        src={restaurant.documents.rccm} 
-                        alt="Document RCCM" 
+                      <img
+                        src={getImageUrl(restaurant.documents.rccm) || ''}
+                        alt="Document RCCM"
                         className="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700"
-                        onError={(e) => e.target.style.display = 'none'}
+                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.insertAdjacentHTML('afterend', '<div class="w-full h-24 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-400">Image non disponible</div>'); }}
                       />
                     </div>
                   )}
@@ -260,10 +263,10 @@ const ValidateRestaurant = () => {
                   {(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni) && (
                     <div className="mt-3">
                       <img 
-                        src={getImageUrl(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni)} 
+                        src={getImageUrl(restaurant.id_card_front || restaurant.documents?.id || restaurant.documents?.cni) || ''}
                         alt="CNI Recto" 
                         className="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700"
-                        onError={(e) => e.target.style.display = 'none'}
+                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.insertAdjacentHTML('afterend', '<div class="w-full h-24 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-400">Image non disponible</div>'); }}
                       />
                     </div>
                   )}
@@ -295,10 +298,10 @@ const ValidateRestaurant = () => {
                   {restaurant.id_card_back && (
                     <div className="mt-3">
                       <img 
-                        src={getImageUrl(restaurant.id_card_back)} 
+                        src={getImageUrl(restaurant.id_card_back) || ''} 
                         alt="CNI Verso" 
                         className="w-full max-h-48 object-contain rounded-lg border border-slate-200 dark:border-slate-700"
-                        onError={(e) => e.target.style.display = 'none'}
+                        onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.insertAdjacentHTML('afterend', '<div class="w-full h-24 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-400">Image non disponible</div>'); }}
                       />
                     </div>
                   )}
@@ -335,7 +338,7 @@ const ValidateRestaurant = () => {
                             src={photo} 
                             alt={`Photo ${index + 1}`} 
                             className="w-full h-24 object-cover rounded-lg border border-slate-200 dark:border-slate-700 hover:opacity-80 transition-opacity"
-                            onError={(e) => e.target.style.display = 'none'}
+                            onError={(e) => { e.target.onerror = null; e.target.style.display = 'none'; e.target.insertAdjacentHTML('afterend', '<div class="w-full h-24 bg-slate-100 dark:bg-slate-800 rounded-lg flex items-center justify-center text-xs text-slate-400">Image non disponible</div>'); }}
                           />
                         </a>
                       ))}

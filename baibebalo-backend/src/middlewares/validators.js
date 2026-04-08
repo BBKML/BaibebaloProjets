@@ -275,6 +275,11 @@ const registerValidators = [
 const verifyOtpValidators = [
   phoneValidator,
   otpValidator,
+  body('fcm_token')
+    .optional({ nullable: true })
+    .trim()
+    .isLength({ min: 10, max: 1024 })
+    .withMessage('Token FCM invalide'),
   // first_name et last_name sont optionnels lors de la vérification OTP
   body('first_name')
     .optional({ nullable: true })

@@ -15,6 +15,7 @@ import { COLORS } from '../../constants/colors';
 import { restaurantOrders } from '../../api/orders';
 import useRestaurantStore from '../../store/restaurantStore';
 import soundService from '../../services/soundService';
+import socketService from '../../services/socketService';
 
 export default function PreparationTrackerScreen({ navigation, route }) {
   const { orderId } = route.params;
@@ -24,7 +25,8 @@ export default function PreparationTrackerScreen({ navigation, route }) {
   const [isOvertime, setIsOvertime] = useState(false);
   const [overtimeAlertShown, setOvertimeAlertShown] = useState(false);
   const insets = useSafeAreaInsets();
-  
+  const submittingRef = useRef(false);
+
   // Animation pour l'alerte de dépassement
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -126,6 +128,8 @@ export default function PreparationTrackerScreen({ navigation, route }) {
   const allItemsChecked = order?.items?.every((_, index) => checkedItems[index]);
 
   const handleMarkReady = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     try {
       await restaurantOrders.markReady(orderId);
       Alert.alert('Succès', 'Commande marquée comme prête', [
@@ -135,7 +139,10 @@ export default function PreparationTrackerScreen({ navigation, route }) {
         },
       ]);
     } catch (error) {
-      Alert.alert('Erreur', error.message);
+      const errorMessage = error?.error?.message || error?.message || 'Impossible de marquer la commande comme prête';
+      Alert.alert('Erreur', errorMessage);
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -151,6 +158,8 @@ export default function PreparationTrackerScreen({ navigation, route }) {
             try {
               // Accepter la commande avec le nouveau temps estimé
               await restaurantOrders.acceptOrder(orderId, parseInt(newTime) || 20);
+              socketService.markOrderHandled(orderId);
+              await soundService.stopSound('urgentOrder');
               await loadOrder();
             } catch (error) {
               const errorMessage = error.error?.message || error.message || 'Erreur';

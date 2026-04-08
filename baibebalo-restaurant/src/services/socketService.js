@@ -15,11 +15,11 @@ class SocketService {
     this.pendingOrders = new Map(); // Stocke les commandes en attente avec leur timestamp
   }
 
-  // Connecter au serveur Socket.IO
+  // Connecter au serveur Socket.IO (une seule instance partagée)
   connect() {
     try {
-      if (this.socket?.connected) {
-        console.log('🔌 Socket déjà connecté');
+      if (this.socket) {
+        if (this.socket.connected) console.log('🔌 Socket déjà connecté');
         return;
       }
 
@@ -70,8 +70,9 @@ class SocketService {
         } catch (soundError) {
           console.warn('⚠️ Erreur son:', soundError.message);
         }
-        // Ajouter aux commandes en attente
-        this.pendingOrders.set(data.orderId || data.order_id, {
+        // Ajouter aux commandes en attente (clé normalisée pour éviter string/number)
+        const key = String(data.orderId ?? data.order_id ?? '');
+        if (key) this.pendingOrders.set(key, {
           receivedAt: Date.now(),
           data: data,
         });
@@ -84,9 +85,13 @@ class SocketService {
     // 🆕 Écouter les mises à jour de commandes
     this.socket.on('order_update', (data) => {
       console.log('📝 Mise à jour commande:', data);
-      // Si la commande est acceptée, la retirer des alertes
+      // Si la commande est acceptée/refusée/annulée, la retirer des alertes (clés normalisées)
       if (data.status === 'accepted' || data.status === 'refused' || data.status === 'cancelled') {
-        this.pendingOrders.delete(data.orderId || data.order_id);
+        const id = data.orderId ?? data.order_id;
+        if (id) {
+          this.pendingOrders.delete(String(id));
+          this.pendingOrders.delete(Number(id));
+        }
         soundService.stopSound('urgentOrder');
       }
       this._emit('order_update', data);
@@ -95,7 +100,11 @@ class SocketService {
     // 🆕 Écouter les annulations
     this.socket.on('order_cancelled', async (data) => {
       console.log('❌ Commande annulée:', data);
-      this.pendingOrders.delete(data.orderId || data.order_id);
+      const id = data.orderId ?? data.order_id;
+      if (id) {
+        this.pendingOrders.delete(String(id));
+        this.pendingOrders.delete(Number(id));
+      }
       await soundService.alert();
       this._emit('order_cancelled', data);
     });
@@ -148,16 +157,16 @@ class SocketService {
       clearInterval(this.pendingOrdersAlertInterval);
     }
 
-    // Vérifier toutes les 30 secondes
+    // Vérifier toutes les 30 secondes (timer 2 min pour accepter/refuser)
     this.pendingOrdersAlertInterval = setInterval(async () => {
       const now = Date.now();
-      const ALERT_THRESHOLD = 3 * 60 * 1000; // 3 minutes
+      const ALERT_THRESHOLD = 2 * 60 * 1000; // 2 minutes (délai pour accepter/refuser)
 
       for (const [orderId, orderInfo] of this.pendingOrders) {
         const waitingTime = now - orderInfo.receivedAt;
         
-        if (waitingTime > ALERT_THRESHOLD) {
-          console.log(`⚠️ Commande ${orderId} en attente depuis ${Math.round(waitingTime / 60000)} minutes!`);
+        if (waitingTime >= ALERT_THRESHOLD) {
+          console.log(`⚠️ Commande ${orderId} en attente depuis ${Math.round(waitingTime / 60000)} min (seuil 2 min)`);
           // Émettre une alerte urgente
           await soundService.alertUrgent();
           this._emit('order_urgent_alert', {
@@ -178,9 +187,12 @@ class SocketService {
     }
   }
 
-  // Marquer une commande comme traitée (enlève des alertes)
+  // Marquer une commande comme traitée (enlève des alertes), clés normalisées
   markOrderHandled(orderId) {
-    this.pendingOrders.delete(orderId);
+    if (orderId != null) {
+      this.pendingOrders.delete(String(orderId));
+      this.pendingOrders.delete(Number(orderId));
+    }
     soundService.stopSound('urgentOrder');
   }
 

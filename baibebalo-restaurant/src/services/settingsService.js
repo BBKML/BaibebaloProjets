@@ -95,3 +95,14 @@ export const invalidateSettingsCache = () => {
   cachedSettings = null;
   cacheTimestamp = null;
 };
+
+/**
+ * Récupère la valeur d'un paramètre "coordonnées entreprise" (format API { value, description } ou valeur directe).
+ */
+export const getCompanyValue = (settings, key) => {
+  if (!settings || !key) return undefined;
+  const v = settings[key];
+  if (v == null) return undefined;
+  if (typeof v === 'object' && v !== null && 'value' in v) return v.value;
+  return v;
+};

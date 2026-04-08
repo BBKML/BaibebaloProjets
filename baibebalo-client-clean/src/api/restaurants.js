@@ -67,6 +67,14 @@ export const getActivePromotions = async () => {
 };
 
 /**
+ * Recommandations personnalisées basées sur l'historique de commandes
+ */
+export const getRecommendedRestaurants = async (limit = 8) => {
+  const response = await apiClient.get('/restaurants/recommended', { params: { limit } });
+  return response.data;
+};
+
+/**
  * Récupérer les catégories de restaurants
  */
 export const getCategories = async () => {
@@ -81,5 +89,21 @@ export const getPopularSearches = async (limit = 5) => {
   const response = await apiClient.get(API_CONFIG.ENDPOINTS.RESTAURANTS.POPULAR_SEARCHES, {
     params: { limit },
   });
+  return response.data;
+};
+
+/**
+ * Récupérer les plats du jour de tous les restaurants
+ */
+export const getDailySpecials = async () => {
+  const response = await apiClient.get('/restaurants/daily-specials');
+  return response.data;
+};
+
+/**
+ * Reorder en 1 clic — récupérer les données d'une ancienne commande pour recommander
+ */
+export const getReorderData = async (orderId) => {
+  const response = await apiClient.post(`/orders/${orderId}/reorder`);
   return response.data;
 };

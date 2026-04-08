@@ -314,6 +314,9 @@ const migrations = [
   // Index composites pour les routes livreur (perf <500ms)
   `CREATE INDEX IF NOT EXISTS idx_orders_delivery_status ON orders(delivery_person_id, status) WHERE delivery_person_id IS NOT NULL;`,
   `CREATE INDEX IF NOT EXISTS idx_orders_delivery_created ON orders(delivery_person_id, created_at DESC) WHERE delivery_person_id IS NOT NULL;`,
+  // Index composites pour GET /admin/orders (filtres status, restaurant_id, tri placed_at)
+  `CREATE INDEX IF NOT EXISTS idx_orders_status_placed_at ON orders(status, placed_at DESC);`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_restaurant_placed_at ON orders(restaurant_id, placed_at DESC);`,
 
   // ======================================
   // Migration 9: Table order_items
@@ -562,6 +565,8 @@ const migrations = [
 
   // Migration: Ajouter colonne profile_picture à admins
   `ALTER TABLE admins ADD COLUMN IF NOT EXISTS profile_picture TEXT;`,
+  // Migration: Ajouter colonne fcm_token à admins (notifications push)
+  `ALTER TABLE admins ADD COLUMN IF NOT EXISTS fcm_token TEXT;`,
 
   // Migration: Ajouter colonne commission à orders (si elle n'existe pas)
   `DO $$ 
@@ -1133,6 +1138,9 @@ const migrations = [
   // Ajouter la colonne paid_at pour le suivi du paiement
   `ALTER TABLE orders ADD COLUMN IF NOT EXISTS paid_at TIMESTAMP;`,
   
+  // Photo preuve de livraison (URL) enregistrée par le livreur
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS delivery_proof_photo TEXT;`,
+  
   // Livreur paie restaurant à l'avance
   `ALTER TABLE orders ADD COLUMN IF NOT EXISTS restaurant_paid_by_delivery BOOLEAN DEFAULT FALSE;`,
   `ALTER TABLE orders ADD COLUMN IF NOT EXISTS restaurant_paid_by_delivery_at TIMESTAMP;`,
@@ -1152,7 +1160,11 @@ const migrations = [
   `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS verified_amount DECIMAL(10,2);`,
   `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS verification_notes TEXT;`,
   `ALTER TABLE cash_remittances ADD COLUMN IF NOT EXISTS discrepancy_amount DECIMAL(10,2) DEFAULT 0;`,
-  
+
+  // Remises espèces : autoriser moov_money comme provider
+  `ALTER TABLE cash_remittances DROP CONSTRAINT IF EXISTS cash_remittances_mobile_money_provider_check;`,
+  `ALTER TABLE cash_remittances ADD CONSTRAINT cash_remittances_mobile_money_provider_check CHECK (mobile_money_provider IS NULL OR mobile_money_provider IN ('orange_money', 'mtn_money', 'moov_money', 'waves'));`,
+
   // CORRECTION TABLE otp_codes pour supporter tokens longs et emails
   // Augmenter la taille du champ code pour supporter les tokens de réinitialisation (64 caractères)
   `ALTER TABLE otp_codes ALTER COLUMN code TYPE VARCHAR(255);`,
@@ -1183,6 +1195,37 @@ const migrations = [
     (order_type = 'express' AND restaurant_id IS NULL AND pickup_address IS NOT NULL)
   );`,
   `CREATE INDEX IF NOT EXISTS idx_orders_order_type ON orders(order_type);`,
+
+  // ======================================
+  // Migrations nouvelles fonctionnalités
+  // ======================================
+
+  // Plat du jour sur menu_items
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS is_daily_special BOOLEAN DEFAULT false`,
+  `ALTER TABLE menu_items ADD COLUMN IF NOT EXISTS daily_special_date DATE`,
+  `CREATE INDEX IF NOT EXISTS idx_menu_daily_special ON menu_items(is_daily_special) WHERE is_daily_special = true`,
+
+  // Commandes programmées
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS scheduled_at TIMESTAMP NULL`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_scheduled ON orders(scheduled_at) WHERE scheduled_at IS NOT NULL`,
+
+  // Cashback points sur commandes
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS cashback_points INTEGER DEFAULT 0`,
+
+  // Table bonus performance livreurs
+  `CREATE TABLE IF NOT EXISTS delivery_performance_bonuses (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    delivery_person_id UUID NOT NULL REFERENCES delivery_persons(id) ON DELETE CASCADE,
+    bonus_date DATE NOT NULL DEFAULT CURRENT_DATE,
+    deliveries_count INTEGER NOT NULL,
+    bonus_amount INTEGER NOT NULL,
+    status VARCHAR(20) DEFAULT 'pending',
+    paid_at TIMESTAMP,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE(delivery_person_id, bonus_date)
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_bonus_delivery_person ON delivery_performance_bonuses(delivery_person_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_bonus_date ON delivery_performance_bonuses(bonus_date)`,
 ];
 
 // Fonction pour vérifier si une table existe
@@ -1282,6 +1325,31 @@ const runMigrations = async () => {
       );
     }
     await query(`UPDATE app_settings SET value = '20'::jsonb WHERE key = 'max_delivery_radius'`);
+
+    // Coordonnées de l'entreprise (modifiables depuis l'admin, synchronisées dans les apps)
+    const companySettingsToInsert = [
+      ['company_facebook', '', 'URL page Facebook'],
+      ['company_instagram', '', 'URL page Instagram'],
+      ['company_tiktok', '', 'URL page TikTok'],
+      ['company_whatsapp', '', 'Numéro WhatsApp (ex: +2250700000000)'],
+      ['company_email', '', 'Email principal de contact'],
+      ['company_contact_1_name', '', 'Contact 1 - Nom'],
+      ['company_contact_1_phone', '', 'Contact 1 - Téléphone'],
+      ['company_contact_2_name', '', 'Contact 2 - Nom'],
+      ['company_contact_2_phone', '', 'Contact 2 - Téléphone'],
+      ['company_contact_3_name', '', 'Contact 3 - Nom'],
+      ['company_contact_3_phone', '', 'Contact 3 - Téléphone'],
+      ['company_contact_4_name', '', 'Contact 4 - Nom'],
+      ['company_contact_4_phone', '', 'Contact 4 - Téléphone'],
+    ];
+    for (const [key, value, description] of companySettingsToInsert) {
+      await query(
+        `INSERT INTO app_settings (key, value, description, is_public)
+         VALUES ($1, $2, $3, $4)
+         ON CONFLICT (key) DO NOTHING`,
+        [key, JSON.stringify(value), description, true]
+      );
+    }
     
     logger.info('✓ Paramètres par défaut insérés');
     

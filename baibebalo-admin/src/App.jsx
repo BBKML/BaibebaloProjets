@@ -24,6 +24,7 @@ import FunnelConversion from './pages/FunnelConversion';
 import TemporalAnalysis from './pages/TemporalAnalysis';
 import GeographicHeatmap from './pages/GeographicHeatmap';
 import PlatformSettings from './pages/PlatformSettings';
+import CompanyContactSettings from './pages/CompanyContactSettings';
 import CommissionSettings from './pages/CommissionSettings';
 import DeliveryZones from './pages/DeliveryZones';
 import PromoCodes from './pages/PromoCodes';
@@ -32,6 +33,7 @@ import SendNotification from './pages/SendNotification';
 import PromotionalBanners from './pages/PromotionalBanners';
 import BadgesRewards from './pages/BadgesRewards';
 import FinancialDashboard from './pages/FinancialDashboard';
+import BenefitsByPeriod from './pages/BenefitsByPeriod';
 import PaymentAnalysis from './pages/PaymentAnalysis';
 import CohortAnalysis from './pages/CohortAnalysis';
 import Refunds from './pages/Refunds';
@@ -216,6 +218,14 @@ function App() {
             }
           />
           <Route
+            path="/finances/benefits"
+            element={
+              <ProtectedRoute>
+                <BenefitsByPeriod />
+              </ProtectedRoute>
+            }
+          />
+          <Route
             path="/test-charts"
             element={
               <ProtectedRoute>
@@ -276,6 +286,14 @@ function App() {
             element={
               <ProtectedRoute>
                 <PlatformSettings />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/settings/company-contact"
+            element={
+              <ProtectedRoute>
+                <CompanyContactSettings />
               </ProtectedRoute>
             }
           />

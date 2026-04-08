@@ -204,12 +204,21 @@ exports.updateProfile = async (req, res) => {
       return value;
     };
 
+    const normalizeDateOfBirth = (value) => {
+      const v = normalizeOptionalField(value);
+      if (v === undefined || v === null) return v;
+      const s = String(v).trim();
+      if (s === '') return null;
+      if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+      return null;
+    };
+
     const normalizedBody = {
       first_name: normalizeOptionalField(req.body.first_name),
       last_name: normalizeOptionalField(req.body.last_name),
       email: normalizeOptionalField(req.body.email),
       gender: normalizeOptionalField(req.body.gender),
-      date_of_birth: normalizeOptionalField(req.body.date_of_birth),
+      date_of_birth: normalizeDateOfBirth(req.body.date_of_birth),
       profile_picture: normalizeOptionalField(req.body.profile_picture),
     };
 

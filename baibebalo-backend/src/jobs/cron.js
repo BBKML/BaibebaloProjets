@@ -56,7 +56,7 @@ cron.schedule('0 9 * * 1', async () => {
       SELECT id, first_name, last_name, phone, available_balance, mobile_money_number, mobile_money_provider
       FROM delivery_persons
       WHERE status = 'active' 
-        AND available_balance > 0
+        AND COALESCE(available_balance, 0) > 0
         AND mobile_money_number IS NOT NULL
     `);
 
@@ -347,6 +347,114 @@ function init(app) {
   });
   logger.info('⏰ Cron propositions livreur (attribution auto) initialisé');
 }
+
+/**
+ * Bonus performance livreurs — Tous les jours à 23h30
+ * Si un livreur fait 10+ livraisons dans la journée → +500 FCFA bonus
+ * Si 20+ livraisons → +1500 FCFA bonus
+ */
+cron.schedule('30 23 * * *', async () => {
+  try {
+    logger.info('🏆 Calcul des bonus performance livreurs...');
+    const today = new Date().toISOString().split('T')[0];
+
+    const performers = await query(`
+      SELECT dp.id, dp.first_name, dp.last_name,
+             COUNT(o.id) AS deliveries_count
+      FROM delivery_persons dp
+      JOIN orders o ON o.delivery_person_id = dp.id
+        AND o.status = 'delivered'
+        AND DATE(o.delivered_at) = $1
+      WHERE dp.status = 'active'
+      GROUP BY dp.id, dp.first_name, dp.last_name
+      HAVING COUNT(o.id) >= 10
+    `, [today]);
+
+    for (const dp of performers.rows) {
+      const count = parseInt(dp.deliveries_count);
+      const bonusAmount = count >= 20 ? 1500 : 500;
+
+      // Insérer le bonus (UNIQUE sur delivery_person_id + bonus_date évite les doublons)
+      const inserted = await query(`
+        INSERT INTO delivery_performance_bonuses
+          (delivery_person_id, bonus_date, deliveries_count, bonus_amount, status)
+        VALUES ($1, $2, $3, $4, 'paid')
+        ON CONFLICT (delivery_person_id, bonus_date) DO NOTHING
+        RETURNING id
+      `, [dp.id, today, count, bonusAmount]);
+
+      if (inserted.rowCount > 0) {
+        // Créditer le solde du livreur
+        await query(
+          `UPDATE delivery_persons SET available_balance = COALESCE(available_balance, 0) + $1 WHERE id = $2`,
+          [bonusAmount, dp.id]
+        );
+        // Enregistrer la transaction
+        await query(`
+          INSERT INTO transactions (from_user_type, to_user_id, to_user_type, amount, transaction_type, status, description)
+          VALUES ('platform', $1, 'delivery', $2, 'bonus', 'completed', $3)
+        `, [dp.id, bonusAmount, `Bonus performance: ${count} livraisons le ${today}`]);
+
+        logger.info(`🏆 Bonus ${bonusAmount} FCFA attribué à ${dp.first_name} ${dp.last_name} (${count} livraisons)`);
+      }
+    }
+
+    logger.info(`✅ Bonus performance traités: ${performers.rows.length} livreur(s)`);
+  } catch (error) {
+    logger.error('❌ Erreur cron bonus performance:', error);
+  }
+});
+
+/**
+ * Commandes programmées — Toutes les minutes
+ * Active les commandes avec scheduled_at <= NOW() qui sont en statut 'scheduled'
+ */
+cron.schedule('* * * * *', async () => {
+  try {
+    const result = await query(`
+      UPDATE orders
+      SET status = 'new', placed_at = NOW()
+      WHERE status = 'scheduled'
+        AND scheduled_at IS NOT NULL
+        AND scheduled_at <= NOW()
+      RETURNING id, order_number, user_id
+    `);
+
+    if (result.rowCount > 0) {
+      logger.info(`⏰ ${result.rowCount} commande(s) programmée(s) activée(s)`);
+      for (const order of result.rows) {
+        try {
+          const notificationService = require('../services/notification.service');
+          await notificationService.sendOrderNotification(order.id, 'client', 'order_confirmed');
+        } catch (e) {
+          logger.warn(`Notification commande programmée ${order.order_number} ignorée`);
+        }
+      }
+    }
+  } catch (error) {
+    logger.error('❌ Erreur cron commandes programmées:', error);
+  }
+});
+
+/**
+ * Réinitialiser le statut "plat du jour" — Tous les jours à minuit
+ * Les plats du jour ne sont valables que pour la journée courante
+ */
+cron.schedule('1 0 * * *', async () => {
+  try {
+    const result = await query(`
+      UPDATE menu_items
+      SET is_daily_special = false
+      WHERE is_daily_special = true
+        AND (daily_special_date IS NULL OR daily_special_date < CURRENT_DATE)
+    `);
+    if (result.rowCount > 0) {
+      logger.info(`🍽️ Plats du jour réinitialisés: ${result.rowCount}`);
+    }
+  } catch (error) {
+    logger.error('❌ Erreur cron plat du jour reset:', error);
+  }
+});
 
 logger.info('⏰ Cron jobs initialisés');
 

@@ -49,7 +49,7 @@ export default function RegisterStep1Screen({ navigation }) {
     
     // Téléphone
     if (!formData.phone.trim()) newErrors.phone = 'Téléphone requis';
-    else if (formData.phone.length < 8) newErrors.phone = 'Numéro invalide';
+    else if (formData.phone.replace(/\s+/g, '').replace(/^\+225/, '').replace(/^0/, '').length < 8) newErrors.phone = 'Numéro invalide (min 8 chiffres)';
     
     // Email
     if (!formData.email.trim()) newErrors.email = 'Email requis';
@@ -97,7 +97,7 @@ export default function RegisterStep1Screen({ navigation }) {
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
           </TouchableOpacity>
           <Text style={styles.title}>Inscription</Text>
-          <Text style={styles.stepText}>Étape 1 sur 3</Text>
+          <Text style={styles.stepText}>Étape 1 sur 4</Text>
         </View>
 
         {/* Indicateur de progression */}
@@ -140,7 +140,7 @@ export default function RegisterStep1Screen({ navigation }) {
             <Text style={styles.label}>Téléphone *</Text>
             <TextInput
               style={[styles.input, errors.phone && styles.inputError]}
-              placeholder="+225 XX XX XX XX XX"
+              placeholder="Ex: 0712345678 ou +225 07 12 34 56 78"
               value={formData.phone}
               onChangeText={(text) => setFormData({ ...formData, phone: text })}
               keyboardType="phone-pad"
@@ -244,7 +244,7 @@ export default function RegisterStep1Screen({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 40) }]}>
           <TouchableOpacity style={styles.nextButton} onPress={handleNext}>
             <Text style={styles.nextButtonText}>Suivant</Text>
             <Ionicons name="arrow-forward" size={20} color={COLORS.white} />
@@ -262,7 +262,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
   header: {
     marginBottom: 20,

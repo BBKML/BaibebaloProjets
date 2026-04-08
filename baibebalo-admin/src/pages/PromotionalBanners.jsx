@@ -12,7 +12,7 @@ const PromotionalBanners = () => {
       dateRange: '01/10 - 07/10',
       status: 'active',
       rank: 1,
-      image: 'https://via.placeholder.com/1200x400',
+      image: null,
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ const PromotionalBanners = () => {
       dateRange: 'Permanent',
       status: 'active',
       rank: 2,
-      image: 'https://via.placeholder.com/1200x400',
+      image: null,
     },
     {
       id: 3,
@@ -30,7 +30,7 @@ const PromotionalBanners = () => {
       dateRange: 'Démarre le 15/10',
       status: 'scheduled',
       rank: 3,
-      image: 'https://via.placeholder.com/1200x400',
+      image: null,
     },
   ]);
 

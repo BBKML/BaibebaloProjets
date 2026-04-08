@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Linking, Platform, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, Alert, ActivityIndicator, Image } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
@@ -7,11 +8,13 @@ import { COLORS } from '../../constants/colors';
 import { arriveAtRestaurant, getOrderDetail, trackOrder } from '../../api/orders';
 import { orderToDeliveryShape } from '../../utils/orderToDelivery';
 import { updateLocation } from '../../api/delivery';
+import soundService from '../../services/soundService';
 import { getImageUrl } from '../../utils/url';
 
 const KORHOGO_FALLBACK = { latitude: 9.4580, longitude: -5.6294 };
 
 export default function NavigationToRestaurantScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const initialDelivery = route.params?.delivery;
   const orderIdParam = route.params?.orderId;
   const mapRef = useRef(null);
@@ -41,7 +44,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
     // Utiliser initialDelivery comme valeur par défaut pendant le chargement
     if (initialDelivery) {
       setDelivery(initialDelivery);
-      console.log('📦 Utilisation initialDelivery temporaire, rechargement depuis API...');
+      if (__DEV__) console.log('📦 Utilisation initialDelivery temporaire, rechargement depuis API...');
     }
     
     setLoading(true);
@@ -51,28 +54,9 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
       .then((res) => {
         if (cancelled) return;
         const order = res?.data?.order || res?.order || res?.data;
-        console.log('📦 Données commande reçues (getOrderDetail):', {
-          restaurant_name: order?.restaurant_name,
-          restaurant_address: order?.restaurant_address,
-          restaurant_phone: order?.restaurant_phone,
-          restaurant_logo: order?.restaurant_logo,
-          restaurant: order?.restaurant,
-          has_restaurant_name: !!order?.restaurant_name,
-          has_restaurant_address: !!order?.restaurant_address,
-          has_restaurant_phone: !!order?.restaurant_phone,
-          has_restaurant_logo: !!order?.restaurant_logo,
-        });
+        if (__DEV__) console.log('📦 getOrderDetail ok:', order?.order_number);
         const deliveryData = orderToDeliveryShape(order);
-        console.log('🚚 Données delivery transformées:', {
-          restaurant_name: deliveryData?.restaurant?.name,
-          restaurant_address: deliveryData?.restaurant?.address,
-          restaurant_phone: deliveryData?.restaurant?.phone,
-          restaurant_logo: deliveryData?.restaurant?.logo,
-          has_name: !!deliveryData?.restaurant?.name,
-          has_address: !!deliveryData?.restaurant?.address,
-          has_phone: !!deliveryData?.restaurant?.phone,
-          has_logo: !!deliveryData?.restaurant?.logo,
-        });
+        if (__DEV__) console.log('🚚 Delivery transformée:', deliveryData?.id);
         
         // Vérifier que les informations sont complètes (express: pas de phone requis au point de collecte)
         const isExpressOrder = deliveryData?.order_type === 'express';
@@ -80,7 +64,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           ? !deliveryData?.restaurant?.address
           : (!deliveryData?.restaurant?.name || !deliveryData?.restaurant?.address || !deliveryData?.restaurant?.phone);
         if (needsMore) {
-          console.warn('⚠️ Informations incomplètes après getOrderDetail, tentative trackOrder...');
+          if (__DEV__) console.warn('⚠️ Informations incomplètes après getOrderDetail, tentative trackOrder...');
           // Essayer trackOrder pour obtenir les informations complètes
           return trackOrder(orderId);
         } else {
@@ -92,7 +76,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
       .catch((err) => {
         if (cancelled) return null;
         // Si getOrderDetail échoue (ex: accès interdit), essayer trackOrder
-        console.warn('getOrderDetail échoué, tentative avec trackOrder:', err?.message || err);
+        if (__DEV__) console.warn('getOrderDetail échoué, tentative avec trackOrder:', err?.message || err);
         return trackOrder(orderId);
       })
       .then((res) => {
@@ -102,28 +86,9 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           return;
         }
         const order = res?.data?.order || res?.order || res?.data;
-        console.log('📦 Données commande reçues (trackOrder):', {
-          restaurant_name: order?.restaurant_name,
-          restaurant_address: order?.restaurant_address,
-          restaurant_phone: order?.restaurant_phone,
-          restaurant_logo: order?.restaurant_logo,
-          restaurant: order?.restaurant,
-          has_restaurant_name: !!order?.restaurant_name,
-          has_restaurant_address: !!order?.restaurant_address,
-          has_restaurant_phone: !!order?.restaurant_phone,
-          has_restaurant_logo: !!order?.restaurant_logo,
-        });
+        if (__DEV__) console.log('📦 trackOrder ok:', order?.order_number);
         const deliveryData = orderToDeliveryShape(order);
-        console.log('🚚 Données delivery transformées (trackOrder):', {
-          restaurant_name: deliveryData?.restaurant?.name,
-          restaurant_address: deliveryData?.restaurant?.address,
-          restaurant_phone: deliveryData?.restaurant?.phone,
-          restaurant_logo: deliveryData?.restaurant?.logo,
-          has_name: !!deliveryData?.restaurant?.name,
-          has_address: !!deliveryData?.restaurant?.address,
-          has_phone: !!deliveryData?.restaurant?.phone,
-          has_logo: !!deliveryData?.restaurant?.logo,
-        });
+        if (__DEV__) console.log('🚚 Delivery transformée (trackOrder):', deliveryData?.id);
         
         // Mettre à jour même si certaines infos manquent (mieux que rien)
         setDelivery(deliveryData);
@@ -133,22 +98,15 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
         const stillIncomplete = isExpressAfter
           ? !deliveryData?.restaurant?.address
           : (!deliveryData?.restaurant?.name || !deliveryData?.restaurant?.address || !deliveryData?.restaurant?.phone);
-        if (stillIncomplete) {
-          console.error('❌ Informations toujours incomplètes après trackOrder:', {
-            name: deliveryData?.restaurant?.name,
-            address: deliveryData?.restaurant?.address,
-            phone: deliveryData?.restaurant?.phone,
-          });
-        }
+        if (stillIncomplete && __DEV__) console.warn('⚠️ Informations toujours incomplètes après trackOrder');
         
         if (!cancelled) setLoading(false);
       })
       .catch((err) => {
         if (!cancelled) {
-          console.error('❌ Erreur chargement commande (tous les endpoints ont échoué):', err?.message || err);
+          if (__DEV__) console.warn('⚠️ Tous les endpoints ont échoué:', err?.message || err);
           // Si tout échoue, utiliser initialDelivery s'il existe
           if (initialDelivery) {
-            console.warn('⚠️ Utilisation initialDelivery en fallback');
             setDelivery(initialDelivery);
           }
         }
@@ -172,8 +130,19 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted' || cancelled) return;
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        if (!cancelled) setDriverLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        const getLocation = () => Location.getCurrentPositionAsync(
+          { accuracy: Location.Accuracy.Balanced }
+        );
+        let loc;
+        try {
+          loc = await getLocation();
+        } catch (firstErr) {
+          await new Promise(r => setTimeout(r, 2000));
+          if (cancelled) return;
+          loc = await getLocation();
+        }
+        if (!cancelled && loc) setDriverLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        if (cancelled) return;
         locationSubscription.current = Location.watchPositionAsync(
           { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 20 },
           (l) => {
@@ -183,7 +152,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           }
         );
       } catch (e) {
-        if (!cancelled) console.warn('GPS:', e?.message || e);
+        if (!cancelled && __DEV__) console.warn('GPS:', e?.message || e);
       }
     })();
     return () => {
@@ -239,16 +208,15 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
       const orderId = delivery?.id || delivery?.order_id;
       if (orderId) {
         await arriveAtRestaurant(orderId);
-        console.log('✅ Arrivée au restaurant signalée');
+        soundService.alertOrderReady(); // Même retour son/vibration que pour "commande prête"
       }
-      // Naviguer vers l'écran de vérification
       navigation.navigate('OrderVerification', { delivery });
     } catch (error) {
-      console.error('Erreur arrivée restaurant:', error);
+      if (__DEV__) console.warn('Erreur arrivée restaurant:', error?.message || error);
       // Même en cas d'erreur, permettre de continuer
       Alert.alert(
         'Information',
-        'Erreur de synchronisation. Vous pouvez continuer.',
+        'Connexion interrompue. Vous pouvez continuer.',
         [{ text: 'OK', onPress: () => navigation.navigate('OrderVerification', { delivery }) }]
       );
     } finally {
@@ -344,7 +312,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
       </View>
 
       {/* Info Panel */}
-      <View style={styles.infoPanel}>
+      <View style={[styles.infoPanel, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <View style={styles.infoPanelHeader}>
           <View style={styles.stepIndicator}>
             <View style={[styles.stepDot, styles.stepDotActive]} />
@@ -364,9 +332,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
                 source={{ uri: getImageUrl(delivery.restaurant.logo) }} 
                 style={styles.restaurantLogo}
                 resizeMode="cover"
-                onError={(error) => {
-                  console.warn('Erreur chargement logo restaurant:', error);
-                }}
+                onError={() => {}}
               />
             ) : (
               <Ionicons name={isExpress ? 'cube' : 'restaurant'} size={24} color={COLORS.primary} />
@@ -410,7 +376,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           <View style={styles.earningsContainer}>
             <Text style={styles.earningsLabel}>Gains:</Text>
             <Text style={styles.orderEarnings}>
-              +{delivery?.earnings ? Number.parseFloat(delivery.earnings).toLocaleString('fr-FR') : '0'} FCFA
+              +{delivery?.earnings ? Math.round(Number.parseFloat(delivery.earnings)).toLocaleString('fr-FR') : '0'} FCFA
             </Text>
           </View>
         </View>
@@ -422,10 +388,9 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
             <Text style={styles.deliveryFeeTitle}>Frais de livraison</Text>
           </View>
           <Text style={styles.deliveryFeeAmount}>
-            {Number.parseFloat(delivery?.delivery_fee || 0).toLocaleString('fr-FR', { 
-              minimumFractionDigits: 2, 
-              maximumFractionDigits: 2 
-            })} FCFA
+            {(Number.parseFloat(delivery?.delivery_fee ?? 0) || 0) === 0
+              ? 'Livraison gratuite'
+              : `${Math.round(Number.parseFloat(delivery?.delivery_fee || 0)).toLocaleString('fr-FR')} FCFA`}
           </Text>
           {delivery?.delivery_distance && (
             <Text style={styles.deliveryFeeDistance}>
@@ -443,10 +408,7 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           </View>
             <View style={styles.revenueAmountContainer}>
               <Text style={styles.revenueAmount}>
-                {Number.parseFloat(delivery.restaurant_net_revenue || 0).toLocaleString('fr-FR', { 
-                  minimumFractionDigits: 2, 
-                  maximumFractionDigits: 2 
-                })} FCFA
+                {Math.round(Number.parseFloat(delivery.restaurant_net_revenue || 0)).toLocaleString('fr-FR')} FCFA
               </Text>
             </View>
             {delivery?.restaurant_subtotal && (

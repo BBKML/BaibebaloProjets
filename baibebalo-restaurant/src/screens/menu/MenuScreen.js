@@ -101,64 +101,74 @@ export default function MenuScreen({ navigation, route }) {
     }) + ' FCFA';
   };
 
+  const totalItems = menu.length;
+  const availableItems = menu.filter(i => i.is_available !== false).length;
+
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* TopAppBar */}
-      <View style={styles.topBar}>
-        <View style={styles.topBarContent}>
-          <TouchableOpacity 
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}
+      {/* Header */}
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.headerTitle}>Mon Menu</Text>
+          <Text style={styles.headerSub}>{totalItems} plats • {availableItems} disponibles</Text>
+        </View>
+        <View style={styles.headerActions}>
+          <TouchableOpacity
+            style={styles.headerBtn}
+            onPress={() => navigation.navigate('BulkMenuEdit')}
           >
-            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
-          </TouchableOpacity>
-          <Text style={styles.topBarTitle}>Menu Overview</Text>
-          <TouchableOpacity style={styles.searchButton}>
-            <Ionicons name="search" size={24} color={COLORS.text} />
+            <Ionicons name="create-outline" size={20} color={COLORS.text} />
           </TouchableOpacity>
         </View>
+      </View>
+
+      {/* Barre d'actions rapides */}
+      <View style={styles.actionBar}>
+        <TouchableOpacity
+          style={styles.actionBarBtn}
+          onPress={() => navigation.navigate('AddMenuItem')}
+        >
+          <Ionicons name="add-circle" size={16} color={COLORS.primary} />
+          <Text style={styles.actionBarBtnText}>Nouveau plat</Text>
+        </TouchableOpacity>
+        <View style={styles.actionBarDivider} />
+        <TouchableOpacity
+          style={styles.actionBarBtn}
+          onPress={() => navigation.navigate('AddCategory')}
+        >
+          <Ionicons name="folder-open-outline" size={16} color="#3b82f6" />
+          <Text style={[styles.actionBarBtnText, { color: '#3b82f6' }]}>Catégorie</Text>
+        </TouchableOpacity>
+        <View style={styles.actionBarDivider} />
+        <TouchableOpacity
+          style={styles.actionBarBtn}
+          onPress={() => navigation.navigate('BulkMenuEdit')}
+        >
+          <Ionicons name="list-outline" size={16} color={COLORS.textSecondary} />
+          <Text style={[styles.actionBarBtnText, { color: COLORS.textSecondary }]}>Modifier en masse</Text>
+        </TouchableOpacity>
       </View>
 
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        showsVerticalScrollIndicator={false}
       >
-        {/* ButtonGroup Section */}
-        <View style={styles.buttonGroup}>
-          <TouchableOpacity
-            style={styles.addItemButton}
-            onPress={() => navigation.navigate('AddMenuItem')}
-          >
-            <Ionicons name="fast-food-outline" size={16} color={COLORS.white} />
-            <Text style={styles.addItemButtonText}>Article</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.addCategoryButton}
-            onPress={() => navigation.navigate('AddCategory')}
-          >
-            <Ionicons name="folder-outline" size={16} color={COLORS.white} />
-            <Text style={styles.addCategoryButtonText}>Catégorie</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={styles.bulkEditButton}
-            onPress={() => navigation.navigate('BulkMenuEdit')}
-          >
-            <Ionicons name="settings-outline" size={16} color={COLORS.text} />
-            <Text style={styles.bulkEditButtonText}>En masse</Text>
-          </TouchableOpacity>
-        </View>
-
         {/* Menu Categories (Accordions) */}
         <View style={styles.categoriesContainer}>
           {categories.length === 0 ? (
             <View style={styles.emptyContainer}>
-              <Ionicons name="restaurant-outline" size={64} color={COLORS.textLight} />
-              <Text style={styles.emptyText}>Aucune catégorie</Text>
+              <View style={styles.emptyIconBox}>
+                <Ionicons name="fast-food-outline" size={40} color={COLORS.textSecondary} />
+              </View>
+              <Text style={styles.emptyTitle}>Menu vide</Text>
+              <Text style={styles.emptyText}>Commencez par créer une catégorie puis ajoutez vos plats</Text>
               <TouchableOpacity
                 style={styles.emptyButton}
                 onPress={() => navigation.navigate('AddCategory')}
               >
+                <Ionicons name="add" size={16} color="#fff" />
                 <Text style={styles.emptyButtonText}>Créer une catégorie</Text>
               </TouchableOpacity>
             </View>
@@ -166,80 +176,101 @@ export default function MenuScreen({ navigation, route }) {
             categories.map((category) => {
               const isExpanded = expandedCategories[category.id];
               const categoryItems = getItemsByCategory(category.id);
+              const availableInCat = categoryItems.filter(i => i.is_available !== false).length;
 
               return (
                 <View key={category.id} style={styles.categoryCard}>
                   <TouchableOpacity
                     style={styles.categoryHeader}
                     onPress={() => toggleCategory(category.id)}
+                    activeOpacity={0.7}
                   >
-                    <View style={styles.categoryInfo}>
-                      <Text style={styles.categoryName}>{category.name}</Text>
-                      <Text style={styles.categoryCount}>{categoryItems.length} articles</Text>
+                    <View style={styles.categoryLeft}>
+                      <View style={styles.categoryDot} />
+                      <View>
+                        <Text style={styles.categoryName}>{category.name}</Text>
+                        <Text style={styles.categoryCount}>
+                          {categoryItems.length} plat{categoryItems.length > 1 ? 's' : ''} • {availableInCat} dispo
+                        </Text>
+                      </View>
                     </View>
-                    <Ionicons
-                      name={isExpanded ? 'chevron-up' : 'chevron-down'}
-                      size={20}
-                      color={COLORS.primary}
-                    />
+                    <View style={styles.categoryRight}>
+                      <TouchableOpacity
+                        style={styles.categoryAddBtn}
+                        onPress={() => navigation.navigate('AddMenuItem', { categoryId: category.id })}
+                        hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                      >
+                        <Ionicons name="add" size={18} color={COLORS.primary} />
+                      </TouchableOpacity>
+                      <Ionicons
+                        name={isExpanded ? 'chevron-up' : 'chevron-down'}
+                        size={20}
+                        color={COLORS.textSecondary}
+                      />
+                    </View>
                   </TouchableOpacity>
 
                   {isExpanded && (
                     <View style={styles.itemsContainer}>
                       {categoryItems.length === 0 ? (
-                        <View style={styles.emptyCategoryContainer}>
-                          <Ionicons name="restaurant-outline" size={48} color={COLORS.border} />
-                          <Text style={styles.emptyCategoryText}>Développer pour voir les plats</Text>
-                        </View>
+                        <TouchableOpacity
+                          style={styles.emptyCategoryRow}
+                          onPress={() => navigation.navigate('AddMenuItem', { categoryId: category.id })}
+                        >
+                          <Ionicons name="add-circle-outline" size={20} color={COLORS.primary} />
+                          <Text style={styles.emptyCategoryText}>Ajouter un premier plat</Text>
+                        </TouchableOpacity>
                       ) : (
-                        categoryItems.map((item) => (
-                          <TouchableOpacity 
-                            key={item.id} 
-                            style={styles.menuItem}
+                        categoryItems.map((item, idx) => (
+                          <TouchableOpacity
+                            key={item.id}
+                            style={[
+                              styles.menuItem,
+                              idx === categoryItems.length - 1 && styles.menuItemLast,
+                              item.is_available === false && styles.menuItemUnavailable,
+                            ]}
                             onPress={() => navigation.navigate('EditMenuItem', { itemId: item.id })}
-                            activeOpacity={0.7}
+                            activeOpacity={0.75}
                           >
-                            {/* Image de l'article */}
-                            <View style={styles.menuItemImageContainer}>
+                            {/* Image */}
+                            <View style={styles.menuItemImgWrap}>
                               {item.photo || item.image_url || item.image ? (
-                                <Image 
-                                  source={{ uri: getImageUrl(item.photo || item.image_url || item.image) }} 
-                                  style={styles.menuItemImage}
+                                <Image
+                                  source={{ uri: getImageUrl(item.photo || item.image_url || item.image) }}
+                                  style={styles.menuItemImg}
                                   resizeMode="cover"
                                 />
                               ) : (
-                                <View style={styles.menuItemImagePlaceholder}>
-                                  <Ionicons name="fast-food-outline" size={24} color={COLORS.textLight} />
+                                <View style={styles.menuItemImgEmpty}>
+                                  <Ionicons name="fast-food-outline" size={22} color={COLORS.textSecondary} />
                                 </View>
                               )}
                               {item.is_available === false && (
-                                <View style={styles.unavailableBadge}>
-                                  <Text style={styles.unavailableBadgeText}>Indispo</Text>
+                                <View style={styles.unavailableOverlay}>
+                                  <Text style={styles.unavailableText}>Indispo</Text>
                                 </View>
                               )}
                             </View>
-                            
-                            {/* Infos de l'article */}
-                            <View style={styles.menuItemInfo}>
-                              <Text style={styles.menuItemName} numberOfLines={2}>{item.name}</Text>
+
+                            {/* Infos */}
+                            <View style={styles.menuItemBody}>
+                              <Text style={[styles.menuItemName, item.is_available === false && styles.menuItemNameUnavail]} numberOfLines={1}>
+                                {item.name}
+                              </Text>
                               {item.description ? (
-                                <Text style={styles.menuItemDescription} numberOfLines={1}>
-                                  {item.description}
-                                </Text>
+                                <Text style={styles.menuItemDesc} numberOfLines={1}>{item.description}</Text>
                               ) : null}
                               <Text style={styles.menuItemPrice}>{formatCurrency(item.price)}</Text>
                             </View>
-                            
-                            {/* Actions */}
-                            <View style={styles.menuItemActions}>
-                              <Switch
-                                value={item.is_available !== false}
-                                onValueChange={() => toggleItemAvailability(item.id, item.is_available)}
-                                trackColor={{ false: COLORS.border, true: COLORS.primary + '60' }}
-                                thumbColor={item.is_available !== false ? COLORS.primary : COLORS.textLight}
-                              />
-                              <Ionicons name="chevron-forward" size={16} color={COLORS.textLight} />
-                            </View>
+
+                            {/* Switch dispo */}
+                            <Switch
+                              value={item.is_available !== false}
+                              onValueChange={() => toggleItemAvailability(item.id, item.is_available)}
+                              trackColor={{ false: '#e2e8f0', true: COLORS.primary + '55' }}
+                              thumbColor={item.is_available !== false ? COLORS.primary : '#94a3b8'}
+                              ios_backgroundColor="#e2e8f0"
+                            />
                           </TouchableOpacity>
                         ))
                       )}
@@ -303,322 +334,201 @@ export default function MenuScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
-  topBar: {
-    backgroundColor: COLORS.background,
+  container: { flex: 1, backgroundColor: COLORS.background },
+
+  // Header
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  topBarContent: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    paddingBottom: 8,
-  },
-  backButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-start',
-  },
-  topBarTitle: {
-    flex: 1,
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    textAlign: 'center',
-  },
-  searchButton: {
-    width: 48,
-    height: 48,
-    justifyContent: 'center',
-    alignItems: 'flex-end',
-  },
-  scrollView: {
-    flex: 1,
-  },
-  scrollContent: {
-    paddingBottom: 100,
-  },
-  buttonGroup: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 16,
-    flexWrap: 'wrap',
-  },
-  addItemButton: {
-    flex: 1,
-    minWidth: 90,
-    height: 40,
-    backgroundColor: COLORS.primary,
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  addItemButtonText: {
-    color: COLORS.white,
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  addCategoryButton: {
-    flex: 1,
-    minWidth: 90,
-    height: 40,
-    backgroundColor: COLORS.success,
-    borderRadius: 8,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  addCategoryButtonText: {
-    color: COLORS.white,
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  bulkEditButton: {
-    flex: 1,
-    minWidth: 90,
-    height: 40,
+  headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text },
+  headerSub: { fontSize: 12, color: COLORS.textSecondary, marginTop: 1 },
+  headerActions: { flexDirection: 'row', gap: 8 },
+  headerBtn: {
+    width: 40, height: 40, borderRadius: 20,
     backgroundColor: COLORS.background,
-    borderRadius: 8,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: COLORS.border,
+  },
+
+  // Action bar
+  actionBar: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  bulkEditButtonText: {
-    color: COLORS.text,
-    fontSize: 13,
-    fontWeight: 'bold',
-  },
-  categoriesContainer: {
-    padding: 16,
-    gap: 8,
-  },
-  categoryCard: {
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    borderRadius: 12,
-    overflow: 'hidden',
     backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    paddingVertical: 2,
+  },
+  actionBarBtn: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 12,
+  },
+  actionBarBtnText: { fontSize: 12, fontWeight: '700', color: COLORS.primary },
+  actionBarDivider: { width: 1, height: 24, backgroundColor: COLORS.border },
+
+  scrollView: { flex: 1 },
+  scrollContent: { paddingBottom: 120 },
+
+  // Categories
+  categoriesContainer: { padding: 16, gap: 10 },
+  categoryCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 4,
+    elevation: 1,
   },
   categoryHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
-    gap: 24,
+    justifyContent: 'space-between',
+    padding: 14,
+    paddingHorizontal: 16,
   },
-  categoryInfo: {
-    flexDirection: 'column',
+  categoryLeft: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
+  categoryDot: {
+    width: 10, height: 10, borderRadius: 5,
+    backgroundColor: COLORS.primary,
   },
-  categoryName: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
+  categoryName: { fontSize: 15, fontWeight: '800', color: COLORS.text },
+  categoryCount: { fontSize: 11, color: COLORS.textSecondary, marginTop: 1 },
+  categoryRight: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  categoryAddBtn: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center', justifyContent: 'center',
   },
-  categoryCount: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-  },
+
+  // Items
   itemsContainer: {
-    paddingHorizontal: 8,
-    paddingBottom: 8,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border + '60',
   },
   menuItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    minHeight: 80,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.background,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
     gap: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border + '50',
   },
-  menuItemImageContainer: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
+  menuItemLast: { borderBottomWidth: 0 },
+  menuItemUnavailable: { opacity: 0.55 },
+  menuItemImgWrap: {
+    width: 56, height: 56, borderRadius: 10,
     overflow: 'hidden',
-    backgroundColor: COLORS.background,
     position: 'relative',
   },
-  menuItemImage: {
-    width: '100%',
-    height: '100%',
-  },
-  menuItemImagePlaceholder: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+  menuItemImg: { width: '100%', height: '100%' },
+  menuItemImgEmpty: {
+    width: '100%', height: '100%',
     backgroundColor: COLORS.background,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: COLORS.border,
+    borderRadius: 10,
   },
-  unavailableBadge: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
-    justifyContent: 'center',
-    alignItems: 'center',
+  unavailableOverlay: {
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.55)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  unavailableBadgeText: {
-    color: COLORS.white,
-    fontSize: 9,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
+  unavailableText: {
+    color: '#fff', fontSize: 9, fontWeight: '800',
+    textTransform: 'uppercase', letterSpacing: 0.5,
   },
-  menuItemInfo: {
-    flex: 1,
-    justifyContent: 'center',
-  },
-  menuItemName: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 2,
-  },
-  menuItemDescription: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  menuItemPrice: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  menuItemActions: {
+  menuItemBody: { flex: 1 },
+  menuItemName: { fontSize: 14, fontWeight: '700', color: COLORS.text },
+  menuItemNameUnavail: { color: COLORS.textSecondary },
+  menuItemDesc: { fontSize: 12, color: COLORS.textSecondary, marginTop: 1 },
+  menuItemPrice: { fontSize: 14, fontWeight: '800', color: COLORS.primary, marginTop: 3 },
+
+  // Empty category row
+  emptyCategoryRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: 8,
+    paddingVertical: 16,
   },
-  emptyCategoryContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 24,
-  },
-  emptyCategoryText: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginTop: 8,
-  },
+  emptyCategoryText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
+
+  // Empty global
   emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
+    alignItems: 'center', paddingVertical: 60, paddingHorizontal: 32,
   },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginTop: 16,
-    marginBottom: 24,
+  emptyIconBox: {
+    width: 80, height: 80, borderRadius: 40,
+    backgroundColor: COLORS.white,
+    alignItems: 'center', justifyContent: 'center',
+    borderWidth: 1, borderColor: COLORS.border,
+    marginBottom: 16,
   },
+  emptyTitle: { fontSize: 18, fontWeight: '800', color: COLORS.text, marginBottom: 6 },
+  emptyText: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginBottom: 24 },
   emptyButton: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
     backgroundColor: COLORS.primary,
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 8,
-  },
-  emptyButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  floatingButton: {
-    position: 'absolute',
-    bottom: 80,
-    right: 24,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: COLORS.primary,
-    justifyContent: 'center',
-    alignItems: 'center',
-    shadowColor: '#000',
+    paddingHorizontal: 24, paddingVertical: 12,
+    borderRadius: 12,
+    shadowColor: COLORS.primary,
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
-    zIndex: 100,
+    shadowOpacity: 0.3, shadowRadius: 8, elevation: 4,
   },
-  floatingButtonActive: {
-    backgroundColor: COLORS.text,
-    transform: [{ rotate: '45deg' }],
+  emptyButtonText: { color: '#fff', fontSize: 14, fontWeight: '700' },
+
+  // FAB
+  floatingButton: {
+    position: 'absolute', bottom: 90, right: 20,
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: COLORS.primary,
+    justifyContent: 'center', alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.35, shadowRadius: 10,
+    elevation: 8, zIndex: 100,
   },
+  floatingButtonActive: { backgroundColor: COLORS.text },
   floatingMenuOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 99,
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 99,
   },
   floatingMenuBackdrop: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.25)',
   },
   floatingMenuContainer: {
-    position: 'absolute',
-    bottom: 150,
-    right: 24,
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 8,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 8,
+    position: 'absolute', bottom: 160, right: 20,
+    backgroundColor: COLORS.white, borderRadius: 16, padding: 8,
+    shadowColor: '#000', shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.18, shadowRadius: 12, elevation: 10,
+    minWidth: 200,
   },
   floatingMenuItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    gap: 12,
+    flexDirection: 'row', alignItems: 'center',
+    paddingVertical: 12, paddingHorizontal: 14, gap: 12,
+    borderRadius: 10,
   },
   floatingMenuIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 36, height: 36, borderRadius: 10,
+    justifyContent: 'center', alignItems: 'center',
   },
-  floatingMenuText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
+  floatingMenuText: { fontSize: 14, fontWeight: '700', color: COLORS.text },
 });
 
 MenuScreen.propTypes = {

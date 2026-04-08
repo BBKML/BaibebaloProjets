@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { getImageUrl } from '../../utils/url';
 
 export default function RestaurantClosedScreen({ navigation, route }) {
   const { restaurant, onBack } = route.params || {};
@@ -34,7 +35,7 @@ export default function RestaurantClosedScreen({ navigation, route }) {
       </View>
 
       {(restaurant?.banner || restaurant?.logo || restaurant?.image_url) && (
-        <Image source={{ uri: restaurant.banner || restaurant.logo || restaurant.image_url }} style={styles.heroImage} />
+        <Image source={{ uri: getImageUrl(restaurant.banner || restaurant.logo || restaurant.image_url) }} style={styles.heroImage} />
       )}
 
       <View style={styles.banner}>
@@ -52,7 +53,7 @@ export default function RestaurantClosedScreen({ navigation, route }) {
 
       <View style={styles.profileCard}>
         <Image
-          source={{ uri: restaurant?.logo || restaurant?.logo_url || restaurant?.banner || restaurant?.image_url }}
+          source={{ uri: getImageUrl(restaurant?.logo || restaurant?.logo_url || restaurant?.banner || restaurant?.image_url) }}
           style={styles.profileImage}
         />
         <View style={styles.profileInfo}>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { formatCurrency } from '../utils/format';
 import TableSkeleton from '../components/common/TableSkeleton';
@@ -157,11 +158,16 @@ const DriverLeaderboard = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Classement & Performance Livreurs
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Phase 3 - Suivi des performances individuelles</p>
+          <div className="flex items-center gap-3">
+            <Link to="/drivers" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Classement & Performance Livreurs
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">Phase 3 - Suivi des performances individuelles</p>
+            </div>
           </div>
           <select
             value={period}

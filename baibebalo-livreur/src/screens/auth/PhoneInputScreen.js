@@ -1,22 +1,24 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
+import {
+  View,
+  Text,
+  StyleSheet,
   TextInput,
-  TouchableOpacity, 
-  SafeAreaView,
+  TouchableOpacity,
   StatusBar,
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator
+  ActivityIndicator,
+  Linking,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { sendOTP } from '../../api/auth';
 
 export default function PhoneInputScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const isLogin = route.params?.isLogin || false;
   const [phone, setPhone] = useState('');
   const [acceptedTerms, setAcceptedTerms] = useState(false);
@@ -127,27 +129,41 @@ export default function PhoneInputScreen({ navigation, route }) {
 
           {/* Terms checkbox (only for registration) */}
           {!isLogin && (
-            <TouchableOpacity 
-              style={styles.termsContainer}
-              onPress={() => setAcceptedTerms(!acceptedTerms)}
-            >
-              <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
-                {acceptedTerms && (
-                  <Ionicons name="checkmark" size={16} color="#FFFFFF" />
-                )}
-              </View>
+            <View style={styles.termsContainer}>
+              <TouchableOpacity
+                onPress={() => setAcceptedTerms(!acceptedTerms)}
+                style={styles.checkboxTouchable}
+                accessibilityRole="checkbox"
+                accessibilityState={{ checked: acceptedTerms }}
+              >
+                <View style={[styles.checkbox, acceptedTerms && styles.checkboxChecked]}>
+                  {acceptedTerms && (
+                    <Ionicons name="checkmark" size={16} color="#FFFFFF" />
+                  )}
+                </View>
+              </TouchableOpacity>
               <Text style={styles.termsText}>
-                J'accepte les{' '}
-                <Text style={styles.termsLink}>conditions générales</Text>
-                {' '}et la{' '}
-                <Text style={styles.termsLink}>politique de confidentialité</Text>
+                {'J\'accepte les '}
+                <Text
+                  style={styles.termsLink}
+                  onPress={() => Linking.openURL('https://baibebalo.ci/conditions-generales')}
+                >
+                  conditions générales
+                </Text>
+                {' et la '}
+                <Text
+                  style={styles.termsLink}
+                  onPress={() => Linking.openURL('https://baibebalo.ci/politique-de-confidentialite')}
+                >
+                  politique de confidentialité
+                </Text>
               </Text>
-            </TouchableOpacity>
+            </View>
           )}
         </View>
 
         {/* Bottom Button */}
-        <View style={styles.bottomContainer}>
+        <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
           <TouchableOpacity 
             style={[
               styles.primaryButton,
@@ -252,6 +268,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     marginTop: 24,
     paddingRight: 16,
+  },
+  checkboxTouchable: {
+    padding: 2,
   },
   checkbox: {
     width: 24,

@@ -344,8 +344,8 @@ router.post('/me/support/tickets',
     body('message')
       .trim()
       .notEmpty()
-      .isLength({ min: 10, max: 2000 })
-      .withMessage('Message requis (10-2000 caractères)'),
+      .isLength({ min: 2, max: 2000 })
+      .withMessage('Message requis (2-2000 caractères)'),
     body('order_id')
       .optional()
       .isUUID()
@@ -380,8 +380,8 @@ router.post('/me/support/tickets/:ticketId/messages',
     body('message')
       .trim()
       .notEmpty()
-      .isLength({ min: 5, max: 2000 })
-      .withMessage('Message requis (5-2000 caractères)'),
+      .isLength({ min: 1, max: 2000 })
+      .withMessage('Message requis (1-2000 caractères)'),
   ],
   validate,
   userController.addTicketMessage

@@ -1,17 +1,25 @@
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { restaurantsAPI } from '../api/restaurants';
 import TableSkeleton from '../components/common/TableSkeleton';
 import { getImageUrl } from '../utils/url';
 import toast from 'react-hot-toast';
 
+const STATUS_FILTERS = [
+  { value: '', label: 'Tous' },
+  { value: 'pending', label: 'En attente' },
+  { value: 'active', label: 'Actifs' },
+  { value: 'suspended', label: 'Suspendus' },
+];
+
 const Restaurants = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const queryClient = useQueryClient();
   const [filters, setFilters] = useState({
-    status: '',
+    status: searchParams.get('status') || '',
     search: '',
     page: 1,
     limit: 20,
@@ -106,20 +114,37 @@ const Restaurants = () => {
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-end">
-          <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Liste des Restaurants</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Gérez et validez les restaurants</p>
-          </div>
+        <div>
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Restaurants</h1>
+          <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">
+            Gérez, validez et suivez les restaurants partenaires
+          </p>
         </div>
 
-        {/* Filtres : recherche par nom / propriétaire / téléphone, statut */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex-1 min-w-[200px] max-w-md">
-              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">
-                Rechercher par nom, email ou téléphone
-              </label>
+        {/* Filtres */}
+        <div className="flex flex-col sm:flex-row gap-3">
+          {/* Pills statut */}
+          <div className="flex flex-wrap gap-2">
+            {STATUS_FILTERS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => setFilters(prev => ({ ...prev, status: value, page: 1 }))}
+                className={`px-4 py-2 rounded-full text-xs font-bold transition-all ${
+                  filters.status === value
+                    ? 'bg-primary text-white shadow-md shadow-primary/20'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary/50'
+                }`}
+              >
+                {label}
+              </button>
+            ))}
+          </div>
+
+          {/* Recherche */}
+          <div className="flex-1 max-w-sm ml-auto">
+            <div className="relative">
+              <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-lg">search</span>
               <input
                 type="text"
                 value={searchInput}
@@ -131,35 +156,19 @@ const Restaurants = () => {
                     setFilters((prev) => ({ ...prev, search: v.trim(), page: 1 }));
                   }, 400);
                 }}
-                placeholder="Saisir pour filtrer..."
-                className="w-full px-3 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary focus:border-primary"
+                placeholder="Rechercher un restaurant..."
+                className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full text-sm focus:ring-2 focus:ring-primary focus:border-primary"
               />
+              {searchInput && (
+                <button
+                  type="button"
+                  onClick={() => { setSearchInput(''); setFilters(prev => ({ ...prev, search: '', page: 1 })); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                >
+                  <span className="material-symbols-outlined text-sm">close</span>
+                </button>
+              )}
             </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Statut</label>
-              <select
-                value={filters.status}
-                onChange={(e) => setFilters((prev) => ({ ...prev, status: e.target.value, page: 1 }))}
-                className="px-4 py-2 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm focus:ring-2 focus:ring-primary"
-              >
-                <option value="">Tous les statuts</option>
-                <option value="pending">En attente</option>
-                <option value="active">Actifs</option>
-                <option value="suspended">Suspendus</option>
-              </select>
-            </div>
-            {(searchInput || filters.search) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSearchInput('');
-                  setFilters((prev) => ({ ...prev, search: '', page: 1 }));
-                }}
-                className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
-              >
-                Effacer la recherche
-              </button>
-            )}
           </div>
         </div>
 

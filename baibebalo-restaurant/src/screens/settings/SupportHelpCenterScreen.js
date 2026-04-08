@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,9 +7,11 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
+import { getPublicSettings, invalidateSettingsCache, getCompanyValue } from '../../services/settingsService';
 
 const FAQ_CATEGORIES = [
   {
@@ -59,10 +61,30 @@ const FAQ_CATEGORIES = [
   },
 ];
 
+function formatContactNumbers(settings, getCompanyValue) {
+  if (!settings) return '05 85 67 09 40 / 07 87 09 79 96';
+  const phones = [1, 2, 3, 4]
+    .map((n) => getCompanyValue(settings, `company_contact_${n}_phone`))
+    .filter(Boolean);
+  return phones.length > 0 ? phones.join(' / ') : '05 85 67 09 40 / 07 87 09 79 96';
+}
+
 export default function SupportHelpCenterScreen({ navigation }) {
   const [expandedCategory, setExpandedCategory] = useState(null);
   const [expandedQuestion, setExpandedQuestion] = useState(null);
+  const [settings, setSettings] = useState(null);
   const insets = useSafeAreaInsets();
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateSettingsCache();
+      getPublicSettings().then((s) => setSettings(s || null));
+    }, [])
+  );
+
+  const supportEmail = getCompanyValue(settings, 'company_email') || 'support@baibebalo.ci';
+  const supportPhone = getCompanyValue(settings, 'company_contact_1_phone') || getCompanyValue(settings, 'company_whatsapp') || '+2250787097996';
+  const contactNumbersText = formatContactNumbers(settings, getCompanyValue);
 
   const toggleCategory = (categoryId) => {
     setExpandedCategory(expandedCategory === categoryId ? null : categoryId);
@@ -77,9 +99,9 @@ export default function SupportHelpCenterScreen({ navigation }) {
     if (method === 'chat') {
       navigation.navigate('LiveChatSupport');
     } else if (method === 'email') {
-      Linking.openURL('mailto:support@baibebalo.ci');
-    } else if (method === 'phone') {
-      Linking.openURL('tel:+2250787097996');
+      Linking.openURL(`mailto:${supportEmail}`);
+    } else if (method === 'phone' && supportPhone) {
+      Linking.openURL(`tel:${supportPhone.replace(/\s/g, '')}`);
     }
   };
 
@@ -93,11 +115,11 @@ export default function SupportHelpCenterScreen({ navigation }) {
         <View style={styles.placeholder} />
       </View>
 
-      <ScrollView style={styles.content} contentContainerStyle={styles.scrollContent}>
+      <ScrollView style={styles.content} contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         {/* Contact rapide */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Besoin d'aide ?</Text>
-          <Text style={styles.contactNumbers}>05 85 67 09 40 / 07 87 09 79 96</Text>
+          <Text style={styles.contactNumbers}>{contactNumbersText}</Text>
           <View style={styles.contactButtons}>
             <TouchableOpacity
               style={styles.contactButton}

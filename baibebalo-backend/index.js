@@ -31,7 +31,7 @@ app.set('trust proxy', 1);
 // ================================
 const io = socketIO(server, {
   cors: {
-    origin: '*', // En dev, accepter toutes les origines
+    origin: config.cors.origin,
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -85,6 +85,164 @@ clientNamespace.on('connection', (socket) => {
 app.set('clientIo', clientNamespace);
 
 // ================================
+// NAMESPACE /partners (restaurants + livreurs - temps réel commandes, position)
+// ================================
+const partnersNamespace = io.of('/partners');
+partnersNamespace.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    if (!token) return next(new Error('Token manquant'));
+    const { verifyAccessToken } = require('./src/middlewares/auth');
+    const decoded = verifyAccessToken(token);
+    if (decoded.type !== 'restaurant' && decoded.type !== 'delivery_person') {
+      return next(new Error('Accès réservé aux partenaires'));
+    }
+    socket.userId = decoded.id;
+    socket.userType = decoded.type;
+    next();
+  } catch (e) {
+    next(new Error('Authentification échouée'));
+  }
+});
+partnersNamespace.on('connection', (socket) => {
+  // Rooms utilisées par les contrôleurs : restaurant_<id>, delivery_<id>
+  const roomPrefix = socket.userType === 'delivery_person' ? 'delivery' : socket.userType;
+  socket.join(`${roomPrefix}_${socket.userId}`);
+  socket.on('join_support_ticket', (ticketId) => {
+    socket.join(`support_ticket_${ticketId}`);
+  });
+  socket.on('leave_support_ticket', (ticketId) => {
+    socket.leave(`support_ticket_${ticketId}`);
+  });
+  socket.on('join_order', (data) => {
+    const orderId = data?.order_id || data;
+    if (orderId) socket.join(`order_${orderId}`);
+  });
+  socket.on('leave_order', (data) => {
+    const orderId = data?.order_id || data;
+    if (orderId) socket.leave(`order_${orderId}`);
+  });
+  socket.on('update_availability', async (data) => {
+    if (socket.userType !== 'delivery_person') return;
+    try {
+      const { query } = require('./src/database/db');
+      const newStatus = data.available ? 'available' : 'offline';
+      await query(
+        'UPDATE delivery_persons SET delivery_status = $1 WHERE id = $2',
+        [newStatus, socket.userId]
+      );
+      socket.emit('availability_updated', { status: newStatus });
+      io.to('admin_dashboard').emit('delivery_status_changed', {
+        delivery_person_id: socket.userId,
+        status: newStatus,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      logger.warn('update_availability:', err.message);
+    }
+  });
+  socket.on('location_update', async (data) => {
+    if (socket.userType !== 'delivery_person') return;
+    try {
+      const { latitude, longitude, order_id } = data || {};
+
+      // Validation des coordonnées GPS
+      const lat = Number(latitude);
+      const lng = Number(longitude);
+      if (
+        !Number.isFinite(lat) || lat < -90 || lat > 90 ||
+        !Number.isFinite(lng) || lng < -180 || lng > 180
+      ) {
+        logger.warn(`location_update: coordonnées invalides de ${socket.userId}`, { latitude, longitude });
+        return;
+      }
+
+      const { query } = require('./src/database/db');
+      await query(
+        'UPDATE delivery_persons SET current_latitude = $1, current_longitude = $2, last_location_update = NOW() WHERE id = $3',
+        [latitude, longitude, socket.userId]
+      );
+      if (order_id) {
+        const payload = {
+          order_id,
+          latitude,
+          longitude,
+          delivery_person_id: socket.userId,
+          timestamp: new Date().toISOString(),
+        };
+        io.to(`order_${order_id}`).emit('delivery_location_updated', payload);
+        const clientIo = app.get('clientIo');
+        if (clientIo) clientIo.to(`order_${order_id}`).emit('delivery_location_updated', payload);
+      }
+      io.to('all_deliveries_tracking').emit('delivery_location', {
+        delivery_person_id: socket.userId,
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString(),
+      });
+      io.to(`track_delivery_${socket.userId}`).emit('delivery_location', {
+        delivery_person_id: socket.userId,
+        latitude,
+        longitude,
+        timestamp: new Date().toISOString(),
+      });
+    } catch (err) {
+      logger.warn('location_update:', err.message);
+    }
+  });
+  socket.on('disconnect', () => {
+    if (socket.userType === 'delivery_person') {
+      require('./src/database/db').query(
+        "UPDATE delivery_persons SET delivery_status = 'offline' WHERE id = $1",
+        [socket.userId]
+      ).catch(err => logger.error('Erreur statut livreur:', err.message));
+      io.to('admin_dashboard').emit('delivery_status_changed', {
+        delivery_person_id: socket.userId,
+        status: 'offline',
+        timestamp: new Date().toISOString(),
+      });
+    }
+  });
+});
+app.set('partnersIo', partnersNamespace);
+
+// ================================
+// NAMESPACE / (défaut) - Admin dashboard
+// Authentification obligatoire : admin uniquement
+// ================================
+io.use(async (socket, next) => {
+  try {
+    const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
+    if (!token) return next(new Error('Token manquant'));
+    const { verifyAccessToken } = require('./src/middlewares/auth');
+    const decoded = verifyAccessToken(token);
+    if (decoded.type !== 'admin') {
+      return next(new Error('Accès réservé aux administrateurs'));
+    }
+    socket.userId = decoded.id;
+    socket.userType = decoded.type;
+    next();
+  } catch (e) {
+    next(new Error('Authentification échouée'));
+  }
+});
+io.on('connection', (socket) => {
+  socket.join('admin_dashboard');
+  socket.on('track_all_deliveries', () => {
+    socket.join('all_deliveries_tracking');
+  });
+  socket.on('track_delivery', (deliveryPersonId) => {
+    if (deliveryPersonId) socket.join(`track_delivery_${deliveryPersonId}`);
+  });
+  socket.on('untrack_delivery', (deliveryPersonId) => {
+    if (deliveryPersonId) socket.leave(`track_delivery_${deliveryPersonId}`);
+  });
+  socket.on('disconnect', () => {
+    logger.debug(`Admin ${socket.userId} déconnecté du dashboard`);
+  });
+});
+
+// ================================
 // MIDDLEWARES DE SÉCURITÉ
 // ================================
 
@@ -94,9 +252,9 @@ app.use(helmet({
   crossOriginEmbedderPolicy: false,
 }));
 
-// CORS - En dev, accepter toutes les origines
+// CORS - config.cors.origin : en dev toutes origines, en prod liste CORS_ORIGIN
 app.use(cors({
-  origin: '*',
+  origin: config.cors.origin,
   credentials: true,
 }));
 
@@ -288,7 +446,10 @@ app.use(`/api/${config.apiVersion}/delivery`, require('./src/routes/delivery.rou
 // Routes admin
 app.use(`/api/${config.apiVersion}/admin`, require('./src/routes/admin.routes'));
 
-// Routes webhooks (paiements)
+// Routes publicités (bannières, campagnes, stats)
+app.use(`/api/${config.apiVersion}/ads`, require('./src/routes/ads.routes'));
+
+// Routes webhooks (paiements - phase 2)
 app.use(`/api/${config.apiVersion}/webhooks`, require('./src/routes/webhook.routes'));
 
 // ================================
@@ -392,6 +553,38 @@ io.on('connection', (socket) => {
         timestamp: new Date().toISOString(),
       });
     }
+  });
+
+  // === ADMIN DASHBOARD ===
+
+  // Rejoindre la room admin_dashboard (tableau de bord temps réel)
+  socket.on('join_admin_dashboard', () => {
+    socket.join('admin_dashboard');
+    logger.debug(`Admin socket ${socket.id} a rejoint admin_dashboard`);
+    socket.emit('admin_dashboard_joined', { success: true });
+  });
+
+  // Suivre la position d'un livreur spécifique
+  socket.on('track_delivery', (data) => {
+    const deliveryPersonId = data?.delivery_person_id;
+    if (deliveryPersonId) {
+      socket.join(`track_delivery_${deliveryPersonId}`);
+      logger.debug(`Admin ${socket.id} suit le livreur ${deliveryPersonId}`);
+    }
+  });
+
+  // Arrêter le suivi d'un livreur spécifique
+  socket.on('untrack_delivery', (data) => {
+    const deliveryPersonId = data?.delivery_person_id;
+    if (deliveryPersonId) {
+      socket.leave(`track_delivery_${deliveryPersonId}`);
+    }
+  });
+
+  // Suivre tous les livreurs actifs
+  socket.on('track_all_deliveries', () => {
+    socket.join('all_deliveries_tracking');
+    logger.debug(`Admin ${socket.id} suit tous les livreurs`);
   });
 
   // Déconnexion
@@ -525,9 +718,47 @@ const startServer = async () => {
   }
 };
 
+// Arrêt propre : fermer le serveur et le pool PostgreSQL avant de quitter
+const GRACEFUL_SHUTDOWN_TIMEOUT_MS = 10000;
+
+function setupGracefulShutdown() {
+  let shuttingDown = false;
+
+  const gracefulShutdown = (signal) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    logger.info(`Signal ${signal} reçu, arrêt propre en cours...`);
+
+    const forceExit = () => {
+      logger.warn('Arrêt forcé après timeout');
+      process.exit(1);
+    };
+    const timeout = setTimeout(forceExit, GRACEFUL_SHUTDOWN_TIMEOUT_MS);
+
+    server.close((err) => {
+      if (err) logger.error('Erreur fermeture serveur HTTP', { error: err.message });
+      db.close()
+        .then(() => {
+          clearTimeout(timeout);
+          logger.info('Pool PostgreSQL fermé. Arrêt propre terminé.');
+          process.exit(0);
+        })
+        .catch((dbErr) => {
+          logger.error('Erreur fermeture pool DB', { error: dbErr.message });
+          clearTimeout(timeout);
+          process.exit(1);
+        });
+    });
+  };
+
+  process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+  process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+}
+
 // Lancer le serveur (sauf en test : supertest utilise l'app sans listen)
 if (process.env.NODE_ENV !== 'test') {
   startServer();
+  setupGracefulShutdown();
 }
 
 // Export pour les tests

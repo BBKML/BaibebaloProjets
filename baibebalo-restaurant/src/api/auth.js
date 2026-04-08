@@ -1,6 +1,7 @@
 import axios from 'axios';
 import API_BASE_URL, { API_ENDPOINTS } from '../constants/api';
 import useAuthStore from '../store/authStore';
+import { getExpoPushToken } from '../services/notificationService';
 
 const api = axios.create({
   baseURL: API_BASE_URL.replace('/api/v1', ''), // Enlever /api/v1 car les endpoints l'incluent déjà
@@ -19,7 +20,6 @@ api.interceptors.request.use(
     if (config.data instanceof FormData) {
       // Supprimer Content-Type si défini manuellement pour laisser axios le gérer
       delete config.headers['Content-Type'];
-      console.log('📦 Requête FormData détectée, Content-Type sera géré par axios');
     }
     return config;
   },
@@ -28,12 +28,16 @@ api.interceptors.request.use(
   }
 );
 
-// Intercepteur pour gérer les erreurs
+// Intercepteur pour gérer les erreurs (pas de retry automatique sur 4xx)
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     if (error.response?.status === 401) {
       await useAuthStore.getState().logout();
+    }
+    // Marquer pour éviter tout retry ultérieur sur 4xx (client error)
+    if (error.response?.status >= 400 && error.response?.status < 500 && error.config) {
+      error.config.__noRetry = true;
     }
     throw error;
   }
@@ -55,15 +59,12 @@ export const restaurantAuth = {
         ? { phone: cleanIdentifier, password: cleanPassword }
         : { email: cleanIdentifier.toLowerCase(), password: cleanPassword };
 
-      console.log('🔐 Tentative de connexion:', {
-        url: API_ENDPOINTS.AUTH.LOGIN,
-        identifier: cleanIdentifier,
-        isPhone,
-        identifierLength: cleanIdentifier?.length,
-        passwordProvided: !!cleanPassword,
-        passwordLength: cleanPassword?.length,
-        originalPasswordLength: password?.length,
-      });
+      try {
+        const fcmToken = await getExpoPushToken();
+        if (fcmToken && typeof fcmToken === 'string' && fcmToken.trim()) {
+          requestBody.fcm_token = fcmToken.trim();
+        }
+      } catch (_) {}
 
       const response = await api.post(API_ENDPOINTS.AUTH.LOGIN, requestBody, {
         headers: {
@@ -71,30 +72,15 @@ export const restaurantAuth = {
         },
       });
       
-      console.log('✅ Réponse reçue:', {
-        status: response.status,
-        hasData: !!response.data,
-        hasAccessToken: !!response.data?.data?.accessToken,
-      });
-
-      // Le backend retourne { success: true, data: { restaurant, accessToken, refreshToken } }
+      // Réponse: { success, data: { restaurant, accessToken, refreshToken } }
       if (response.data?.data?.accessToken) {
         useAuthStore.getState().setToken(response.data.data.accessToken);
         useAuthStore.getState().setRestaurant(response.data.data.restaurant);
-        console.log('✅ Token sauvegardé dans le store');
-      } else {
-        console.warn('⚠️ Pas de accessToken dans la réponse:', response.data);
       }
       
       return response.data;
     } catch (error) {
-      console.error('❌ Erreur de connexion:', {
-        message: error.message,
-        status: error.response?.status,
-        statusText: error.response?.statusText,
-        data: error.response?.data,
-        url: error.config?.url,
-      });
+      if (__DEV__) console.warn('Connexion refusée (401 ou réseau):', error?.message);
       throw error.response?.data || error.message;
     }
   },
@@ -123,7 +109,6 @@ export const restaurantAuth = {
             type: fileType,
             name: fileName,
           });
-          console.log(`📎 Fichier ajouté: ${key} (${fileName})`);
         }
         // Gérer les tableaux de fichiers
         else if (Array.isArray(value) && value.length > 0 && value[0]?.uri) {
@@ -134,7 +119,6 @@ export const restaurantAuth = {
               name: file.fileName || file.name || `${key}_${index}.jpg`,
             });
           });
-          console.log(`📎 ${value.length} fichiers ajoutés pour: ${key}`);
         }
         // Gérer les objets (sérialiser en JSON)
         else if (typeof value === 'object') {
@@ -148,7 +132,6 @@ export const restaurantAuth = {
       
       // URL complète du backend
       const url = API_ENDPOINTS.AUTH.REGISTER;
-      console.log('📤 Envoi inscription via fetch vers:', url);
       
       // Utiliser fetch natif (plus fiable pour les uploads en React Native)
       const response = await fetch(url, {
@@ -161,7 +144,6 @@ export const restaurantAuth = {
       });
       
       const responseData = await response.json();
-      console.log('📥 Réponse inscription:', response.status, responseData?.success);
       
       if (!response.ok) {
         throw responseData;
@@ -169,7 +151,7 @@ export const restaurantAuth = {
       
       return responseData;
     } catch (error) {
-      console.error('❌ Erreur register:', error);
+      if (__DEV__) console.error('Erreur register:', error?.message);
       throw error;
     }
   },

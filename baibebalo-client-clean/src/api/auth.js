@@ -5,48 +5,35 @@ import { API_CONFIG } from '../constants/api';
  * Envoyer un code OTP
  */
 export const sendOTP = async (phoneNumber) => {
-  console.log('📡 API sendOTP - Envoi requête:', {
-    url: `${API_CONFIG.BASE_URL}${API_CONFIG.ENDPOINTS.AUTH.SEND_OTP}`,
+  const response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.SEND_OTP, {
     phone: phoneNumber,
   });
-  
-  const response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.SEND_OTP, {
-    phone: phoneNumber, // Le backend attend 'phone' et non 'phoneNumber'
-  });
-  
-  console.log('📡 API sendOTP - Réponse complète:', {
-    status: response.status,
-    data: response.data,
-    headers: response.headers,
-  });
-  
-  // Afficher le code OTP en mode dev pour faciliter les tests
-  if (response.data?.data?.debug_otp) {
-    console.log('══════════════════════════════════════════════════════════════');
-    console.log('🔐 CODE OTP (DEV):', response.data.data.debug_otp);
-    console.log('══════════════════════════════════════════════════════════════');
+  if (__DEV__ && response.data?.debug_otp) {
+    console.log('🔐 CODE OTP (DEV):', response.data.debug_otp);
   }
-  
   return response.data;
 };
 
 /**
  * Vérifier le code OTP
+ * @param {string} phoneNumber
+ * @param {string} code
+ * @param {string|null} firstName
+ * @param {string|null} lastName
+ * @param {string|null} fcmToken - Token FCM/Expo Push pour les notifications (optionnel)
  */
-export const verifyOTP = async (phoneNumber, code, firstName = null, lastName = null) => {
+export const verifyOTP = async (phoneNumber, code, firstName = null, lastName = null, fcmToken = null) => {
   const payload = {
     phone: phoneNumber, // Le backend attend 'phone' et non 'phoneNumber'
     code,
   };
-  
-  // Ajouter first_name et last_name seulement s'ils sont fournis
-  if (firstName) {
-    payload.first_name = firstName;
+
+  if (firstName) payload.first_name = firstName;
+  if (lastName) payload.last_name = lastName;
+  if (fcmToken && typeof fcmToken === 'string' && fcmToken.trim()) {
+    payload.fcm_token = fcmToken.trim();
   }
-  if (lastName) {
-    payload.last_name = lastName;
-  }
-  
+
   const response = await apiClient.post(API_CONFIG.ENDPOINTS.AUTH.VERIFY_OTP, payload);
   return response.data;
 };
@@ -71,8 +58,7 @@ export const getTestOTP = async (phoneNumber) => {
     const response = await apiClient.get(`/auth/test-otp/${encodeURIComponent(phoneNumber)}`);
     return response.data;
   } catch (error) {
-    // Si l'endpoint n'existe pas, retourner null
-    console.log('⚠️ Endpoint de test OTP non disponible. Vérifiez les logs du backend.');
+    if (__DEV__) console.warn('Test OTP non disponible');
     return null;
   }
 };

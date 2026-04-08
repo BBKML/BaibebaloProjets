@@ -156,7 +156,7 @@ const ValidateDriver = () => {
       <Layout>
         <div className="max-w-4xl mx-auto space-y-8">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Validation de Nouveau Livreur
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Chargement…</p>
@@ -196,7 +196,7 @@ const ValidateDriver = () => {
       <Layout>
         <div className="max-w-4xl mx-auto space-y-8">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Validation de Nouveau Livreur
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Aucun livreur en attente</p>
@@ -228,7 +228,7 @@ const ValidateDriver = () => {
             <span className="material-symbols-outlined">arrow_back</span>
           </button>
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Validation de Nouveau Livreur
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">

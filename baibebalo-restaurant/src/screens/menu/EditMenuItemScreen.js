@@ -34,6 +34,27 @@ const TAGS = [
   { id: 'new', label: 'Nouveau', icon: 'sparkles' },
 ];
 
+// Convertit le format stocké [{key, label, choices}] → format UI {sizes, sideDishes, ...}
+const convertStoredOptionsToVariations = (storedOptions) => {
+  if (!storedOptions || !Array.isArray(storedOptions)) return null;
+  const sizes = [];
+  const sideDishes = [];
+  const spiceLevels = [];
+  const supplements = [];
+  storedOptions.forEach((opt) => {
+    if (opt.key === 'size') {
+      opt.choices?.forEach((c) => sizes.push({ id: Date.now() + Math.random(), name: c.label, priceModifier: c.price || 0 }));
+    } else if (opt.key === 'side_dish') {
+      opt.choices?.forEach((c) => sideDishes.push(c.value));
+    } else if (opt.key === 'spice_level') {
+      opt.choices?.forEach((c) => spiceLevels.push(c.value));
+    } else if (opt.key === 'supplements') {
+      opt.choices?.forEach((c) => supplements.push({ id: Date.now() + Math.random(), name: c.label, price: c.price || 0 }));
+    }
+  });
+  return { sizes, sideDishes, spiceLevels, supplements, allowNotes: true };
+};
+
 export default function EditMenuItemScreen({ navigation, route }) {
   const { itemId } = route.params;
   const { menu, categories, updateMenuItem } = useRestaurantStore();
@@ -174,9 +195,17 @@ export default function EditMenuItemScreen({ navigation, route }) {
       }
       
       Alert.alert('Succès', 'Article modifié avec succès', [
-        { 
-          text: 'Gérer options', 
-          onPress: () => navigation.navigate('ItemVariationsOptions', { itemId, itemName: formData.name })
+        {
+          text: 'Gérer options',
+          onPress: () => {
+            const item = menu.find((i) => i.id === itemId);
+            const rawOptions = item?.options || item?.customization_options;
+            navigation.navigate('ItemVariationsOptions', {
+              itemId,
+              itemName: formData.name,
+              existingOptions: convertStoredOptionsToVariations(rawOptions),
+            });
+          },
         },
         { text: 'Terminer', onPress: () => navigation.goBack() },
       ]);

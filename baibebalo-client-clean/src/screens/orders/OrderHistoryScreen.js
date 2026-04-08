@@ -14,11 +14,15 @@ import { COLORS } from '../../constants/colors';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import { STATUS_LABELS, STATUS_COLORS, ACTIVE_STATUSES } from '../../constants/orderStatus';
 import { getOrderHistory } from '../../api/orders';
+import { getReorderData } from '../../api/restaurants';
+import { Alert, ActivityIndicator } from 'react-native';
 import EmptyOrderHistoryScreen from '../errors/EmptyOrderHistoryScreen';
+import { getImageUrl } from '../../utils/url';
 
 export default function OrderHistoryScreen({ navigation }) {
   const [orders, setOrders] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [reorderingId, setReorderingId] = useState(null);
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
 
   useEffect(() => {
@@ -131,14 +135,53 @@ export default function OrderHistoryScreen({ navigation }) {
     return sections;
   }, [orders]);
 
-  const handleReorder = (order) => {
+  const handleReorder = async (order) => {
     if (order.order_type === 'express') {
       navigation.navigate('ExpressCheckout');
       return;
     }
-    const restaurantId = order.restaurant?.id;
-    if (restaurantId) {
-      navigation.navigate('RestaurantDetail', { restaurantId });
+
+    setReorderingId(order.id);
+    try {
+      const response = await getReorderData(order.id);
+      const data = response.data;
+
+      if (!data.restaurant.is_active || !data.restaurant.is_open) {
+        Alert.alert(
+          'Restaurant fermé',
+          `${data.restaurant.name} est actuellement fermé. Réessayez plus tard.`
+        );
+        return;
+      }
+
+      if (data.unavailable_items?.length > 0) {
+        const names = data.unavailable_items.map(i => i.name).join(', ');
+        Alert.alert(
+          'Articles indisponibles',
+          `Ces articles ne sont plus disponibles : ${names}\n\nLes autres articles seront ajoutés au panier.`,
+          [
+            { text: 'Annuler', style: 'cancel' },
+            {
+              text: 'Continuer quand même',
+              onPress: () => navigation.navigate('RestaurantDetail', {
+                restaurantId: data.restaurant.id,
+                reorderItems: data.items,
+              }),
+            },
+          ]
+        );
+        return;
+      }
+
+      // Naviguer vers le restaurant avec les articles pré-chargés
+      navigation.navigate('RestaurantDetail', {
+        restaurantId: data.restaurant.id,
+        reorderItems: data.items,
+      });
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de recharger cette commande. Réessayez.');
+    } finally {
+      setReorderingId(null);
     }
   };
 
@@ -157,7 +200,7 @@ export default function OrderHistoryScreen({ navigation }) {
       activeOpacity={0.85}
     >
       <Image
-        source={{ uri: item.order_type === 'express' ? 'https://via.placeholder.com/80?text=Express' : (item.restaurant?.banner || item.restaurant?.logo || item.restaurant?.image_url || 'https://via.placeholder.com/80') }}
+        source={{ uri: getImageUrl(item.restaurant?.banner || item.restaurant?.logo || item.restaurant?.image_url) || null }}
         style={styles.orderImage}
         resizeMode="cover"
       />
@@ -196,9 +239,19 @@ export default function OrderHistoryScreen({ navigation }) {
               )}
             </View>
           )}
-          <TouchableOpacity style={styles.reorderButton} onPress={() => handleReorder(item)}>
-            <Ionicons name="arrow-redo" size={16} color={COLORS.primary} />
-            <Text style={styles.reorderText}>Commander à nouveau</Text>
+          <TouchableOpacity
+            style={[styles.reorderButton, reorderingId === item.id && styles.reorderButtonLoading]}
+            onPress={() => handleReorder(item)}
+            disabled={!!reorderingId}
+          >
+            {reorderingId === item.id ? (
+              <ActivityIndicator size="small" color={COLORS.primary} />
+            ) : (
+              <Ionicons name="arrow-redo" size={16} color={COLORS.primary} />
+            )}
+            <Text style={styles.reorderText}>
+              {reorderingId === item.id ? 'Chargement...' : 'Commander à nouveau'}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -438,6 +491,9 @@ const styles = StyleSheet.create({
     gap: 6,
     paddingVertical: 6,
     paddingHorizontal: 4,
+  },
+  reorderButtonLoading: {
+    opacity: 0.6,
   },
   reorderText: {
     fontSize: 13,

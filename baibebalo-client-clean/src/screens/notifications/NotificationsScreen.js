@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -35,35 +35,42 @@ const NOTIFICATION_COLORS = {
   default: COLORS.primary,
 };
 
+const MIN_FETCH_INTERVAL_MS = 30000; // 30 secondes entre deux appels au focus
+
 export default function NotificationsScreen({ navigation }) {
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [filter, setFilter] = useState('all'); // all, unread
+  const lastFetchAt = useRef(0);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadNotifications();
-    }, [])
-  );
-
-  const loadNotifications = async () => {
+  const loadNotifications = useCallback(async (forceRefresh = false) => {
+    const now = Date.now();
+    if (!forceRefresh && now - lastFetchAt.current < MIN_FETCH_INTERVAL_MS) return;
+    lastFetchAt.current = now;
     try {
       setLoading(true);
       const response = await getNotifications();
       const data = response.data?.notifications || response.notifications || [];
       setNotifications(data);
     } catch (error) {
+      lastFetchAt.current = 0;
       console.error('Erreur chargement notifications:', error);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadNotifications(false);
+    }, [loadNotifications])
+  );
 
   const handleRefresh = () => {
     setRefreshing(true);
-    loadNotifications();
+    loadNotifications(true);
   };
 
   const handleNotificationPress = async (notification) => {

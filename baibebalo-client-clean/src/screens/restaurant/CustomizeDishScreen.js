@@ -10,10 +10,13 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
+import { getImageUrl } from '../../utils/url';
 
 export default function CustomizeDishScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { dish, restaurantId, restaurantName } = route.params || {};
   const { addItem } = useCartStore();
   const [quantity, setQuantity] = useState(1);
@@ -22,10 +25,11 @@ export default function CustomizeDishScreen({ navigation, route }) {
 
   // Calcul du prix total des options sélectionnées
   const calculateOptionsTotal = () => {
-    if (!dish?.customization_options) return 0;
-    
+    const opts = dish?.customization_options || dish?.options;
+    if (!opts) return 0;
+
     let optionsTotal = 0;
-    dish.customization_options.forEach(option => {
+    opts.forEach(option => {
       const selectedValue = selectedOptions[option.key];
       if (selectedValue && option.choices) {
         // Gérer les sélections multiples (array) et simples (string)
@@ -58,18 +62,8 @@ export default function CustomizeDishScreen({ navigation, route }) {
   // Prix total = Prix unitaire × Quantité
   const totalPrice = unitPrice * quantity;
 
-  // #region agent log
-  React.useEffect(() => {
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CustomizeDishScreen.js:17',message:'CustomizeDishScreen mounted',data:{dishExists:!!dish,dishRestaurantId:dish?.restaurant_id||'NULL',dishRestaurantName:dish?.restaurant_name||'NULL',routeRestaurantId:restaurantId||'NULL',routeRestaurantName:restaurantName||'NULL',dishKeys:dish?Object.keys(dish).join(','):'NO_DISH'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-  }, []);
-  // #endregion
-
   const handleAddToCart = () => {
     if (!dish) return;
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CustomizeDishScreen.js:23',message:'handleAddToCart called',data:{dishHasRestaurantId:!!dish.restaurant_id,dishHasRestaurant:!!dish.restaurant,dishRestaurantId:dish.restaurant_id||'NULL',dishRestaurantName:dish.restaurant_name||'NULL'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
 
     const customizations = Object.entries(selectedOptions)
       .filter(([_, value]) => value !== null && value !== '')
@@ -78,10 +72,6 @@ export default function CustomizeDishScreen({ navigation, route }) {
     // Essayer plusieurs sources pour restaurantId et restaurantName
     const currentRestaurantId = restaurantId || dish?.restaurant_id || dish?.restaurant?.id;
     const currentRestaurantName = restaurantName || dish?.restaurant_name || dish?.restaurant?.name;
-
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'CustomizeDishScreen.js:35',message:'RestaurantId resolution',data:{fromRoute:restaurantId||'NULL',fromDish:dish?.restaurant_id||'NULL',fromDishRestaurant:dish?.restaurant?.id||'NULL',finalRestaurantId:currentRestaurantId||'NULL',finalRestaurantName:currentRestaurantName||'NULL'},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'I'})}).catch(()=>{});
-    // #endregion
 
     if (!currentRestaurantId) {
       Alert.alert('Erreur', 'Impossible d\'identifier le restaurant. Veuillez réessayer.');
@@ -173,7 +163,7 @@ export default function CustomizeDishScreen({ navigation, route }) {
         <ScrollView style={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.headerImage}>
             <Image
-              source={{ uri: dish.image_url || 'https://via.placeholder.com/400' }}
+              source={{ uri: getImageUrl(dish.image_url) || null }}
               style={styles.dishImage}
             />
             <View style={styles.headerOverlay} />
@@ -192,10 +182,10 @@ export default function CustomizeDishScreen({ navigation, route }) {
 
           <Text style={styles.dishDescription}>{dish.description}</Text>
 
-          {dish.customization_options && dish.customization_options.length > 0 && (
+          {(dish.customization_options || dish.options)?.length > 0 && (
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>Personnaliser</Text>
-              {dish.customization_options.map((option, index) => (
+              {(dish.customization_options || dish.options).map((option, index) => (
                 <View key={index} style={styles.optionGroup}>
                   <View style={styles.optionHeader}>
                     <Text style={styles.optionLabel}>{option.label}</Text>
@@ -314,7 +304,7 @@ export default function CustomizeDishScreen({ navigation, route }) {
           </View>
         </ScrollView>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
           <View style={styles.quantityContainer}>
             <TouchableOpacity
               style={styles.quantityButton}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,10 +7,14 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/colors';
+
+const STORAGE_KEY = 'restaurant_notification_preferences';
 
 const NOTIFICATION_SOUNDS = [
   { id: 'default', label: 'Par défaut', icon: 'notifications' },
@@ -19,23 +23,43 @@ const NOTIFICATION_SOUNDS = [
   { id: 'silent', label: 'Silencieux', icon: 'volume-mute' },
 ];
 
+const DEFAULT_PREFERENCES = {
+  soundEnabled: true,
+  selectedSound: 'default',
+  vibration: true,
+  pushNotifications: true,
+  smsEnabled: false,
+  emailEnabled: true,
+  urgentOnly: false,
+};
+
 export default function NotificationPreferencesScreen({ navigation }) {
-  const [preferences, setPreferences] = useState({
-    soundEnabled: true,
-    selectedSound: 'default',
-    vibration: true,
-    pushNotifications: true,
-    smsEnabled: false,
-    emailEnabled: true,
-    urgentOnly: false,
-  });
+  const [preferences, setPreferences] = useState(DEFAULT_PREFERENCES);
+  const [saving, setSaving] = useState(false);
   const insets = useSafeAreaInsets();
 
-  const handleSave = () => {
-    // TODO: Sauvegarder les préférences
-    Alert.alert('Succès', 'Préférences enregistrées', [
-      { text: 'OK', onPress: () => navigation.goBack() },
-    ]);
+  useEffect(() => {
+    AsyncStorage.getItem(STORAGE_KEY).then((stored) => {
+      if (stored) {
+        try {
+          setPreferences({ ...DEFAULT_PREFERENCES, ...JSON.parse(stored) });
+        } catch (_) {}
+      }
+    });
+  }, []);
+
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(preferences));
+      Alert.alert('Succès', 'Préférences enregistrées', [
+        { text: 'OK', onPress: () => navigation.goBack() },
+      ]);
+    } catch (error) {
+      Alert.alert('Erreur', 'Impossible de sauvegarder les préférences');
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -205,8 +229,12 @@ export default function NotificationPreferencesScreen({ navigation }) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-          <Text style={styles.saveButtonText}>Enregistrer les préférences</Text>
+        <TouchableOpacity style={[styles.saveButton, saving && { opacity: 0.6 }]} onPress={handleSave} disabled={saving}>
+          {saving ? (
+            <ActivityIndicator size="small" color={COLORS.white} />
+          ) : (
+            <Text style={styles.saveButtonText}>Enregistrer les préférences</Text>
+          )}
         </TouchableOpacity>
       </View>
     </View>

@@ -9,14 +9,21 @@ import {
   Image,
   Alert,
   Platform,
+  KeyboardAvoidingView,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import { getMyProfile, updateMyProfile, uploadProfilePicture } from '../../api/users';
 import { normalizeUploadUrl } from '../../utils/url';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import useAuthStore from '../../store/authStore';
 
 export default function EditProfileScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const { user, setUser } = useAuthStore();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [profile, setProfile] = useState({
@@ -29,6 +36,7 @@ export default function EditProfileScreen({ navigation }) {
     date_of_birth: '',
   });
   const [profileImage, setProfileImage] = useState(null);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -59,15 +67,14 @@ export default function EditProfileScreen({ navigation }) {
   };
 
   const normalizeDateForApi = (date) => {
-    if (!date) return null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return date;
-    }
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
-      const [day, month, year] = date.split('/');
+    if (date == null || (typeof date === 'string' && date.trim() === '')) return null;
+    const d = String(date).trim();
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+      const [day, month, year] = d.split('/');
       return `${year}-${month}-${day}`;
     }
-    return date;
+    return null;
   };
 
   const formatDateForDisplay = (value) => {
@@ -135,10 +142,7 @@ export default function EditProfileScreen({ navigation }) {
         return;
       }
 
-      const mediaTypeImages =
-        ImagePicker.MediaType?.Images ?? ImagePicker.MediaTypeOptions?.Images;
       const result = await ImagePicker.launchImageLibraryAsync({
-        ...(mediaTypeImages ? { mediaTypes: mediaTypeImages } : {}),
         allowsEditing: true,
         aspect: [1, 1],
         quality: 0.8,
@@ -147,21 +151,44 @@ export default function EditProfileScreen({ navigation }) {
       if (!result.canceled && result.assets?.length) {
         const asset = result.assets[0];
         setProfileImage(asset.uri);
+        setUploadingPhoto(true);
+        try {
+          const formData = new FormData();
+          formData.append('profile_picture', {
+            uri: asset.uri,
+            name: asset.fileName || `profile-${Date.now()}.jpg`,
+            type: asset.mimeType || getMimeTypeFromUri(asset.uri),
+          });
 
-        const formData = new FormData();
-        formData.append('profile_picture', {
-          uri: asset.uri,
-          name: asset.fileName || `profile-${Date.now()}.jpg`,
-          type: asset.mimeType || getMimeTypeFromUri(asset.uri),
-        });
+          const uploadResponse = await uploadProfilePicture(formData);
+          const uploadedUrl =
+            uploadResponse?.data?.profile_picture
+            || uploadResponse?.data?.user?.profile_picture
+            || uploadResponse?.profile_picture;
+          if (uploadedUrl) {
+            setProfileImage(uploadedUrl);
+            // Mettre à jour le store + AsyncStorage immédiatement
+            const updatedUser = { ...(user || {}), profile_picture: uploadedUrl };
+            setUser(updatedUser);
+            await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
 
-        const uploadResponse = await uploadProfilePicture(formData);
-        const uploadedUrl =
-          uploadResponse?.data?.profile_picture
-          || uploadResponse?.data?.user?.profile_picture
-          || uploadResponse?.profile_picture;
-        if (uploadedUrl) {
-          setProfileImage(uploadedUrl);
+            // Recharger le profil depuis l'API pour mettre à jour le cache de ProfileScreen
+            try {
+              const freshResponse = await getMyProfile();
+              const freshUser = freshResponse?.data?.data?.user || freshResponse?.data?.user || freshResponse?.data;
+              if (freshUser?.id) {
+                const merged = { ...updatedUser, ...freshUser, profile_picture: uploadedUrl };
+                setUser(merged);
+                await AsyncStorage.setItem('user', JSON.stringify(merged));
+              }
+            } catch (_) {
+              // Si l'API échoue, l'URL dans le store suffit
+            }
+          }
+        } catch (uploadError) {
+          Alert.alert('Erreur upload', uploadError?.message || 'Impossible d\'envoyer la photo');
+        } finally {
+          setUploadingPhoto(false);
         }
       }
     } catch (error) {
@@ -232,7 +259,12 @@ export default function EditProfileScreen({ navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <SafeAreaView style={styles.container}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+    >
+    <ScrollView keyboardShouldPersistTaps="handled">
       {/* Profile Image */}
       <View style={styles.imageSection}>
         <View style={styles.imageContainer}>
@@ -243,12 +275,27 @@ export default function EditProfileScreen({ navigation }) {
               <Ionicons name="person" size={48} color={COLORS.textSecondary} />
             </View>
           )}
-          <TouchableOpacity style={styles.cameraButton} onPress={pickImage}>
-            <Ionicons name="camera" size={20} color={COLORS.white} />
+          <TouchableOpacity
+            style={styles.cameraButton}
+            onPress={uploadingPhoto ? undefined : pickImage}
+            disabled={uploadingPhoto}
+          >
+            {uploadingPhoto ? (
+              <ActivityIndicator size="small" color={COLORS.white} />
+            ) : (
+              <Ionicons name="camera" size={20} color={COLORS.white} />
+            )}
           </TouchableOpacity>
+          {uploadingPhoto && (
+            <View style={styles.uploadingOverlay}>
+              <ActivityIndicator size="large" color={COLORS.white} />
+            </View>
+          )}
         </View>
-        <TouchableOpacity style={styles.changePhotoButton} onPress={pickImage}>
-          <Text style={styles.changePhotoText}>Changer la photo</Text>
+        <TouchableOpacity style={styles.changePhotoButton} onPress={uploadingPhoto ? undefined : pickImage} disabled={uploadingPhoto}>
+          <Text style={styles.changePhotoText}>
+            {uploadingPhoto ? 'Envoi en cours...' : 'Changer la photo'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -324,7 +371,7 @@ export default function EditProfileScreen({ navigation }) {
       </View>
 
       {/* Save Button */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           onPress={handleSave}
@@ -336,6 +383,8 @@ export default function EditProfileScreen({ navigation }) {
         </TouchableOpacity>
       </View>
     </ScrollView>
+    </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
@@ -378,6 +427,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 3,
     borderColor: COLORS.white,
+  },
+  uploadingOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    borderRadius: 64,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   changePhotoButton: {
     paddingHorizontal: 24,

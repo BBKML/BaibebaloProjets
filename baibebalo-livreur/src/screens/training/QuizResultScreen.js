@@ -4,13 +4,14 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
 export default function QuizResultScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const { score = 18, total = 20, passed = true } = route.params || {};
   const percentage = Math.round((score / total) * 100);
 
@@ -60,7 +61,7 @@ export default function QuizResultScreen({ navigation, route }) {
       </View>
 
       {/* Bottom */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         {passed ? (
           <TouchableOpacity 
             style={styles.primaryButton}

@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Image, Alert, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
-import { getProfile, updateProfile } from '../../api/delivery';
+import { getProfile, uploadDocument } from '../../api/delivery';
 import { getImageUrl } from '../../utils/url';
-import apiClient from '../../api/client';
 
 const DOCUMENTS = [
   { id: 'id_card_recto', label: 'CNI / Passeport - Recto', icon: 'card-outline', required: true },
@@ -65,40 +65,32 @@ export default function UpdateDocumentsScreen({ navigation }) {
     });
 
     if (!result.canceled && result.assets[0]) {
-      uploadDocument(documentId, result.assets[0]);
+      uploadDocumentFile(documentId, result.assets[0]);
     }
   };
 
-  const uploadDocument = async (documentId, imageAsset) => {
+  const uploadDocumentFile = async (documentId, imageAsset) => {
     setUploading(documentId);
     try {
-      // Créer FormData pour l'upload
+      const filename = imageAsset.uri.split('/').pop() || `doc_${documentId}_${Date.now()}.jpg`;
       const formData = new FormData();
-      const filename = imageAsset.uri.split('/').pop();
-      const match = /\.(\w+)$/.exec(filename);
-      const type = match ? `image/${match[1]}` : 'image/jpeg';
-
       formData.append('file', {
         uri: imageAsset.uri,
         name: filename,
-        type,
+        type: 'image/jpeg',
       });
       formData.append('document_type', documentId);
 
-      // Upload vers le serveur
-      const response = await apiClient.post('/delivery/upload-document', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
-      });
+      const result = await uploadDocument(formData);
 
-      if (response.data?.success) {
-        setDocuments(prev => ({ ...prev, [documentId]: response.data.data.url }));
+      if (result?.success && result?.data?.url) {
+        setDocuments(prev => ({ ...prev, [documentId]: result.data.url }));
         Alert.alert('Succès', 'Document téléchargé avec succès');
       } else {
-        throw new Error(response.data?.error?.message || 'Erreur upload');
+        throw new Error(result?.error?.message || 'Erreur upload');
       }
     } catch (error) {
       console.error('Erreur upload:', error);
-      // Fallback: sauvegarder l'URI locale
       setDocuments(prev => ({ ...prev, [documentId]: imageAsset.uri }));
       Alert.alert('Info', 'Document sauvegardé localement. Il sera synchronisé plus tard.');
     } finally {

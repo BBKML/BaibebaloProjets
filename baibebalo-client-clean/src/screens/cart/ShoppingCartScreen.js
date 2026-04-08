@@ -15,6 +15,8 @@ import { COLORS } from '../../constants/colors';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import useCartStore from '../../store/cartStore';
 import { getSuggestedItems } from '../../api/restaurants';
+import { validatePromoCode } from '../../api/users';
+import { getImageUrl } from '../../utils/url';
 
 // Configuration des seuils (doit correspondre au backend)
 const FREE_DELIVERY_THRESHOLD = 20000; // FCFA
@@ -26,6 +28,8 @@ export default function ShoppingCartScreen({ navigation }) {
   const [suggestionTips, setSuggestionTips] = useState(null);
   const [promoCode, setPromoCode] = useState('');
   const [promoApplied, setPromoApplied] = useState(false);
+  const [promoData, setPromoData] = useState(null);
+  const [promoLoading, setPromoLoading] = useState(false);
   const { paddingTop, tabBarTotalHeight } = useSafeAreaPadding({ withTabBar: true });
 
   const total = getTotal();
@@ -33,11 +37,11 @@ export default function ShoppingCartScreen({ navigation }) {
   // Calcul du seuil de livraison gratuite
   const freeDeliveryThreshold = suggestionTips?.free_delivery_threshold || FREE_DELIVERY_THRESHOLD;
   const isFreeDelivery = total >= freeDeliveryThreshold;
-  const amountToFreeDelivery = Math.max(0, freeDeliveryThreshold - total);
-  
+  const amountToFreeDelivery = Math.round(Math.max(0, freeDeliveryThreshold - total));
+
   // Frais de livraison (0 si seuil atteint)
   const deliveryFee = isFreeDelivery ? 0 : 500;
-  const finalTotal = total + deliveryFee;
+  const finalTotal = Math.round(total + deliveryFee);
 
   useEffect(() => {
     if (restaurantId && items.length > 0) {
@@ -55,7 +59,8 @@ export default function ShoppingCartScreen({ navigation }) {
       setSuggestions(data.suggestions || []);
       setSuggestionTips(data.tips || null);
     } catch (error) {
-      console.error('Erreur lors du chargement des suggestions:', error);
+      // Réseau ou API temporairement indisponible : ne pas bloquer le panier
+      if (__DEV__) console.warn('Suggestions non chargées:', error?.message || error);
       setSuggestions([]);
     }
   };
@@ -112,7 +117,7 @@ export default function ShoppingCartScreen({ navigation }) {
               >
                 {item.image_url && (
                   <Image
-                    source={{ uri: item.image_url }}
+                    source={{ uri: getImageUrl(item.image_url) }}
                     style={styles.itemImage}
                   />
                 )}
@@ -204,7 +209,7 @@ export default function ShoppingCartScreen({ navigation }) {
                     >
                       {suggestion.image_url || suggestion.photo ? (
                         <Image
-                          source={{ uri: suggestion.image_url || suggestion.photo }}
+                          source={{ uri: getImageUrl(suggestion.image_url || suggestion.photo) }}
                           style={styles.suggestionImage}
                         />
                       ) : (
@@ -222,11 +227,11 @@ export default function ShoppingCartScreen({ navigation }) {
                       </Text>
                       <View style={styles.suggestionPriceRow}>
                         <Text style={styles.suggestionPrice}>
-                          {parseFloat(suggestion.effective_price || suggestion.price || 0).toLocaleString('fr-FR')} FCFA
+                          {Math.round(parseFloat(suggestion.effective_price || suggestion.price || 0)).toLocaleString('fr-FR')} FCFA
                         </Text>
                         {suggestion.is_promotional && suggestion.price !== suggestion.effective_price && (
                           <Text style={styles.suggestionOldPrice}>
-                            {parseFloat(suggestion.price || 0).toLocaleString('fr-FR')}
+                            {Math.round(parseFloat(suggestion.price || 0)).toLocaleString('fr-FR')}
                           </Text>
                         )}
                       </View>
@@ -270,24 +275,43 @@ export default function ShoppingCartScreen({ navigation }) {
                     editable={!promoApplied}
                   />
                 </View>
-                <TouchableOpacity 
+                <TouchableOpacity
                   style={[styles.applyButton, promoApplied && styles.applyButtonApplied]}
-                  onPress={() => {
+                  disabled={promoLoading}
+                  onPress={async () => {
                     if (promoApplied) {
                       setPromoApplied(false);
+                      setPromoData(null);
                       setPromoCode('');
                     } else if (promoCode.trim()) {
-                      // TODO: Valider le code promo avec l'API
-                      // Pour l'instant, on simule juste l'application
-                      setPromoApplied(true);
-                      Alert.alert('Code promo appliqué', 'Le code promo a été appliqué avec succès.');
+                      setPromoLoading(true);
+                      try {
+                        const result = await validatePromoCode(promoCode.trim(), restaurantId, total);
+                        if (result?.valid || result?.success) {
+                          setPromoApplied(true);
+                          setPromoData(result);
+                          const discountLabel = result.discount_amount
+                            ? `-${Math.round(result.discount_amount).toLocaleString('fr-FR')} FCFA`
+                            : result.discount_percent
+                            ? `-${result.discount_percent}%`
+                            : '';
+                          Alert.alert('Code promo appliqué', `Réduction appliquée${discountLabel ? ` : ${discountLabel}` : ''}`);
+                        } else {
+                          Alert.alert('Code invalide', result?.message || 'Ce code promo n\'est pas valide.');
+                        }
+                      } catch (error) {
+                        const msg = error.response?.data?.error?.message || error.response?.data?.message || 'Code promo invalide ou expiré.';
+                        Alert.alert('Erreur', msg);
+                      } finally {
+                        setPromoLoading(false);
+                      }
                     } else {
                       Alert.alert('Code promo requis', 'Veuillez entrer un code promo.');
                     }
                   }}
                 >
                   <Text style={styles.applyButtonText}>
-                    {promoApplied ? 'Retirer' : 'Appliquer'}
+                    {promoLoading ? '...' : promoApplied ? 'Retirer' : 'Appliquer'}
                   </Text>
                 </TouchableOpacity>
               </View>

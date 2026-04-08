@@ -39,6 +39,22 @@ export default function PaymentInfoScreen({ navigation }) {
     bank_rib: '',
   });
 
+  // Normalise un numéro vers +225XXXXXXXXXX pour le backend
+  const normalizePhone = (raw) => {
+    if (!raw) return '';
+    const digits = raw.trim().replace(/[\s\-().]/g, '');
+    if (digits.startsWith('+225')) return digits;
+    if (digits.startsWith('00225')) return '+' + digits.slice(2);
+    if (digits.startsWith('225') && digits.length >= 12) return '+' + digits;
+    return '+225' + digits; // 07XXXXXXXX → +22507XXXXXXXX
+  };
+
+  // Affiche le numéro sans +225 pour la saisie (plus simple pour l'utilisateur)
+  const displayPhone = (stored) => {
+    if (!stored) return '';
+    return stored.replace(/^\+225/, '');
+  };
+
   const commissionRate = restaurant?.commission_rate != null
     ? Number(restaurant.commission_rate)
     : 15;
@@ -52,7 +68,7 @@ export default function PaymentInfoScreen({ navigation }) {
       if (r) {
         setRestaurant(r);
         setForm({
-          mobile_money_number: r.mobile_money_number || '',
+          mobile_money_number: displayPhone(r.mobile_money_number),
           mobile_money_provider: r.mobile_money_provider || '',
           account_holder_name: r.account_holder_name || '',
           bank_rib: r.bank_rib || '',
@@ -79,8 +95,12 @@ export default function PaymentInfoScreen({ navigation }) {
   const handleSave = async () => {
     try {
       setSaving(true);
+      const normalizedMobileNumber = form.mobile_money_number
+        ? normalizePhone(form.mobile_money_number)
+        : undefined;
+
       await restaurantApi.updateProfile({
-        mobile_money_number: form.mobile_money_number || undefined,
+        mobile_money_number: normalizedMobileNumber,
         mobile_money_provider: form.mobile_money_provider || undefined,
         account_holder_name: form.account_holder_name || undefined,
         bank_rib: form.bank_rib || undefined,
@@ -136,14 +156,25 @@ export default function PaymentInfoScreen({ navigation }) {
             <Ionicons name="wallet-outline" size={22} color={COLORS.primary} />
             <Text style={styles.label}>Mobile Money</Text>
           </View>
-          <TextInput
-            style={styles.input}
-            value={form.mobile_money_number}
-            onChangeText={(v) => setForm((f) => ({ ...f, mobile_money_number: v }))}
-            placeholder="Ex: +2250712345678"
-            placeholderTextColor={COLORS.textLight}
-            keyboardType="phone-pad"
-          />
+          <View style={styles.phoneRow}>
+            <View style={styles.phonePrefix}>
+              <Text style={styles.phonePrefixText}>+225</Text>
+            </View>
+            <TextInput
+              style={styles.phoneInput}
+              value={form.mobile_money_number}
+              onChangeText={(v) => {
+                // Accepter seulement les chiffres et supprimer +225 si collé
+                const clean = v.replace(/\+225/g, '').replace(/[^0-9]/g, '');
+                setForm((f) => ({ ...f, mobile_money_number: clean }));
+              }}
+              placeholder="0712345678"
+              placeholderTextColor={COLORS.textLight}
+              keyboardType="phone-pad"
+              maxLength={10}
+            />
+          </View>
+          <Text style={styles.phoneHint}>Entrez le numéro sans +225 (ex: 0712345678)</Text>
         </View>
 
         <View style={styles.section}>
@@ -315,6 +346,40 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     fontSize: 16,
     color: COLORS.text,
+  },
+  phoneRow: {
+    flexDirection: 'row',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+    overflow: 'hidden',
+  },
+  phonePrefix: {
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    backgroundColor: COLORS.background,
+    borderRightWidth: 1,
+    borderRightColor: COLORS.border,
+    justifyContent: 'center',
+  },
+  phonePrefixText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  phoneInput: {
+    flex: 1,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    fontSize: 16,
+    color: COLORS.text,
+  },
+  phoneHint: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 6,
+    marginLeft: 2,
   },
   selectButton: {
     flexDirection: 'row',

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import { useNavigate } from 'react-router-dom';
@@ -12,6 +12,8 @@ const Drivers = () => {
   const queryClient = useQueryClient();
   const [activeTab, setActiveTab] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState('');
+  const searchDebounceRef = useRef(null);
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -41,7 +43,7 @@ const Drivers = () => {
   }, [showActionsMenu]);
 
   // Déterminer le statut selon l'onglet actif
-  const statusFilter = activeTab === 'all' ? '' : activeTab === 'active' ? 'active' : activeTab === 'suspended' ? 'suspended' : '';
+  const statusFilter = activeTab === 'all' ? '' : activeTab;
 
   // Charger les livreurs
   const { data, isLoading, error } = useQuery({
@@ -53,6 +55,16 @@ const Drivers = () => {
   const handleTabChange = (tab) => {
     setActiveTab(tab);
     setPage(1);
+  };
+
+  const handleSearchChange = (e) => {
+    const value = e.target.value;
+    setSearchInput(value);
+    clearTimeout(searchDebounceRef.current);
+    searchDebounceRef.current = setTimeout(() => {
+      setSearchQuery(value);
+      setPage(1);
+    }, 400);
   };
 
   // Mutation pour créer un livreur
@@ -203,7 +215,7 @@ const Drivers = () => {
       <Layout>
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Gestion des Livreurs
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Chargement...</p>
@@ -231,7 +243,7 @@ const Drivers = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Gestion des Livreurs
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">
@@ -240,14 +252,6 @@ const Drivers = () => {
             </p>
           </div>
           <div className="flex gap-3">
-            <button 
-              className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg text-sm font-bold text-slate-900 dark:text-white hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors shadow-sm"
-              title="Filtrer les livreurs"
-              aria-label="Filtrer"
-            >
-              <span className="material-symbols-outlined text-slate-400">filter_list</span>
-              Filtrer
-            </button>
             <button
               onClick={() => setShowCreateModal(true)}
               className="flex items-center gap-2 px-5 py-2.5 bg-primary text-white rounded-lg text-sm font-bold hover:bg-primary/90 transition-all shadow-md"
@@ -260,73 +264,54 @@ const Drivers = () => {
           </div>
         </div>
 
-        {/* Tabs */}
-        <div className="bg-white dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
-          <div className="flex border-b border-slate-200 dark:border-slate-700 px-4 overflow-x-auto">
-            <button
-              onClick={() => handleTabChange('all')}
-              className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
-                activeTab === 'all'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">group</span>
-              Tous les livreurs
-              <span className="bg-primary/10 text-primary px-2 py-0.5 rounded-full text-[10px] ml-1">
-                {totalDrivers}
-              </span>
-            </button>
-            <button
-              onClick={() => handleTabChange('active')}
-              className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
-                activeTab === 'active'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">check_circle</span>
-              Actifs
-            </button>
-            <button
-              onClick={() => handleTabChange('offline')}
-              className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
-                activeTab === 'offline'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">offline_bolt</span>
-              Hors ligne
-            </button>
-            <button
-              onClick={() => handleTabChange('suspended')}
-              className={`flex items-center gap-2 px-4 py-4 border-b-2 text-sm font-bold whitespace-nowrap transition-colors ${
-                activeTab === 'suspended'
-                  ? 'border-primary text-primary'
-                  : 'border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">block</span>
-              Suspendus
-            </button>
+        {/* Filters */}
+        <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex flex-wrap gap-2">
+            {[
+              { key: 'all', label: 'Tous', icon: 'group', count: totalDrivers },
+              { key: 'active', label: 'Actifs', icon: 'check_circle' },
+              { key: 'offline', label: 'Hors ligne', icon: 'offline_bolt' },
+              { key: 'pending', label: 'En attente', icon: 'hourglass_empty' },
+              { key: 'suspended', label: 'Suspendus', icon: 'block' },
+            ].map(({ key, label, icon, count }) => (
+              <button
+                key={key}
+                onClick={() => handleTabChange(key)}
+                className={`flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                  activeTab === key
+                    ? 'bg-primary text-white shadow-md'
+                    : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary hover:text-primary'
+                }`}
+              >
+                <span className="material-symbols-outlined text-[16px]">{icon}</span>
+                {label}
+                {count !== undefined && (
+                  <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-black ${activeTab === key ? 'bg-white/20 text-white' : 'bg-primary/10 text-primary'}`}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            ))}
           </div>
-          <div className="p-4 flex flex-col md:flex-row items-center gap-4">
-            <div className="relative w-full md:flex-1">
-              <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400">
-                <span className="material-symbols-outlined text-lg">search</span>
-              </span>
-              <input
-                className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-10 pr-4 text-sm focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-slate-500"
-                placeholder="Rechercher par nom, téléphone ou ID..."
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-              />
-            </div>
-            <select className="bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-lg py-2.5 pl-3 pr-10 text-sm focus:ring-1 focus:ring-primary text-slate-500 dark:text-slate-400">
-              <option>Zone: Toutes</option>
-            </select>
+          <div className="relative flex-1 min-w-[220px]">
+            <span className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-slate-400">
+              <span className="material-symbols-outlined text-lg">search</span>
+            </span>
+            <input
+              className="w-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full py-2 pl-10 pr-10 text-sm focus:ring-2 focus:ring-primary/30 focus:border-primary placeholder:text-slate-400 transition-all"
+              placeholder="Nom, téléphone ou ID..."
+              type="text"
+              value={searchInput}
+              onChange={handleSearchChange}
+            />
+            {searchInput && (
+              <button
+                onClick={() => { setSearchInput(''); setSearchQuery(''); setPage(1); }}
+                className="absolute inset-y-0 right-3 flex items-center text-slate-400 hover:text-slate-700"
+              >
+                <span className="material-symbols-outlined text-sm">close</span>
+              </button>
+            )}
           </div>
         </div>
 

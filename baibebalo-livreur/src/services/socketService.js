@@ -2,20 +2,12 @@ import { io } from 'socket.io-client';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Vibration, Platform } from 'react-native';
 import API_BASE_URL from '../constants/api';
+import soundService from './soundService';
 
-// URL du serveur Socket.IO (même base que l'API, sans /api/v1)
-// En développement, toujours utiliser l'URL locale
-const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
-const forceProduction = typeof process !== 'undefined' && process.env?.FORCE_PRODUCTION === 'true';
-
-let API_BASE;
-if (forceProduction) {
-  API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || 'https://baibebaloprojets.onrender.com';
-} else if (isDev) {
-  API_BASE = 'http://192.168.1.16:5000';
-} else {
-  API_BASE = (process.env.EXPO_PUBLIC_API_URL || API_BASE_URL || '').replace(/\/api\/v1\/?$/, '') || 'https://baibebaloprojets.onrender.com';
-}
+// Même base que l'API (sans /api/v1) pour que le socket utilise la même IP que les requêtes HTTP
+const API_BASE = (typeof API_BASE_URL === 'string' && API_BASE_URL)
+  ? API_BASE_URL.replace(/\/api\/v1\/?$/i, '')
+  : 'http://localhost:5000';
 
 class SocketService {
   constructor() {
@@ -23,23 +15,32 @@ class SocketService {
     this.isConnected = false;
     this.listeners = new Map();
     this.currentOrderId = null;
+    this._notificationErrorLogged = false;
   }
 
   /**
-   * Connecter au namespace /partners (pour les livreurs et restaurants)
+   * Connecter au namespace /partners (pour les livreurs et restaurants).
+   * @param {string} [providedToken] - Token JWT (prioritaire). Si absent, lecture depuis AsyncStorage 'delivery_token'.
    */
-  async connect() {
+  async connect(providedToken) {
     try {
-      const token = await AsyncStorage.getItem('deliveryToken');
+      const token = providedToken ?? (await AsyncStorage.getItem('delivery_token'));
       
-      if (!token) {
-        console.log('[Socket] Pas de token livreur, connexion ignorée');
+      if (!token || typeof token !== 'string' || !token.trim()) {
+        if (__DEV__) console.log('[Socket] Pas de token livreur, connexion ignorée');
         return;
       }
 
       if (this.socket?.connected) {
         console.log('[Socket] Déjà connecté');
         return;
+      }
+
+      // Nettoyer l'ancien socket avant d'en créer un nouveau
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        this.socket.disconnect();
+        this.socket = null;
       }
 
       console.log('[Socket] Connexion à', API_BASE + '/partners');
@@ -78,7 +79,7 @@ class SocketService {
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('[Socket] Erreur de connexion:', error.message);
+      if (__DEV__) console.warn('[Socket] Connexion refusée:', error.message);
     });
 
     // === ÉVÉNEMENTS LIVREUR ===
@@ -86,7 +87,7 @@ class SocketService {
     // Nouvelle livraison disponible (broadcast à tous les livreurs disponibles)
     this.socket.on('new_delivery_available', (data) => {
       console.log('[Socket] 🚴 Nouvelle livraison disponible:', data);
-      this.vibrate(500);
+      soundService.alertNewDelivery();
       this.showLocalNotification(
         '🚴 Nouvelle livraison !',
         `${data.restaurant_name} - ${data.delivery_fee} FCFA`
@@ -97,7 +98,7 @@ class SocketService {
     // Course proposée (attribution auto type Glovo) — uniquement à ce livreur
     this.socket.on('order_proposed', (data) => {
       console.log('[Socket] 📦 Course proposée:', data);
-      this.vibrate(500);
+      soundService.alertNewDelivery();
       this.showLocalNotification(
         '📦 Course proposée',
         `${data.restaurant_name} - ${data.delivery_fee || data.total} FCFA. Acceptez dans les ${data.expires_in_seconds ? Math.floor(data.expires_in_seconds / 60) : 2} min.`
@@ -105,10 +106,10 @@ class SocketService {
       this.emit('order_proposed', data);
     });
 
-    // Commande prête à récupérer (si livreur déjà assigné)
+    // Commande prête à récupérer au restaurant (même logique que app restaurant : son + vibration, fallback vibration si 403)
     this.socket.on('order_ready', (data) => {
       console.log('[Socket] 📦 Commande prête:', data);
-      this.vibrate(300);
+      soundService.alertOrderReady();
       this.showLocalNotification(
         '📦 Commande prête !',
         `${data.order_number} - ${data.restaurant_name}`
@@ -125,7 +126,7 @@ class SocketService {
     // Commande annulée
     this.socket.on('order_cancelled', (data) => {
       console.log('[Socket] ❌ Commande annulée:', data);
-      this.vibrate(200);
+      soundService.alert();
       this.showLocalNotification(
         '❌ Commande annulée',
         `La commande ${data.order_number} a été annulée`
@@ -190,7 +191,8 @@ class SocketService {
   }
 
   /**
-   * Afficher une notification locale (expo-notifications chargé à la demande pour éviter crash APK)
+   * Afficher une notification locale (expo-notifications chargé à la demande pour éviter crash APK).
+   * En cas d'échec (ex. Expo Go), on ne log qu'une fois pour éviter le spam.
    */
   async showLocalNotification(title, body) {
     try {
@@ -204,7 +206,10 @@ class SocketService {
         trigger: null, // Immédiat
       });
     } catch (error) {
-      if (__DEV__) console.warn('[Socket] Erreur notification locale:', error);
+      if (!this._notificationErrorLogged) {
+        this._notificationErrorLogged = true;
+        if (__DEV__) console.warn('[Socket] Notification locale non disponible (Expo Go?), sons/vibration utilisés.');
+      }
     }
   }
 
@@ -290,7 +295,7 @@ class SocketService {
         try {
           callback(data);
         } catch (error) {
-          console.error(`[Socket] Erreur listener ${event}:`, error);
+          if (__DEV__) console.warn(`[Socket] Listener ${event}:`, error?.message);
         }
       });
     }

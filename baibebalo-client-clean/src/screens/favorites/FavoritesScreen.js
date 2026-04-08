@@ -8,11 +8,19 @@ import {
   Image,
   RefreshControl,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { getFavorites, removeFavorite } from '../../api/users';
+import { getImageUrl } from '../../utils/url';
+
+const LIST_TOP_PADDING = 20;
+const LIST_BOTTOM_PADDING = 100;
 
 export default function FavoritesScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
+  const contentTop = Math.max(insets.top, 12) + LIST_TOP_PADDING;
+  const contentBottom = Math.max(insets.bottom, 12) + LIST_BOTTOM_PADDING;
   const [favorites, setFavorites] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -58,7 +66,7 @@ export default function FavoritesScreen({ navigation }) {
       onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.restaurant_id || item.id })}
     >
       <Image
-        source={{ uri: item.banner || item.logo || item.image_url || item.restaurant?.banner || item.restaurant?.logo || item.restaurant?.image_url || 'https://via.placeholder.com/300' }}
+        source={{ uri: getImageUrl(item.banner || item.logo || item.image_url || item.restaurant?.banner || item.restaurant?.logo || item.restaurant?.image_url) || null }}
         style={styles.restaurantImage}
       />
       <View style={styles.restaurantInfo}>
@@ -86,7 +94,7 @@ export default function FavoritesScreen({ navigation }) {
 
   if (loading) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: contentTop, paddingBottom: contentBottom }]}>
         <Text style={styles.loadingText}>Chargement...</Text>
       </View>
     );
@@ -94,7 +102,7 @@ export default function FavoritesScreen({ navigation }) {
 
   if (favorites.length === 0) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.container, { paddingTop: contentTop, paddingBottom: contentBottom }]}>
         <View style={styles.emptyState}>
           <View style={styles.emptyGlow} />
           <View style={styles.emptyCard}>
@@ -133,7 +141,10 @@ export default function FavoritesScreen({ navigation }) {
         data={favorites}
         renderItem={renderRestaurant}
         keyExtractor={(item) => (item.restaurant_id || item.id || item.restaurant?.id).toString()}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[
+          styles.listContent,
+          { paddingTop: contentTop, paddingBottom: contentBottom },
+        ]}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
@@ -148,7 +159,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.background,
   },
   listContent: {
-    padding: 16,
+    paddingHorizontal: 16,
   },
   restaurantCard: {
     flexDirection: 'row',

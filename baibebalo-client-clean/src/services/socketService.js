@@ -3,7 +3,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Vibration, Platform } from 'react-native';
 
 // URL du serveur Socket.IO (même que l'API sans /api/v1)
-const SOCKET_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.16:5000/api/v1').replace('/api/v1', '');
+const SOCKET_URL = (process.env.EXPO_PUBLIC_API_URL || 'http://192.168.1.13:5000/api/v1').replace('/api/v1', '');
 
 class SocketService {
   constructor() {
@@ -19,19 +19,26 @@ class SocketService {
   async connect() {
     try {
       const token = await AsyncStorage.getItem('accessToken') || await AsyncStorage.getItem('token');
-      
+
       if (!token) {
-        console.log('[Socket] Pas de token (accessToken), connexion ignorée');
+        if (__DEV__) console.log('[Socket] Pas de token, connexion ignorée');
         return;
       }
 
       if (this.socket?.connected) {
-        console.log('[Socket] Déjà connecté');
+        if (__DEV__) console.log('[Socket] Déjà connecté');
         return;
       }
 
+      // Nettoyer l'ancien socket avant d'en créer un nouveau
+      if (this.socket) {
+        this.socket.removeAllListeners();
+        this.socket.disconnect();
+        this.socket = null;
+      }
+
       const clientNamespaceUrl = `${SOCKET_URL}/client`;
-      console.log('[Socket] Connexion à', clientNamespaceUrl);
+      if (__DEV__) console.log('[Socket] Connexion à', clientNamespaceUrl);
 
       this.socket = io(clientNamespaceUrl, {
         auth: { token },
@@ -44,7 +51,7 @@ class SocketService {
 
       this.setupListeners();
     } catch (error) {
-      console.error('[Socket] Erreur connexion:', error);
+      if (__DEV__) console.warn('[Socket] Erreur connexion:', error?.message || error);
     }
   }
 
@@ -55,25 +62,24 @@ class SocketService {
     if (!this.socket) return;
 
     this.socket.on('connect', () => {
-      console.log('[Socket] ✅ Connecté au namespace /client');
+      if (__DEV__) console.log('[Socket] ✅ Connecté au namespace /client');
       this.isConnected = true;
       this.emit('connection_status', { connected: true });
-      
+
       // Rejoindre la room de la commande en cours si elle existe
       if (this.currentOrderId) {
-        console.log('[Socket] Rejoindre automatiquement room order_' + this.currentOrderId);
         this._doJoinOrderRoom(this.currentOrderId);
       }
     });
 
     this.socket.on('disconnect', (reason) => {
-      console.log('[Socket] ❌ Déconnecté:', reason);
+      if (__DEV__) console.log('[Socket] ❌ Déconnecté:', reason);
       this.isConnected = false;
       this.emit('connection_status', { connected: false, reason });
     });
 
     this.socket.on('connect_error', (error) => {
-      console.error('[Socket] Erreur de connexion:', error.message);
+      if (__DEV__) console.warn('[Socket] Erreur de connexion:', error.message);
       this.emit('connection_status', { connected: false, error: error.message });
     });
 
@@ -81,21 +87,21 @@ class SocketService {
 
     // Changement de statut de commande
     this.socket.on('order_status_changed', (data) => {
-      console.log('[Socket] 📦 Statut commande changé:', data);
+      if (__DEV__) console.log('[Socket] 📦 Statut commande changé');
       this.vibrate();
       this.emit('order_status_changed', data);
     });
 
     // Livreur assigné
     this.socket.on('delivery_assigned', (data) => {
-      console.log('[Socket] 🚴 Livreur assigné:', data);
+      if (__DEV__) console.log('[Socket] 🚴 Livreur assigné');
       this.vibrate();
       this.emit('delivery_assigned', data);
     });
 
     // Commande récupérée par le livreur
     this.socket.on('order_picked_up', (data) => {
-      console.log('[Socket] 📦 Commande récupérée:', data);
+      if (__DEV__) console.log('[Socket] 📦 Commande récupérée');
       this.vibrate();
       this.emit('order_picked_up', data);
     });
@@ -108,21 +114,21 @@ class SocketService {
 
     // Livreur arrivé chez le client
     this.socket.on('delivery_arrived_at_customer', (data) => {
-      console.log('[Socket] 📍 Livreur arrivé:', data);
+      if (__DEV__) console.log('[Socket] 📍 Livreur arrivé');
       this.vibrate();
       this.emit('delivery_arrived_at_customer', data);
     });
 
     // Nouveau message dans le chat
     this.socket.on('new_order_message', (data) => {
-      console.log('[Socket] 💬 Nouveau message:', data);
+      if (__DEV__) console.log('[Socket] 💬 Nouveau message');
       this.vibrate();
       this.emit('new_order_message', data);
     });
 
     // Erreur
     this.socket.on('error', (error) => {
-      console.error('[Socket] Erreur:', error);
+      if (__DEV__) console.warn('[Socket] Erreur:', error);
       this.emit('error', error);
     });
   }
@@ -141,14 +147,14 @@ class SocketService {
    */
   joinOrderRoom(orderId) {
     if (!orderId) {
-      console.warn('[Socket] joinOrderRoom: orderId manquant');
+      if (__DEV__) console.warn('[Socket] joinOrderRoom: orderId manquant');
       return;
     }
 
     this.currentOrderId = orderId; // Sauvegarder pour rejoindre après connexion
 
     if (!this.socket) {
-      console.log('[Socket] Socket non initialisé, connexion en cours...');
+      if (__DEV__) console.log('[Socket] Socket non initialisé, connexion en cours...');
       this.connect().then(() => {
         this._doJoinOrderRoom(orderId);
       });
@@ -156,10 +162,8 @@ class SocketService {
     }
 
     if (!this.socket.connected) {
-      console.log('[Socket] Non connecté, attente de la connexion...');
       // Attendre la connexion
       this.socket.once('connect', () => {
-        console.log('[Socket] Connecté, rejoindre room maintenant');
         this._doJoinOrderRoom(orderId);
       });
       return;
@@ -173,11 +177,11 @@ class SocketService {
    */
   _doJoinOrderRoom(orderId) {
     if (!this.socket?.connected) {
-      console.warn('[Socket] Impossible de rejoindre room: socket non connecté');
+      if (__DEV__) console.warn('[Socket] Impossible de rejoindre room: socket non connecté');
       return;
     }
 
-    console.log('[Socket] ✅ Rejoindre room order_' + orderId);
+    if (__DEV__) console.log('[Socket] ✅ Rejoindre room order_' + orderId);
     this.socket.emit('join_order', { order_id: orderId });
   }
 
@@ -187,9 +191,9 @@ class SocketService {
   leaveOrderRoom(orderId) {
     if (!this.socket?.connected) return;
 
-    console.log('[Socket] Quitter room order_' + orderId);
+    if (__DEV__) console.log('[Socket] Quitter room order_' + orderId);
     this.socket.emit('leave_order', { order_id: orderId });
-    
+
     if (this.currentOrderId === orderId) {
       this.currentOrderId = null;
     }
@@ -203,7 +207,7 @@ class SocketService {
       this.listeners.set(event, new Set());
     }
     this.listeners.get(event).add(callback);
-    
+
     return () => this.off(event, callback);
   }
 
@@ -225,7 +229,7 @@ class SocketService {
         try {
           callback(data);
         } catch (error) {
-          console.error(`[Socket] Erreur dans listener ${event}:`, error);
+          if (__DEV__) console.warn(`[Socket] Erreur dans listener ${event}:`, error?.message || error);
         }
       });
     }
@@ -236,7 +240,7 @@ class SocketService {
    */
   disconnect() {
     if (this.socket) {
-      console.log('[Socket] Déconnexion...');
+      if (__DEV__) console.log('[Socket] Déconnexion...');
       this.socket.disconnect();
       this.socket = null;
       this.isConnected = false;

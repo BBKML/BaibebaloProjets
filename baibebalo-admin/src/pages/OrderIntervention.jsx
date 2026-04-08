@@ -52,7 +52,7 @@ const OrderIntervention = () => {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Détails Commande & Intervention
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">Commande #{order.id}</p>

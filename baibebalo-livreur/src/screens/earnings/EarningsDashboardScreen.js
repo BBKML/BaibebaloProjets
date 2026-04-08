@@ -3,16 +3,17 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { getEarnings } from '../../api/earnings';
 import { getStatistics } from '../../api/stats';
+import { getPerformanceBonuses } from '../../api/delivery';
 
 const DAY_LABELS = ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'];
 
@@ -56,13 +57,18 @@ export default function EarningsDashboardScreen({ navigation }) {
   const [weeklyChart, setWeeklyChart] = useState([]);
   const [bestDay, setBestDay] = useState({ date: '', amount: 0, deliveries: 0 });
   const [bestMonthAmount, setBestMonthAmount] = useState(0);
+  const [bonusData, setBonusData] = useState(null);
 
   const loadData = async () => {
     try {
-      const [earningsRes, statsRes] = await Promise.all([
+      const [earningsRes, statsRes, bonusRes] = await Promise.all([
         getEarnings(selectedPeriod === 'week' ? 'week' : selectedPeriod === 'month' ? 'month' : 'year'),
         getStatistics(selectedPeriod === 'week' ? 'week' : selectedPeriod === 'month' ? 'month' : 'year'),
+        getPerformanceBonuses().catch(() => null),
       ]);
+      if (bonusRes?.success && bonusRes?.data) {
+        setBonusData(bonusRes.data);
+      }
 
       if (earningsRes?.success && earningsRes?.data) {
         const d = earningsRes.data;
@@ -162,7 +168,7 @@ export default function EarningsDashboardScreen({ navigation }) {
             <Ionicons name="trending-up" size={28} color="#FFFFFF" />
           </View>
           <Text style={styles.totalLabel}>Total gagné depuis le début</Text>
-          <Text style={styles.totalAmount}>{totalEarned.toLocaleString()} FCFA</Text>
+          <Text style={styles.totalAmount}>{Math.round(totalEarned).toLocaleString('fr-FR')} FCFA</Text>
           <Text style={styles.totalDeliveries}>{totalDeliveries} livraisons effectuées</Text>
         </View>
 
@@ -228,7 +234,7 @@ export default function EarningsDashboardScreen({ navigation }) {
               </View>
               <View style={styles.breakdownInfo}>
                 <Text style={styles.breakdownLabel}>Frais de livraison</Text>
-                <Text style={styles.breakdownAmount}>{breakdownData.deliveryFees.toLocaleString()} F</Text>
+                <Text style={styles.breakdownAmount}>{Math.round(breakdownData.deliveryFees).toLocaleString('fr-FR')} F</Text>
               </View>
               <Text style={styles.breakdownPercent}>
                 {totalForBreakdown > 0 ? Math.round((breakdownData.deliveryFees / totalForBreakdown) * 100) : 0}%
@@ -243,7 +249,7 @@ export default function EarningsDashboardScreen({ navigation }) {
               </View>
               <View style={styles.breakdownInfo}>
                 <Text style={styles.breakdownLabel}>Pourboires</Text>
-                <Text style={styles.breakdownAmount}>{breakdownData.tips.toLocaleString()} F</Text>
+                <Text style={styles.breakdownAmount}>{Math.round(breakdownData.tips).toLocaleString('fr-FR')} F</Text>
               </View>
               <Text style={styles.breakdownPercent}>
                 {totalForBreakdown > 0 ? Math.round((breakdownData.tips / totalForBreakdown) * 100) : 0}%
@@ -258,7 +264,7 @@ export default function EarningsDashboardScreen({ navigation }) {
               </View>
               <View style={styles.breakdownInfo}>
                 <Text style={styles.breakdownLabel}>Bonus & Primes</Text>
-                <Text style={styles.breakdownAmount}>{breakdownData.bonuses.toLocaleString()} F</Text>
+                <Text style={styles.breakdownAmount}>{Math.round(breakdownData.bonuses).toLocaleString('fr-FR')} F</Text>
               </View>
               <Text style={styles.breakdownPercent}>
                 {totalForBreakdown > 0 ? Math.round((breakdownData.bonuses / totalForBreakdown) * 100) : 0}%
@@ -274,7 +280,7 @@ export default function EarningsDashboardScreen({ navigation }) {
           <View style={styles.statsGrid}>
             <View style={styles.statCard}>
               <Ionicons name="calculator-outline" size={24} color={COLORS.primary} />
-              <Text style={styles.statValue}>{averagePerDelivery.toLocaleString()} F</Text>
+              <Text style={styles.statValue}>{Math.round(averagePerDelivery).toLocaleString('fr-FR')} F</Text>
               <Text style={styles.statLabel}>Moyenne / course</Text>
             </View>
             <View style={styles.statCard}>
@@ -298,7 +304,7 @@ export default function EarningsDashboardScreen({ navigation }) {
               <Text style={styles.recordDate}>{bestDay.date || '—'}</Text>
             </View>
             <View style={styles.recordValue}>
-              <Text style={styles.recordAmount}>{bestDay.amount.toLocaleString()} F</Text>
+              <Text style={styles.recordAmount}>{Math.round(bestDay.amount).toLocaleString('fr-FR')} F</Text>
               <Text style={styles.recordDeliveries}>{bestDay.deliveries} courses</Text>
             </View>
           </View>
@@ -314,10 +320,83 @@ export default function EarningsDashboardScreen({ navigation }) {
               </Text>
             </View>
             <View style={styles.recordValue}>
-              <Text style={styles.recordAmount}>{earningsData.thisMonth.toLocaleString()} F</Text>
+              <Text style={styles.recordAmount}>{Math.round(earningsData.thisMonth).toLocaleString('fr-FR')} F</Text>
             </View>
           </View>
         </View>
+
+        {/* Bonus Performance */}
+        {bonusData && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>Bonus performance du jour</Text>
+
+            <View style={styles.bonusCard}>
+              <View style={styles.bonusHeader}>
+                <View style={styles.bonusIconWrap}>
+                  <Ionicons name="trophy" size={24} color={COLORS.warning} />
+                </View>
+                <View style={styles.bonusHeaderInfo}>
+                  <Text style={styles.bonusCount}>
+                    {bonusData.today_deliveries} livraison{bonusData.today_deliveries !== 1 ? 's' : ''} aujourd'hui
+                  </Text>
+                  {bonusData.potential_bonus > 0 ? (
+                    <Text style={styles.bonusEarned}>
+                      +{bonusData.potential_bonus.toLocaleString('fr-FR')} FCFA de bonus ce soir
+                    </Text>
+                  ) : bonusData.next_threshold ? (
+                    <Text style={styles.bonusNext}>
+                      Encore {bonusData.deliveries_needed} course{bonusData.deliveries_needed !== 1 ? 's' : ''} pour +{bonusData.next_threshold.toLocaleString('fr-FR')} FCFA
+                    </Text>
+                  ) : (
+                    <Text style={styles.bonusNext}>Faites 10 courses pour débloquer un bonus</Text>
+                  )}
+                </View>
+              </View>
+
+              {/* Barre de progression vers le prochain palier */}
+              {bonusData.today_deliveries < 20 && (
+                <View style={styles.bonusProgress}>
+                  <View style={styles.bonusProgressTrack}>
+                    <View
+                      style={[
+                        styles.bonusProgressFill,
+                        {
+                          width: `${Math.min((bonusData.today_deliveries / 20) * 100, 100)}%`,
+                          backgroundColor: bonusData.today_deliveries >= 10 ? COLORS.success : COLORS.warning,
+                        },
+                      ]}
+                    />
+                    {/* Marqueur palier 10 */}
+                    <View style={[styles.bonusMarker, { left: '50%' }]} />
+                  </View>
+                  <View style={styles.bonusScaleRow}>
+                    <Text style={styles.bonusScaleLabel}>0</Text>
+                    <Text style={[styles.bonusScaleLabel, { color: bonusData.today_deliveries >= 10 ? COLORS.success : COLORS.textSecondary }]}>10 (+500F)</Text>
+                    <Text style={[styles.bonusScaleLabel, { color: bonusData.today_deliveries >= 20 ? COLORS.success : COLORS.textSecondary }]}>20 (+1500F)</Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
+            {/* Historique des bonus */}
+            {bonusData.recent_bonuses?.length > 0 && (
+              <View style={styles.bonusHistory}>
+                <Text style={styles.bonusHistoryTitle}>Historique (30 derniers jours)</Text>
+                {bonusData.recent_bonuses.map((b, idx) => (
+                  <View key={idx} style={styles.bonusHistoryRow}>
+                    <Text style={styles.bonusHistoryDate}>
+                      {new Date(b.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })}
+                    </Text>
+                    <Text style={styles.bonusHistoryDeliveries}>{b.deliveries} courses</Text>
+                    <Text style={[styles.bonusHistoryAmount, b.status === 'paid' ? styles.bonusPaid : styles.bonusPending]}>
+                      +{b.amount.toLocaleString('fr-FR')} F {b.status === 'paid' ? '✓' : '⏳'}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            )}
+          </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -618,5 +697,122 @@ const styles = StyleSheet.create({
     fontSize: 11,
     color: COLORS.textSecondary,
     marginTop: 2,
+  },
+  bonusCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 12,
+  },
+  bonusHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 16,
+  },
+  bonusIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: COLORS.warning + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bonusHeaderInfo: {
+    flex: 1,
+  },
+  bonusCount: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  bonusEarned: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: COLORS.success,
+  },
+  bonusNext: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+  },
+  bonusProgress: {
+    marginTop: 4,
+  },
+  bonusProgressTrack: {
+    height: 8,
+    backgroundColor: COLORS.border,
+    borderRadius: 4,
+    overflow: 'visible',
+    position: 'relative',
+  },
+  bonusProgressFill: {
+    height: '100%',
+    borderRadius: 4,
+  },
+  bonusMarker: {
+    position: 'absolute',
+    top: -2,
+    width: 2,
+    height: 12,
+    backgroundColor: COLORS.textSecondary + '80',
+  },
+  bonusScaleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginTop: 6,
+  },
+  bonusScaleLabel: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  bonusHistory: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  bonusHistoryTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
+    marginBottom: 12,
+  },
+  bonusHistoryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  bonusHistoryDate: {
+    fontSize: 13,
+    color: COLORS.text,
+    width: 60,
+  },
+  bonusHistoryDeliveries: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    flex: 1,
+    textAlign: 'center',
+  },
+  bonusHistoryAmount: {
+    fontSize: 13,
+    fontWeight: '700',
+    width: 100,
+    textAlign: 'right',
+  },
+  bonusPaid: {
+    color: COLORS.success,
+  },
+  bonusPending: {
+    color: COLORS.warning,
   },
 });

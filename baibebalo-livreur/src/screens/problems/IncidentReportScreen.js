@@ -1,20 +1,25 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  SafeAreaView, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   ScrollView,
   TextInput,
   Alert,
   ActivityIndicator,
-  Image
+  Image,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { COLORS } from '../../constants/colors';
 import apiClient from '../../api/client';
+import { reportIssue } from '../../api/orders';
+import { uploadDocument } from '../../api/delivery';
+import { getImageUrl } from '../../utils/url';
 
 const INCIDENT_TYPES = [
   { id: 'accident', label: 'Accident de la route', icon: 'car-outline', color: '#EF4444' },
@@ -27,7 +32,19 @@ const INCIDENT_TYPES = [
   { id: 'other', label: 'Autre incident', icon: 'alert-circle-outline', color: '#6B7280' },
 ];
 
+const ISSUE_TYPE_TO_BACKEND = {
+  accident: 'accident',
+  vehicle_issue: 'vehicle_breakdown',
+  customer_issue: 'client_absent',
+  restaurant_issue: 'other',
+  package_damaged: 'damaged_order',
+  address_issue: 'wrong_address',
+  security: 'security_issue',
+  other: 'other',
+};
+
 export default function IncidentReportScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const delivery = route.params?.delivery;
   const [selectedType, setSelectedType] = useState(null);
   const [description, setDescription] = useState('');
@@ -89,8 +106,8 @@ export default function IncidentReportScreen({ navigation, route }) {
       return;
     }
 
-    if (!description.trim()) {
-      Alert.alert('Description requise', 'Veuillez décrire l\'incident.');
+    if (description.trim().length < 10) {
+      Alert.alert('Description requise', 'Veuillez décrire l\'incident (au moins 10 caractères).');
       return;
     }
 
@@ -98,14 +115,48 @@ export default function IncidentReportScreen({ navigation, route }) {
 
     try {
       const orderId = delivery?.id || delivery?.order_id;
-      
-      // Créer le rapport d'incident
+      const backendType = ISSUE_TYPE_TO_BACKEND[selectedType] || 'other';
+
+      let photoUrls = [];
+      if (photos.length > 0) {
+        for (const uri of photos) {
+          if (uri.startsWith('file://') || uri.startsWith('content://')) {
+            try {
+              const formData = new FormData();
+              formData.append('file', { uri, name: `incident_${Date.now()}.jpg`, type: 'image/jpeg' });
+              formData.append('document_type', 'incident_photo');
+              const res = await uploadDocument(formData);
+              const rawUrl = res?.data?.url;
+              const url = rawUrl ? (rawUrl.startsWith('http') ? rawUrl : getImageUrl(rawUrl) || rawUrl) : null;
+              if (url) photoUrls.push(url);
+            } catch (e) {
+              console.warn('Upload photo incident:', e);
+            }
+          }
+        }
+      }
+
+      if (orderId) {
+        const response = await reportIssue(orderId, {
+          issue_type: backendType,
+          description: description.trim(),
+          photos: photoUrls.length ? photoUrls : undefined,
+        });
+        if (response?.success) {
+          Alert.alert(
+            'Incident signalé',
+            'Votre rapport a été enregistré. Le support vous contactera si nécessaire.',
+            [{ text: 'OK', onPress: () => navigation.goBack() }]
+          );
+          return;
+        }
+      }
+
       const response = await apiClient.post('/delivery/support/contact', {
         subject: `Incident: ${INCIDENT_TYPES.find(t => t.id === selectedType)?.label}`,
         message: `Type: ${selectedType}\n\nDescription: ${description}\n\nCommande: ${orderId || 'N/A'}`,
         order_id: orderId || undefined,
       });
-
       if (response.data?.success) {
         Alert.alert(
           'Incident signalé',
@@ -117,7 +168,7 @@ export default function IncidentReportScreen({ navigation, route }) {
       console.error('Erreur signalement incident:', error);
       Alert.alert(
         'Erreur',
-        'Impossible d\'envoyer le rapport. Veuillez réessayer.',
+        error?.response?.data?.error?.message || 'Impossible d\'envoyer le rapport. Veuillez réessayer.',
         [{ text: 'OK' }]
       );
     } finally {
@@ -127,6 +178,10 @@ export default function IncidentReportScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
@@ -233,7 +288,7 @@ export default function IncidentReportScreen({ navigation, route }) {
       </ScrollView>
 
       {/* Bouton envoyer */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={[
             styles.submitButton,
@@ -252,6 +307,7 @@ export default function IncidentReportScreen({ navigation, route }) {
           )}
         </TouchableOpacity>
       </View>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import toast from 'react-hot-toast';
@@ -142,13 +143,18 @@ const ValidationHistory = () => {
       <div className="space-y-8">
         {/* Page Heading */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div className="space-y-1">
-            <h1 className="text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+          <div className="flex items-center gap-3">
+            <Link to="/drivers" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div className="space-y-1">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">
               Historique des Validations
             </h1>
             <p className="text-slate-500 dark:text-slate-400 max-w-xl">
               Suivi centralisé des décisions pour les restaurants et les livreurs partenaires.
             </p>
+            </div>
           </div>
           <button
             onClick={handleExport}

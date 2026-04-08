@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -11,6 +11,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useFocusEffect } from '@react-navigation/native';
 import { COLORS } from '../../constants/colors';
 import { restaurantPromotions } from '../../api/promotions';
 
@@ -28,33 +29,41 @@ export default function MarketingOverviewScreen({ navigation }) {
   const [stats, setStats] = useState(null);
   const insets = useSafeAreaInsets();
 
-  useEffect(() => {
-    loadPromotions();
-  }, [filters]);
+  // Recharger à chaque fois que l'écran revient au premier plan (ex: après création)
+  useFocusEffect(
+    useCallback(() => {
+      loadPromotions();
+    }, [filters])
+  );
 
   const loadPromotions = async () => {
     try {
       const response = await restaurantPromotions.getPromotions(filters);
       // Le backend retourne { success: true, data: { promotions: [...], pagination: {...} } }
-      const promotionsData = response.data?.promotions || response.promotions || [];
+      const promotionsData = response.data?.promo_codes || response.data?.promotions || response.promotions || [];
       
       // Adapter les données au format attendu
+      const now = new Date();
       const adaptedPromotions = promotionsData.map(promo => ({
         id: promo.id,
         type: promo.type,
-        typeLabel: promo.type === 'percentage' ? 'Réduction %' : 
-                   promo.type === 'fixed_amount' ? 'Réduction fixe' :
+        code: promo.code,
+        typeLabel: promo.type === 'percentage' ? 'Réduction %' :
+                   promo.type === 'fixed_amount' ? 'Montant fixe' :
                    promo.type === 'free_delivery' ? 'Livraison gratuite' :
                    promo.type === 'bundle' ? 'Offre groupée' : promo.type,
-        title: promo.title || promo.name || 'Promotion',
-        itemName: promo.menu_item?.name,
         discount: promo.value,
-        discountType: promo.type === 'percentage' ? 'percentage' : 'fixed',
-        startDate: promo.valid_from,
-        endDate: promo.valid_until,
-        uses: promo.usage_count || 0,
-        maxUses: promo.usage_limit,
-        status: promo.is_active ? (new Date(promo.valid_until) > new Date() ? 'active' : 'expired') : 'paused',
+        min_order_amount: promo.min_order_amount,
+        valid_from: promo.valid_from,
+        valid_until: promo.valid_until,
+        usage_limit: promo.usage_limit,
+        uses: promo.used_count || promo.usage_count || 0,
+        is_active: promo.is_active,
+        status: promo.is_active
+          ? (new Date(promo.valid_until) > now
+            ? (new Date(promo.valid_from) > now ? 'scheduled' : 'active')
+            : 'expired')
+          : 'paused',
       }));
       
       setPromotions(adaptedPromotions);
@@ -111,87 +120,87 @@ export default function MarketingOverviewScreen({ navigation }) {
 
   const renderPromotion = ({ item }) => {
     const status = PROMOTION_STATUS[item.status] || PROMOTION_STATUS.active;
-    const isActive = item.status === 'active';
+    const running = item.status === 'active';
+
+    const discountLabel =
+      item.type === 'free_delivery'
+        ? 'Livraison gratuite'
+        : item.type === 'percentage'
+        ? `${item.discount}% de réduction`
+        : `${Number(item.discount).toLocaleString('fr-FR')} FCFA de réduction`;
 
     return (
       <View style={styles.promotionCard}>
+        {/* Code + statut */}
         <View style={styles.promotionHeader}>
-          <View style={styles.promotionInfo}>
-            <View style={styles.promotionTypeBadge}>
-              <Ionicons name="pricetag" size={16} color={COLORS.primary} />
-              <Text style={styles.promotionTypeText}>{item.typeLabel}</Text>
-            </View>
-            <Text style={styles.promotionTitle}>{item.title}</Text>
-            {item.itemName && (
-              <Text style={styles.promotionItemName}>{item.itemName}</Text>
-            )}
+          <View style={styles.codeBox}>
+            <Ionicons name="pricetag" size={14} color={COLORS.primary} />
+            <Text style={styles.codeText}>{item.code}</Text>
           </View>
-          <View style={[styles.statusBadge, { backgroundColor: status.color + '15' }]}>
+          <View style={[styles.statusBadge, { backgroundColor: status.color + '18' }]}>
             <View style={[styles.statusDot, { backgroundColor: status.color }]} />
-            <Text style={[styles.statusText, { color: status.color }]}>
-              {status.label}
-            </Text>
+            <Text style={[styles.statusText, { color: status.color }]}>{status.label}</Text>
           </View>
         </View>
 
+        {/* Valeur */}
+        <Text style={styles.discountValue}>{discountLabel}</Text>
+        <Text style={styles.typeLabel}>{item.typeLabel}</Text>
+
+        {/* Détails */}
         <View style={styles.promotionDetails}>
           <View style={styles.detailRow}>
-            <Ionicons name="cash" size={16} color={COLORS.textSecondary} />
+            <Ionicons name="calendar-outline" size={14} color={COLORS.textSecondary} />
             <Text style={styles.detailText}>
-              Réduction : {item.discountType === 'percentage' ? `${item.discount}%` : `${item.discount} FCFA`}
+              {new Date(item.valid_from).toLocaleDateString('fr-FR')} →{' '}
+              {new Date(item.valid_until).toLocaleDateString('fr-FR')}
             </Text>
           </View>
-          <View style={styles.detailRow}>
-            <Ionicons name="calendar" size={16} color={COLORS.textSecondary} />
-            <Text style={styles.detailText}>
-              {new Date(item.startDate).toLocaleDateString('fr-FR')} - {new Date(item.endDate).toLocaleDateString('fr-FR')}
-            </Text>
-          </View>
-          {item.uses !== undefined && (
+          {item.min_order_amount > 0 && (
             <View style={styles.detailRow}>
-              <Ionicons name="people" size={16} color={COLORS.textSecondary} />
+              <Ionicons name="cart-outline" size={14} color={COLORS.textSecondary} />
               <Text style={styles.detailText}>
-                Utilisations : {item.uses}
-                {item.maxUses && ` / ${item.maxUses}`}
+                Min : {Number(item.min_order_amount).toLocaleString('fr-FR')} FCFA
               </Text>
             </View>
           )}
+          <View style={styles.detailRow}>
+            <Ionicons name="people-outline" size={14} color={COLORS.textSecondary} />
+            <Text style={styles.detailText}>
+              {item.uses} utilisation{item.uses !== 1 ? 's' : ''}
+              {item.usage_limit ? ` / ${item.usage_limit}` : ''}
+            </Text>
+          </View>
         </View>
 
+        {/* Actions */}
         <View style={styles.promotionActions}>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => navigation.navigate('CreateAdvancedPromotion', { promotionId: item.id })}
+            onPress={() => navigation.navigate('CreateAdvancedPromotion', { promotion: item })}
           >
-            <Ionicons name="create-outline" size={18} color={COLORS.primary} />
+            <Ionicons name="create-outline" size={16} color={COLORS.primary} />
             <Text style={styles.actionButtonText}>Modifier</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.actionButton}
-            onPress={() => handleTogglePromotion(item.id, isActive)}
+            onPress={() => handleTogglePromotion(item.id, running)}
           >
             <Ionicons
-              name={isActive ? 'pause' : 'play'}
-              size={18}
-              color={isActive ? COLORS.warning : COLORS.success}
+              name={running ? 'pause-circle-outline' : 'play-circle-outline'}
+              size={16}
+              color={running ? COLORS.warning : COLORS.success}
             />
-            <Text
-              style={[
-                styles.actionButtonText,
-                { color: isActive ? COLORS.warning : COLORS.success },
-              ]}
-            >
-              {isActive ? 'Mettre en pause' : 'Activer'}
+            <Text style={[styles.actionButtonText, { color: running ? COLORS.warning : COLORS.success }]}>
+              {running ? 'Pause' : 'Activer'}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.actionButton, styles.deleteButton]}
             onPress={() => handleDeletePromotion(item.id)}
           >
-            <Ionicons name="trash-outline" size={18} color={COLORS.error} />
-            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>
-              Supprimer
-            </Text>
+            <Ionicons name="trash-outline" size={16} color={COLORS.error} />
+            <Text style={[styles.actionButtonText, styles.deleteButtonText]}>Supprimer</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -386,7 +395,7 @@ const styles = StyleSheet.create({
   },
   promotionCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
     padding: 16,
     marginBottom: 12,
     borderWidth: 1,
@@ -395,36 +404,34 @@ const styles = StyleSheet.create({
   promotionHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    marginBottom: 10,
   },
-  promotionInfo: {
-    flex: 1,
-  },
-  promotionTypeBadge: {
+  codeBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    alignSelf: 'flex-start',
-    backgroundColor: COLORS.primary + '15',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 12,
-    gap: 4,
-    marginBottom: 8,
+    gap: 6,
+    backgroundColor: COLORS.primary + '12',
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 10,
   },
-  promotionTypeText: {
-    fontSize: 10,
-    fontWeight: '600',
-    color: COLORS.primary,
-  },
-  promotionTitle: {
+  codeText: {
     fontSize: 16,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 4,
+    fontWeight: '900',
+    color: COLORS.primary,
+    letterSpacing: 1.5,
   },
-  promotionItemName: {
+  discountValue: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+  typeLabel: {
     fontSize: 12,
     color: COLORS.textSecondary,
+    marginBottom: 10,
   },
   statusBadge: {
     flexDirection: 'row',

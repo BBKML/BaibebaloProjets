@@ -1,5 +1,6 @@
 const authService = require('../services/auth.service');
 const smsService = require('../services/sms.service');
+const notificationService = require('../services/notification.service');
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/auth');
 const { query } = require('../database/db');
 const logger = require('../utils/logger');
@@ -103,6 +104,8 @@ class AuthController {
   async verifyOTP(req, res, next) {
     try {
       const { phone, code, first_name, last_name, role } = req.body;
+      const fcm_token = req.body.fcm_token ?? req.body.fcmToken ?? '';
+      const fcmToken = typeof fcm_token === 'string' ? fcm_token.trim() : '';
 
       // Vérifier l'OTP
       const otp = await authService.verifyOTP(phone, code);
@@ -175,6 +178,12 @@ class AuthController {
 
           logger.info('OTP vérifié avec succès', { phone, type: 'delivery_login' });
 
+          if (fcmToken) {
+            notificationService.saveFCMToken(delivery.id, 'delivery_person', fcmToken).catch((err) =>
+              logger.warn('Sauvegarde FCM token livreur', { error: err.message })
+            );
+          }
+
           return res.json({
             success: true,
             message: 'Connexion réussie',
@@ -185,6 +194,7 @@ class AuthController {
                 first_name: delivery.first_name,
                 last_name: delivery.last_name,
                 status: delivery.status,
+                validation_status: delivery.status,
                 vehicle_type: delivery.vehicle_type,
                 average_rating: delivery.average_rating,
                 total_deliveries: delivery.total_deliveries,
@@ -231,6 +241,14 @@ class AuthController {
 
       logger.info('OTP vérifié avec succès', { phone, type: 'login' });
 
+      if (fcmToken) {
+        try {
+          await notificationService.saveFCMToken(user.id, 'user', fcmToken);
+        } catch (err) {
+          logger.warn('Sauvegarde FCM token client (login OK)', { error: err.message });
+        }
+      }
+
       res.json({
         success: true,
         message: isNew ? 'Compte créé avec succès' : 'Connexion réussie',
@@ -272,6 +290,7 @@ class AuthController {
       // Accepter soit email soit phone
       const email = req.body?.email?.trim();
       const phone = req.body?.phone?.trim();
+      const fcm_token = req.body?.fcm_token?.trim();
       
       // Déterminer l'identifiant (priorité au phone si fourni et non vide)
       const identifier = (phone && phone.length > 0) ? phone : (email && email.length > 0 ? email.toLowerCase() : null);
@@ -417,6 +436,15 @@ class AuthController {
         email: restaurant.email,
         type: 'restaurant',
       });
+
+      if (fcm_token) {
+        try {
+          await notificationService.saveFCMToken(restaurant.id, 'restaurant', fcm_token);
+          logger.info('FCM token restaurant sauvegardé', { restaurantId: restaurant.id });
+        } catch (err) {
+          logger.warn('Sauvegarde FCM token restaurant', { error: err.message });
+        }
+      }
 
       res.json({
         success: true,
@@ -895,7 +923,7 @@ class AuthController {
    */
   async adminLogin(req, res) {
     try {
-      const { email, password } = req.body;
+      const { email, password, fcm_token } = req.body;
 
       // Trouver l'admin
       const result = await query(
@@ -928,11 +956,18 @@ class AuthController {
         });
       }
 
-      // Mettre à jour last_login
-      await query(
-        'UPDATE admins SET last_login = NOW() WHERE id = $1',
-        [admin.id]
-      );
+      // Mettre à jour last_login (et fcm_token si fourni)
+      if (fcm_token && typeof fcm_token === 'string' && fcm_token.trim()) {
+        await query(
+          'UPDATE admins SET last_login = NOW(), fcm_token = $2 WHERE id = $1',
+          [admin.id, fcm_token.trim()]
+        );
+      } else {
+        await query(
+          'UPDATE admins SET last_login = NOW() WHERE id = $1',
+          [admin.id]
+        );
+      }
 
       // Générer les tokens
       const accessToken = generateAccessToken({
@@ -1240,6 +1275,25 @@ class AuthController {
     } catch (error) {
       logger.error('Erreur adminResetPassword', { error: error.message });
       next(error);
+    }
+  }
+  /**
+   * Déconnexion (invalide le refresh token côté client)
+   */
+  async logout(req, res) {
+    try {
+      // JWT est stateless : la déconnexion effective est gérée côté client (suppression du token)
+      // Si un refresh token est fourni, on peut l'invalider en base si une table de tokens révoqués existe
+      res.json({
+        success: true,
+        message: 'Déconnexion réussie',
+      });
+    } catch (error) {
+      logger.error('Erreur logout', { error: error.message });
+      res.status(500).json({
+        success: false,
+        error: { code: 'LOGOUT_ERROR', message: 'Erreur lors de la déconnexion' },
+      });
     }
   }
 }

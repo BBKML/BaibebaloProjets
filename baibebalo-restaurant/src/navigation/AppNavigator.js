@@ -5,6 +5,7 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import useAuthStore from '../store/authStore';
+import useRestaurantStore from '../store/restaurantStore';
 import { COLORS } from '../constants/colors';
 import { useNotifications, useBackgroundNotifications } from '../hooks/useNotifications';
 import { checkMaintenanceMode, invalidateSettingsCache } from '../services/settingsService';
@@ -45,6 +46,7 @@ import TransactionHistoryScreen from '../screens/finance/TransactionHistoryScree
 import WithdrawalRequestScreen from '../screens/finance/WithdrawalRequestScreen';
 import InvoicesReceiptsScreen from '../screens/finance/InvoicesReceiptsScreen';
 import CustomerReviewsDashboardScreen from '../screens/reviews/CustomerReviewsDashboardScreen';
+import ReviewsListScreen from '../screens/reviews/ReviewsListScreen';
 import ReviewResponseModal from '../screens/reviews/ReviewResponseModal';
 import CreateAdvancedPromotionScreen from '../screens/promotions/CreateAdvancedPromotionScreen';
 import MarketingOverviewScreen from '../screens/promotions/MarketingOverviewScreen';
@@ -58,7 +60,22 @@ let OpeningHoursScreenSafe;
 try {
   OpeningHoursScreenSafe = require('../screens/settings/OpeningHoursScreen').default;
 } catch (_) {
-  OpeningHoursScreenSafe = function OpeningHoursPlaceholder() { return null; };
+  const { View, Text, StyleSheet } = require('react-native');
+  OpeningHoursScreenSafe = function OpeningHoursPlaceholder({ navigation }) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', padding: 32 }}>
+        <Text style={{ fontSize: 16, color: '#64748B', textAlign: 'center' }}>
+          Écran des horaires temporairement indisponible.{'\n'}Veuillez réessayer plus tard.
+        </Text>
+        <Text
+          style={{ marginTop: 16, color: '#FF6B35', fontWeight: '700' }}
+          onPress={() => navigation.goBack()}
+        >
+          Retour
+        </Text>
+      </View>
+    );
+  };
 }
 import SupportHelpCenterScreen from '../screens/settings/SupportHelpCenterScreen';
 import ReportProblemScreen from '../screens/settings/ReportProblemScreen';
@@ -74,6 +91,8 @@ const Tab = createBottomTabNavigator();
 // Navigation principale avec tabs
 function MainTabs() {
   const insets = useSafeAreaInsets();
+  const { orders } = useRestaurantStore();
+  const newOrdersCount = orders.filter(o => o.status === 'new' || o.status === 'pending').length;
 
   return (
     <Tab.Navigator
@@ -82,16 +101,22 @@ function MainTabs() {
         tabBarActiveTintColor: COLORS.primary,
         tabBarInactiveTintColor: COLORS.textSecondary,
         tabBarStyle: {
-          height: 60 + insets.bottom,
-          paddingBottom: Math.max(insets.bottom, 10),
-          paddingTop: 10,
+          height: 64 + insets.bottom,
+          paddingBottom: Math.max(insets.bottom, 12),
+          paddingTop: 8,
           borderTopWidth: 1,
           borderTopColor: COLORS.border,
           backgroundColor: COLORS.white,
+          shadowColor: '#000',
+          shadowOffset: { width: 0, height: -2 },
+          shadowOpacity: 0.06,
+          shadowRadius: 8,
+          elevation: 8,
         },
         tabBarLabelStyle: {
-          fontSize: 12,
-          fontWeight: '500',
+          fontSize: 11,
+          fontWeight: '700',
+          marginTop: 2,
         },
       }}
     >
@@ -99,8 +124,9 @@ function MainTabs() {
         name="Dashboard"
         component={DashboardScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="home-outline" size={size} color={color} />
+          tabBarLabel: 'Accueil',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -108,18 +134,28 @@ function MainTabs() {
         name="Orders"
         component={OrdersScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="receipt-outline" size={size} color={color} />
+          tabBarLabel: 'Commandes',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'receipt' : 'receipt-outline'} size={24} color={color} />
           ),
-          tabBarBadge: null, // Sera géré dynamiquement
+          tabBarBadge: newOrdersCount > 0 ? newOrdersCount : undefined,
+          tabBarBadgeStyle: {
+            backgroundColor: COLORS.error,
+            fontSize: 10,
+            fontWeight: '800',
+            minWidth: 18,
+            height: 18,
+            lineHeight: 18,
+          },
         }}
       />
       <Tab.Screen
         name="Menu"
         component={MenuScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="restaurant-outline" size={size} color={color} />
+          tabBarLabel: 'Menu',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'fast-food' : 'fast-food-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -127,8 +163,9 @@ function MainTabs() {
         name="Statistics"
         component={StatisticsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="stats-chart-outline" size={size} color={color} />
+          tabBarLabel: 'Stats',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'bar-chart' : 'bar-chart-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -136,8 +173,9 @@ function MainTabs() {
         name="Settings"
         component={SettingsScreen}
         options={{
-          tabBarIcon: ({ color, size }) => (
-            <Ionicons name="settings-outline" size={size} color={color} />
+          tabBarLabel: 'Paramètres',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'settings' : 'settings-outline'} size={24} color={color} />
           ),
         }}
       />
@@ -166,12 +204,14 @@ export default function AppNavigator() {
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
-        invalidateSettingsCache(); // Forcer une requête fraîche
+        invalidateSettingsCache();
         const maintenanceMode = await checkMaintenanceMode();
-        console.log('[AppNavigator] Mode maintenance:', maintenanceMode);
-        setIsMaintenanceMode(maintenanceMode);
+        setIsMaintenanceMode((prev) => {
+          if (__DEV__ && prev !== maintenanceMode) console.log('[AppNavigator] Mode maintenance:', maintenanceMode);
+          return maintenanceMode;
+        });
       } catch (error) {
-        console.error('[AppNavigator] Erreur vérification maintenance:', error);
+        if (__DEV__) console.warn('[AppNavigator] Vérification maintenance:', error?.message);
         setIsMaintenanceMode(false);
       } finally {
         setIsCheckingMaintenance(false);
@@ -179,8 +219,6 @@ export default function AppNavigator() {
     };
 
     checkMaintenance();
-
-    // Polling toutes les 30 secondes pour détecter les changements de mode maintenance
     const interval = setInterval(checkMaintenance, 30000);
     return () => clearInterval(interval);
   }, []);
@@ -250,6 +288,7 @@ export default function AppNavigator() {
             <Stack.Screen name="WithdrawalRequest" component={WithdrawalRequestScreen} />
             <Stack.Screen name="InvoicesReceipts" component={InvoicesReceiptsScreen} />
             <Stack.Screen name="CustomerReviewsDashboard" component={CustomerReviewsDashboardScreen} />
+            <Stack.Screen name="ReviewsList" component={ReviewsListScreen} />
             <Stack.Screen name="ReviewResponseModal" component={ReviewResponseModal} />
             <Stack.Screen name="CreateAdvancedPromotion" component={CreateAdvancedPromotionScreen} />
             <Stack.Screen name="MarketingOverview" component={MarketingOverviewScreen} />

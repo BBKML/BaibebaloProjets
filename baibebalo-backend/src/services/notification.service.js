@@ -371,6 +371,17 @@ class NotificationService {
         },
         channel: 'orders',
       },
+      delivery_arrived_at_customer: {
+        title: '🚴 Livreur arrivé !',
+        body: `${order.delivery_first_name || 'Votre livreur'} est arrivé chez vous. Préparez le règlement si besoin.`,
+        type: 'order_update',
+        data: {
+          order_id: order.id,
+          order_number: order.order_number,
+          status: 'driver_at_customer',
+        },
+        channel: 'orders',
+      },
       order_delivered: {
         title: '🎉 Commande livrée !',
         body: 'Bon appétit ! N\'oubliez pas de noter votre expérience.',

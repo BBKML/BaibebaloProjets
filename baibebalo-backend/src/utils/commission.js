@@ -14,7 +14,7 @@ const DEFAULT_COMMISSION_RATE = 15; // %
 function getCommission(subtotal, commissionRatePercent) {
   const hasRate = commissionRatePercent != null && String(commissionRatePercent).trim() !== '';
   const rate = hasRate ? Number(commissionRatePercent) : DEFAULT_COMMISSION_RATE;
-  const commission = Math.round((subtotal * rate) / 100 * 100) / 100;
+  const commission = Math.round((subtotal * rate) / 100);
   return { commission, rate };
 }
 
@@ -31,7 +31,7 @@ function getNetRestaurantRevenue(subtotal, commissionRatePercent, commissionAmou
   const commission = useGiven
     ? Number(commissionAmount)
     : getCommission(subtotal, commissionRatePercent).commission;
-  return Math.round((subtotal - commission) * 100) / 100;
+  return Math.round(subtotal - commission);
 }
 
 module.exports = {

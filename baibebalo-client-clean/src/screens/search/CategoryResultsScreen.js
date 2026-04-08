@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { getRestaurants } from '../../api/restaurants';
+import { getImageUrl } from '../../utils/url';
 
 export default function CategoryResultsScreen({ navigation, route }) {
   const { category } = route.params || {};
@@ -41,7 +42,7 @@ export default function CategoryResultsScreen({ navigation, route }) {
     >
       <View style={styles.restaurantImageWrapper}>
         <Image
-          source={{ uri: item.banner || item.logo || item.image_url || 'https://via.placeholder.com/300' }}
+          source={{ uri: getImageUrl(item.banner || item.logo || item.image_url) || null }}
           style={styles.restaurantImage}
         />
         <View style={styles.badgeRow}>

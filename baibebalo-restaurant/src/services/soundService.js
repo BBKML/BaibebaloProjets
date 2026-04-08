@@ -23,6 +23,7 @@ class SoundService {
       volume: 1.0,
       soundType: 'default', // default, urgent, gentle
     };
+    this._soundErrorLogged = false; // Éviter de spammer les logs (403 CDN en app mobile)
   }
 
   /**
@@ -81,15 +82,15 @@ class SoundService {
    * @param {boolean} repeat - Répéter le son (pour alertes urgentes)
    */
   async playSound(type = 'newOrder', repeat = false) {
+    await this.loadPreferences();
     if (!this.preferences.soundEnabled) {
-      console.log('🔇 Sons désactivés');
       return;
     }
 
     try {
-      // Créer le son
+      const source = this._getSoundSource(type);
       const { sound } = await Audio.Sound.createAsync(
-        this._getSoundSource(type),
+        source,
         { 
           volume: this.preferences.volume,
           shouldPlay: true,
@@ -114,8 +115,10 @@ class SoundService {
 
       console.log(`🔊 Son joué: ${type}`);
     } catch (error) {
-      console.warn('⚠️ Erreur lecture son:', error.message);
-      // Fallback: vibration
+      if (!this._soundErrorLogged) {
+        this._soundErrorLogged = true;
+        if (__DEV__) console.warn('⚠️ Son non disponible (403/réseau), vibration uniquement.');
+      }
       this.vibrate(type);
     }
   }
@@ -150,18 +153,14 @@ class SoundService {
    * Utilise des sons en ligne libres de droits
    */
   _getSoundSource(type) {
-    // Sons hébergés (freesound.org - domaine public)
+    // URLs externes : Pixabay peut renvoyer 403 depuis une app mobile (User-Agent).
+    // En cas d'échec, le service fait vibrer uniquement (voir playSound catch).
     const soundUrls = {
-      // Son de notification standard
       newOrder: { uri: 'https://cdn.pixabay.com/audio/2024/02/19/audio_e4043ef8f6.mp3' },
-      // Son urgent/alarme
       urgentOrder: { uri: 'https://cdn.pixabay.com/audio/2024/11/04/audio_434f31c6f1.mp3' },
-      // Son court succès
       orderReady: { uri: 'https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a73467.mp3' },
-      // Son alerte
       alert: { uri: 'https://cdn.pixabay.com/audio/2024/02/19/audio_e4043ef8f6.mp3' },
     };
-
     return soundUrls[type] || soundUrls.newOrder;
   }
 

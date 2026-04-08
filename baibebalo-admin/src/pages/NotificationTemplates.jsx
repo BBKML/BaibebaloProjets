@@ -76,7 +76,7 @@ const NotificationTemplates = () => {
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
               <div className="flex items-center gap-3">
-                <h1 className="text-slate-900 dark:text-white text-3xl font-black tracking-tight">New Order Push</h1>
+                <h1 className="text-slate-900 dark:text-white text-2xl font-black tracking-tight">New Order Push</h1>
                 <span className="px-2 py-1 bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 text-[10px] font-black uppercase rounded">
                   Active
                 </span>

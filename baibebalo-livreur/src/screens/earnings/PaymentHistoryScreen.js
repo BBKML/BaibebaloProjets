@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { getPayoutHistory } from '../../api/earnings';
@@ -110,7 +110,7 @@ export default function PaymentHistoryScreen({ navigation }) {
                 </Text>
               </View>
               <Text style={styles.paymentAmount}>
-                -{Number(item.amount || 0).toLocaleString()} F
+                -{Math.round(Number(item.amount || 0)).toLocaleString('fr-FR')} F
               </Text>
             </View>
           )}

@@ -3,12 +3,12 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   FlatList,
   RefreshControl,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { getMyCashRemittances } from '../../api/earnings';
@@ -69,7 +69,7 @@ export default function CashRemittanceHistoryScreen({ navigation }) {
     return (
       <View style={styles.card}>
         <View style={styles.cardHeader}>
-          <Text style={styles.amount}>{parseFloat(item.amount || 0).toLocaleString()} FCFA</Text>
+          <Text style={styles.amount}>{Math.round(parseFloat(item.amount || 0)).toLocaleString('fr-FR')} FCFA</Text>
           <View style={[styles.statusBadge, { backgroundColor: statusColor[status] + '20' }]}>
             <Text style={[styles.statusText, { color: statusColor[status] }]}>
               {statusLabel[status]}

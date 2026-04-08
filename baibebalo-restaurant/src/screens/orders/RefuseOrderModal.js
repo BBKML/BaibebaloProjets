@@ -14,6 +14,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { restaurantOrders } from '../../api/orders';
 import useRestaurantStore from '../../store/restaurantStore';
+import socketService from '../../services/socketService';
+import soundService from '../../services/soundService';
 
 const REFUSAL_REASONS = [
   { id: 'out_of_stock', label: 'Article épuisé', type: 'out_of_stock' },
@@ -51,12 +53,17 @@ export default function RefuseOrderModal({ navigation, route }) {
       const rejectionType = reasonObj?.type || 'other';
       
       await restaurantOrders.refuseOrder(orderId, reason, rejectionType);
+      socketService.markOrderHandled(orderId);
+      await soundService.stopSound('urgentOrder');
       updateOrder(orderId, { status: 'rejected' });
-      
-      Alert.alert('Succès', 'Commande refusée', [
+
+      Alert.alert('Commande refusée', 'La commande a été refusée et le client notifié.', [
         {
           text: 'OK',
-          onPress: () => navigation.goBack(),
+          onPress: () => {
+            // Retourner à la liste des commandes, pas au détail de la commande refusée
+            navigation.navigate('Orders');
+          },
         },
       ]);
     } catch (error) {
@@ -74,7 +81,7 @@ export default function RefuseOrderModal({ navigation, route }) {
       onRequestClose={() => navigation.goBack()}
     >
       <View style={styles.overlay}>
-        <View style={[styles.modal, { paddingBottom: insets.bottom }]}>
+        <View style={styles.modal}>
           <View style={styles.header}>
             <Text style={styles.title}>Refuser la commande</Text>
             <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -150,7 +157,7 @@ export default function RefuseOrderModal({ navigation, route }) {
             </View>
           </ScrollView>
 
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
             <TouchableOpacity
               style={[styles.cancelButton, loading && styles.buttonDisabled]}
               onPress={() => navigation.goBack()}

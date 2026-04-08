@@ -151,7 +151,7 @@ export default function ManageAddressesScreen({ navigation }) {
         />
       )}
 
-      <View style={styles.bottomBar}>
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         <TouchableOpacity
           style={styles.addButton}
           onPress={() => navigation.navigate('AddAddress', { fromCheckout: false })}

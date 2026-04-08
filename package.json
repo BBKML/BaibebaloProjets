@@ -1,0 +1,13 @@
+{
+  "name": "baibebalo-monorepo",
+  "private": true,
+  "description": "Racine du projet Baibebalo – scripts de test globaux",
+  "scripts": {
+    "test:all": "npm run test:all --prefix baibebalo-backend && npm run test:all --prefix baibebalo-admin && npm run test:all --prefix baibebalo-client-clean && npm run test:all --prefix baibebalo-livreur && npm run test:all --prefix baibebalo-restaurant",
+    "test:backend": "npm run test:all --prefix baibebalo-backend",
+    "test:admin": "npm run test:all --prefix baibebalo-admin",
+    "test:client": "npm run test:all --prefix baibebalo-client-clean",
+    "test:livreur": "npm run test:all --prefix baibebalo-livreur",
+    "test:restaurant": "npm run test:all --prefix baibebalo-restaurant"
+  }
+}

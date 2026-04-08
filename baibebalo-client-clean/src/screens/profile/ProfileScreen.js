@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -7,23 +7,32 @@ import {
   TouchableOpacity,
   Alert,
   Image,
+  Clipboard,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
-import { getMyProfile } from '../../api/users';
+import { getMyProfile, getReferrals } from '../../api/users';
 import { getNotifications } from '../../api/notifications';
 import { normalizeUploadUrl } from '../../utils/url';
+
+const MIN_FETCH_INTERVAL_MS = 30000; // 30 secondes entre deux appels
 
 export default function ProfileScreen({ navigation }) {
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
   const { user, logout, setUser } = useAuthStore();
   const [profile, setProfile] = useState(null);
+  const [referralInfo, setReferralInfo] = useState(null);
   const [unreadNotifications, setUnreadNotifications] = useState(0);
+  const lastProfileFetchAt = useRef(0);
+  const lastNotificationsFetchAt = useRef(0);
 
   const loadProfile = useCallback(async () => {
+    const now = Date.now();
+    if (now - lastProfileFetchAt.current < MIN_FETCH_INTERVAL_MS) return;
+    lastProfileFetchAt.current = now;
     try {
       const response = await getMyProfile();
       const userData = response.data?.data?.user || response.data?.user || response.data || {};
@@ -43,18 +52,27 @@ export default function ProfileScreen({ navigation }) {
           ]
         );
       }
+      try {
+        const refRes = await getReferrals();
+        setReferralInfo(refRes.data?.data || refRes.data || null);
+      } catch (_) {}
     } catch (error) {
+      lastProfileFetchAt.current = 0;
       console.error('Erreur lors du chargement du profil:', error);
     }
   }, [setUser, user, navigation]);
 
   const loadNotifications = useCallback(async () => {
+    const now = Date.now();
+    if (now - lastNotificationsFetchAt.current < MIN_FETCH_INTERVAL_MS) return;
+    lastNotificationsFetchAt.current = now;
     try {
       const response = await getNotifications();
       const notifications = response.data?.notifications || response.notifications || [];
       const unread = notifications.filter(n => !n.read_at).length;
       setUnreadNotifications(unread);
     } catch (error) {
+      lastNotificationsFetchAt.current = 0;
       console.error('Erreur chargement notifications:', error);
     }
   }, []);
@@ -101,6 +119,11 @@ export default function ProfileScreen({ navigation }) {
       onPress: () => navigation.navigate('ManageAddresses'),
     },
     {
+      icon: 'heart-outline',
+      label: 'Mes favoris',
+      onPress: () => navigation.navigate('Favorites'),
+    },
+    {
       icon: 'star-outline',
       label: 'Points de fidélité',
       onPress: () => navigation.navigate('LoyaltyDashboard'),
@@ -126,11 +149,12 @@ export default function ProfileScreen({ navigation }) {
     },
   ];
 
+  // Le store (user) est mis à jour immédiatement après upload → priorité sur le cache API (profile)
   const avatarUrl = normalizeUploadUrl(
-    profile?.profile_picture
-      || profile?.profile_image_url
-      || user?.profile_picture
+    user?.profile_picture
       || user?.profile_image_url
+      || profile?.profile_picture
+      || profile?.profile_image_url
   );
 
   return (
@@ -172,7 +196,12 @@ export default function ProfileScreen({ navigation }) {
       <View style={styles.profileCard}>
         <View style={styles.avatarWrapper}>
           {avatarUrl ? (
-            <Image source={{ uri: avatarUrl }} style={styles.avatarImage} resizeMode="cover" />
+            <Image
+              key={avatarUrl}
+              source={{ uri: avatarUrl }}
+              style={styles.avatarImage}
+              resizeMode="cover"
+            />
           ) : (
             <Ionicons name="person" size={48} color={COLORS.white} />
           )}
@@ -195,6 +224,40 @@ export default function ProfileScreen({ navigation }) {
           </View>
         </View>
       </View>
+
+      {/* Carte Parrainage */}
+      {(referralInfo?.referral_code || profile?.referral_code || user?.referral_code) && (
+        <TouchableOpacity
+          style={styles.referralCard}
+          onPress={() => {
+            const code = referralInfo?.referral_code || profile?.referral_code || user?.referral_code;
+            Clipboard.setString(code);
+            Alert.alert('Copié !', `Code "${code}" copié dans le presse-papiers.`);
+          }}
+          activeOpacity={0.85}
+        >
+          <View style={styles.referralIcon}>
+            <Ionicons name="people" size={22} color={COLORS.primary} />
+          </View>
+          <View style={styles.referralContent}>
+            <Text style={styles.referralTitle}>Parrainez vos amis</Text>
+            <Text style={styles.referralSubtitle}>
+              Partagez votre code et gagnez des points de fidélité
+            </Text>
+            <View style={styles.referralCodeRow}>
+              <Text style={styles.referralCode}>
+                {referralInfo?.referral_code || profile?.referral_code || user?.referral_code}
+              </Text>
+              <Ionicons name="copy-outline" size={16} color={COLORS.primary} />
+            </View>
+            {referralInfo?.total_referrals > 0 && (
+              <Text style={styles.referralStats}>
+                {referralInfo.total_referrals} ami(s) parrainé(s)
+              </Text>
+            )}
+          </View>
+        </TouchableOpacity>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>Compte</Text>
@@ -462,5 +525,60 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: '700',
     color: COLORS.error,
+  },
+  referralCard: {
+    marginHorizontal: 16,
+    marginBottom: 16,
+    backgroundColor: COLORS.primary + '10',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  referralIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary + '20',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  referralContent: {
+    flex: 1,
+  },
+  referralTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 2,
+  },
+  referralSubtitle: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+  },
+  referralCodeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    alignSelf: 'flex-start',
+  },
+  referralCode: {
+    fontSize: 14,
+    fontWeight: '800',
+    color: COLORS.primary,
+    letterSpacing: 1,
+  },
+  referralStats: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 6,
   },
 });

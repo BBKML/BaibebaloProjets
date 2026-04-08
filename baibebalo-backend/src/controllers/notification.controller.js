@@ -106,3 +106,105 @@ exports.markNotificationRead = async (req, res) => {
     });
   }
 };
+
+exports.markAllNotificationsRead = async (req, res) => {
+  try {
+    const userType = normalizeNotificationUserType(req.user.type);
+
+    const result = await query(
+      `UPDATE notifications
+       SET is_read = true, read_at = NOW()
+       WHERE user_id = $1 AND user_type = $2 AND is_read = false
+       RETURNING id`,
+      [req.user.id, userType]
+    );
+
+    res.json({
+      success: true,
+      message: `${result.rowCount} notification(s) marquée(s) comme lue(s)`,
+      data: { updated_count: result.rowCount },
+    });
+  } catch (error) {
+    logger.error('Erreur markAllNotificationsRead:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'UPDATE_ERROR',
+        message: 'Erreur lors de la mise à jour des notifications',
+      },
+    });
+  }
+};
+
+exports.getNotificationSettings = async (req, res) => {
+  try {
+    const userType = req.user.type;
+    let settings = null;
+
+    if (userType === 'delivery_person') {
+      const result = await query(
+        'SELECT notification_preferences FROM delivery_persons WHERE id = $1',
+        [req.user.id]
+      );
+      settings = result.rows[0]?.notification_preferences || {};
+    } else if (userType === 'restaurant') {
+      const result = await query(
+        'SELECT notification_preferences FROM restaurants WHERE id = $1',
+        [req.user.id]
+      );
+      settings = result.rows[0]?.notification_preferences || {};
+    } else {
+      const result = await query(
+        'SELECT notification_preferences FROM users WHERE id = $1',
+        [req.user.id]
+      );
+      settings = result.rows[0]?.notification_preferences || {};
+    }
+
+    res.json({
+      success: true,
+      data: { settings: typeof settings === 'string' ? JSON.parse(settings) : settings },
+    });
+  } catch (error) {
+    logger.error('Erreur getNotificationSettings:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'FETCH_ERROR', message: 'Erreur lors de la récupération des paramètres' },
+    });
+  }
+};
+
+exports.updateNotificationSettings = async (req, res) => {
+  try {
+    const userType = req.user.type;
+    const settings = req.body;
+
+    if (userType === 'delivery_person') {
+      await query(
+        'UPDATE delivery_persons SET notification_preferences = $1 WHERE id = $2',
+        [JSON.stringify(settings), req.user.id]
+      );
+    } else if (userType === 'restaurant') {
+      await query(
+        'UPDATE restaurants SET notification_preferences = $1 WHERE id = $2',
+        [JSON.stringify(settings), req.user.id]
+      );
+    } else {
+      await query(
+        'UPDATE users SET notification_preferences = $1 WHERE id = $2',
+        [JSON.stringify(settings), req.user.id]
+      );
+    }
+
+    res.json({
+      success: true,
+      message: 'Paramètres de notifications mis à jour',
+    });
+  } catch (error) {
+    logger.error('Erreur updateNotificationSettings:', error);
+    res.status(500).json({
+      success: false,
+      error: { code: 'UPDATE_ERROR', message: 'Erreur lors de la mise à jour des paramètres' },
+    });
+  }
+};

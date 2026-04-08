@@ -4,13 +4,13 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   ScrollView,
   RefreshControl,
   ActivityIndicator,
   AppState
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -92,7 +92,7 @@ export default function EarningsScreen({ navigation }) {
         {/* Balance Card */}
         <View style={styles.balanceCard}>
           <Text style={styles.balanceLabel}>SOLDE DISPONIBLE</Text>
-          <Text style={styles.balanceAmount}>{balance.toLocaleString()} FCFA</Text>
+          <Text style={styles.balanceAmount}>{Math.round(balance).toLocaleString('fr-FR')} FCFA</Text>
           <TouchableOpacity 
             style={[styles.withdrawButton, balance < 5000 && styles.withdrawButtonDisabled]}
             onPress={() => balance >= 5000 && navigation.navigate('WithdrawRequest')}
@@ -109,7 +109,7 @@ export default function EarningsScreen({ navigation }) {
         <View style={styles.statsContainer}>
           <TouchableOpacity style={styles.statCard}>
             <Text style={styles.statLabel}>Aujourd'hui</Text>
-            <Text style={styles.statValue}>{todayEarnings.toLocaleString()} F</Text>
+            <Text style={styles.statValue}>{Math.round(todayEarnings).toLocaleString('fr-FR')} F</Text>
             <Text style={styles.statInfo}>
               {recentDeliveries.filter(d => d.date === "Aujourd'hui").length} courses
             </Text>
@@ -120,7 +120,7 @@ export default function EarningsScreen({ navigation }) {
             onPress={() => navigation.navigate('WeeklyEarnings')}
           >
             <Text style={styles.statLabel}>Cette semaine</Text>
-            <Text style={styles.statValue}>{weekEarnings.toLocaleString()} F</Text>
+            <Text style={styles.statValue}>{Math.round(weekEarnings).toLocaleString('fr-FR')} F</Text>
             <Text style={styles.statInfo}>Voir détails →</Text>
           </TouchableOpacity>
 
@@ -129,7 +129,7 @@ export default function EarningsScreen({ navigation }) {
             onPress={() => navigation.navigate('MonthlyEarnings')}
           >
             <Text style={styles.statLabel}>Ce mois</Text>
-            <Text style={styles.statValue}>{monthEarnings.toLocaleString()} F</Text>
+            <Text style={styles.statValue}>{Math.round(monthEarnings).toLocaleString('fr-FR')} F</Text>
             <Text style={styles.statInfo}>Voir détails →</Text>
           </TouchableOpacity>
         </View>
@@ -138,7 +138,7 @@ export default function EarningsScreen({ navigation }) {
         <View style={styles.totalStatsCard}>
           <View style={styles.totalStatItem}>
             <Ionicons name="trophy-outline" size={24} color={COLORS.primary} />
-            <Text style={styles.totalStatValue}>{earningsData.total_earnings.toLocaleString()} F</Text>
+            <Text style={styles.totalStatValue}>{Math.round(earningsData.total_earnings).toLocaleString('fr-FR')} F</Text>
             <Text style={styles.totalStatLabel}>Total gagné</Text>
           </View>
           <View style={styles.totalStatDivider} />
@@ -201,7 +201,7 @@ export default function EarningsScreen({ navigation }) {
                   <Text style={styles.transactionTitle}>{delivery.restaurant}</Text>
                   <Text style={styles.transactionTime}>{delivery.time} - {delivery.date}</Text>
                 </View>
-                <Text style={styles.transactionAmount}>+{delivery.amount.toLocaleString()} F</Text>
+                <Text style={styles.transactionAmount}>+{Math.round(delivery.amount).toLocaleString('fr-FR')} F</Text>
               </View>
             ))
           ) : (

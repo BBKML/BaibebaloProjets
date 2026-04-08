@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { Platform } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -73,7 +73,7 @@ import EmptyOrderHistoryScreen from '../screens/errors/EmptyOrderHistoryScreen';
 import SupportFeedbackSuccessScreen from '../screens/support/SupportFeedbackSuccessScreen';
 import AppMaintenanceScreen from '../screens/system/AppMaintenanceScreen';
 import UpdateRequiredScreen from '../screens/system/UpdateRequiredScreen';
-import { checkMaintenanceMode, invalidateSettingsCache } from '../services/settingsService';
+import { checkMaintenanceMode } from '../services/settingsService';
 import SettingsUpdateSuccessScreen from '../screens/settings/SettingsUpdateSuccessScreen';
 import RestaurantClosedScreen from '../screens/restaurant/RestaurantClosedScreen';
 import SafetySecurityTipsScreen from '../screens/settings/SafetySecurityTipsScreen';
@@ -146,6 +146,16 @@ function MainTabs() {
         }}
       />
       <Tab.Screen
+        name="Favorites"
+        component={FavoritesScreen}
+        options={{
+          tabBarLabel: 'Favoris',
+          tabBarIcon: ({ color, size }) => (
+            <Ionicons name="heart" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
         name="Cart"
         component={ShoppingCartScreen}
         options={{
@@ -200,12 +210,34 @@ function NotificationWrapper({ isAuthenticated }) {
 // Navigateur principal
 export default function AppNavigator() {
   const { isAuthenticated, isLoading, loadAuth, user } = useAuthStore();
+  const { loadCart } = useCartStore();
   const navigationRef = useRef(null);
+  const initialRouteRef = useRef(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
-  
-  const logNavState = (label) => {
+
+  // Refs pour éviter que les changements d'objet user ne déclenchent des re-renders inutiles
+  const userStable = useMemo(() => ({
+    id: user?.id,
+    full_name: user?.full_name,
+    first_name: user?.first_name,
+    last_name: user?.last_name,
+    isNewUser: user?.isNewUser,
+  }), [user?.id, user?.full_name, user?.first_name, user?.last_name, user?.isNewUser]);
+
+  const getInitialRoute = useCallback(() => {
+    if (isAuthenticated) {
+      const hasFullName = userStable.full_name && String(userStable.full_name).trim().length > 0;
+      const hasFirstLastName = userStable.first_name && userStable.last_name;
+      const hasProfile = hasFullName || hasFirstLastName;
+      const isExistingAccount = userStable.id && userStable.isNewUser !== true;
+      return hasProfile || isExistingAccount ? 'MainTabs' : 'ProfileCreation';
+    }
+    return 'OnboardingWelcome';
+  }, [isAuthenticated, userStable]);
+
+  const logNavState = useCallback((label) => {
     const route = navigationRef.current?.getCurrentRoute?.();
     console.log('🧭 AppNavigator - Navigation state:', {
       label,
@@ -215,13 +247,17 @@ export default function AppNavigator() {
       isLoading,
       isMaintenanceMode,
     });
-  };
+  }, [isAuthenticated, isLoading, isMaintenanceMode]);
+
+  const mainStackScreenOptions = useMemo(() => ({
+    headerShown: false,
+    animation: 'slide_from_right',
+  }), []);
 
   // Vérifier le mode maintenance au démarrage + polling toutes les 30s
   useEffect(() => {
     const checkMaintenance = async () => {
       try {
-        invalidateSettingsCache(); // Forcer une requête fraîche
         const maintenanceMode = await checkMaintenanceMode();
         console.log('[AppNavigator] Mode maintenance:', maintenanceMode);
         setIsMaintenanceMode(maintenanceMode);
@@ -242,31 +278,19 @@ export default function AppNavigator() {
   }, []);
 
   useEffect(() => {
-    // Charger l'auth avec un timeout de sécurité
-    const loadAuthWithTimeout = async () => {
+    // Charger le token depuis AsyncStorage avant d'afficher l'app (évite flash OnboardingWelcome → Home)
+    const init = async () => {
       try {
-        await Promise.race([
-          loadAuth(),
-          new Promise((_, reject) => 
-            setTimeout(() => reject(new Error('Timeout')), 3000)
-          ),
-        ]);
+        await Promise.all([loadAuth(), loadCart()]);
       } catch (error) {
         console.error('Erreur lors du chargement de l\'auth:', error);
-        // Forcer isLoading à false même en cas d'erreur
         useAuthStore.setState({ isLoading: false });
       } finally {
         setIsBootstrapping(false);
       }
     };
-    
-    loadAuthWithTimeout();
-  }, []);
-
-  // Log pour vérifier les re-renders
-  useEffect(() => {
-    console.log('🔄 AppNavigator re-render:', { isAuthenticated, isLoading, user: user?.id });
-  }, [isAuthenticated, isLoading, user]);
+    init();
+  }, [loadAuth, loadCart]);
 
   // Réinitialiser la navigation vers Home quand l'app démarre avec un utilisateur authentifié
   useEffect(() => {
@@ -294,8 +318,8 @@ export default function AppNavigator() {
   // La navigation est maintenant gérée par OTPVerificationScreen
   // et ProfileCreationScreen directement
 
-  // Afficher le splash screen pendant le chargement initial
-  if (isBootstrapping || isCheckingMaintenance) {
+  // Splash tant que : bootstrap, vérif maintenance, ou chargement du token (évite true→false→true)
+  if (isBootstrapping || isCheckingMaintenance || isLoading) {
     return <SplashScreen />;
   }
 
@@ -316,22 +340,11 @@ export default function AppNavigator() {
     );
   }
 
-  // Déterminer la route initiale
-  const getInitialRoute = () => {
-    console.log('🏠 getInitialRoute called:', { isAuthenticated, user: user?.id, full_name: user?.full_name, isNewUser: user?.isNewUser });
-    if (isAuthenticated) {
-      const hasFullName = user?.full_name && user.full_name.trim().length > 0;
-      const hasFirstLastName = user?.first_name && user?.last_name;
-      const hasProfile = hasFullName || hasFirstLastName;
-      // Compte existant (session rechargée) : aller à l'accueil même si getMyProfile a échoué (réseau)
-      const isExistingAccount = user?.id && user?.isNewUser !== true;
-      const route = hasProfile || isExistingAccount ? 'MainTabs' : 'ProfileCreation';
-      console.log('🏠 Route déterminée:', route, { hasProfile, isExistingAccount });
-      return route;
-    }
-    // 🔥 CORRECTION : Commencer par OnboardingWelcome pour les nouveaux utilisateurs
-    return 'OnboardingWelcome';
-  };
+  // Route initiale figée au premier rendu du contenu principal (évite re-renders en boucle)
+  if (initialRouteRef.current === null) {
+    initialRouteRef.current = getInitialRoute();
+  }
+  const initialRouteName = initialRouteRef.current;
 
   return (
     <SafeAreaProvider>
@@ -343,46 +356,35 @@ export default function AppNavigator() {
       {/* Wrapper pour les notifications - doit être à l'intérieur du NavigationContainer */}
       <NotificationWrapper isAuthenticated={isAuthenticated} />
       <Stack.Navigator 
-        screenOptions={{ 
-          headerShown: false,
-          animation: 'slide_from_right',
-        }}
-        initialRouteName={getInitialRoute()}
+        screenOptions={mainStackScreenOptions}
+        initialRouteName={initialRouteName}
       >
-        {/* 🔐 GROUPE AUTHENTIFICATION & ONBOARDING (Non authentifié) */}
-        {!isAuthenticated && (
-          <Stack.Group screenOptions={{ gestureEnabled: false }}>
-            {/* 🔥 1. Écran de bienvenue (première étape) */}
-            <Stack.Screen 
-              name="OnboardingWelcome" 
-              component={OnboardingWelcomeScreen}
-            />
-            {/* 🔥 2. Entrée du numéro de téléphone */}
-            <Stack.Screen 
-              name="PhoneEntry" 
-              component={PhoneEntryScreen}
-            />
-            {/* 🔥 3. Vérification OTP */}
-            <Stack.Screen 
-              name="OTPVerification" 
-              component={OTPVerificationScreen}
-              options={{ gestureEnabled: true }}
-            />
-          </Stack.Group>
-        )}
+        {/* 🔐 GROUPE AUTHENTIFICATION & ONBOARDING */}
+        <Stack.Screen 
+          name="OnboardingWelcome" 
+          component={OnboardingWelcomeScreen}
+          options={{ gestureEnabled: false }}
+        />
+        <Stack.Screen 
+          name="PhoneEntry" 
+          component={PhoneEntryScreen}
+          options={{ gestureEnabled: false }}
+        />
+        <Stack.Screen 
+          name="OTPVerification" 
+          component={OTPVerificationScreen}
+          options={{ gestureEnabled: true }}
+        />
         
         {/* 🔥 ÉCRANS AUTHENTIFIÉS */}
-        {isAuthenticated && (
-          <>
-            {/* 🔥 4. Création de profil (après OTP pour nouveaux utilisateurs) */}
-            <Stack.Screen 
-              name="ProfileCreation" 
-              component={ProfileCreationScreen}
-              options={{ 
-                headerShown: false,
-                gestureEnabled: false  // Empêcher le retour arrière
-              }}
-            />
+        <Stack.Screen 
+          name="ProfileCreation" 
+          component={ProfileCreationScreen}
+          options={{ 
+            headerShown: false,
+            gestureEnabled: false  // Empêcher le retour arrière
+          }}
+        />
 
             {/* 🏠 ÉCRAN PRINCIPAL */}
             <Stack.Screen name="MainTabs" component={MainTabs} />
@@ -717,8 +719,6 @@ export default function AppNavigator() {
                 options={{ headerShown: false, gestureEnabled: false }}
               />
             </Stack.Group>
-          </>
-        )}
       </Stack.Navigator>
     </NavigationContainer>
     </SafeAreaProvider>

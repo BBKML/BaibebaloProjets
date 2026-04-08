@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import toast from 'react-hot-toast';
 
@@ -54,13 +55,18 @@ const OfflineDrivers = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Liste des Livreurs Hors Ligne
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Suivez les livreurs hors ligne et contactez-les si nécessaire
-            </p>
+          <div className="flex items-center gap-3">
+            <Link to="/drivers" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Liste des Livreurs Hors Ligne
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Suivez les livreurs hors ligne et contactez-les si nécessaire
+              </p>
+            </div>
           </div>
         </div>
 

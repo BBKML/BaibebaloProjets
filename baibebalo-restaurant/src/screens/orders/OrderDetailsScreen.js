@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import socketService from '../../services/socketService';
+import soundService from '../../services/soundService';
 
 // Import conditionnel de react-native-maps (nécessite un build de développement)
 let MapView, Marker;
@@ -36,8 +37,10 @@ const STATUS_COLORS = {
   accepted: COLORS.confirmed,
   preparing: COLORS.preparing,
   ready: COLORS.ready,
+  picked_up: COLORS.delivering,
   driver_en_route: COLORS.delivering,
   delivering: COLORS.delivering,
+  driver_at_customer: COLORS.success,
   delivered: COLORS.delivered,
   cancelled: COLORS.cancelled,
   refused: COLORS.cancelled,
@@ -50,8 +53,9 @@ const STATUS_LABELS = {
   preparing: 'En préparation',
   ready: 'Prête',
   picked_up: 'Récupérée',
-  driver_en_route: 'Livreur en route', // Affiché quand ready + delivery_person_id
+  driver_en_route: 'Livreur en route',
   delivering: 'En livraison',
+  driver_at_customer: 'Livreur à la porte',
   delivered: 'Livrée',
   cancelled: 'Annulée',
   refused: 'Refusée',
@@ -75,6 +79,7 @@ export default function OrderDetailsScreen({ navigation, route }) {
   const [estimatedTime, setEstimatedTime] = useState('20');
   const [driverArrived, setDriverArrived] = useState(false);
   const [driverInfo, setDriverInfo] = useState(null);
+  const submittingRef = useRef(false);
   const { updateOrder } = useRestaurantStore();
   const insets = useSafeAreaInsets();
 
@@ -199,19 +204,26 @@ export default function OrderDetailsScreen({ navigation, route }) {
   };
 
   const confirmAccept = async () => {
+    if (submittingRef.current) return;
+    const time = Number.parseInt(estimatedTime, 10) || 20;
+    if (time < 5 || time > 180) {
+      Alert.alert('Erreur', 'Le temps de préparation doit être entre 5 et 180 minutes');
+      return;
+    }
+    setShowTimeModal(false);
+    submittingRef.current = true;
     try {
-      const time = Number.parseInt(estimatedTime, 10) || 20;
-      if (time < 5 || time > 180) {
-        Alert.alert('Erreur', 'Le temps de préparation doit être entre 5 et 180 minutes');
-        return;
-      }
-      setShowTimeModal(false);
       await restaurantOrders.acceptOrder(orderId, time);
-      await loadOrderDetails();
+      socketService.markOrderHandled(orderId);
+      await soundService.stopSound('urgentOrder');
+      setOrder((prev) => (prev ? { ...prev, status: 'accepted' } : prev));
+      updateOrder?.(orderId, { status: 'accepted' });
       Alert.alert('Succès', 'Commande acceptée');
     } catch (error) {
       const errorMessage = error.error?.message || error.message || 'Impossible d\'accepter la commande';
       Alert.alert('Erreur', errorMessage);
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -230,12 +242,18 @@ export default function OrderDetailsScreen({ navigation, route }) {
   };
 
   const handleMarkReady = async () => {
+    if (submittingRef.current) return;
+    submittingRef.current = true;
     try {
       await restaurantOrders.markReady(orderId);
-      await loadOrderDetails();
+      setOrder((prev) => (prev ? { ...prev, status: 'ready' } : prev));
+      updateOrder?.(orderId, { status: 'ready' });
       Alert.alert('Succès', 'Commande marquée comme prête');
     } catch (error) {
-      Alert.alert('Erreur', error.message);
+      const errorMessage = error?.error?.message || error?.message || 'Impossible de marquer la commande comme prête';
+      Alert.alert('Erreur', errorMessage);
+    } finally {
+      submittingRef.current = false;
     }
   };
 
@@ -456,7 +474,12 @@ export default function OrderDetailsScreen({ navigation, route }) {
             <View style={styles.financialRow}>
               <Text style={styles.financialLabel}>Frais de livraison</Text>
               <Text style={styles.financialValue}>
-                {order.deliveryFee || order.delivery_fee ? Number.parseFloat(order.deliveryFee || order.delivery_fee || 0).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '0.00'} FCFA (payé par client)
+                {(() => {
+                  const fee = Number.parseFloat(order.deliveryFee ?? order.delivery_fee ?? 0) || 0;
+                  return fee === 0
+                    ? 'Gratuit (payé par client)'
+                    : `${fee.toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} FCFA (payé par client)`;
+                })()}
               </Text>
             </View>
             <View style={styles.financialRow}>

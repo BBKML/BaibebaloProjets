@@ -239,7 +239,7 @@ const CashRemittances = () => {
         {/* Header */}
         <div className="flex flex-wrap justify-between items-end gap-4">
           <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Remises espèces
             </h1>
             <p className="text-slate-500 dark:text-slate-400 mt-1">

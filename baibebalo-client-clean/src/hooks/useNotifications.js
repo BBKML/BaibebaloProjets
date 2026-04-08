@@ -5,6 +5,7 @@ import {
   registerNotificationToken,
   setupNotificationListeners,
 } from '../services/notificationService';
+import { playDeliveryArrived } from '../services/soundService';
 import Toast from 'react-native-toast-message';
 
 /**
@@ -54,8 +55,11 @@ export const useNotifications = (isAuthenticated) => {
       // Notification reçue en avant-plan
       (notification) => {
         const { title, body, data } = notification.request.content;
-        
-        // Afficher un toast
+        const isDeliveryArrived =
+          data?.status === 'driver_at_customer' ||
+          (title && String(title).includes('arrivé'));
+
+        // Afficher le message
         Toast.show({
           type: 'info',
           text1: title || 'Nouvelle notification',
@@ -63,9 +67,9 @@ export const useNotifications = (isAuthenticated) => {
           visibilityTime: 4000,
         });
 
-        // Mettre à jour le badge si nécessaire
-        if (data?.orderId) {
-          // Optionnel : recharger les notifications
+        // Son + vibration pour "livreur arrivé"
+        if (isDeliveryArrived) {
+          playDeliveryArrived();
         }
       },
       // Notification tapée

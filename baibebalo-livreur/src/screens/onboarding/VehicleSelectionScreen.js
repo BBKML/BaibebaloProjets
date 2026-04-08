@@ -4,10 +4,10 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   ScrollView
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
@@ -41,6 +41,7 @@ const vehicleTypes = [
 ];
 
 export default function VehicleSelectionScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const { updateRegistrationData, registrationData } = useAuthStore();
   const [selectedVehicle, setSelectedVehicle] = useState(registrationData.vehicleType || null);
 
@@ -149,7 +150,7 @@ export default function VehicleSelectionScreen({ navigation }) {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={[
             styles.primaryButton,

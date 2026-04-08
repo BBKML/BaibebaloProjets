@@ -50,24 +50,31 @@ router.use(authorize('delivery_person')); // ✅ CORRIGÉ : 'delivery_person' au
  */
 router.get('/check-status', deliveryController.getCheckStatus);
 
-router.use(requireActiveDelivery); // Vérifier que le livreur est actif pour les routes suivantes
-
 /**
- * @route   GET /api/v1/delivery/me
- * @desc    Profil du livreur connecté
- * @access  Private (Delivery Person)
- */
-router.get('/me', deliveryController.getMyProfile);
-
-/**
- * @route   POST /api/v1/delivery/upload-document
- * @desc    Upload un document (CNI, permis, photo profil, etc.)
- * @access  Private (Delivery Person)
+ * Upload document / preuve : autorisé pour pending ET active (pour upload des docs après inscription)
  */
 router.post('/upload-document',
   uploadMiddleware.single('file'),
   deliveryController.uploadDocument
 );
+router.post('/upload-delivery-proof',
+  [
+    body('photo_base64')
+      .notEmpty()
+      .withMessage('photo_base64 requise'),
+  ],
+  validate,
+  deliveryController.uploadDeliveryProof
+);
+
+router.use(requireActiveDelivery); // À partir d'ici : livreur actif uniquement
+
+/**
+ * @route   GET /api/v1/delivery/me
+ * @desc    Profil du livreur connecté
+ * @access  Private (Delivery Person actif)
+ */
+router.get('/me', deliveryController.getMyProfile);
 
 /**
  * @route   PUT /api/v1/delivery/me
@@ -91,17 +98,22 @@ router.put('/me',
       .isIn(['moto', 'bike', 'foot'])
       .withMessage('Type de véhicule invalide'),
     body('vehicle_plate')
-      .optional()
+      .optional({ checkFalsy: true })
       .trim()
       .isLength({ min: 3, max: 20 })
       .withMessage('Plaque d\'immatriculation invalide'),
     body('mobile_money_number')
-      .optional()
-      .matches(/^\+225(0[1457]|[4-7])\d{8}$/)
-      .withMessage('Numéro Mobile Money invalide'),
+      .optional({ checkFalsy: true })
+      .trim()
+      .custom((val) => {
+        if (!val) return true;
+        const digits = String(val).replace(/\s/g, '').replace(/^\+/, '');
+        return /^225?(0[1457]|[4-7])\d{8}$/.test(digits) || /^(0[1457]|[4-7])\d{8}$/.test(digits);
+      })
+      .withMessage('Numéro Mobile Money invalide (ex: +2250712345678 ou 07 12 34 56 78)'),
     body('mobile_money_provider')
       .optional()
-      .isIn(['orange_money', 'mtn_money', 'moov_money'])
+      .isIn(['orange_money', 'mtn_money', 'moov_money', 'waves'])
       .withMessage('Opérateur Mobile Money invalide'),
   ],
   validate,
@@ -378,7 +390,7 @@ router.post('/cash-remittances',
     body('order_ids').isArray({ min: 1 }).withMessage('Liste des IDs de commandes requise'),
     body('order_ids.*').isUUID().withMessage('ID commande invalide'),
     body('reference').optional().trim(),
-    body('mobile_money_provider').optional().isIn(['orange_money', 'mtn_money', 'waves']).withMessage('Provider doit être orange_money, mtn_money ou waves'),
+    body('mobile_money_provider').optional().isIn(['orange_money', 'mtn_money', 'moov_money', 'waves']).withMessage('Provider doit être orange_money, mtn_money, moov_money ou waves'),
   ],
   validate,
   deliveryController.createCashRemittance
@@ -585,6 +597,142 @@ router.post('/emergency',
 
 /**
  * ═══════════════════════════════════════════════════════════
+ * PROFIL ÉTENDU (disponibilité, véhicule, zones)
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * @route   PUT /api/v1/delivery/me/availability
+ * @desc    Mettre à jour le planning de disponibilité
+ * @access  Private (Delivery Person)
+ */
+router.put('/me/availability', deliveryController.updateAvailability);
+
+/**
+ * @route   PUT /api/v1/delivery/me/vehicle
+ * @desc    Mettre à jour les informations du véhicule
+ * @access  Private (Delivery Person)
+ */
+router.put('/me/vehicle', deliveryController.updateVehicle);
+
+/**
+ * @route   PUT /api/v1/delivery/me/zones
+ * @desc    Mettre à jour les zones de livraison
+ * @access  Private (Delivery Person)
+ */
+router.put('/me/zones', deliveryController.updateZones);
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * MOBILE MONEY
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * @route   POST /api/v1/delivery/mobile-money/verify
+ * @desc    Vérifier un compte Mobile Money
+ * @access  Private (Delivery Person)
+ */
+router.post('/mobile-money/verify', deliveryController.verifyMobileMoney);
+
+/**
+ * @route   PUT /api/v1/delivery/mobile-money/update
+ * @desc    Mettre à jour le compte Mobile Money
+ * @access  Private (Delivery Person)
+ */
+router.put('/mobile-money/update', deliveryController.updateMobileMoney);
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * FORMATION & ONBOARDING
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * @route   GET /api/v1/delivery/training/modules
+ * @desc    Obtenir la liste des modules de formation
+ * @access  Private (Delivery Person)
+ */
+router.get('/training/modules', deliveryController.getTrainingModules);
+
+/**
+ * @route   GET /api/v1/delivery/training/modules/:moduleId
+ * @desc    Obtenir le détail d'un module de formation
+ * @access  Private (Delivery Person)
+ */
+router.get('/training/modules/:moduleId', deliveryController.getModuleDetail);
+
+/**
+ * @route   POST /api/v1/delivery/training/modules/:moduleId/complete
+ * @desc    Marquer un module comme complété
+ * @access  Private (Delivery Person)
+ */
+router.post('/training/modules/:moduleId/complete', deliveryController.completeModule);
+
+/**
+ * @route   GET /api/v1/delivery/training/quiz
+ * @desc    Obtenir le quiz de certification
+ * @access  Private (Delivery Person)
+ */
+router.get('/training/quiz', deliveryController.getQuiz);
+
+/**
+ * @route   POST /api/v1/delivery/training/quiz/submit
+ * @desc    Soumettre les réponses du quiz
+ * @access  Private (Delivery Person)
+ */
+router.post('/training/quiz/submit', deliveryController.submitQuiz);
+
+/**
+ * @route   POST /api/v1/delivery/contract/sign
+ * @desc    Signer le contrat de partenariat
+ * @access  Private (Delivery Person)
+ */
+router.post('/contract/sign', deliveryController.signContract);
+
+/**
+ * @route   GET /api/v1/delivery/starter-kit
+ * @desc    Obtenir les informations du kit de démarrage
+ * @access  Private (Delivery Person)
+ */
+router.get('/starter-kit', deliveryController.getStarterKit);
+
+/**
+ * @route   POST /api/v1/delivery/starter-kit/order
+ * @desc    Commander le kit de démarrage
+ * @access  Private (Delivery Person)
+ */
+router.post('/starter-kit/order', deliveryController.orderStarterKit);
+
+/**
+ * ═══════════════════════════════════════════════════════════
+ * LOCALISATION (zones chaudes, restaurants, zones suggérées)
+ * ═══════════════════════════════════════════════════════════
+ */
+
+/**
+ * @route   GET /api/v1/delivery/location/heat-map
+ * @desc    Obtenir la carte de chaleur des commandes
+ * @access  Private (Delivery Person)
+ */
+router.get('/location/heat-map', deliveryController.getHeatMap);
+
+/**
+ * @route   GET /api/v1/delivery/location/nearby-restaurants
+ * @desc    Obtenir les restaurants à proximité
+ * @access  Private (Delivery Person)
+ */
+router.get('/location/nearby-restaurants', deliveryController.getNearbyRestaurants);
+
+/**
+ * @route   GET /api/v1/delivery/location/suggested-zones
+ * @desc    Obtenir les zones de livraison suggérées
+ * @access  Private (Delivery Person)
+ */
+router.get('/location/suggested-zones', deliveryController.getSuggestedZones);
+
+/**
+ * ═══════════════════════════════════════════════════════════
  * SUPPORT
  * ═══════════════════════════════════════════════════════════
  */
@@ -645,5 +793,12 @@ router.post('/support/messages/:ticketId',
   validate,
   deliveryController.sendSupportMessage
 );
+
+/**
+ * @route   GET /api/v1/delivery/me/bonuses
+ * @desc    Bonus performance du livreur (paliers + historique 30j)
+ * @access  Private (delivery)
+ */
+router.get('/me/bonuses', authenticate, authorize('delivery_person'), deliveryController.getPerformanceBonuses);
 
 module.exports = router;

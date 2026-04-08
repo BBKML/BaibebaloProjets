@@ -6,9 +6,9 @@ import {
   TouchableOpacity, 
   Image,
   ScrollView,
-  SafeAreaView,
   StatusBar
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 
@@ -36,6 +36,7 @@ const benefits = [
 ];
 
 export default function WelcomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
@@ -71,7 +72,7 @@ export default function WelcomeScreen({ navigation }) {
       </View>
       
       {/* Bottom CTA */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={styles.primaryButton}
           onPress={() => navigation.navigate('PhoneInput')}

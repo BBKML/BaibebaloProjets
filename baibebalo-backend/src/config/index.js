@@ -29,9 +29,9 @@ const config = {
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     ssl: process.env.DB_SSL === 'true' || (process.env.DATABASE_URL && process.env.NODE_ENV === 'production'),
-    max: parseInt(process.env.DB_POOL_MAX, 10) || 20, // Taille max du pool
+    max: Math.min(parseInt(process.env.DB_POOL_MAX, 10) || 20, 50), // Taille max du pool (défaut 20, max 50)
     idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT, 10) || 30000,
-    connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 2000,
+    connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 5000,
   },
   
   // ================================
@@ -417,6 +417,8 @@ const config = {
     // Si le sous-total dépasse ce montant, la livraison est gratuite
     freeDeliveryThreshold: parseInt(process.env.FREE_DELIVERY_THRESHOLD, 10) || 20000, // FCFA
     freeDeliveryEnabled: process.env.FREE_DELIVERY_ENABLED !== 'false', // Activé par défaut
+    // Gains livreur en cas de livraison gratuite (payés par Baibebalo)
+    freeDeliveryDriverFee: parseInt(process.env.FREE_DELIVERY_DRIVER_FEE, 10) || 500, // FCFA
     
     // === OFFRES GROUPÉES (BUNDLES) ===
     // Réduction automatique quand plat + boisson sont commandés ensemble
@@ -456,16 +458,16 @@ const config = {
 
 // Validation de la configuration critique en production
 if (config.env === 'production') {
-  const requiredVars = [
-    'JWT_SECRET',
-    'DB_HOST',
-    'DB_NAME',
-    'DB_USER',
-    'DB_PASSWORD',
-  ];
-  
-  const missing = requiredVars.filter(varName => !process.env[varName]);
-  
+  const missing = [];
+  if (!process.env.JWT_SECRET) {
+    missing.push('JWT_SECRET');
+  }
+  // Base de données : accepter soit DATABASE_URL (Render, Railway, etc.) soit DB_HOST + DB_NAME + DB_USER + DB_PASSWORD
+  const hasDatabaseUrl = !!process.env.DATABASE_URL;
+  const hasDbVars = !!(process.env.DB_HOST && process.env.DB_NAME && process.env.DB_USER && process.env.DB_PASSWORD);
+  if (!hasDatabaseUrl && !hasDbVars) {
+    missing.push('DATABASE_URL ou (DB_HOST, DB_NAME, DB_USER, DB_PASSWORD)');
+  }
   if (missing.length > 0) {
     console.error('❌ Variables d\'environnement manquantes en production:');
     missing.forEach(v => console.error(`   - ${v}`));

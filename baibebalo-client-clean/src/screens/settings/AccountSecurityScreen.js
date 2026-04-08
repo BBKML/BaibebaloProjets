@@ -19,7 +19,7 @@ export default function AccountSecurityScreen({ navigation }) {
       label: 'Changer le code PIN',
       description: 'Requis pour vos paiements mobile money',
       onPress: () => {
-        Alert.alert('Info', 'Fonctionnalité à venir');
+        Alert.alert('Info', 'Bientôt disponible.');
       },
     },
     {
@@ -27,7 +27,7 @@ export default function AccountSecurityScreen({ navigation }) {
       label: 'Numéro de téléphone',
       description: 'Gérer votre numéro de téléphone',
       onPress: () => {
-        Alert.alert('Info', 'Fonctionnalité à venir');
+        Alert.alert('Info', 'Bientôt disponible.');
       },
     },
     {
@@ -35,7 +35,7 @@ export default function AccountSecurityScreen({ navigation }) {
       label: 'Email',
       description: 'Gérer votre adresse email',
       onPress: () => {
-        Alert.alert('Info', 'Fonctionnalité à venir');
+        Alert.alert('Info', 'Bientôt disponible.');
       },
     },
     {
@@ -43,7 +43,7 @@ export default function AccountSecurityScreen({ navigation }) {
       label: 'Gérer les appareils',
       description: 'Voir et déconnecter vos sessions actives',
       onPress: () => {
-        Alert.alert('Info', 'Fonctionnalité à venir');
+        Alert.alert('Info', 'Bientôt disponible.');
       },
     },
     {

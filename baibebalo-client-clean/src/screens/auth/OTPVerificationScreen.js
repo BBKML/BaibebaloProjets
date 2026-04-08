@@ -6,22 +6,21 @@ import {
   TouchableOpacity,
   StyleSheet,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { CommonActions } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 
 export default function OTPVerificationScreen({ navigation, route }) {
-  console.log('🟢 OTPVerificationScreen - RENDU', {
-    hasNavigation: !!navigation,
-    hasRoute: !!route,
-    phoneNumber: route?.params?.phoneNumber,
-  });
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [timeLeft, setTimeLeft] = useState(300);
+  const [verifying, setVerifying] = useState(false);
   const inputRefs = useRef([]);
-  const { verifyOTP, isLoading, phoneNumber, sendOTP, otpAttempts, otpMaxAttempts, otpExpiresAt } =
+  const { verifyOTP, phoneNumber, sendOTP, otpAttempts, otpMaxAttempts, otpExpiresAt } =
     useAuthStore();
   const targetPhone = route?.params?.phoneNumber || phoneNumber;
   const attemptsRemaining = Math.max(0, (otpMaxAttempts || 3) - (otpAttempts || 0));
@@ -84,6 +83,7 @@ export default function OTPVerificationScreen({ navigation, route }) {
       return;
     }
 
+    setVerifying(true);
     const result = await verifyOTP(otpCode);
     
     if (result.success) {
@@ -99,23 +99,10 @@ export default function OTPVerificationScreen({ navigation, route }) {
       const { user: userFromStore } = useAuthStore.getState();
       const user = userFromResponse || userFromStore;
       
-      console.log('🔍 OTPVerification - Vérification profil:', {
-        isNewUser,
-        userFromResponse: userFromResponse ? { id: userFromResponse.id, first_name: userFromResponse.first_name, last_name: userFromResponse.last_name } : null,
-        userFromStore: userFromStore ? { id: userFromStore.id, first_name: userFromStore.first_name, last_name: userFromStore.last_name } : null,
-      });
-      
       // Le backend peut utiliser full_name ou first_name/last_name
       const hasFullName = !!(user?.full_name && user.full_name.trim().length > 0);
       const hasFirstLastName = !!(user?.first_name && user.first_name.trim().length > 0 && user?.last_name && user.last_name.trim().length > 0);
       const hasProfile = hasFullName || hasFirstLastName;
-      
-      console.log('🔍 OTPVerification - État du profil:', {
-        hasFullName,
-        hasFirstLastName,
-        hasProfile,
-        targetRoute: (isNewUser || !hasProfile) ? 'ProfileCreation' : 'MainTabs',
-      });
       
       const targetRoute = (isNewUser || !hasProfile) ? 'ProfileCreation' : 'MainTabs';
       navigation.dispatch(
@@ -133,6 +120,7 @@ export default function OTPVerificationScreen({ navigation, route }) {
       Alert.alert('Erreur', `${result.error}\n${attemptInfo}`);
       setCode(['', '', '', '', '', '']);
       inputRefs.current[0]?.focus();
+      setVerifying(false);
     }
   };
 
@@ -162,7 +150,11 @@ export default function OTPVerificationScreen({ navigation, route }) {
   };
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.container}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
       <View style={styles.header}>
         <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
           <Ionicons name="arrow-back" size={20} color={COLORS.text} />
@@ -212,12 +204,12 @@ export default function OTPVerificationScreen({ navigation, route }) {
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, verifying && styles.buttonDisabled]}
           onPress={handleVerify}
-          disabled={isLoading || attemptsRemaining === 0 || isExpired}
+          disabled={verifying || attemptsRemaining === 0 || isExpired}
         >
           <Text style={styles.buttonText}>
-            {isLoading ? 'Vérification...' : 'Vérifier maintenant'}
+            {verifying ? 'Vérification...' : 'Vérifier maintenant'}
           </Text>
         </TouchableOpacity>
         <View style={styles.attemptsInfo}>
@@ -229,7 +221,8 @@ export default function OTPVerificationScreen({ navigation, route }) {
           {isExpired && <Text style={styles.attemptsText}>Code expiré.</Text>}
         </View>
       </View>
-    </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 

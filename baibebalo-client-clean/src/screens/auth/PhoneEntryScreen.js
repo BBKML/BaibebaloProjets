@@ -9,13 +9,16 @@ import {
   Platform,
   Alert,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function PhoneEntryScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [phoneNumber, setPhoneNumber] = useState('');
-  const { sendOTP, isLoading } = useAuthStore();
+  const [sending, setSending] = useState(false);
+  const { sendOTP } = useAuthStore();
 
   const normalizePhoneNumber = (input) => {
     const digitsOnly = input.replace(/\D/g, '');
@@ -35,23 +38,21 @@ export default function PhoneEntryScreen({ navigation }) {
   };
 
   const handleSendOTP = async () => {
-    // Valider le numéro de téléphone
     if (!phoneNumber || !isValidIvorianPhone(phoneNumber)) {
       Alert.alert('Erreur', 'Veuillez entrer un numéro ivoirien valide (+225 XX XX XX XX XX)');
       return;
     }
 
-    // Formater le numéro (ajouter l'indicatif si nécessaire)
     const formattedPhone = normalizePhoneNumber(phoneNumber);
     if (!formattedPhone) {
       Alert.alert('Erreur', 'Numéro de téléphone invalide.');
       return;
     }
 
+    setSending(true);
     try {
       const result = await sendOTP(formattedPhone);
-      console.log('📱 PhoneEntryScreen - Résultat sendOTP:', result);
-      
+
       if (result?.success !== true) {
         Alert.alert(
           'Erreur',
@@ -59,26 +60,18 @@ export default function PhoneEntryScreen({ navigation }) {
         );
         return;
       }
-      
-      console.log('✅ OTP envoyé - Navigation vers OTPVerification');
-      
-      // 🔥 NAVIGATION IMMÉDIATE
+
       navigation.navigate('OTPVerification', {
         phoneNumber: formattedPhone,
       });
-      
-      // 🔥 REMETTRE isLoading à false après navigation (sans délai)
-      useAuthStore.setState({ isLoading: false });
-      console.log('✅ isLoading remis à false après navigation');
-      
     } catch (error) {
-      console.error('❌ Erreur handleSendOTP:', error);
-      const errorMessage = error?.response?.data?.error?.message 
-        || error?.response?.data?.message 
-        || error?.message 
+      const errorMessage = error?.response?.data?.error?.message
+        || error?.response?.data?.message
+        || error?.message
         || 'Erreur lors de l\'envoi du code';
-      
       Alert.alert('Erreur', errorMessage);
+    } finally {
+      setSending(false);
     }
   };
 
@@ -127,29 +120,29 @@ export default function PhoneEntryScreen({ navigation }) {
         </View>
 
         <TouchableOpacity
-          style={[styles.button, isLoading && styles.buttonDisabled]}
+          style={[styles.button, sending && styles.buttonDisabled]}
           onPress={handleSendOTP}
-          disabled={isLoading}
+          disabled={sending}
         >
           <Text style={styles.buttonText}>
-            {isLoading ? 'Envoi...' : 'Continuer'}
+            {sending ? 'Envoi...' : 'Continuer'}
           </Text>
           <Ionicons name="arrow-forward" size={18} color={COLORS.white} />
         </TouchableOpacity>
 
         <View style={styles.socialSection}>
-          <Text style={styles.socialTitle}>Connexion sociale (phase 2)</Text>
+          <Text style={styles.socialTitle}>Connexion sociale</Text>
           <View style={styles.socialRow}>
             <TouchableOpacity
               style={styles.socialButton}
-              onPress={() => Alert.alert('Info', 'Connexion Google disponible en phase 2')}
+              onPress={() => Alert.alert('Info', 'Connexion Google bientôt disponible.')}
             >
               <Ionicons name="logo-google" size={18} color={COLORS.text} />
               <Text style={styles.socialText}>Google</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.socialButton}
-              onPress={() => Alert.alert('Info', 'Connexion Facebook disponible en phase 2')}
+              onPress={() => Alert.alert('Info', 'Connexion Facebook bientôt disponible.')}
             >
               <Ionicons name="logo-facebook" size={18} color={COLORS.text} />
               <Text style={styles.socialText}>Facebook</Text>
@@ -157,13 +150,13 @@ export default function PhoneEntryScreen({ navigation }) {
           </View>
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 24) }]}>
           <Text style={styles.footerText}>
             En continuant, vous acceptez nos{' '}
             <Text style={styles.footerLink}>Conditions d'Utilisation</Text>
           </Text>
-          <TouchableOpacity style={styles.secondaryLink} onPress={handleSendOTP} disabled={isLoading}>
-            <Text style={styles.secondaryLinkText}>J'ai déjà un compte</Text>
+          <TouchableOpacity style={styles.secondaryLink} onPress={handleSendOTP} disabled={sending}>
+            <Text style={styles.secondaryLinkText}>Se connecter avec ce numéro</Text>
             <Ionicons name="log-in-outline" size={16} color={COLORS.primary} />
           </TouchableOpacity>
           

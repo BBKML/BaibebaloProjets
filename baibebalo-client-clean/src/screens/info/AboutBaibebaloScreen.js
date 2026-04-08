@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -7,11 +7,28 @@ import {
   TouchableOpacity,
   Linking,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { getPublicSettings, invalidateSettingsCache, getCompanyValue } from '../../services/settingsService';
 
 export default function AboutBaibebaloScreen({ navigation }) {
+  const [settings, setSettings] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateSettingsCache();
+      getPublicSettings().then((s) => setSettings(s || null));
+    }, [])
+  );
+
+  const facebook = getCompanyValue(settings, 'company_facebook') || '';
+  const instagram = getCompanyValue(settings, 'company_instagram') || '';
+  const tiktok = getCompanyValue(settings, 'company_tiktok') || '';
+  const siteUrl = 'https://baibebalo.ci';
+
   const handleOpenLink = (url) => {
+    if (!url) return;
     Linking.openURL(url).catch((err) =>
       console.error('Erreur lors de l\'ouverture du lien:', err)
     );
@@ -48,7 +65,7 @@ export default function AboutBaibebaloScreen({ navigation }) {
         <Text style={styles.sectionTitle}>Connectez‑vous avec nous</Text>
         <TouchableOpacity
           style={styles.contactItem}
-          onPress={() => handleOpenLink('https://baibebalo.ci')}
+          onPress={() => handleOpenLink(siteUrl)}
         >
           <View style={styles.contactIcon}>
             <Ionicons name="globe-outline" size={20} color={COLORS.primary} />
@@ -56,26 +73,42 @@ export default function AboutBaibebaloScreen({ navigation }) {
           <Text style={styles.contactText}>Site officiel</Text>
           <Ionicons name="open-outline" size={18} color={COLORS.textSecondary} />
         </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.contactItem}
-          onPress={() => handleOpenLink('https://facebook.com/baibebalo')}
-        >
-          <View style={styles.contactIcon}>
-            <Ionicons name="logo-facebook" size={20} color={COLORS.primary} />
-          </View>
-          <Text style={styles.contactText}>Facebook</Text>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
-        </TouchableOpacity>
-        <TouchableOpacity
-          style={styles.contactItem}
-          onPress={() => handleOpenLink('https://instagram.com/baibebalo')}
-        >
-          <View style={styles.contactIcon}>
-            <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
-          </View>
-          <Text style={styles.contactText}>Instagram</Text>
-          <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
-        </TouchableOpacity>
+        {facebook ? (
+          <TouchableOpacity
+            style={styles.contactItem}
+            onPress={() => handleOpenLink(facebook)}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="logo-facebook" size={20} color={COLORS.primary} />
+            </View>
+            <Text style={styles.contactText}>Facebook</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        ) : null}
+        {instagram ? (
+          <TouchableOpacity
+            style={styles.contactItem}
+            onPress={() => handleOpenLink(instagram)}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="logo-instagram" size={20} color={COLORS.primary} />
+            </View>
+            <Text style={styles.contactText}>Instagram</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        ) : null}
+        {tiktok ? (
+          <TouchableOpacity
+            style={styles.contactItem}
+            onPress={() => handleOpenLink(tiktok)}
+          >
+            <View style={styles.contactIcon}>
+              <Ionicons name="logo-tiktok" size={20} color={COLORS.primary} />
+            </View>
+            <Text style={styles.contactText}>TikTok</Text>
+            <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.footer}>

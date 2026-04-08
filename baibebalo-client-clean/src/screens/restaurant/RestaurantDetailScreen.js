@@ -13,11 +13,12 @@ import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { getRestaurantDetail, getRestaurantMenu, getRestaurantReviews } from '../../api/restaurants';
+import { getImageUrl } from '../../utils/url';
 import { addFavorite, removeFavorite, getFavorites } from '../../api/users';
 import useCartStore from '../../store/cartStore';
 
 export default function RestaurantDetailScreen({ route, navigation }) {
-  const { restaurantId } = route.params;
+  const { restaurantId, reorderItems } = route.params;
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -88,25 +89,60 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         getRestaurantDetail(restaurantId),
         getRestaurantMenu(restaurantId),
       ]);
-      const restaurantData = restaurantRes.data;
+      const restaurantData = restaurantRes.data?.restaurant ?? restaurantRes.data;
       setRestaurant(restaurantData);
-      
+
       // L'API retourne les données dans menuRes.data.data
       const menuData = menuRes.data?.data || menuRes.data;
       const categoryList = menuData?.categories || [];
-      
+
       // Extraire tous les items de toutes les catégories
-      const allItems = categoryList.flatMap(cat => 
+      const allItems = categoryList.flatMap(cat =>
         (cat.items || []).map(item => ({
           ...item,
           category_id: cat.id,
           category_name: cat.name
         }))
       );
-      
+
       setMenu(allItems);
       setCategories(categoryList);
-      
+
+      // Reorder: auto-ajouter les articles de l'ancienne commande au panier
+      if (reorderItems?.length > 0) {
+        const store = useCartStore.getState();
+        store.clearCart();
+        const rId = restaurantData.id || restaurantId;
+        const rName = restaurantData.name || 'Restaurant';
+        reorderItems.forEach((reorderItem) => {
+          const menuItem = allItems.find((m) => m.id === reorderItem.menu_item_id);
+          if (!menuItem) return;
+          const itemPrice = (menuItem.is_promotion_active && menuItem.effective_price)
+            ? menuItem.effective_price
+            : menuItem.price;
+          const cartItem = {
+            id: menuItem.id,
+            name: menuItem.name,
+            price: itemPrice,
+            original_price: menuItem.price,
+            effective_price: menuItem.effective_price || menuItem.price,
+            is_promotion_active: menuItem.is_promotion_active || false,
+            image_url: menuItem.image_url,
+            customizations: {},
+          };
+          // Add once then set exact quantity
+          useCartStore.getState().addItem(cartItem, rId, rName, { force: true });
+          const qty = reorderItem.quantity || 1;
+          if (qty > 1) {
+            useCartStore.getState().updateQuantity(menuItem.id, {}, qty);
+          }
+        });
+        Alert.alert(
+          'Panier rechargé',
+          'Les articles de votre commande précédente ont été ajoutés au panier.'
+        );
+      }
+
       // Vérifier si le restaurant est fermé
       if (restaurantData.is_closed || restaurantData.status === 'closed') {
         navigation.navigate('RestaurantClosed', { restaurant: restaurantData });
@@ -119,9 +155,6 @@ export default function RestaurantDetailScreen({ route, navigation }) {
   };
 
   const handleAddToCart = (item) => {
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RestaurantDetailScreen.js:95',message:'handleAddToCart called',data:{restaurantId:restaurantId,restaurantExists:!!restaurant,restaurantIdFromRestaurant:restaurant?.id||'NULL',restaurantName:restaurant?.name||'NULL',itemId:item.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
     if (!restaurant) {
       Alert.alert('Erreur', 'Les informations du restaurant ne sont pas encore chargées. Veuillez réessayer.');
       return;
@@ -131,10 +164,13 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     const currentRestaurantName = restaurant.name || 'Restaurant';
 
     // Si l'article a des options de personnalisation, naviguer vers l'écran de personnalisation
-    if (item.customization_options && item.customization_options.length > 0) {
+    // Le backend retourne le champ "options" (colonne DB) + alias "customization_options"
+    const itemOptions = item.customization_options || item.options;
+    if (itemOptions && itemOptions.length > 0) {
       navigation.navigate('CustomizeDish', {
         dish: {
           ...item,
+          customization_options: itemOptions,
           restaurant_id: currentRestaurantId,
           restaurant_name: currentRestaurantName,
         },
@@ -196,9 +232,6 @@ export default function RestaurantDetailScreen({ route, navigation }) {
       );
       return;
     }
-    // #region agent log
-    fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RestaurantDetailScreen.js:135',message:'Item added to cart',data:{result:result?.added||result?.updated||'other',restaurantId:currentRestaurantId},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'H'})}).catch(()=>{});
-    // #endregion
   };
 
   const handleCallRestaurant = () => {
@@ -223,6 +256,39 @@ export default function RestaurantDetailScreen({ route, navigation }) {
     ? menu.filter((item) => item.category_id === selectedCategory)
     : menu;
 
+  const DAY_KEYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+
+  const displayOpeningHours = () => {
+    const oh = restaurant.opening_hours;
+    if (!oh) return '09:00 - 23:00';
+    if (typeof oh === 'string') return oh;
+    if (typeof oh !== 'object' || oh === null) return '09:00 - 23:00';
+
+    const todayKey = DAY_KEYS[new Date().getDay()];
+    const today = oh[todayKey];
+    if (today && typeof today === 'object') {
+      const isOpen = today.isOpen !== false && (today.open || today.close);
+      if (!isOpen) return 'Fermé';
+      if (today.open && today.close) return `${today.open} - ${today.close}`;
+      if (today.open) return `${today.open} - ?`;
+      if (today.close) return `? - ${today.close}`;
+    }
+    if (today && typeof today === 'string') return today;
+    if (oh.display) return oh.display;
+    if (oh.default) return oh.default;
+    return '09:00 - 23:00';
+  };
+
+  const isRestaurantOpenNow = () => {
+    const oh = restaurant.opening_hours;
+    if (restaurant.is_closed || restaurant.status === 'closed') return false;
+    if (!oh || typeof oh !== 'object' || oh === null) return true;
+    const todayKey = DAY_KEYS[new Date().getDay()];
+    const today = oh[todayKey];
+    if (!today || typeof today !== 'object') return true;
+    return today.isOpen !== false && (today.open || today.close);
+  };
+
   if (loading || !restaurant) {
     return (
       <View style={styles.container}>
@@ -232,10 +298,13 @@ export default function RestaurantDetailScreen({ route, navigation }) {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={{ paddingBottom: getItemCount() > 0 ? 180 : 24 }}
+    >
       <View style={styles.heroWrapper}>
         <Image
-          source={{ uri: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/400' }}
+          source={{ uri: getImageUrl(restaurant.banner || restaurant.logo || restaurant.image_url) || null }}
           style={styles.headerImage}
         />
         <View style={styles.heroOverlay} />
@@ -260,7 +329,15 @@ export default function RestaurantDetailScreen({ route, navigation }) {
 
       <View style={styles.infoCard}>
         <View style={styles.logoCircle}>
-          <Ionicons name="restaurant" size={28} color={COLORS.primary} />
+          {(restaurant.logo || restaurant.banner || restaurant.image_url) ? (
+            <Image
+              source={{ uri: getImageUrl(restaurant.logo || restaurant.banner || restaurant.image_url) }}
+              style={styles.restaurantLogoImage}
+              resizeMode="cover"
+            />
+          ) : (
+            <Ionicons name="restaurant" size={28} color={COLORS.primary} />
+          )}
         </View>
         <Text style={styles.name}>{restaurant.name}</Text>
         <Text style={styles.cuisineText}>
@@ -272,7 +349,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
               <Text style={styles.badgeText}>{restaurant.is_new ? 'Nouveau' : 'Promo'}</Text>
             </View>
           )}
-          {restaurant.rating >= 4.5 && (
+          {(restaurant.average_rating ?? restaurant.rating ?? 0) >= 4.5 && (
             <View style={styles.badgePill}>
               <Text style={styles.badgeText}>Top noté</Text>
             </View>
@@ -283,16 +360,16 @@ export default function RestaurantDetailScreen({ route, navigation }) {
             <Text style={styles.statLabel}>Rating</Text>
             <View style={styles.statValueRow}>
               <Ionicons name="star" size={14} color={COLORS.warning} />
-              <Text style={styles.statValue}>{restaurant.rating || '4.5'}</Text>
+              <Text style={styles.statValue}>{restaurant.average_rating ?? restaurant.rating ?? '4.5'}</Text>
             </View>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Delivery</Text>
-            <Text style={styles.statValue}>{restaurant.estimated_delivery_time || '30-45'} min</Text>
+            <Text style={styles.statValue}>{restaurant.estimated_delivery_time ?? '30-45'} min</Text>
           </View>
           <View style={styles.statItem}>
             <Text style={styles.statLabel}>Fee</Text>
-            <Text style={styles.statValue}>{restaurant.delivery_fee || 500} FCFA</Text>
+            <Text style={styles.statValue}>{restaurant.delivery_fee != null ? Number(restaurant.delivery_fee).toLocaleString('fr-FR') : '500'} FCFA</Text>
           </View>
         </View>
       </View>
@@ -307,14 +384,13 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         <View style={styles.infoRow}>
           <Ionicons name="time-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.infoText}>
-            {restaurant.is_closed || restaurant.status === 'closed' ? 'Fermé' : 'Ouvert'} •
-            {` ${restaurant.opening_hours || '09:00 - 23:00'}`}
+            {isRestaurantOpenNow() ? 'Ouvert' : 'Fermé'} • {displayOpeningHours()}
           </Text>
         </View>
         <View style={styles.infoRow}>
           <Ionicons name="bicycle-outline" size={16} color={COLORS.textSecondary} />
           <Text style={styles.infoText}>
-            {restaurant.delivery_fee ? `${restaurant.delivery_fee} FCFA` : 'Livraison gratuite'}
+            Frais de livraison: {Number(restaurant.delivery_fee ?? 500).toLocaleString('fr-FR')} FCFA
           </Text>
         </View>
         <View style={styles.actionsRow}>
@@ -366,9 +442,6 @@ export default function RestaurantDetailScreen({ route, navigation }) {
                 key={item.id}
                 style={styles.menuItem}
                 onPress={() => {
-                  // #region agent log
-                  fetch('http://127.0.0.1:7242/ingest/66128188-ae85-488b-8573-429b47c72881',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({location:'RestaurantDetailScreen.js:316',message:'Navigating to DishInformation',data:{restaurantId:restaurantId,restaurantExists:!!restaurant,restaurantIdFromRestaurant:restaurant?.id||'NULL',restaurantName:restaurant?.name||'NULL',itemId:item.id},timestamp:Date.now(),sessionId:'debug-session',runId:'run1',hypothesisId:'J'})}).catch(()=>{});
-                  // #endregion
                   const currentRestaurantId = restaurant?.id || restaurantId;
                   const currentRestaurantName = restaurant?.name || 'Restaurant';
                   navigation.navigate('DishInformation', { 
@@ -419,7 +492,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
                   {item.image_url && (
                     <View style={styles.imageContainer}>
                       <Image
-                        source={{ uri: item.image_url }}
+                        source={{ uri: getImageUrl(item.image_url) }}
                         style={styles.menuItemImage}
                       />
                       {/* Badge promotion sur l'image */}
@@ -453,12 +526,12 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         <View style={styles.ratingCard}>
           <View style={styles.ratingHeader}>
             <View style={styles.ratingMain}>
-              <Text style={styles.ratingValue}>{restaurant.rating || '4.5'}</Text>
+              <Text style={styles.ratingValue}>{restaurant.average_rating ?? restaurant.rating ?? '4.5'}</Text>
               <View style={styles.ratingStars}>
                 {[1, 2, 3, 4, 5].map((star) => (
                   <Ionicons
                     key={star}
-                    name={star <= Math.round(restaurant.rating || 4.5) ? 'star' : 'star-outline'}
+                    name={star <= Math.round(restaurant.average_rating ?? restaurant.rating ?? 4.5) ? 'star' : 'star-outline'}
                     size={20}
                     color={COLORS.warning}
                   />
@@ -569,7 +642,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
                     {review.photos.map((photo, photoIndex) => (
                       <Image
                         key={photoIndex}
-                        source={{ uri: photo }}
+                        source={{ uri: getImageUrl(photo) }}
                         style={styles.reviewPhoto}
                       />
                     ))}
@@ -613,11 +686,11 @@ export default function RestaurantDetailScreen({ route, navigation }) {
         )}
       </View>
 
-      <View style={styles.section}>
+      <View style={styles.sectionInformationsComplementaires}>
         <Text style={styles.sectionTitle}>Informations complémentaires</Text>
-        <Text style={styles.infoText}>Modes de paiement: Mobile Money, Espèces</Text>
-        <Text style={styles.infoText}>Options de livraison: Standard, Express</Text>
-        <Text style={styles.infoText}>Allergènes: Arachides, Lait</Text>
+        <Text style={styles.infoComplementaireText}>Modes de paiement: Mobile Money, Espèces</Text>
+        <Text style={styles.infoComplementaireText}>Options de livraison: Standard, Express</Text>
+        <Text style={styles.infoComplementaireText}>Allergènes: Arachides, Lait</Text>
       </View>
 
       {getItemCount() > 0 && (
@@ -700,6 +773,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 8,
+    overflow: 'hidden',
+  },
+  restaurantLogoImage: {
+    width: '100%',
+    height: '100%',
+    borderRadius: 12,
   },
   name: {
     fontSize: 22,
@@ -758,8 +837,8 @@ const styles = StyleSheet.create({
   },
   actionsRow: {
     flexDirection: 'row',
-    gap: 12,
-    marginTop: 8,
+    gap: 20,
+    marginTop: 12,
   },
   infoAction: {
     flexDirection: 'row',
@@ -830,6 +909,22 @@ const styles = StyleSheet.create({
   section: {
     marginHorizontal: 16,
     marginBottom: 16,
+  },
+  sectionInformationsComplementaires: {
+    marginHorizontal: 16,
+    marginBottom: 32,
+    marginTop: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  infoComplementaireText: {
+    fontSize: 14,
+    color: COLORS.textSecondary,
+    marginBottom: 8,
+    lineHeight: 20,
   },
   sectionTitle: {
     fontSize: 16,

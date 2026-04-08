@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,26 @@ import {
   Alert,
   Linking,
 } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
+import { getPublicSettings, invalidateSettingsCache, getCompanyValue } from '../../services/settingsService';
 
 export default function ContactSupportScreen({ navigation }) {
-  const supportPhone = '+22500000000';
-  const supportEmail = 'support@baibebalo.ci';
-  const supportWhatsApp = '+22500000000';
+  const insets = useSafeAreaInsets();
+  const [settings, setSettings] = useState(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      invalidateSettingsCache();
+      getPublicSettings().then((s) => setSettings(s || null));
+    }, [])
+  );
+
+  const supportPhone = getCompanyValue(settings, 'company_contact_1_phone') || getCompanyValue(settings, 'company_whatsapp') || '+22500000000';
+  const supportEmail = getCompanyValue(settings, 'company_email') || 'support@baibebalo.ci';
+  const supportWhatsApp = getCompanyValue(settings, 'company_whatsapp') || '+22500000000';
 
   const supportOptions = [
     {
@@ -36,7 +49,7 @@ export default function ContactSupportScreen({ navigation }) {
       id: 'phone',
       icon: 'call',
       title: 'Appeler le support',
-      description: '+225 00 00 00 00',
+      description: supportPhone || '+225 00 00 00 00',
       color: COLORS.text,
     },
     {
@@ -96,7 +109,7 @@ export default function ContactSupportScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <ScrollView contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 40) }]}>
         <View style={styles.header}>
           <View style={styles.openBadge}>
             <Ionicons name="time" size={12} color={COLORS.primary} />

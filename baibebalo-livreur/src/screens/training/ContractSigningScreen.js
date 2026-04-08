@@ -1,18 +1,23 @@
 import React, { useState } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
-  SafeAreaView,
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   StatusBar,
-  ScrollView
+  ScrollView,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { signContract } from '../../api/delivery';
 
 export default function ContractSigningScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [accepted, setAccepted] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -83,17 +88,34 @@ export default function ContractSigningScreen({ navigation }) {
       </ScrollView>
 
       {/* Bottom */}
-      <View style={styles.bottomContainer}>
-        <TouchableOpacity 
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
+        <TouchableOpacity
           style={[
             styles.primaryButton,
-            !accepted && styles.primaryButtonDisabled,
+            (!accepted || loading) && styles.primaryButtonDisabled,
           ]}
-          onPress={() => navigation.navigate('StarterKit')}
-          disabled={!accepted}
+          onPress={async () => {
+            if (!accepted || loading) return;
+            setLoading(true);
+            try {
+              await signContract('accepted');
+              navigation.navigate('StarterKit');
+            } catch (error) {
+              Alert.alert('Erreur', 'Impossible de signer le contrat. Veuillez réessayer.');
+            } finally {
+              setLoading(false);
+            }
+          }}
+          disabled={!accepted || loading}
         >
-          <Ionicons name="create-outline" size={20} color="#FFFFFF" />
-          <Text style={styles.primaryButtonText}>SIGNER LE CONTRAT</Text>
+          {loading ? (
+            <ActivityIndicator color="#FFFFFF" size="small" />
+          ) : (
+            <>
+              <Ionicons name="create-outline" size={20} color="#FFFFFF" />
+              <Text style={styles.primaryButtonText}>SIGNER LE CONTRAT</Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </SafeAreaView>

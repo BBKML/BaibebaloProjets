@@ -8,7 +8,7 @@ const requestTimeout = 10000;
 
 // Utiliser API_BASE_URL depuis constants/api.js qui gère déjà l'environnement
 const apiClient = axios.create({
-  baseURL: API_BASE_URL || 'http://192.168.1.16:5000/api/v1',
+  baseURL: API_BASE_URL || 'https://baibebaloprojets.onrender.com/api/v1',
   timeout: requestTimeout,
   headers: {
     'Content-Type': 'application/json',
@@ -25,18 +25,18 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      // Pour FormData (upload document / photo), ne pas envoyer Content-Type pour que le client envoie multipart/form-data avec boundary
+      if (config.data && typeof FormData !== 'undefined' && config.data instanceof FormData) {
+        delete config.headers['Content-Type'];
+      }
       // Ajouter un timestamp pour éviter le cache 304
       config.params = {
         ...config.params,
         _t: Date.now(),
       };
     } catch (error) {
-      console.error('[API Client] Error getting token:', error);
+      if (__DEV__) console.error('[API Client] Error getting token:', error);
     }
-    
-    // Log de la requête
-    console.log(`[API] ${config.method?.toUpperCase()} ${config.url}`);
-    
     return config;
   },
   (error) => {
@@ -44,21 +44,20 @@ apiClient.interceptors.request.use(
   }
 );
 
-// Intercepteur pour gérer les réponses et erreurs (éviter crash APK)
+// Intercepteur pour gérer les réponses et erreurs (pas de retry sur 4xx)
 apiClient.interceptors.response.use(
-  (response) => {
-    console.log(`[API] ✓ ${response.config?.url} - ${response.status}`);
-    return response;
-  },
+  (response) => response,
   async (error) => {
-    const url = error.config?.url || '';
     const status = error.response?.status;
     const isTimeout = error.code === 'ECONNABORTED';
     const isCanceled = error.code === 'ERR_CANCELED' || error.message === 'canceled';
-    const msg = isTimeout ? 'Timeout' : status || error.message || 'Network Error';
-    // Ne pas logger les annulations (navigation, AbortController) - comportement normal
-    if (!isCanceled) {
+    if (__DEV__ && !isCanceled) {
+      const url = error.config?.url || '';
+      const msg = isTimeout ? 'Timeout' : status || error.message || 'Network Error';
       console.warn(`[API] ✗ ${url} - ${msg}`);
+    }
+    if (status >= 400 && status < 500 && error.config) {
+      error.config.__noRetry = true;
     }
     if (isTimeout) {
       error.isTimeout = true;
@@ -70,7 +69,7 @@ apiClient.interceptors.response.use(
         await AsyncStorage.removeItem('delivery_user');
         useAuthStore.getState().logout();
       } catch (e) {
-        console.warn('[API] AsyncStorage / logout error:', e?.message);
+        if (__DEV__) console.warn('[API] AsyncStorage / logout error:', e?.message);
       }
     }
     throw error;

@@ -1,16 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { COLORS } from '../../constants/colors';
+
+const LANGUAGE_STORAGE_KEY = 'app_language';
 
 export default function LanguageSettingsScreen({ navigation }) {
   const [selectedLanguage, setSelectedLanguage] = useState('fr');
+
+  useEffect(() => {
+    AsyncStorage.getItem(LANGUAGE_STORAGE_KEY).then((saved) => {
+      if (saved) setSelectedLanguage(saved);
+    });
+  }, []);
 
   const languages = [
     {
@@ -91,10 +101,15 @@ export default function LanguageSettingsScreen({ navigation }) {
         </View>
         <TouchableOpacity
           style={styles.saveButton}
-          onPress={() => {
-            navigation.navigate('SettingsUpdateSuccess', {
-              message: 'Votre langue a été mise à jour.',
-            });
+          onPress={async () => {
+            try {
+              await AsyncStorage.setItem(LANGUAGE_STORAGE_KEY, selectedLanguage);
+              navigation.navigate('SettingsUpdateSuccess', {
+                message: 'Votre langue a été mise à jour.',
+              });
+            } catch (_) {
+              Alert.alert('Erreur', 'Impossible de sauvegarder la langue');
+            }
           }}
         >
           <Text style={styles.saveButtonText}>Appliquer les changements</Text>

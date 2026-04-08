@@ -17,7 +17,7 @@ export default function ReportProblemScreen({ navigation, route }) {
   const [problemType, setProblemType] = useState(null);
   const [description, setDescription] = useState('');
   const [loading, setLoading] = useState(false);
-  const [selectedOrder, setSelectedOrder] = useState(orderId || '84920');
+  const [selectedOrder, setSelectedOrder] = useState(orderId || null);
 
   const problemTypes = [
     {

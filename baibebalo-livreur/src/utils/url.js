@@ -5,17 +5,24 @@
 import API_BASE_URL from '../constants/api';
 
 const getApiOrigin = () => {
-  const base = API_BASE_URL || '';
-  const match = base.match(/^(https?:\/\/[^/]+)/i);
-  if (match?.[1]) {
-    return match[1];
+  try {
+    const base = typeof API_BASE_URL === 'string' ? API_BASE_URL : '';
+    if (!base) return '';
+    const match = base.match(/^(https?:\/\/[^/]+)/i);
+    if (match?.[1]) return match[1];
+    return typeof base.replace === 'function' ? base.replace(/\/api\/v\d+\/?$/i, '') : base;
+  } catch (_) {
+    return '';
   }
-  return base.replace(/\/api\/v\d+\/?$/i, '');
 };
 
 const normalizeUploadsPath = (path) => {
-  if (!path) return path;
-  return path.replace(/\/api\/v\d+(?=\/uploads)/i, '');
+  if (path == null || typeof path !== 'string') return path;
+  try {
+    return path.replace(/\/api\/v\d+(?=\/uploads)/i, '');
+  } catch (_) {
+    return path;
+  }
 };
 
 export const getImageUrl = (url) => {
@@ -23,44 +30,46 @@ export const getImageUrl = (url) => {
 };
 
 export const normalizeUploadUrl = (url) => {
-  if (!url || typeof url !== 'string') return null;
+  if (url == null || typeof url !== 'string') return null;
+  const s = String(url).trim();
+  if (!s) return null;
   // URIs locaux (galerie / appareil photo) : ne pas modifier
-  if (url.startsWith('file://') || url.startsWith('content://') || url.startsWith('asset://')) {
+  if (s.startsWith('file://') || s.startsWith('content://') || s.startsWith('asset://')) {
     return url;
   }
 
   const apiOrigin = getApiOrigin();
 
-  if (url.startsWith('http://') || url.startsWith('https://')) {
-    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(url)) {
-      const path = url.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, '');
+  if (s.startsWith('http://') || s.startsWith('https://')) {
+    if (/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i.test(s)) {
+      const path = s.replace(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?/i, '');
       const normalizedPath = normalizeUploadsPath(path);
       return apiOrigin ? `${apiOrigin}${normalizedPath}` : url;
     }
     try {
-      const parsed = new URL(url);
+      const parsed = new URL(s);
       const normalizedPath = normalizeUploadsPath(parsed.pathname);
       if (normalizedPath !== parsed.pathname) {
         return `${parsed.origin}${normalizedPath}`;
       }
-    } catch (error) {
+    } catch (_) {
       return url;
     }
     return url;
   }
 
-  if (url.startsWith('/')) {
-    const normalizedPath = normalizeUploadsPath(url);
+  if (s.startsWith('/')) {
+    const normalizedPath = normalizeUploadsPath(s);
     return apiOrigin ? `${apiOrigin}${normalizedPath}` : url;
   }
 
-  if (url.startsWith('uploads/')) {
-    return apiOrigin ? `${apiOrigin}/${url}` : url;
+  if (s.startsWith('uploads/')) {
+    return apiOrigin ? `${apiOrigin}/${s}` : url;
   }
 
   // Chemin relatif sans préfixe (ex. user-profiles/xxx.jpg) : considérer comme sous /uploads/
-  if (apiOrigin && url.length > 0 && !url.includes(' ')) {
-    const path = url.startsWith('/') ? url.slice(1) : url;
+  if (apiOrigin && s.length > 0 && !s.includes(' ')) {
+    const path = s.startsWith('/') ? s.slice(1) : s;
     return `${apiOrigin}/${path.startsWith('uploads/') ? path : `uploads/${path}`}`;
   }
 

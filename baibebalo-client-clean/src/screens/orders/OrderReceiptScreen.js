@@ -10,6 +10,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
+import { STATUS_LABELS, STATUS_COLORS } from '../../constants/orderStatus';
 import { getOrderDetail } from '../../api/orders';
 
 export default function OrderReceiptScreen({ navigation, route }) {
@@ -37,7 +38,7 @@ export default function OrderReceiptScreen({ navigation, route }) {
   };
 
   const handleDownloadPDF = () => {
-    Alert.alert('Info', 'Fonctionnalité de téléchargement PDF à venir');
+    Alert.alert('Info', 'Téléchargement PDF bientôt disponible.');
   };
 
   if (loading) {
@@ -78,6 +79,16 @@ export default function OrderReceiptScreen({ navigation, route }) {
               <Text style={styles.paidText}>Payé</Text>
             </View>
           </View>
+
+          {/* Badge statut */}
+          {order.status && (
+            <View style={[styles.statusBadge, { backgroundColor: (STATUS_COLORS[order.status] || '#6b7280') + '15' }]}>
+              <View style={[styles.statusDot, { backgroundColor: STATUS_COLORS[order.status] || '#6b7280' }]} />
+              <Text style={[styles.statusText, { color: STATUS_COLORS[order.status] || '#6b7280' }]}>
+                {STATUS_LABELS[order.status] || order.status}
+              </Text>
+            </View>
+          )}
 
           <View style={styles.metaGrid}>
             <View>
@@ -400,6 +411,27 @@ const styles = StyleSheet.create({
   paymentRef: {
     fontSize: 11,
     color: COLORS.textSecondary,
+  },
+  statusBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    alignSelf: 'center',
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginBottom: 16,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  statusText: {
+    fontSize: 13,
+    fontWeight: '700',
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   footerNote: {
     marginTop: 12,

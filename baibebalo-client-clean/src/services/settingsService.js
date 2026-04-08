@@ -1,6 +1,7 @@
 /**
  * Service pour récupérer les paramètres publics de l'application
  * Utilise l'endpoint public /api/v1/public/settings
+ * Cache 60 secondes + déduplication des appels simultanés.
  */
 
 import axios from 'axios';
@@ -8,45 +9,53 @@ import { API_CONFIG } from '../constants/api';
 
 let cachedSettings = null;
 let cacheTimestamp = null;
-const CACHE_DURATION = 30 * 1000; // 30 secondes (pour détecter rapidement le mode maintenance)
+const CACHE_DURATION_MS = 30 * 1000; // 30 secondes (coordonnées admin propagées plus vite)
+
+/** Promesse en cours pour éviter plusieurs requêtes simultanées */
+let inFlightPromise = null;
 
 /**
- * Récupère les paramètres publics depuis l'API
+ * Récupère les paramètres publics depuis l'API (ou le cache si < 60 s).
+ * Les appels simultanés partagent la même requête.
  * @returns {Promise<Object>} Paramètres publics
  */
 export const getPublicSettings = async () => {
-  try {
-    // Vérifier le cache
-    if (cachedSettings && cacheTimestamp) {
-      const now = Date.now();
-      if (now - cacheTimestamp < CACHE_DURATION) {
-        console.log('[Settings] Utilisation du cache');
+  const now = Date.now();
+  if (cachedSettings != null && cacheTimestamp != null && now - cacheTimestamp < CACHE_DURATION_MS) {
+    if (__DEV__) console.log('[Settings] Utilisation du cache (< 60 s)');
+    return cachedSettings;
+  }
+
+  if (inFlightPromise) {
+    return inFlightPromise;
+  }
+
+  const fetch = async () => {
+    try {
+      const rawBase = API_CONFIG.BASE_URL || '';
+      const baseURL = rawBase.replace('/api/v1', '') || 'https://baibebaloprojets.onrender.com';
+      const url = `${baseURL}/api/v1/public/settings`;
+      if (__DEV__) console.log('[Settings] Appel URL:', url);
+      const response = await axios.get(url, {
+        timeout: 5000,
+      });
+
+      if (response.data?.success) {
+        cachedSettings = response.data.data.settings;
+        cacheTimestamp = Date.now();
         return cachedSettings;
       }
+      return null;
+    } catch (error) {
+      if (__DEV__) console.warn('[Settings] Paramètres non disponibles:', error.message);
+      return null;
+    } finally {
+      inFlightPromise = null;
     }
+  };
 
-    // Utiliser axios directement pour éviter les intercepteurs d'auth
-    // Construire l'URL de manière robuste : retirer /api/v1 si présent, puis le rajouter explicitement
-    const rawBase = API_CONFIG.BASE_URL || '';
-    const baseURL = rawBase.replace('/api/v1', '') || 'https://baibebaloprojets.onrender.com';
-    const url = `${baseURL}/api/v1/public/settings`;
-    console.log('[Settings] Appel URL:', url);
-    const response = await axios.get(url, {
-      timeout: 5000, // Timeout court pour ne pas bloquer le démarrage
-    });
-
-    if (response.data?.success) {
-      cachedSettings = response.data.data.settings;
-      cacheTimestamp = Date.now();
-      return cachedSettings;
-    }
-
-    return null;
-  } catch (error) {
-    console.error('[Settings] Erreur récupération paramètres:', error.message);
-    // En cas d'erreur, retourner null pour ne pas bloquer l'app
-    return null;
-  }
+  inFlightPromise = fetch();
+  return inFlightPromise;
 };
 
 /**
@@ -64,8 +73,7 @@ export const checkMaintenanceMode = async () => {
     const maintenanceMode = settings['maintenance_mode']?.value || false;
     return Boolean(maintenanceMode);
   } catch (error) {
-    console.error('[Settings] Erreur vérification maintenance:', error.message);
-    // En cas d'erreur, on considère que tout va bien pour ne pas bloquer l'app
+    if (__DEV__) console.warn('[Settings] Vérification maintenance impossible:', error.message);
     return false;
   }
 };
@@ -86,15 +94,28 @@ export const getSetting = async (key, defaultValue = null) => {
     const setting = settings[key];
     return setting?.value !== undefined ? setting.value : defaultValue;
   } catch (error) {
-    console.error(`[Settings] Erreur récupération paramètre ${key}:`, error.message);
+    if (__DEV__) console.warn(`[Settings] Paramètre ${key} non disponible:`, error.message);
     return defaultValue;
   }
 };
 
 /**
- * Invalide le cache (à appeler après modification des paramètres)
+ * Invalide le cache (à appeler après modification des paramètres).
+ * Le prochain getPublicSettings() fera une nouvelle requête.
  */
 export const invalidateSettingsCache = () => {
   cachedSettings = null;
   cacheTimestamp = null;
+  inFlightPromise = null;
+};
+
+/**
+ * Récupère la valeur d'un paramètre "coordonnées entreprise" (format API { value, description } ou valeur directe).
+ */
+export const getCompanyValue = (settings, key) => {
+  if (!settings || !key) return undefined;
+  const v = settings[key];
+  if (v == null) return undefined;
+  if (typeof v === 'object' && v !== null && 'value' in v) return v.value;
+  return v;
 };

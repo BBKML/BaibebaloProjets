@@ -3,7 +3,6 @@ import {
   View,
   Text,
   StyleSheet,
-  SafeAreaView,
   TouchableOpacity,
   TextInput,
   Alert,
@@ -12,7 +11,7 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { confirmDelivery } from '../../api/orders';
@@ -23,6 +22,7 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
   const [confirming, setConfirming] = useState(false);
   const [error, setError] = useState('');
   const delivery = route.params?.delivery;
+  const photoUrl = route.params?.photoUrl;
 
   // Valider le code et confirmer la livraison
   const handleValidate = async () => {
@@ -36,12 +36,11 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
       const earnings = delivery?.earnings || 1750;
       
       if (orderId) {
-        // Envoyer le code de confirmation au backend
-        const response = await confirmDelivery(orderId, {
-          delivery_code: code,
-        });
+        const payload = { delivery_code: code };
+        if (photoUrl) payload.photo = photoUrl;
+        const response = await confirmDelivery(orderId, payload);
         
-        console.log('✅ Livraison confirmée:', response);
+        if (__DEV__) console.log('✅ Livraison confirmée');
         
         // Récupérer les gains depuis la réponse (earnings peut être un objet { total, net, breakdown })
         const rawEarnings = response?.data?.earnings || earnings;
@@ -58,7 +57,7 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
         navigation.navigate('DeliverySuccess', { earnings, delivery });
       }
     } catch (err) {
-      console.error('Erreur confirmation livraison:', err);
+      if (__DEV__) console.warn('Erreur confirmation livraison:', err?.message || err);
       
       // Vérifier si c'est une erreur de code invalide
       if (err.response?.data?.error?.code === 'INVALID_CODE') {
@@ -66,7 +65,7 @@ export default function ConfirmationCodeScreen({ navigation, route }) {
       } else {
         // En cas d'erreur réseau, permettre de continuer
         Alert.alert(
-          'Erreur de synchronisation',
+          'Connexion interrompue',
           'Voulez-vous réessayer ou continuer malgré l\'erreur ?',
           [
             { text: 'Réessayer', style: 'cancel' },

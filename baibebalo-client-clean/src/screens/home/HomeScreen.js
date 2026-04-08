@@ -9,16 +9,20 @@ import {
   ScrollView,
   RefreshControl,
 } from 'react-native';
+import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
-import { getRestaurants, getActivePromotions, getCategories } from '../../api/restaurants';
+import { getRestaurants, getActivePromotions, getCategories, getRecommendedRestaurants, getDailySpecials } from '../../api/restaurants';
+import { getImageUrl } from '../../utils/url';
 import useCartStore from '../../store/cartStore';
 
 export default function HomeScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
   const [promoCards, setPromoCards] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [recommendedRestaurants, setRecommendedRestaurants] = useState([]);
+  const [dailySpecials, setDailySpecials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
@@ -31,14 +35,37 @@ export default function HomeScreen({ navigation }) {
   const loadData = async () => {
     try {
       setLoading(true);
-      // Charger toutes les données en parallèle
-      const [restaurantsRes, promotionsRes, categoriesRes] = await Promise.all([
-        getRestaurants({ search: searchQuery || undefined }).catch(() => ({ data: { restaurants: [] } })),
+      // Position utilisateur pour "restaurants proches" (tri par distance)
+      let locationParams = {};
+      try {
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === 'granted') {
+          const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
+          locationParams = {
+            latitude: loc.coords.latitude,
+            longitude: loc.coords.longitude,
+            radius: 15,
+            sort: 'distance',
+          };
+        }
+      } catch (_) {
+        // Ignorer les erreurs de géolocalisation
+      }
+
+      const [restaurantsRes, promotionsRes, categoriesRes, recommendedRes, dailySpecialsRes] = await Promise.all([
+        getRestaurants({
+          search: searchQuery || undefined,
+          ...locationParams,
+        }).catch(() => ({ data: { restaurants: [] } })),
         getActivePromotions().catch(() => ({ data: { promotions: [] } })),
         getCategories().catch(() => ({ data: { categories: [] } })),
+        getRecommendedRestaurants(8).catch(() => ({ data: { restaurants: [] } })),
+        getDailySpecials().catch(() => ({ data: { daily_specials: [] } })),
       ]);
+      setDailySpecials(dailySpecialsRes.data?.daily_specials || []);
 
       setRestaurants(restaurantsRes.data?.restaurants || []);
+      setRecommendedRestaurants(recommendedRes.data?.restaurants || []);
       
       // Mapper les promotions depuis l'API
       const apiPromotions = promotionsRes.data?.promotions || [];
@@ -47,7 +74,7 @@ export default function HomeScreen({ navigation }) {
         title: promo.title || 'Promotion spéciale',
         subtitle: promo.subtitle || 'Découvrez nos offres',
         cta: promo.restaurant ? 'Voir le restaurant' : 'Commander maintenant',
-        image: promo.restaurant?.banner || 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600',
+        image: getImageUrl(promo.restaurant?.banner) || 'https://images.unsplash.com/photo-1540189549336-e6e99c3679fe?w=600',
         accent: COLORS.primary,
         restaurantId: promo.restaurant?.id,
         code: promo.code,
@@ -107,15 +134,18 @@ export default function HomeScreen({ navigation }) {
     name: restaurant.speciality || 'Plat populaire',
     price: restaurant.average_price || 3500,
     restaurantName: restaurant.name || 'Restaurant',
-    image: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/120',
+    image: getImageUrl(restaurant.banner || restaurant.logo || restaurant.image_url) || null,
   }));
 
-  const recommendations = (restaurants || []).slice(0, 4).map((restaurant, index) => ({
-    id: `reco-${restaurant.id || index}`,
-    name: restaurant.name || 'Restaurant recommandé',
-    subtitle: restaurant.cuisine_type || 'Cuisine variée',
-    image: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/160',
-  }));
+  const recommendations = (recommendedRestaurants.length > 0 ? recommendedRestaurants : restaurants)
+    .slice(0, 4)
+    .map((restaurant, index) => ({
+      id: `reco-${restaurant.id || index}`,
+      restaurantId: restaurant.id,
+      name: restaurant.name || 'Restaurant recommandé',
+      subtitle: restaurant.cuisine_type || 'Cuisine variée',
+      image: getImageUrl(restaurant.banner || restaurant.logo || restaurant.image_url) || null,
+    }));
 
   const isRestaurantClosed = (restaurant) => {
     return restaurant.is_closed || restaurant.status === 'closed' || restaurant.is_open === false;
@@ -128,7 +158,7 @@ export default function HomeScreen({ navigation }) {
     >
       <View style={styles.restaurantImageWrapper}>
         <Image
-          source={{ uri: item.banner || item.logo || item.image_url || 'https://via.placeholder.com/300' }}
+          source={{ uri: getImageUrl(item.banner || item.logo || item.image_url) || null }}
           style={[styles.restaurantImage, isRestaurantClosed(item) && styles.restaurantImageClosed]}
         />
         <View style={styles.ratingBadge}>
@@ -280,6 +310,43 @@ export default function HomeScreen({ navigation }) {
                 </TouchableOpacity>
               ))}
             </ScrollView>
+
+            {dailySpecials.length > 0 && (
+              <>
+                <View style={styles.sectionHeader}>
+                  <Text style={styles.sectionTitle}>🍽️ Plats du jour</Text>
+                </View>
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ paddingHorizontal: 16, gap: 12, paddingBottom: 8 }}
+                >
+                  {dailySpecials.map((item) => (
+                    <TouchableOpacity
+                      key={item.id}
+                      style={styles.dailySpecialCard}
+                      onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.restaurant.id })}
+                    >
+                      {item.photo ? (
+                        <Image source={{ uri: getImageUrl(item.photo) }} style={styles.dailySpecialImage} />
+                      ) : (
+                        <View style={[styles.dailySpecialImage, styles.dailySpecialImagePlaceholder]}>
+                          <Ionicons name="restaurant" size={32} color={COLORS.primary} />
+                        </View>
+                      )}
+                      <View style={styles.dailySpecialBadge}>
+                        <Text style={styles.dailySpecialBadgeText}>Plat du jour</Text>
+                      </View>
+                      <View style={styles.dailySpecialInfo}>
+                        <Text style={styles.dailySpecialName} numberOfLines={1}>{item.name}</Text>
+                        <Text style={styles.dailySpecialRestaurant} numberOfLines={1}>{item.restaurant.name}</Text>
+                        <Text style={styles.dailySpecialPrice}>{item.price.toLocaleString('fr-FR')} FCFA</Text>
+                      </View>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </>
+            )}
 
             <Text style={styles.sectionTitleLarge}>Populaires près de chez vous</Text>
           </>
@@ -778,5 +845,55 @@ const styles = StyleSheet.create({
     color: COLORS.error,
     fontSize: 10,
     fontWeight: 'bold',
+  },
+  dailySpecialCard: {
+    width: 160,
+    borderRadius: 16,
+    backgroundColor: COLORS.white,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  dailySpecialImage: {
+    width: '100%',
+    height: 100,
+  },
+  dailySpecialImagePlaceholder: {
+    backgroundColor: COLORS.primary + '15',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dailySpecialBadge: {
+    position: 'absolute',
+    top: 8,
+    left: 8,
+    backgroundColor: COLORS.warning,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+  },
+  dailySpecialBadgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: 'bold',
+  },
+  dailySpecialInfo: {
+    padding: 10,
+  },
+  dailySpecialName: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  dailySpecialRestaurant: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  dailySpecialPrice: {
+    fontSize: 13,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+    marginTop: 4,
   },
 });

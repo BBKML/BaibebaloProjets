@@ -9,6 +9,7 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
+import { getImageUrl } from '../../utils/url';
 
 export default function ItemOutOfStockScreen({ navigation, route }) {
   const { item, onContinue } = route.params || {};
@@ -35,7 +36,7 @@ export default function ItemOutOfStockScreen({ navigation, route }) {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.hero}>
           <Image
-            source={{ uri: item?.image_url || 'https://via.placeholder.com/400' }}
+            source={{ uri: getImageUrl(item?.image_url) || null }}
             style={styles.heroImage}
           />
           <View style={styles.heroGradient} />

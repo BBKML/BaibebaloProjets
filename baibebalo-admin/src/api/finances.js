@@ -1,9 +1,15 @@
 import apiClient from './client';
 
 export const financesAPI = {
-  // Obtenir l'aperçu financier
-  getFinancialOverview: async () => {
-    const response = await apiClient.get('/admin/finances/overview');
+  // Obtenir l'aperçu financier (period: today|week|month|year, ou date_from + date_to pour plage personnalisée)
+  getFinancialOverview: async (params = {}) => {
+    const response = await apiClient.get('/admin/finances/overview', { params });
+    return response.data;
+  },
+
+  // Bénéfices par période : par mois, par année, ou entre deux dates (source = livraison, restaurant, ou les deux)
+  getBenefitsByPeriod: async (params = {}) => {
+    const response = await apiClient.get('/admin/finances/benefits-by-period', { params });
     return response.data;
   },
 
@@ -15,18 +21,10 @@ export const financesAPI = {
     } catch (error) {
       // Si l'endpoint n'existe pas encore (404), retourner des données par défaut
       if (error.response?.status === 404) {
-        if (import.meta.env.DEV) {
-          console.warn('⚠️ Endpoint /admin/finances/payments/delivery non disponible, utilisation de données par défaut');
-        }
         return {
           data: {
             payments: [],
-            pagination: {
-              page: params.page || 1,
-              limit: params.limit || 20,
-              total: 0,
-              totalPages: 0,
-            },
+            pagination: { page: params.page || 1, limit: params.limit || 20, total: 0, totalPages: 0 },
           },
         };
       }
@@ -34,17 +32,12 @@ export const financesAPI = {
     }
   },
 
-  // Obtenir les paiements en attente (restaurants)
   getPendingRestaurantPayments: async (params = {}) => {
     try {
       const response = await apiClient.get('/admin/finances/payments/restaurants', { params });
       return response.data;
     } catch (error) {
-      // Si l'endpoint n'existe pas encore (404), retourner des données par défaut
       if (error.response?.status === 404) {
-        if (import.meta.env.DEV) {
-          console.warn('⚠️ Endpoint /admin/finances/payments/restaurants non disponible, utilisation de données par défaut');
-        }
         return {
           data: {
             payments: [],

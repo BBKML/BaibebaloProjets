@@ -1,10 +1,10 @@
 // Configuration API pour l'application Livreur BAIBEBALO
 // EAS build injecte EXPO_PUBLIC_API_URL depuis eas.json ; fallback pour dev et sécurité build
-// IMPORTANT: Mettez à jour l'IP ci-dessous avec l'IP affichée par le serveur backend au démarrage
+// En dev : définir EXPO_PUBLIC_API_URL dans .env avec l'IP affichée au démarrage du backend (🌐 URL réseau)
 const PRODUCTION_API_URL = 'https://baibebaloprojets.onrender.com/api/v1';
-const DEV_API_URL = 'http://192.168.1.16:5000/api/v1'; // IP locale pour développement (même que backend)
+const DEV_API_URL = 'http://192.168.1.13:5000/api/v1'; // Fallback si EXPO_PUBLIC_API_URL non défini (mettre l'IP affichée au démarrage du backend)
 
-// En développement, toujours utiliser l'URL locale (même si EXPO_PUBLIC_API_URL est défini)
+// En développement : EXPO_PUBLIC_API_URL dans .env prime (une seule config pour toute l'app)
 // Pour forcer l'URL de production, définissez FORCE_PRODUCTION=true dans .env
 const isDev = typeof __DEV__ !== 'undefined' && __DEV__;
 const forceProduction = typeof process !== 'undefined' && process.env?.FORCE_PRODUCTION === 'true';
@@ -13,13 +13,11 @@ const fromEnv = typeof process !== 'undefined' && process.env?.EXPO_PUBLIC_API_U
 let API_BASE_URL;
 
 if (forceProduction) {
-  // Forcer la production même en dev (pour tests)
   API_BASE_URL = fromEnv || PRODUCTION_API_URL;
 } else if (isDev) {
-  // En développement, toujours utiliser l'URL locale
-  API_BASE_URL = DEV_API_URL;
+  // En dev : .env (EXPO_PUBLIC_API_URL) ou fallback DEV_API_URL
+  API_BASE_URL = fromEnv || DEV_API_URL;
 } else {
-  // En production (build EAS), utiliser la variable d'environnement ou l'URL de production
   API_BASE_URL = fromEnv || PRODUCTION_API_URL;
 }
 
@@ -50,6 +48,7 @@ export const API_ENDPOINTS = {
     CHECK_STATUS: `${BASE}/delivery/check-status`,
     UPDATE_PROFILE: `${BASE}/delivery/me`,
     UPLOAD_DOCUMENT: `${BASE}/delivery/upload-document`,
+    UPLOAD_DELIVERY_PROOF: `${BASE}/delivery/upload-delivery-proof`,
     UPDATE_STATUS: `${BASE}/delivery/status`,
     UPDATE_LOCATION: `${BASE}/delivery/location`,
     UPDATE_AVAILABILITY: `${BASE}/delivery/me/availability`,

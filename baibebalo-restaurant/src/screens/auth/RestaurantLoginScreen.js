@@ -165,7 +165,7 @@ export default function RestaurantLoginScreen({ navigation }) {
           </View>
 
           {/* Footer */}
-          <View style={styles.footer}>
+          <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 48) }]}>
             <Text style={styles.footerText}>
               En vous connectant, vous acceptez nos Conditions Générales d'Utilisation et notre Politique de Confidentialité.
             </Text>
@@ -203,7 +203,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 24,
     paddingTop: 40,
-    paddingBottom: 48,
     maxWidth: 480,
     alignSelf: 'center',
     width: '100%',
@@ -355,6 +354,7 @@ const styles = StyleSheet.create({
   footer: {
     marginTop: 32,
     paddingHorizontal: 16,
+    paddingBottom: 0,
     width: '100%',
   },
   footerText: {

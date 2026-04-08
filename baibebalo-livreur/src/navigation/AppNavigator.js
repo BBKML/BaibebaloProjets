@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useMemo, useCallback } from 'react';
 import { NavigationContainer, CommonActions } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
@@ -85,56 +85,60 @@ import SupportChatScreen from '../screens/settings/SupportChatScreen';
 import ClientAbsentScreen from '../screens/problems/ClientAbsentScreen';
 import EmergencyScreen from '../screens/problems/EmergencyScreen';
 import IncidentReportScreen from '../screens/problems/IncidentReportScreen';
+import WrongAddressScreen from '../screens/problems/WrongAddressScreen';
 
 // Notification Center
 import NotificationCenterScreen from '../screens/notifications/NotificationCenterScreen';
 
 // Écran de maintenance
 import AppMaintenanceScreen from '../screens/system/AppMaintenanceScreen';
+import { MaintenanceContext } from '../contexts/MaintenanceContext';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
 
 // Pont pour les notifications : doit être rendu *dans* NavigationContainer pour que useNavigation() ne plante pas (build EAS)
-function NotificationBridge() {
+const NotificationBridge = React.memo(function NotificationBridge() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isActivated = useAuthStore((s) => s.isActivated);
   useNotifications(isAuthenticated && isActivated);
   return null;
-}
+});
 
 // Pont pour les alertes Socket.IO livreur (nouvelles courses, commandes prêtes, etc.) - actif sur tous les écrans
-function DeliverySocketAlertsBridge() {
+const DeliverySocketAlertsBridge = React.memo(function DeliverySocketAlertsBridge() {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
   const isActivated = useAuthStore((s) => s.isActivated);
   useDeliverySocketAlerts(isAuthenticated && isActivated);
   return null;
-}
+});
 
-// Navigation principale avec tabs
-function MainTabs() {
+// Navigation principale avec tabs (mémorisée pour limiter les re-renders)
+const MainTabs = React.memo(function MainTabs() {
   const insets = useSafeAreaInsets();
+  const screenOptions = useMemo(
+    () => ({
+      headerShown: false,
+      tabBarActiveTintColor: COLORS.primary,
+      tabBarInactiveTintColor: COLORS.textSecondary,
+      tabBarStyle: {
+        height: 60 + insets.bottom,
+        paddingBottom: Math.max(insets.bottom, 10),
+        paddingTop: 10,
+        borderTopWidth: 1,
+        borderTopColor: COLORS.border,
+        backgroundColor: COLORS.white,
+      },
+      tabBarLabelStyle: {
+        fontSize: 10,
+        fontWeight: '600',
+      },
+    }),
+    [insets.bottom]
+  );
 
   return (
-    <Tab.Navigator
-      screenOptions={{
-        headerShown: false,
-        tabBarActiveTintColor: COLORS.primary,
-        tabBarInactiveTintColor: COLORS.textSecondary,
-        tabBarStyle: {
-          height: 60 + insets.bottom,
-          paddingBottom: Math.max(insets.bottom, 10),
-          paddingTop: 10,
-          borderTopWidth: 1,
-          borderTopColor: COLORS.border,
-          backgroundColor: COLORS.white,
-        },
-        tabBarLabelStyle: {
-          fontSize: 10,
-          fontWeight: '600',
-        },
-      }}
-    >
+    <Tab.Navigator screenOptions={screenOptions}>
       <Tab.Screen
         name="Home"
         component={DeliveryHomeScreen}
@@ -187,26 +191,47 @@ function MainTabs() {
       />
     </Tab.Navigator>
   );
+});
+
+function getTargetRouteFromState(validationStatus, trainingCompleted, quizPassed, contractSigned, isActivated) {
+  if (validationStatus === 'pending' || validationStatus === 'rejected') return 'PendingValidation';
+  if (!trainingCompleted) return 'TrainingModules';
+  if (!quizPassed) return 'CertificationQuiz';
+  if (!contractSigned) return 'ContractSigning';
+  if (!isActivated) return 'WelcomeActivated';
+  return 'Main';
 }
 
 export default function AppNavigator() {
-  const { 
-    isAuthenticated, 
-    isLoading, 
-    loadStoredAuth, 
-    isActivated, 
-    validationStatus, 
-    trainingCompleted, 
-    quizPassed, 
-    contractSigned,
-    pendingRegistration 
-  } = useAuthStore();
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+  const isLoading = useAuthStore((s) => s.isLoading);
+  const loadStoredAuth = useAuthStore((s) => s.loadStoredAuth);
+  const isActivated = useAuthStore((s) => s.isActivated);
+  const validationStatus = useAuthStore((s) => s.validationStatus);
+  const trainingCompleted = useAuthStore((s) => s.trainingCompleted);
+  const quizPassed = useAuthStore((s) => s.quizPassed);
+  const contractSigned = useAuthStore((s) => s.contractSigned);
+  const pendingRegistration = useAuthStore((s) => s.pendingRegistration);
+
   const [isReady, setIsReady] = useState(false);
   const [showSplash, setShowSplash] = useState(true);
   const navigationRef = useRef(null);
   const [previousAuth, setPreviousAuth] = useState(false);
   const [isMaintenanceMode, setIsMaintenanceMode] = useState(false);
   const [isCheckingMaintenance, setIsCheckingMaintenance] = useState(true);
+
+  const getTargetRoute = useCallback(
+    () => getTargetRouteFromState(validationStatus, trainingCompleted, quizPassed, contractSigned, isActivated),
+    [validationStatus, trainingCompleted, quizPassed, contractSigned, isActivated]
+  );
+  const getInitialRoute = useCallback(() => {
+    if (pendingRegistration && !isAuthenticated) return 'PendingValidation';
+    if (!isAuthenticated) return 'Welcome';
+    return getTargetRoute();
+  }, [pendingRegistration, isAuthenticated, getTargetRoute]);
+
+  const initialRouteName = useMemo(() => getInitialRoute(), [getInitialRoute]);
+  const stackScreenOptions = useMemo(() => ({ headerShown: false }), []);
 
   // Vérifier le mode maintenance au démarrage + polling toutes les 30s
   useEffect(() => {
@@ -247,12 +272,9 @@ export default function AppNavigator() {
   // Effet pour naviguer automatiquement quand l'authentification change
   useEffect(() => {
     if (isReady && !showSplash && navigationRef.current) {
-      // Si l'utilisateur vient de se connecter (était non authentifié, maintenant authentifié)
       if (isAuthenticated && !previousAuth) {
         const targetRoute = getTargetRoute();
-        console.log('Auth changed! Navigating to:', targetRoute);
-        
-        // Petit délai pour laisser le navigator se re-rendre
+        if (__DEV__) console.log('Auth changed! Navigating to:', targetRoute);
         setTimeout(() => {
           navigationRef.current?.dispatch(
             CommonActions.reset({
@@ -264,53 +286,41 @@ export default function AppNavigator() {
       }
       setPreviousAuth(isAuthenticated);
     }
-  }, [isAuthenticated, isReady, showSplash]);
+  }, [isAuthenticated, isReady, showSplash, getTargetRoute]);
 
   if (!isReady || isLoading || showSplash || isCheckingMaintenance) {
     return <SplashScreen />;
   }
 
-  // Si mode maintenance activé, afficher l'écran de maintenance
+  // Si mode maintenance activé, afficher l'écran de maintenance (callback via contexte pour éviter "non-serializable" dans la navigation)
   if (isMaintenanceMode) {
+    const onRetry = async () => {
+      invalidateSettingsCache();
+      const still = await checkMaintenanceMode();
+      setIsMaintenanceMode(still);
+    };
     return (
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen
-            name="AppMaintenance"
-            component={AppMaintenanceScreen}
-            options={{ gestureEnabled: false }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
+      <MaintenanceContext.Provider value={{ onRetry }}>
+        <NavigationContainer>
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            <Stack.Screen
+              name="AppMaintenance"
+              component={AppMaintenanceScreen}
+              options={{ gestureEnabled: false }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+      </MaintenanceContext.Provider>
     );
   }
-  
-  // Déterminer la route cible selon l'état
-  const getTargetRoute = () => {
-    if (validationStatus === 'pending') return 'PendingValidation';
-    if (validationStatus === 'rejected') return 'PendingValidation';
-    if (!trainingCompleted) return 'TrainingModules';
-    if (!quizPassed) return 'CertificationQuiz';
-    if (!contractSigned) return 'ContractSigning';
-    if (!isActivated) return 'WelcomeActivated';
-    return 'Main';
-  };
-  
-  // Déterminer où envoyer l'utilisateur selon son état (pour initialRouteName)
-  const getInitialRoute = () => {
-    // Si inscription soumise mais pas encore validée (pas de token)
-    if (pendingRegistration && !isAuthenticated) return 'PendingValidation';
-    if (!isAuthenticated) return 'Welcome';
-    return getTargetRoute();
-  };
 
   return (
     <NavigationContainer ref={navigationRef}>
       <NotificationBridge />
       <DeliverySocketAlertsBridge />
-      <Stack.Navigator 
-        screenOptions={{ headerShown: false }}
-        initialRouteName={getInitialRoute()}
+      <Stack.Navigator
+        screenOptions={stackScreenOptions}
+        initialRouteName={initialRouteName}
       >
         {!isAuthenticated ? (
           // Écrans non authentifiés
@@ -403,6 +413,7 @@ export default function AppNavigator() {
               options={{ presentation: 'fullScreenModal' }}
             />
             <Stack.Screen name="IncidentReport" component={IncidentReportScreen} />
+            <Stack.Screen name="WrongAddress" component={WrongAddressScreen} options={{ presentation: 'modal' }} />
             
             {/* Notifications */}
             <Stack.Screen name="NotificationCenter" component={NotificationCenterScreen} />

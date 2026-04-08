@@ -1,43 +1,73 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { 
   View, 
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
-  Vibration
+  Vibration,
+  Alert,
+  ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
+import { acceptOrder, declineOrder } from '../../api/orders';
 
 export default function NewDeliveryAlertScreen({ navigation, route }) {
   const { clearPendingAlert, setCurrentDelivery } = useDeliveryStore();
-  const [timeLeft, setTimeLeft] = useState(30);
+  const proposal = route.params?.proposal || route.params?.delivery;
+  const initialSeconds = proposal?.expires_in_seconds != null
+    ? Math.max(1, Math.floor(Number(proposal.expires_in_seconds)))
+    : 120;
+  const [timeLeft, setTimeLeft] = useState(initialSeconds);
+  const [accepting, setAccepting] = useState(false);
+  const [declining, setDeclining] = useState(false);
+  const respondedRef = useRef(false);
 
-  // Mock delivery data
-  const delivery = route.params?.delivery || {
-    id: 'BAIB-12345',
-    restaurant: {
-      name: 'Restaurant Chez Marie',
-      address: 'Rue des Écoles, Centre-ville',
-      distance: 1.2,
-    },
-    customer: {
-      area: 'Quartier Tchengué',
-      landmark: 'Près de l\'école primaire',
-      totalDistance: 3.5,
-    },
-    earnings: 1750,
-    estimatedTime: 25,
-  };
+  const orderId = proposal?.order_id || proposal?.id;
+  const restaurantName = proposal?.restaurant_name || proposal?.restaurant?.name || 'Restaurant';
+  const restaurantAddress = proposal?.restaurant_address || proposal?.restaurant?.address || '';
+  const deliveryFee = Number(proposal?.delivery_fee ?? proposal?.total ?? proposal?.earnings ?? 0);
+  const customerArea = proposal?.customer_area || proposal?.customer?.area || proposal?.delivery_address?.address_line || 'Livraison';
+  const landmark = proposal?.landmark || proposal?.customer?.landmark || '';
+  const totalDistance = proposal?.total_distance_km ?? proposal?.customer?.totalDistance ?? 0;
+  const estimatedTime = proposal?.estimated_time_minutes ?? proposal?.estimatedTime ?? 25;
+
+  const handleDecline = useCallback(async () => {
+    if (respondedRef.current) return;
+    respondedRef.current = true;
+    setDeclining(true);
+    clearPendingAlert();
+    try {
+      if (orderId) await declineOrder(orderId, 'Refus proposition');
+      navigation.goBack();
+    } catch (e) {
+      respondedRef.current = false;
+      setDeclining(false);
+      Alert.alert('Erreur', e?.response?.data?.error?.message || 'Impossible de refuser.');
+    }
+  }, [orderId, clearPendingAlert, navigation]);
+
+  const handleAccept = useCallback(async () => {
+    if (respondedRef.current || !orderId) return;
+    respondedRef.current = true;
+    setAccepting(true);
+    clearPendingAlert();
+    try {
+      await acceptOrder(orderId);
+      setCurrentDelivery({ id: orderId, order_id: orderId, earnings: deliveryFee, restaurant: { name: restaurantName, address: restaurantAddress }, customer: { area: customerArea, landmark }, estimatedTime });
+      navigation.replace('NavigationToRestaurant', { orderId });
+    } catch (e) {
+      respondedRef.current = false;
+      setAccepting(false);
+      Alert.alert('Erreur', e?.response?.data?.error?.message || 'Impossible d\'accepter la course.');
+    }
+  }, [orderId, deliveryFee, restaurantName, restaurantAddress, customerArea, landmark, estimatedTime, clearPendingAlert, setCurrentDelivery, navigation]);
 
   useEffect(() => {
-    // Vibrate on mount
     Vibration.vibrate([0, 500, 200, 500]);
-
-    // Countdown timer
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -48,23 +78,11 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
         return prev - 1;
       });
     }, 1000);
-
     return () => {
       clearInterval(interval);
       Vibration.cancel();
     };
-  }, []);
-
-  const handleAccept = () => {
-    setCurrentDelivery(delivery);
-    clearPendingAlert();
-    navigation.replace('NavigationToRestaurant', { delivery });
-  };
-
-  const handleDecline = () => {
-    clearPendingAlert();
-    navigation.goBack();
-  };
+  }, [handleDecline]);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -87,11 +105,11 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
               </View>
               <Text style={styles.sectionLabel}>Récupération</Text>
             </View>
-            <Text style={styles.sectionTitle}>{delivery.restaurant.name}</Text>
-            <Text style={styles.sectionSubtitle}>{delivery.restaurant.address}</Text>
-            <Text style={styles.sectionDistance}>
-              Distance: {delivery.restaurant.distance} km
-            </Text>
+            <Text style={styles.sectionTitle}>{restaurantName}</Text>
+            {restaurantAddress ? <Text style={styles.sectionSubtitle}>{restaurantAddress}</Text> : null}
+            {totalDistance > 0 ? (
+              <Text style={styles.sectionDistance}>Distance totale: {Number(totalDistance).toFixed(1)} km</Text>
+            ) : null}
           </View>
 
           <View style={styles.divider} />
@@ -104,11 +122,11 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
               </View>
               <Text style={styles.sectionLabel}>Livraison</Text>
             </View>
-            <Text style={styles.sectionTitle}>{delivery.customer.area}</Text>
-            <Text style={styles.sectionSubtitle}>{delivery.customer.landmark}</Text>
-            <Text style={styles.sectionDistance}>
-              Distance totale: {delivery.customer.totalDistance} km
-            </Text>
+            <Text style={styles.sectionTitle}>{customerArea}</Text>
+            {landmark ? <Text style={styles.sectionSubtitle}>{landmark}</Text> : null}
+            {totalDistance > 0 ? (
+              <Text style={styles.sectionDistance}>Distance totale: {Number(totalDistance).toFixed(1)} km</Text>
+            ) : null}
           </View>
 
           <View style={styles.divider} />
@@ -117,12 +135,12 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
           <View style={styles.earningsRow}>
             <View style={styles.earningItem}>
               <Ionicons name="cash" size={24} color={COLORS.success} />
-              <Text style={styles.earningValue}>{delivery.earnings.toLocaleString()} FCFA</Text>
+              <Text style={styles.earningValue}>{deliveryFee.toLocaleString()} FCFA</Text>
               <Text style={styles.earningLabel}>Rémunération</Text>
             </View>
             <View style={styles.earningItem}>
               <Ionicons name="time" size={24} color={COLORS.info} />
-              <Text style={styles.earningValue}>{delivery.estimatedTime} min</Text>
+              <Text style={styles.earningValue}>{estimatedTime} min</Text>
               <Text style={styles.earningLabel}>Temps estimé</Text>
             </View>
           </View>
@@ -136,14 +154,22 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
 
         {/* Actions */}
         <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.acceptButton} onPress={handleAccept}>
-            <Ionicons name="checkmark" size={24} color="#FFFFFF" />
-            <Text style={styles.acceptButtonText}>ACCEPTER</Text>
+          <TouchableOpacity
+            style={[styles.acceptButton, (accepting || declining) && styles.buttonDisabled]}
+            onPress={handleAccept}
+            disabled={accepting || declining}
+          >
+            {accepting ? <ActivityIndicator size="small" color="#FFFFFF" /> : <Ionicons name="checkmark" size={24} color="#FFFFFF" />}
+            <Text style={styles.acceptButtonText}>{accepting ? 'Acceptation…' : 'ACCEPTER'}</Text>
           </TouchableOpacity>
           
-          <TouchableOpacity style={styles.declineButton} onPress={handleDecline}>
-            <Ionicons name="close" size={24} color={COLORS.error} />
-            <Text style={styles.declineButtonText}>REFUSER</Text>
+          <TouchableOpacity
+            style={[styles.declineButton, (accepting || declining) && styles.buttonDisabled]}
+            onPress={handleDecline}
+            disabled={accepting || declining}
+          >
+            {declining ? <ActivityIndicator size="small" color={COLORS.error} /> : <Ionicons name="close" size={24} color={COLORS.error} />}
+            <Text style={styles.declineButtonText}>{declining ? '…' : 'REFUSER'}</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -293,5 +319,8 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     color: COLORS.error,
+  },
+  buttonDisabled: {
+    opacity: 0.7,
   },
 });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, Linking, Platform, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, Alert, ActivityIndicator, Image } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
@@ -7,6 +8,7 @@ import { COLORS } from '../../constants/colors';
 import { arriveAtCustomer, getOrderDetail, trackOrder } from '../../api/orders';
 import { orderToDeliveryShape } from '../../utils/orderToDelivery';
 import { updateLocation } from '../../api/delivery';
+import soundService from '../../services/soundService';
 import { getImageUrl } from '../../utils/url';
 
 const KORHOGO_FALLBACK = { latitude: 9.4580, longitude: -5.6294 };
@@ -17,12 +19,13 @@ const normalizeImageUrl = (url) => {
   try {
     return getImageUrl ? getImageUrl(url) : url;
   } catch (error) {
-    console.warn('Erreur normalisation URL image:', error);
+    if (__DEV__) console.warn('Erreur normalisation URL image:', error?.message || error);
     return url;
   }
 };
 
 export default function NavigationToCustomerScreen({ navigation, route }) {
+  const insets = useSafeAreaInsets();
   const initialDelivery = route.params?.delivery;
   const orderIdParam = route.params?.orderId;
   const mapRef = useRef(null);
@@ -47,64 +50,28 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
       .then((res) => {
         if (cancelled) return;
         const order = res?.data?.order || res?.order || res?.data;
-        console.log('📦 Données commande reçues (getOrderDetail - client):', {
-          client_first_name: order?.client_first_name,
-          client_last_name: order?.client_last_name,
-          client_phone: order?.client_phone,
-          restaurant_name: order?.restaurant_name,
-          restaurant_logo: order?.restaurant_logo,
-          delivery_address: order?.delivery_address,
-          customer: order?.customer,
-        });
+        if (__DEV__) console.log('📦 Données commande reçues (getOrderDetail - client):', order?.order_number);
         const deliveryData = orderToDeliveryShape(order);
-        console.log('🚚 Données delivery transformées (client):', {
-          customer_name: deliveryData?.customer?.name,
-          customer_address: deliveryData?.customer?.address,
-          customer_area: deliveryData?.customer?.area,
-          customer_phone: deliveryData?.customer?.phone,
-          client_first_name: deliveryData?.client_first_name,
-          client_last_name: deliveryData?.client_last_name,
-          client_phone: deliveryData?.client_phone,
-          restaurant_name: deliveryData?.restaurant?.name,
-          restaurant_logo: deliveryData?.restaurant?.logo,
-        });
+        if (__DEV__) console.log('🚚 Données delivery transformées (client):', deliveryData?.order_number);
         setDelivery(deliveryData);
         if (!cancelled) setLoading(false);
       })
       .catch((err) => {
         if (cancelled) return;
         // Si getOrderDetail échoue (ex: accès interdit), essayer trackOrder
-        console.warn('getOrderDetail échoué, tentative avec trackOrder:', err?.message || err);
+        if (__DEV__) console.warn('getOrderDetail échoué, tentative avec trackOrder:', err?.message || err);
         return trackOrder(orderIdParam);
       })
       .then((res) => {
         if (cancelled || !res) return;
         const order = res?.data?.order || res?.order || res?.data;
-        console.log('📦 Données commande reçues (trackOrder - client):', {
-          client_first_name: order?.client_first_name,
-          client_last_name: order?.client_last_name,
-          client_phone: order?.client_phone,
-          restaurant_name: order?.restaurant_name,
-          restaurant_logo: order?.restaurant_logo,
-          delivery_address: order?.delivery_address,
-          customer: order?.customer,
-        });
+        if (__DEV__) console.log('📦 Données commande reçues (trackOrder - client):', order?.order_number);
         const deliveryData = orderToDeliveryShape(order);
-        console.log('🚚 Données delivery transformées (client):', {
-          customer_name: deliveryData?.customer?.name,
-          customer_address: deliveryData?.customer?.address,
-          customer_area: deliveryData?.customer?.area,
-          customer_phone: deliveryData?.customer?.phone,
-          client_first_name: deliveryData?.client_first_name,
-          client_last_name: deliveryData?.client_last_name,
-          client_phone: deliveryData?.client_phone,
-          restaurant_name: deliveryData?.restaurant?.name,
-          restaurant_logo: deliveryData?.restaurant?.logo,
-        });
+        if (__DEV__) console.log('🚚 Données delivery transformées (trackOrder):', deliveryData?.order_number);
         setDelivery(deliveryData);
       })
       .catch((err) => {
-        if (!cancelled) console.warn('Erreur chargement commande:', err?.message || err);
+        if (!cancelled && __DEV__) console.warn('Erreur chargement commande:', err?.message || err);
       })
       .finally(() => {
         if (!cancelled) setLoading(false);
@@ -124,8 +91,19 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
       try {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted' || cancelled) return;
-        const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Balanced });
-        if (!cancelled) setDriverLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        const getLocation = () => Location.getCurrentPositionAsync(
+          { accuracy: Location.Accuracy.Balanced }
+        );
+        let loc;
+        try {
+          loc = await getLocation();
+        } catch (firstErr) {
+          await new Promise(r => setTimeout(r, 2000));
+          if (cancelled) return;
+          loc = await getLocation();
+        }
+        if (!cancelled && loc) setDriverLocation({ latitude: loc.coords.latitude, longitude: loc.coords.longitude });
+        if (cancelled) return;
         locationSubscription.current = Location.watchPositionAsync(
           { accuracy: Location.Accuracy.Balanced, timeInterval: 5000, distanceInterval: 20 },
           (l) => {
@@ -135,7 +113,7 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
           }
         );
       } catch (e) {
-        if (!cancelled) console.warn('GPS:', e?.message || e);
+        if (!cancelled && __DEV__) console.warn('GPS:', e?.message || e);
       }
     })();
     return () => {
@@ -162,11 +140,7 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
 
   const callCustomer = () => {
     const phone = delivery?.customer?.phone || delivery?.client_phone;
-    console.log('📞 Tentative d\'appel client:', {
-      customer_phone: delivery?.customer?.phone,
-      client_phone: delivery?.client_phone,
-      phone_final: phone,
-    });
+    if (__DEV__) console.log('📞 Appel client déclenché');
     if (!phone) {
       Alert.alert('Information', 'Le numéro du client n\'est pas disponible');
       return;
@@ -182,17 +156,14 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
         { text: 'Annuler', style: 'cancel' },
         { text: 'Appeler le client', onPress: callCustomer },
         { text: 'Client absent', onPress: () => handleCustomerAbsent() },
+        { text: 'Adresse incorrecte', onPress: () => navigation.navigate('WrongAddress', { delivery }) },
         { text: 'Contacter le support', onPress: () => navigation.navigate('SupportChat') },
       ]
     );
   };
 
   const handleCustomerAbsent = () => {
-    Alert.alert(
-      'Client absent',
-      'Patientez 5 minutes puis contactez le support si le client ne répond pas.',
-      [{ text: 'OK' }]
-    );
+    navigation.navigate('ClientAbsent', { delivery });
   };
 
   // Signaler l'arrivée chez le client
@@ -204,17 +175,15 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
       const orderId = delivery?.id || delivery?.order_id;
       if (orderId) {
         await arriveAtCustomer(orderId);
-        console.log('✅ Arrivée chez le client signalée');
+        soundService.alertOrderReady(); // Même retour son/vibration que pour "commande prête"
       }
-      // Naviguer vers l'écran de code de confirmation
-      navigation.navigate('ConfirmationCode', { delivery });
+      navigation.navigate('DeliveryProofPhoto', { delivery });
     } catch (error) {
-      console.error('Erreur arrivée client:', error);
-      // Même en cas d'erreur, permettre de continuer
+      if (__DEV__) console.warn('Erreur arrivée client:', error?.message || error);
       Alert.alert(
         'Information',
-        'Erreur de synchronisation. Vous pouvez continuer.',
-        [{ text: 'OK', onPress: () => navigation.navigate('ConfirmationCode', { delivery }) }]
+        'Connexion interrompue. Vous pouvez continuer.',
+        [{ text: 'OK', onPress: () => navigation.navigate('DeliveryProofPhoto', { delivery }) }]
       );
     } finally {
       setArriving(false);
@@ -314,7 +283,7 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
       </View>
 
       {/* Info Panel */}
-      <View style={styles.infoPanel}>
+      <View style={[styles.infoPanel, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <View style={styles.infoPanelHeader}>
           <View style={styles.stepIndicator}>
             <View style={[styles.stepDot, styles.stepDotCompleted]}>
@@ -393,9 +362,7 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
                   source={{ uri: normalizeImageUrl(delivery.restaurant.logo) }} 
                   style={styles.restaurantLogo}
                   resizeMode="cover"
-                  onError={(error) => {
-                    console.warn('Erreur chargement logo restaurant:', error);
-                  }}
+                  onError={() => {}}
                 />
               ) : (
                 <Ionicons name={delivery?.order_type === 'express' ? 'cube' : 'restaurant'} size={18} color={COLORS.primary} />

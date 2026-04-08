@@ -4,7 +4,7 @@
 // IMPORTANT: Mettez à jour l'IP ci-dessous avec l'IP affichée par le serveur backend
 // L'IP réseau est affichée au démarrage du backend : "🌐 URL réseau: http://192.168.1.X:5000"
 const API_BASE_URL = process.env.EXPO_PUBLIC_API_URL
-  || (__DEV__ ? 'http://192.168.1.16:5000/api/v1' : 'https://baibebaloprojets.onrender.com/api/v1');
+  || (__DEV__ ? 'http://192.168.1.13:5000/api/v1' : 'https://baibebaloprojets.onrender.com/api/v1');
 
 export const API_ENDPOINTS = {
   // Authentification

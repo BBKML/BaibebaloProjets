@@ -8,6 +8,7 @@ import {
   ScrollView,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 
 let SCREEN_WIDTH = 390;
@@ -19,6 +20,7 @@ try {
 } catch (_) {}
 
 export default function OnboardingWelcomeScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [currentPage, setCurrentPage] = useState(0);
   const scrollViewRef = useRef(null);  // ✅ Référence au ScrollView
 
@@ -118,7 +120,7 @@ export default function OnboardingWelcomeScreen({ navigation }) {
       </View>
 
       {/* Bouton Suivant */}
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity
           style={styles.nextButton}
           onPress={handleNext}

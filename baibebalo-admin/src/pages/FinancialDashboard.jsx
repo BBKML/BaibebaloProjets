@@ -7,6 +7,7 @@ import { financesAPI } from '../api/finances';
 import { exportToCSV } from '../utils/export';
 import BarChart from '../components/charts/BarChart';
 import PieChart from '../components/charts/PaymentMethodChart';
+import KPICard from '../components/dashboard/KPICard';
 import KPICardSkeleton from '../components/common/KPICardSkeleton';
 import ChartSkeleton from '../components/common/ChartSkeleton';
 import TableSkeleton from '../components/common/TableSkeleton';
@@ -14,10 +15,10 @@ import TableSkeleton from '../components/common/TableSkeleton';
 const FinancialDashboard = () => {
   const [period, setPeriod] = useState('month');
 
-  // Charger les données financières depuis l'API
+  // Charger les données financières depuis l'API (period = week | month | year)
   const { data: financialData, isLoading: isLoadingFinancial } = useQuery({
     queryKey: ['financial-overview', period],
-    queryFn: () => financesAPI.getFinancialOverview(),
+    queryFn: () => financesAPI.getFinancialOverview({ period }),
     retry: 2,
   });
 
@@ -120,179 +121,116 @@ const FinancialDashboard = () => {
     <Layout>
       <div className="space-y-8">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <h2 className="text-lg font-bold text-slate-900 dark:text-white">Dashboard Financier Global</h2>
-          <div className="flex items-center gap-4">
-            <div className="max-w-md w-full">
-              <div className="relative">
-                <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">
-                  search
-                </span>
-                <input
-                  className="w-full bg-slate-50 dark:bg-slate-800 border-none rounded-lg pl-10 pr-4 py-2 text-sm focus:ring-2 focus:ring-primary/20"
-                  placeholder="Rechercher une transaction..."
-                  type="text"
-                />
-              </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">Finances</h1>
+            <p className="text-slate-500 dark:text-slate-400 mt-1 text-sm">Vue d'ensemble financière de la plateforme</p>
+          </div>
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {/* Sélecteur de période */}
+            <div className="flex gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-full">
+              {[
+                { value: 'week', label: 'Semaine' },
+                { value: 'month', label: 'Mois' },
+                { value: 'year', label: 'Année' },
+              ].map(({ value, label }) => (
+                <button
+                  key={value}
+                  onClick={() => setPeriod(value)}
+                  className={`px-3 py-1 rounded-full text-xs font-bold transition-all ${
+                    period === value
+                      ? 'bg-white dark:bg-slate-700 text-slate-900 dark:text-white shadow-sm'
+                      : 'text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+                  }`}
+                >
+                  {label}
+                </button>
+              ))}
             </div>
-            <button className="p-2 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg relative">
-              <span className="material-symbols-outlined">notifications</span>
-              <span className="absolute top-2 right-2 size-2 bg-red-500 rounded-full border-2 border-white dark:border-slate-800"></span>
-            </button>
-            <button 
+            <button
               onClick={handleExport}
               disabled={isLoading}
-              className="flex items-center gap-2 px-3 py-2 bg-primary text-white rounded-lg text-sm font-semibold hover:bg-primary/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-full text-xs font-bold hover:bg-primary/90 transition-all shadow-md shadow-primary/20 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <span className="material-symbols-outlined text-[18px]">download</span>
-              <span>Exporter</span>
+              <span className="material-symbols-outlined text-[16px]">download</span>
+              Exporter
             </button>
           </div>
         </div>
 
         {/* KPI Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl flex flex-col gap-4">
-            <div className="flex justify-between items-start">
-              <div className="p-2 bg-primary/10 text-primary rounded-lg">
-                <span className="material-symbols-outlined">payments</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">CA Total</p>
-              <h3 className="text-2xl font-bold mt-1 tracking-tight text-slate-900 dark:text-white">
-                {formatCurrency(overview.total_revenue || 0)}
-              </h3>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl flex flex-col gap-4">
-            <div className="flex justify-between items-start">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                <span className="material-symbols-outlined">account_balance_wallet</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Revenus Plateforme</p>
-              <h3 className="text-2xl font-bold mt-1 tracking-tight text-slate-900 dark:text-white">
-                {formatCurrency(totalPlatformRevenue)}
-              </h3>
-              <div className="text-xs text-slate-500 dark:text-slate-400 mt-1 space-y-0.5">
-                <div>Restaurants: {formatCurrency(commissionFromRestaurants)}</div>
-                <div>Livraisons: {formatCurrency(commissionFromDelivery)}</div>
-              </div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl flex flex-col gap-4">
-            <div className="flex justify-between items-start">
-              <div className="p-2 bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg">
-                <span className="material-symbols-outlined">trending_down</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Dépenses</p>
-              <h3 className="text-2xl font-bold mt-1 tracking-tight text-slate-900 dark:text-white">
-                {formatCurrency(expenses.total || 0)}
-              </h3>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl flex flex-col gap-4">
-            <div className="flex justify-between items-start">
-              <div className={`p-2 rounded-lg ${netProfit >= 0 ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400' : 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400'}`}>
-                <span className="material-symbols-outlined">{netProfit >= 0 ? 'trending_up' : 'trending_down'}</span>
-              </div>
-            </div>
-            <div>
-              <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">Bénéfice Net</p>
-              <h3 className={`text-2xl font-bold mt-1 tracking-tight ${netProfit >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
-                {formatCurrency(netProfit)}
-              </h3>
-              {profitMargin > 0 && (
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Marge: {profitMargin}%
-                </p>
-              )}
-            </div>
-          </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <KPICard
+            title="CA Total"
+            value={formatCurrency(overview.total_revenue || 0)}
+            iconName="payments"
+            color="primary"
+            subtitle={`${overview.total_orders || 0} commandes`}
+          />
+          <KPICard
+            title="Revenus Plateforme"
+            value={formatCurrency(totalPlatformRevenue)}
+            iconName="account_balance_wallet"
+            color="blue"
+            subtitle={`Restaurants: ${formatCurrency(commissionFromRestaurants)}`}
+          />
+          <KPICard
+            title="Dépenses"
+            value={formatCurrency(expenses.total || 0)}
+            iconName="trending_down"
+            color="red"
+            subtitle="Livreurs + restaurants"
+          />
+          <KPICard
+            title="Bénéfice Net"
+            value={formatCurrency(netProfit)}
+            iconName={netProfit >= 0 ? 'trending_up' : 'trending_down'}
+            color={netProfit >= 0 ? 'green' : 'red'}
+            subtitle={profitMargin > 0 ? `Marge: ${profitMargin}%` : undefined}
+          />
         </div>
 
         {/* Détails des commissions */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 rounded-lg">
-                <span className="material-symbols-outlined">store</span>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[
+            {
+              icon: 'store', color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-500/10',
+              label: 'Commission Restaurants', value: formatCurrency(commissionFromRestaurants),
+              sub: 'Sur les commandes food',
+            },
+            {
+              icon: 'delivery_dining', color: 'text-blue-500', bg: 'bg-blue-50 dark:bg-blue-500/10',
+              label: 'Commission Livraisons', value: formatCurrency(commissionFromDelivery),
+              sub: `Livreurs ont reçu ${formatCurrency(deliveryPayouts)}`,
+            },
+            {
+              icon: 'account_balance', color: 'text-violet-500', bg: 'bg-violet-50 dark:bg-violet-500/10',
+              label: 'Total Commissions', value: formatCurrency(totalPlatformRevenue),
+              sub: 'Revenus nets Baibebalo',
+            },
+          ].map(({ icon, color, bg, label, value, sub }) => (
+            <div key={label} className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-5 rounded-xl flex items-center gap-4">
+              <div className={`p-3 rounded-xl ${bg} flex-shrink-0`}>
+                <span className={`material-symbols-outlined ${color}`} style={{ fontSize: '22px' }}>{icon}</span>
               </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Commission Restaurants</p>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(commissionFromRestaurants)}
-                </h3>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Commission sur les commandes des restaurants
-            </p>
-          </div>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-lg">
-                <span className="material-symbols-outlined">delivery_dining</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Commission Livraisons</p>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(commissionFromDelivery)}
-                </h3>
-              </div>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              30% des frais de livraison (Baibebalo garde 30%, livreurs reçoivent 70%)
-            </p>
-            <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-              <div>Livreurs ont gagné: <span className="font-bold">{formatCurrency(deliveryPayouts)}</span></div>
-            </div>
-          </div>
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-6 rounded-xl">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 rounded-lg">
-                <span className="material-symbols-outlined">account_balance</span>
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-500 dark:text-slate-400">Total Commissions</p>
-                <h3 className="text-xl font-bold text-slate-900 dark:text-white">
-                  {formatCurrency(totalPlatformRevenue)}
-                </h3>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold text-slate-500 dark:text-slate-400 truncate">{label}</p>
+                <p className="text-xl font-black text-slate-900 dark:text-white tracking-tight mt-0.5">{value}</p>
+                <p className="text-xs text-slate-400 dark:text-slate-500 mt-0.5">{sub}</p>
               </div>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Revenus totaux de la plateforme Baibebalo
-            </p>
-            {platformRevenue.breakdown && (
-              <div className="mt-2 text-xs text-slate-600 dark:text-slate-300">
-                <div>Restaurants: {platformRevenue.breakdown.restaurants_percent}%</div>
-                <div>Livraisons: {platformRevenue.breakdown.delivery_percent}%</div>
-              </div>
-            )}
-          </div>
+          ))}
         </div>
 
         {/* Charts Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* Bar Chart: Revenue Evolution */}
           <div className="lg:col-span-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl p-6">
-            <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center justify-between mb-6">
               <div>
                 <h4 className="font-bold text-slate-900 dark:text-white">Évolution du CA</h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400">Revenus cumulés sur les 6 derniers mois</p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Revenus cumulés sur les 6 derniers mois</p>
               </div>
-              <select
-                className="bg-slate-50 dark:bg-slate-800 border-none text-xs rounded-lg px-3 py-1.5 focus:ring-0"
-                value={period}
-                onChange={(e) => setPeriod(e.target.value)}
-              >
-                <option value="6months">Derniers 6 mois</option>
-                <option value="12months">Dernières 12 mois</option>
-              </select>
             </div>
             <div className="h-64 relative min-h-[256px]">
               <BarChart data={revenueData} dataKey="value" nameKey="name" color="#0ca3e9" />
@@ -329,8 +267,9 @@ const FinancialDashboard = () => {
 
         {/* Recent Transactions Table */}
         <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl overflow-hidden shadow-sm">
-          <div className="p-6 border-b border-slate-200 dark:border-slate-800">
-            <h3 className="font-bold text-lg text-slate-900 dark:text-white">Transactions Récentes</h3>
+          <div className="px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+            <h3 className="font-bold text-slate-900 dark:text-white">Transactions Récentes</h3>
+            <span className="text-xs text-slate-400">Données indicatives</span>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-left">

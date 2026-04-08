@@ -99,7 +99,7 @@ const CommissionSettings = () => {
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6">
           <div className="flex flex-col gap-2">
-            <h1 className="text-3xl font-black leading-tight tracking-tight text-slate-900 dark:text-white">
+            <h1 className="text-2xl font-black leading-tight tracking-tight text-slate-900 dark:text-white">
               Configuration des Commissions
             </h1>
             <p className="text-slate-500 dark:text-slate-400 max-w-xl">

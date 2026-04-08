@@ -6,113 +6,154 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
-  Alert,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import { COLORS } from '../../constants/colors';
 import { restaurantPromotions } from '../../api/promotions';
-import useRestaurantStore from '../../store/restaurantStore';
+import Toast from 'react-native-toast-message';
 
-const PROMOTION_TYPES = [
-  { id: 'total_discount', label: 'Réduction sur le total', icon: 'receipt' },
-  { id: 'item_discount', label: 'Réduction sur un plat', icon: 'restaurant' },
-  { id: 'bundle', label: 'Offre groupée', icon: 'cube' },
-  { id: 'free_delivery', label: 'Livraison gratuite', icon: 'car' },
-  { id: 'new_customer', label: 'Nouveau client', icon: 'person-add' },
+const PROMO_TYPES = [
+  {
+    id: 'percentage',
+    label: 'Réduction en %',
+    icon: 'pricetag',
+    description: 'Ex: -20% sur la commande',
+    color: '#3B82F6',
+  },
+  {
+    id: 'fixed_amount',
+    label: 'Réduction fixe (FCFA)',
+    icon: 'cash',
+    description: 'Ex: -500 FCFA sur la commande',
+    color: '#10B981',
+  },
+  {
+    id: 'free_delivery',
+    label: 'Livraison gratuite',
+    icon: 'bicycle',
+    description: 'Offrir les frais de livraison',
+    color: '#F59E0B',
+  },
 ];
 
-export default function CreateAdvancedPromotionScreen({ navigation }) {
-  const { menu } = useRestaurantStore();
-  const [formData, setFormData] = useState({
-    type: 'total_discount',
-    selectedItem: null,
-    discount: '',
-    discountType: 'percentage', // percentage or fixed
-    startDate: new Date(),
-    endDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-    minOrderAmount: null,
-    maxUses: null,
-    perCustomerLimit: null,
-    newCustomersOnly: false,
-    loyalCustomersOnly: false,
-    showBadge: true,
-    notifySubscribers: true,
-    paidVisibility: false,
-  });
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
-  const [loading, setLoading] = useState(false);
+const QUICK_CODES = ['BIENVENUE', 'PROMO10', 'FLASH20', 'FIDELITE', 'ETE2024'];
+
+function generateCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+}
+
+export default function CreateAdvancedPromotionScreen({ navigation, route }) {
+  const editingPromotion = route.params?.promotion || null;
   const insets = useSafeAreaInsets();
 
+  const [type, setType] = useState(editingPromotion?.type || 'percentage');
+  const [code, setCode] = useState(editingPromotion?.code || '');
+  const [value, setValue] = useState(editingPromotion?.value?.toString() || '');
+  const [minOrderAmount, setMinOrderAmount] = useState(
+    editingPromotion?.min_order_amount?.toString() || ''
+  );
+  const [maxDiscount, setMaxDiscount] = useState(
+    editingPromotion?.max_discount?.toString() || ''
+  );
+  const [usageLimit, setUsageLimit] = useState(
+    editingPromotion?.usage_limit?.toString() || ''
+  );
+  const [validFrom, setValidFrom] = useState(
+    editingPromotion?.valid_from ? new Date(editingPromotion.valid_from) : new Date()
+  );
+  const [validUntil, setValidUntil] = useState(
+    editingPromotion?.valid_until
+      ? new Date(editingPromotion.valid_until)
+      : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+  );
+  const [errors, setErrors] = useState({});
+  const [loading, setLoading] = useState(false);
+
+  const selectedType = PROMO_TYPES.find((t) => t.id === type);
+
   const validate = () => {
-    if (!formData.discount || parseFloat(formData.discount) <= 0) {
-      Alert.alert('Erreur', 'Veuillez entrer une réduction valide');
-      return false;
+    const newErrors = {};
+    const cleanCode = code.trim().toUpperCase();
+
+    if (!cleanCode) {
+      newErrors.code = 'Le code promo est obligatoire';
+    } else if (cleanCode.length < 3 || cleanCode.length > 50) {
+      newErrors.code = 'Entre 3 et 50 caractères';
+    } else if (!/^[A-Z0-9_-]+$/.test(cleanCode)) {
+      newErrors.code = 'Lettres majuscules, chiffres, tirets et _ uniquement';
     }
-    if (formData.discountType === 'percentage' && parseFloat(formData.discount) > 100) {
-      Alert.alert('Erreur', 'La réduction ne peut pas dépasser 100%');
-      return false;
+
+    if (type !== 'free_delivery') {
+      if (!value.trim()) {
+        newErrors.value = 'La valeur est obligatoire';
+      } else if (isNaN(parseFloat(value)) || parseFloat(value) <= 0) {
+        newErrors.value = 'Valeur invalide';
+      } else if (type === 'percentage' && parseFloat(value) > 100) {
+        newErrors.value = 'Maximum 100%';
+      }
     }
-    if (formData.type === 'item_discount' && !formData.selectedItem) {
-      Alert.alert('Erreur', 'Veuillez sélectionner un plat');
-      return false;
+
+    if (validUntil <= validFrom) {
+      newErrors.dates = 'La date de fin doit être après la date de début';
     }
-    if (formData.endDate <= formData.startDate) {
-      Alert.alert('Erreur', 'La date de fin doit être après la date de début');
-      return false;
-    }
-    return true;
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async () => {
-    if (!validate()) {
-      return;
-    }
+    if (!validate()) return;
 
     setLoading(true);
     try {
-      // Mapper les types de promotion vers le format backend
-      const typeMapping = {
-        'total_discount': 'percentage',
-        'item_discount': 'percentage', // ou 'fixed_amount' selon le discountType
-        'bundle': 'bundle',
-        'free_delivery': 'free_delivery',
-        'new_customer': 'percentage',
+      const payload = {
+        code: code.trim().toUpperCase(),
+        type,
+        value: type === 'free_delivery' ? 0 : parseFloat(value),
+        valid_from: validFrom.toISOString(),
+        valid_until: validUntil.toISOString(),
+        min_order_amount: minOrderAmount ? parseFloat(minOrderAmount) : undefined,
+        max_discount: maxDiscount ? parseFloat(maxDiscount) : undefined,
+        usage_limit: usageLimit ? parseInt(usageLimit, 10) : undefined,
       };
-      
-      const backendType = typeMapping[formData.type] || 'percentage';
-      const promotionValue = formData.discountType === 'percentage' 
-        ? parseFloat(formData.discount) 
-        : parseFloat(formData.discount);
-      
-      const promotionData = {
-        type: backendType,
-        value: promotionValue,
-        menu_item_id: formData.type === 'item_discount' && formData.selectedItem?.id ? formData.selectedItem.id : undefined,
-        valid_from: formData.startDate.toISOString(),
-        valid_until: formData.endDate.toISOString(),
-        min_order_amount: formData.minOrderAmount || undefined,
-        usage_limit: formData.maxUses || undefined,
-        code: formData.code || undefined,
-      };
-      
-      const response = await restaurantPromotions.createPromotion(promotionData);
-      // Le backend retourne { success: true, data: { promotion: {...} } }
-      if (response.success !== false) {
-        Alert.alert('Succès', 'Promotion créée avec succès', [
-          { text: 'OK', onPress: () => navigation.goBack() },
-        ]);
+
+      if (editingPromotion) {
+        await restaurantPromotions.updatePromotion(editingPromotion.id, payload);
+        Toast.show({ type: 'success', text1: 'Promotion mise à jour' });
+      } else {
+        await restaurantPromotions.createPromotion(payload);
+        Toast.show({
+          type: 'success',
+          text1: 'Code promo créé !',
+          text2: `Code : ${payload.code}`,
+        });
       }
+      navigation.goBack();
     } catch (error) {
-      const errorMessage = error.error?.message || error.message || 'Impossible de créer la promotion';
-      Alert.alert('Erreur', errorMessage);
+      const msg =
+        error?.error?.message || error?.message || 'Impossible de créer la promotion';
+      Toast.show({ type: 'error', text1: 'Erreur', text2: msg });
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatDate = (date) =>
+    date.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+
+  const adjustDate = (current, days) => {
+    const d = new Date(current);
+    d.setDate(d.getDate() + days);
+    return d;
   };
 
   return (
@@ -120,320 +161,351 @@ export default function CreateAdvancedPromotionScreen({ navigation }) {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
     >
-      <View style={[styles.header, { paddingTop: insets.top }]}>
-        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
+      {/* Header */}
+      <View style={[styles.header, { paddingTop: insets.top + 8 }]}>
+        <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backBtn}>
           <Ionicons name="arrow-back" size={24} color={COLORS.text} />
         </TouchableOpacity>
-        <Text style={styles.title}>Créer une promotion</Text>
-        <View style={styles.placeholder} />
+        <Text style={styles.headerTitle}>
+          {editingPromotion ? 'Modifier le code promo' : 'Nouveau code promo'}
+        </Text>
+        <View style={{ width: 40 }} />
       </View>
 
       <ScrollView
-        style={styles.content}
+        style={styles.scroll}
         contentContainerStyle={styles.scrollContent}
         keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
       >
-        {/* Type de promotion */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Type de promotion *</Text>
-          <View style={styles.typesContainer}>
-            {PROMOTION_TYPES.map((type) => (
+        {/* Section : Type */}
+        <Text style={styles.sectionTitle}>Type de réduction</Text>
+        <View style={styles.card}>
+          {PROMO_TYPES.map((t, i) => (
+            <React.Fragment key={t.id}>
               <TouchableOpacity
-                key={type.id}
-                style={[
-                  styles.typeCard,
-                  formData.type === type.id && styles.typeCardSelected,
-                ]}
-                onPress={() => setFormData({ ...formData, type: type.id })}
+                style={[styles.typeRow, type === t.id && styles.typeRowSelected]}
+                onPress={() => setType(t.id)}
+                activeOpacity={0.7}
               >
-                <Ionicons
-                  name={type.icon}
-                  size={24}
-                  color={formData.type === type.id ? COLORS.primary : COLORS.textSecondary}
-                />
-                <Text
+                <View style={[styles.typeIconBox, { backgroundColor: t.color + '20' }]}>
+                  <Ionicons name={t.icon} size={20} color={t.color} />
+                </View>
+                <View style={styles.typeInfo}>
+                  <Text style={[styles.typeLabel, type === t.id && { color: COLORS.primary }]}>
+                    {t.label}
+                  </Text>
+                  <Text style={styles.typeDesc}>{t.description}</Text>
+                </View>
+                <View
                   style={[
-                    styles.typeLabel,
-                    formData.type === type.id && styles.typeLabelSelected,
+                    styles.radioOuter,
+                    type === t.id && { borderColor: COLORS.primary },
                   ]}
                 >
-                  {type.label}
+                  {type === t.id && <View style={styles.radioInner} />}
+                </View>
+              </TouchableOpacity>
+              {i < PROMO_TYPES.length - 1 && <View style={styles.sep} />}
+            </React.Fragment>
+          ))}
+        </View>
+
+        {/* Section : Code promo */}
+        <Text style={styles.sectionTitle}>Code promo *</Text>
+        <View style={styles.card}>
+          <View style={styles.codeInputRow}>
+            <TextInput
+              style={[styles.codeInput, errors.code && styles.inputError]}
+              placeholder="Ex: BIENVENUE20"
+              value={code}
+              onChangeText={(t) => {
+                setCode(t.toUpperCase().replace(/[^A-Z0-9_-]/g, ''));
+                setErrors((e) => ({ ...e, code: null }));
+              }}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              maxLength={50}
+            />
+            <TouchableOpacity
+              style={styles.genBtn}
+              onPress={() => setCode(generateCode())}
+            >
+              <Ionicons name="refresh" size={18} color={COLORS.primary} />
+              <Text style={styles.genBtnText}>Générer</Text>
+            </TouchableOpacity>
+          </View>
+          {errors.code ? (
+            <Text style={styles.errorText}>{errors.code}</Text>
+          ) : (
+            <Text style={styles.hint}>
+              Lettres majuscules, chiffres, tirets (ex: PROMO-20, ETE2024)
+            </Text>
+          )}
+
+          {/* Raccourcis */}
+          <Text style={styles.quickLabel}>Suggestions rapides</Text>
+          <View style={styles.quickRow}>
+            {QUICK_CODES.map((qc) => (
+              <TouchableOpacity
+                key={qc}
+                style={[styles.quickChip, code === qc && styles.quickChipActive]}
+                onPress={() => setCode(qc)}
+              >
+                <Text
+                  style={[styles.quickChipText, code === qc && styles.quickChipTextActive]}
+                >
+                  {qc}
                 </Text>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
-        {/* Sélection du plat (si type item_discount) */}
-        {formData.type === 'item_discount' && (
-          <View style={styles.section}>
-            <Text style={styles.label}>Plat sélectionné *</Text>
-            <TouchableOpacity
-              style={styles.itemSelector}
-              onPress={() => {
-                // TODO: Ouvrir modal de sélection de plat
-                Alert.alert('Info', 'Sélection de plat à implémenter');
-              }}
-            >
-              <Text style={styles.itemSelectorText}>
-                {formData.selectedItem?.name || 'Sélectionner un plat'}
-              </Text>
-              <Ionicons name="chevron-down" size={20} color={COLORS.textSecondary} />
-            </TouchableOpacity>
-          </View>
+        {/* Section : Valeur (masqué pour livraison gratuite) */}
+        {type !== 'free_delivery' && (
+          <>
+            <Text style={styles.sectionTitle}>
+              {type === 'percentage' ? 'Pourcentage de réduction *' : 'Montant de réduction *'}
+            </Text>
+            <View style={styles.card}>
+              <View style={styles.valueRow}>
+                <TextInput
+                  style={[styles.valueInput, errors.value && styles.inputError]}
+                  placeholder={type === 'percentage' ? '20' : '500'}
+                  value={value}
+                  onChangeText={(t) => {
+                    setValue(t);
+                    setErrors((e) => ({ ...e, value: null }));
+                  }}
+                  keyboardType="numeric"
+                />
+                <View style={styles.valueSuffix}>
+                  <Text style={styles.valueSuffixText}>
+                    {type === 'percentage' ? '%' : 'FCFA'}
+                  </Text>
+                </View>
+              </View>
+              {errors.value && <Text style={styles.errorText}>{errors.value}</Text>}
+              {type === 'percentage' && (
+                <View style={{ marginTop: 12, flexDirection: 'row', gap: 8, flexWrap: 'wrap' }}>
+                  {[5, 10, 15, 20, 30].map((v) => (
+                    <TouchableOpacity
+                      key={v}
+                      style={[
+                        styles.quickChip,
+                        value === v.toString() && styles.quickChipActive,
+                      ]}
+                      onPress={() => setValue(v.toString())}
+                    >
+                      <Text
+                        style={[
+                          styles.quickChipText,
+                          value === v.toString() && styles.quickChipTextActive,
+                        ]}
+                      >
+                        {v}%
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              )}
+
+              {type === 'percentage' && (
+                <View style={styles.condRow}>
+                  <Text style={styles.condLabel}>Réduction max (FCFA)</Text>
+                  <TextInput
+                    style={styles.condInput}
+                    placeholder="Illimitée"
+                    value={maxDiscount}
+                    onChangeText={setMaxDiscount}
+                    keyboardType="numeric"
+                  />
+                </View>
+              )}
+            </View>
+          </>
         )}
 
-        {/* Réduction */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Réduction *</Text>
-          <View style={styles.discountContainer}>
-            <View style={styles.discountTypeContainer}>
-              <TouchableOpacity
-                style={[
-                  styles.discountTypeButton,
-                  formData.discountType === 'percentage' && styles.discountTypeButtonSelected,
-                ]}
-                onPress={() => setFormData({ ...formData, discountType: 'percentage', discount: '' })}
-              >
-                <Text
-                  style={[
-                    styles.discountTypeText,
-                    formData.discountType === 'percentage' && styles.discountTypeTextSelected,
-                  ]}
-                >
-                  %
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.discountTypeButton,
-                  formData.discountType === 'fixed' && styles.discountTypeButtonSelected,
-                ]}
-                onPress={() => setFormData({ ...formData, discountType: 'fixed', discount: '' })}
-              >
-                <Text
-                  style={[
-                    styles.discountTypeText,
-                    formData.discountType === 'fixed' && styles.discountTypeTextSelected,
-                  ]}
-                >
-                  FCFA
-                </Text>
-              </TouchableOpacity>
+        {/* Section : Conditions */}
+        <Text style={styles.sectionTitle}>Conditions d'utilisation</Text>
+        <View style={styles.card}>
+          <View style={styles.condRow}>
+            <View style={styles.condLabelBox}>
+              <Ionicons name="cart-outline" size={16} color={COLORS.textSecondary} />
+              <Text style={styles.condLabel}>Commande minimum (FCFA)</Text>
             </View>
             <TextInput
-              style={styles.discountInput}
-              placeholder={formData.discountType === 'percentage' ? '20' : '500'}
-              value={formData.discount}
-              onChangeText={(text) => setFormData({ ...formData, discount: text })}
+              style={styles.condInput}
+              placeholder="Aucun"
+              value={minOrderAmount}
+              onChangeText={setMinOrderAmount}
+              keyboardType="numeric"
+            />
+          </View>
+          <View style={styles.sep} />
+          <View style={styles.condRow}>
+            <View style={styles.condLabelBox}>
+              <Ionicons name="people-outline" size={16} color={COLORS.textSecondary} />
+              <Text style={styles.condLabel}>Nombre d'utilisations max</Text>
+            </View>
+            <TextInput
+              style={styles.condInput}
+              placeholder="Illimité"
+              value={usageLimit}
+              onChangeText={setUsageLimit}
               keyboardType="numeric"
             />
           </View>
         </View>
 
-        {/* Période */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Période de validité *</Text>
-          <View style={styles.dateRow}>
-            <View style={styles.dateInput}>
-              <Text style={styles.dateLabel}>Début</Text>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowStartDatePicker(true)}
-              >
-                <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.dateText}>
-                  {formData.startDate.toLocaleDateString('fr-FR')} à{' '}
-                  {formData.startDate.toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <View style={styles.dateInput}>
-              <Text style={styles.dateLabel}>Fin</Text>
-              <TouchableOpacity
-                style={styles.dateButton}
-                onPress={() => setShowEndDatePicker(true)}
-              >
-                <Ionicons name="calendar-outline" size={20} color={COLORS.primary} />
-                <Text style={styles.dateText}>
-                  {formData.endDate.toLocaleDateString('fr-FR')} à{' '}
-                  {formData.endDate.toLocaleTimeString('fr-FR', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
-                </Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-
-          {showStartDatePicker && (
-            <DateTimePicker
-              value={formData.startDate}
-              mode="datetime"
-              display="default"
-              onChange={(event, date) => {
-                setShowStartDatePicker(false);
-                if (date) {
-                  setFormData({ ...formData, startDate: date });
-                }
-              }}
-            />
+        {/* Section : Durée */}
+        <Text style={styles.sectionTitle}>Durée de validité</Text>
+        <View style={styles.card}>
+          {errors.dates && (
+            <Text style={[styles.errorText, { marginBottom: 8 }]}>{errors.dates}</Text>
           )}
 
-          {showEndDatePicker && (
-            <DateTimePicker
-              value={formData.endDate}
-              mode="datetime"
-              display="default"
-              onChange={(event, date) => {
-                setShowEndDatePicker(false);
-                if (date) {
-                  setFormData({ ...formData, endDate: date });
-                }
-              }}
-            />
-          )}
-        </View>
+          <View style={styles.datesRow}>
+            {/* Début */}
+            <View style={styles.dateBox}>
+              <Text style={styles.dateBoxLabel}>Début</Text>
+              <View style={styles.dateDisplay}>
+                <Ionicons name="calendar-outline" size={14} color={COLORS.primary} />
+                <Text style={styles.dateDisplayText}>{formatDate(validFrom)}</Text>
+              </View>
+              <View style={styles.dateAdjust}>
+                <TouchableOpacity
+                  style={styles.dateAdjBtn}
+                  onPress={() => setValidFrom(adjustDate(validFrom, -1))}
+                >
+                  <Ionicons name="remove" size={14} color={COLORS.text} />
+                </TouchableOpacity>
+                <Text style={styles.dateAdjLabel}>jour</Text>
+                <TouchableOpacity
+                  style={styles.dateAdjBtn}
+                  onPress={() => setValidFrom(adjustDate(validFrom, 1))}
+                >
+                  <Ionicons name="add" size={14} color={COLORS.text} />
+                </TouchableOpacity>
+              </View>
+            </View>
 
-        {/* Conditions */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Conditions</Text>
-          <View style={styles.conditionsContainer}>
-            <View style={styles.conditionRow}>
-              <Text style={styles.conditionLabel}>Montant minimum de commande</Text>
-              <TextInput
-                style={styles.conditionInput}
-                placeholder="0 FCFA"
-                value={formData.minOrderAmount?.toString() || ''}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, minOrderAmount: parseInt(text) || null })
-                }
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.conditionRow}>
-              <Text style={styles.conditionLabel}>Limiter le nombre d'utilisations</Text>
-              <TextInput
-                style={styles.conditionInput}
-                placeholder="Illimité"
-                value={formData.maxUses?.toString() || ''}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, maxUses: parseInt(text) || null })
-                }
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.conditionRow}>
-              <Text style={styles.conditionLabel}>Limiter à X par client</Text>
-              <TextInput
-                style={styles.conditionInput}
-                placeholder="Illimité"
-                value={formData.perCustomerLimit?.toString() || ''}
-                onChangeText={(text) =>
-                  setFormData({ ...formData, perCustomerLimit: parseInt(text) || null })
-                }
-                keyboardType="numeric"
-              />
-            </View>
-            <View style={styles.checkboxRow}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  setFormData({ ...formData, newCustomersOnly: !formData.newCustomersOnly })
-                }
-              >
-                <Ionicons
-                  name={formData.newCustomersOnly ? 'checkbox' : 'checkbox-outline'}
-                  size={24}
-                  color={formData.newCustomersOnly ? COLORS.primary : COLORS.textSecondary}
-                />
-              </TouchableOpacity>
-              <Text style={styles.checkboxLabel}>Nouveaux clients uniquement</Text>
-            </View>
-            <View style={styles.checkboxRow}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  setFormData({ ...formData, loyalCustomersOnly: !formData.loyalCustomersOnly })
-                }
-              >
-                <Ionicons
-                  name={formData.loyalCustomersOnly ? 'checkbox' : 'checkbox-outline'}
-                  size={24}
-                  color={formData.loyalCustomersOnly ? COLORS.primary : COLORS.textSecondary}
-                />
-              </TouchableOpacity>
-              <Text style={styles.checkboxLabel}>Clients fidèles uniquement</Text>
-            </View>
-          </View>
-        </View>
+            <Ionicons name="arrow-forward" size={18} color={COLORS.textSecondary} style={{ marginTop: 28 }} />
 
-        {/* Visibilité */}
-        <View style={styles.section}>
-          <Text style={styles.label}>Visibilité</Text>
-          <View style={styles.visibilityContainer}>
-            <View style={styles.checkboxRow}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() => setFormData({ ...formData, showBadge: !formData.showBadge })}
-              >
-                <Ionicons
-                  name={formData.showBadge ? 'checkbox' : 'checkbox-outline'}
-                  size={24}
-                  color={formData.showBadge ? COLORS.primary : COLORS.textSecondary}
-                />
-              </TouchableOpacity>
-              <Text style={styles.checkboxLabel}>Afficher badge "PROMO" sur l'app</Text>
-            </View>
-            <View style={styles.checkboxRow}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  setFormData({ ...formData, notifySubscribers: !formData.notifySubscribers })
-                }
-              >
-                <Ionicons
-                  name={formData.notifySubscribers ? 'checkbox' : 'checkbox-outline'}
-                  size={24}
-                  color={formData.notifySubscribers ? COLORS.primary : COLORS.textSecondary}
-                />
-              </TouchableOpacity>
-              <Text style={styles.checkboxLabel}>Notifier mes abonnés</Text>
-            </View>
-            <View style={styles.checkboxRow}>
-              <TouchableOpacity
-                style={styles.checkbox}
-                onPress={() =>
-                  setFormData({ ...formData, paidVisibility: !formData.paidVisibility })
-                }
-              >
-                <Ionicons
-                  name={formData.paidVisibility ? 'checkbox' : 'checkbox-outline'}
-                  size={24}
-                  color={formData.paidVisibility ? COLORS.primary : COLORS.textSecondary}
-                />
-              </TouchableOpacity>
-              <View style={styles.checkboxContent}>
-                <Text style={styles.checkboxLabel}>Mise en avant payante</Text>
-                <Text style={styles.checkboxDescription}>(+5 000 FCFA)</Text>
+            {/* Fin */}
+            <View style={styles.dateBox}>
+              <Text style={styles.dateBoxLabel}>Fin</Text>
+              <View style={styles.dateDisplay}>
+                <Ionicons name="calendar-outline" size={14} color={COLORS.error} />
+                <Text style={styles.dateDisplayText}>{formatDate(validUntil)}</Text>
+              </View>
+              <View style={styles.dateAdjust}>
+                <TouchableOpacity
+                  style={styles.dateAdjBtn}
+                  onPress={() => setValidUntil(adjustDate(validUntil, -1))}
+                >
+                  <Ionicons name="remove" size={14} color={COLORS.text} />
+                </TouchableOpacity>
+                <Text style={styles.dateAdjLabel}>jour</Text>
+                <TouchableOpacity
+                  style={styles.dateAdjBtn}
+                  onPress={() => setValidUntil(adjustDate(validUntil, 1))}
+                >
+                  <Ionicons name="add" size={14} color={COLORS.text} />
+                </TouchableOpacity>
               </View>
             </View>
           </View>
+
+          {/* Raccourcis durée */}
+          <View style={{ flexDirection: 'row', gap: 8, marginTop: 12, flexWrap: 'wrap' }}>
+            {[
+              { label: '7 jours', days: 7 },
+              { label: '14 jours', days: 14 },
+              { label: '30 jours', days: 30 },
+              { label: '3 mois', days: 90 },
+            ].map(({ label, days }) => {
+              const end = adjustDate(new Date(), days);
+              const isActive =
+                Math.abs(validUntil - end) < 24 * 3600 * 1000;
+              return (
+                <TouchableOpacity
+                  key={label}
+                  style={[styles.quickChip, isActive && styles.quickChipActive]}
+                  onPress={() => {
+                    setValidFrom(new Date());
+                    setValidUntil(end);
+                  }}
+                >
+                  <Text style={[styles.quickChipText, isActive && styles.quickChipTextActive]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
         </View>
+
+        {/* Aperçu */}
+        <Text style={styles.sectionTitle}>Aperçu</Text>
+        <View style={[styles.previewCard, { borderColor: selectedType?.color || COLORS.primary }]}>
+          <View style={styles.previewTop}>
+            <View
+              style={[
+                styles.previewBadge,
+                { backgroundColor: (selectedType?.color || COLORS.primary) + '20' },
+              ]}
+            >
+              <Text
+                style={[styles.previewCode, { color: selectedType?.color || COLORS.primary }]}
+              >
+                {code || 'VOTRECODE'}
+              </Text>
+            </View>
+            <Text style={styles.previewValue}>
+              {type === 'free_delivery'
+                ? 'Livraison offerte'
+                : type === 'percentage'
+                ? `${value || '?'}% de réduction`
+                : `${value || '?'} FCFA de réduction`}
+            </Text>
+          </View>
+          <View style={styles.previewDetails}>
+            {minOrderAmount ? (
+              <Text style={styles.previewDetail}>
+                • Commande min : {minOrderAmount} FCFA
+              </Text>
+            ) : null}
+            {usageLimit ? (
+              <Text style={styles.previewDetail}>• Max {usageLimit} utilisations</Text>
+            ) : null}
+            <Text style={styles.previewDetail}>
+              • Valide du {formatDate(validFrom)} au {formatDate(validUntil)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={{ height: 100 }} />
       </ScrollView>
 
-      <View style={styles.footer}>
+      {/* Footer */}
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 20) }]}>
         <TouchableOpacity
-          style={[styles.createButton, loading && styles.createButtonDisabled]}
+          style={[styles.submitBtn, loading && { opacity: 0.6 }]}
           onPress={handleSubmit}
           disabled={loading}
         >
-          <Text style={styles.createButtonText}>
-            {loading ? 'Création...' : 'Créer la promotion'}
-          </Text>
+          {loading ? (
+            <ActivityIndicator color={COLORS.white} />
+          ) : (
+            <>
+              <Ionicons name="checkmark-circle" size={20} color={COLORS.white} />
+              <Text style={styles.submitBtnText}>
+                {editingPromotion ? 'Mettre à jour' : 'Créer le code promo'}
+              </Text>
+            </>
+          )}
         </TouchableOpacity>
       </View>
     </KeyboardAvoidingView>
@@ -441,227 +513,233 @@ export default function CreateAdvancedPromotionScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
-  },
+  container: { flex: 1, backgroundColor: COLORS.background },
+
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 20,
-    paddingVertical: 16,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
     backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  backButton: {
-    marginRight: 12,
+  backBtn: { padding: 4, marginRight: 8 },
+  headerTitle: { flex: 1, fontSize: 18, fontWeight: '700', color: COLORS.text },
+
+  scroll: { flex: 1 },
+  scrollContent: { padding: 16, gap: 0 },
+
+  sectionTitle: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    letterSpacing: 0.8,
+    marginTop: 20,
+    marginBottom: 8,
+    marginLeft: 4,
   },
-  title: {
-    flex: 1,
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  placeholder: {
-    width: 36,
-  },
-  content: {
-    flex: 1,
-  },
-  scrollContent: {
-    padding: 20,
-  },
-  section: {
-    marginBottom: 24,
-  },
-  label: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-    marginBottom: 12,
-  },
-  typesContainer: {
-    gap: 12,
-  },
-  typeCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
+
+  card: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     padding: 16,
-    borderWidth: 2,
-    borderColor: COLORS.border,
-    gap: 12,
-  },
-  typeCardSelected: {
-    borderColor: COLORS.primary,
-    backgroundColor: COLORS.primary + '15',
-  },
-  typeLabel: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  typeLabelSelected: {
-    color: COLORS.primary,
-    fontWeight: '600',
-  },
-  itemSelector: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  itemSelectorText: {
-    fontSize: 14,
-    color: COLORS.text,
-  },
-  discountContainer: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  discountTypeContainer: {
-    flexDirection: 'row',
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.border,
     overflow: 'hidden',
   },
-  discountTypeButton: {
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    borderRightWidth: 1,
-    borderRightColor: COLORS.border,
+
+  typeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 12,
+    gap: 12,
+    borderRadius: 10,
   },
-  discountTypeButtonSelected: {
+  typeRowSelected: { backgroundColor: COLORS.primary + '08' },
+  typeIconBox: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  typeInfo: { flex: 1 },
+  typeLabel: { fontSize: 14, fontWeight: '600', color: COLORS.text },
+  typeDesc: { fontSize: 12, color: COLORS.textSecondary, marginTop: 2 },
+  radioOuter: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 2,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  radioInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
     backgroundColor: COLORS.primary,
   },
-  discountTypeText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: COLORS.text,
-  },
-  discountTypeTextSelected: {
-    color: COLORS.white,
-  },
-  discountInput: {
+
+  sep: { height: 1, backgroundColor: COLORS.border + '60', marginVertical: 4 },
+
+  codeInputRow: { flexDirection: 'row', gap: 10 },
+  codeInput: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    height: 52,
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 16,
+    fontSize: 18,
+    fontWeight: '700',
     color: COLORS.text,
-    textAlign: 'center',
+    letterSpacing: 2,
   },
-  dateRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  dateInput: {
-    flex: 1,
-  },
-  dateLabel: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginBottom: 8,
-  },
-  dateButton: {
+  inputError: { borderColor: COLORS.error },
+  genBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
+    gap: 4,
+    backgroundColor: COLORS.primary + '15',
     borderRadius: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+  },
+  genBtnText: { fontSize: 13, fontWeight: '600', color: COLORS.primary },
+  hint: { fontSize: 12, color: COLORS.textSecondary, marginTop: 8 },
+  errorText: { fontSize: 12, color: COLORS.error, marginTop: 6 },
+  quickLabel: { fontSize: 12, color: COLORS.textSecondary, marginTop: 14, marginBottom: 8 },
+  quickRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  quickChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    backgroundColor: COLORS.background,
     borderWidth: 1,
     borderColor: COLORS.border,
+  },
+  quickChipActive: { backgroundColor: COLORS.primary, borderColor: COLORS.primary },
+  quickChipText: { fontSize: 12, fontWeight: '600', color: COLORS.textSecondary },
+  quickChipTextActive: { color: COLORS.white },
+
+  valueRow: { flexDirection: 'row', gap: 0, overflow: 'hidden', borderRadius: 12, borderWidth: 1, borderColor: COLORS.border },
+  valueInput: {
+    flex: 1,
+    height: 52,
     paddingHorizontal: 16,
-    paddingVertical: 14,
+    fontSize: 24,
+    fontWeight: '700',
+    color: COLORS.text,
+    backgroundColor: COLORS.white,
+    borderWidth: 0,
+  },
+  valueSuffix: {
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    backgroundColor: COLORS.background,
+    borderLeftWidth: 1,
+    borderLeftColor: COLORS.border,
+  },
+  valueSuffixText: { fontSize: 16, fontWeight: '700', color: COLORS.textSecondary },
+
+  condRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 8,
     gap: 8,
   },
-  dateText: {
-    fontSize: 12,
-    color: COLORS.text,
-    flex: 1,
-  },
-  conditionsContainer: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    gap: 16,
-  },
-  conditionRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  conditionLabel: {
-    fontSize: 14,
-    color: COLORS.text,
-    flex: 1,
-  },
-  conditionInput: {
-    width: 120,
+  condLabelBox: { flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 },
+  condLabel: { fontSize: 14, color: COLORS.text, flex: 1 },
+  condInput: {
+    width: 110,
+    height: 40,
     backgroundColor: COLORS.background,
-    borderRadius: 8,
+    borderRadius: 10,
     borderWidth: 1,
     borderColor: COLORS.border,
     paddingHorizontal: 12,
-    paddingVertical: 8,
     fontSize: 14,
     color: COLORS.text,
     textAlign: 'right',
   },
-  checkboxRow: {
+
+  datesRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  dateBox: { flex: 1 },
+  dateBoxLabel: { fontSize: 12, color: COLORS.textSecondary, marginBottom: 6 },
+  dateDisplay: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 6,
+    backgroundColor: COLORS.background,
+    borderRadius: 10,
+    padding: 10,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  checkbox: {
-    padding: 4,
+  dateDisplayText: { fontSize: 13, fontWeight: '600', color: COLORS.text },
+  dateAdjust: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginTop: 8,
+    gap: 8,
   },
-  checkboxLabel: {
-    fontSize: 14,
-    color: COLORS.text,
+  dateAdjBtn: {
+    width: 28,
+    height: 28,
+    borderRadius: 8,
+    backgroundColor: COLORS.background,
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  checkboxContent: {
-    flex: 1,
-  },
-  checkboxDescription: {
-    fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 2,
-  },
-  visibilityContainer: {
+  dateAdjLabel: { fontSize: 11, color: COLORS.textSecondary },
+
+  previewCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
+    borderRadius: 16,
+    borderWidth: 2,
+    borderStyle: 'dashed',
     padding: 16,
-    gap: 16,
+    marginTop: 4,
   },
+  previewTop: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  previewBadge: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+  },
+  previewCode: { fontSize: 18, fontWeight: '900', letterSpacing: 2 },
+  previewValue: { flex: 1, fontSize: 15, fontWeight: '700', color: COLORS.text },
+  previewDetails: { gap: 4 },
+  previewDetail: { fontSize: 12, color: COLORS.textSecondary },
+
   footer: {
-    padding: 20,
+    paddingHorizontal: 16,
+    paddingTop: 12,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
   },
-  createButton: {
+  submitBtn: {
     backgroundColor: COLORS.primary,
-    borderRadius: 12,
-    paddingVertical: 16,
+    borderRadius: 14,
+    height: 54,
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
   },
-  createButtonDisabled: {
-    opacity: 0.5,
-  },
-  createButtonText: {
-    color: COLORS.white,
-    fontSize: 16,
-    fontWeight: '600',
-  },
+  submitBtnText: { color: COLORS.white, fontSize: 16, fontWeight: '700' },
 });

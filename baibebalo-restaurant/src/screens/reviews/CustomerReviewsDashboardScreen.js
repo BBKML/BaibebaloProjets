@@ -218,7 +218,7 @@ export default function CustomerReviewsDashboardScreen({ navigation }) {
                   {!item.hasResponse && (
                     <TouchableOpacity
                       style={styles.respondButton}
-                      onPress={() => navigation.navigate('ReviewResponseModal', { reviewId: item.id })}
+                      onPress={() => navigation.navigate('ReviewResponseModal', { reviewId: item.id, review: item })}
                     >
                       <Ionicons name="chatbubble-outline" size={16} color={COLORS.primary} />
                       <Text style={styles.respondButtonText}>Répondre</Text>

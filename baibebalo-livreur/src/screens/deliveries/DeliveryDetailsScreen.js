@@ -1,49 +1,106 @@
-import React from 'react';
-import { View, Text, StyleSheet, SafeAreaView, TouchableOpacity, ScrollView, Platform } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
 import { COLORS } from '../../constants/colors';
-
-// Données mock pour une livraison complète
-const mockDelivery = {
-  id: 'BAIB-12345',
-  date: '01 Février 2026',
-  time: '13:45',
-  status: 'delivered',
-  restaurant: {
-    name: 'Restaurant Chez Marie',
-    address: 'Rue des Écoles, Centre-ville',
-    phone: '+225 07 12 34 56 78',
-    latitude: 9.4580,
-    longitude: -5.6294,
-  },
-  customer: {
-    name: 'Kouassi Jean',
-    area: 'Quartier Tchengué',
-    address: "Près de l'école primaire",
-    phone: '+225 07 98 76 54 32',
-    latitude: 9.4650,
-    longitude: -5.6350,
-  },
-  order: {
-    items: [
-      { name: 'Poulet braisé + Attiéké', quantity: 2, price: 3500 },
-      { name: 'Jus de bissap', quantity: 2, price: 1000 },
-    ],
-    subtotal: 4500,
-    deliveryFee: 1000,
-    total: 5500,
-  },
-  earnings: 1750,
-  distance: 3.2,
-  duration: 18,
-  rating: 5,
-  tip: 500,
-};
+import apiClient from '../../api/client';
+import { API_ENDPOINTS } from '../../constants/api';
 
 export default function DeliveryDetailsScreen({ navigation, route }) {
   const deliveryId = route.params?.deliveryId;
-  const delivery = mockDelivery; // En prod, fetch via API
+  const [delivery, setDelivery] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchDelivery = async () => {
+      if (!deliveryId) { setLoading(false); return; }
+      try {
+        const response = await apiClient.get(API_ENDPOINTS.ORDERS.DETAIL(deliveryId));
+        const order = response.data?.data || response.data?.order || response.data;
+        if (order) {
+          const deliveryAddr = typeof order.delivery_address === 'string'
+            ? (() => { try { return JSON.parse(order.delivery_address); } catch { return {}; } })()
+            : (order.delivery_address || {});
+          setDelivery({
+            id: order.order_number || order.id,
+            date: new Date(order.delivered_at || order.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' }),
+            time: new Date(order.delivered_at || order.created_at).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' }),
+            status: order.status,
+            restaurant: {
+              name: order.restaurant_name || 'Restaurant',
+              address: order.restaurant_address || '',
+              phone: order.restaurant_phone || '',
+              latitude: order.restaurant_latitude || null,
+              longitude: order.restaurant_longitude || null,
+            },
+            customer: {
+              name: order.client_first_name ? `${order.client_first_name} ${order.client_last_name || ''}`.trim() : 'Client',
+              area: deliveryAddr.city || deliveryAddr.area || '',
+              address: deliveryAddr.address_line || deliveryAddr.address || '',
+              phone: order.client_phone || '',
+              latitude: deliveryAddr.latitude || null,
+              longitude: deliveryAddr.longitude || null,
+            },
+            order: {
+              items: Array.isArray(order.items) ? order.items.map(i => ({
+                name: i.menu_item_name || i.name || 'Article',
+                quantity: i.quantity || 1,
+                price: parseFloat(i.unit_price || i.price || 0),
+              })) : [],
+              subtotal: parseFloat(order.subtotal || order.total_amount || 0),
+              deliveryFee: parseFloat(order.delivery_fee || 0),
+              total: parseFloat(order.total_amount || order.total || 0),
+            },
+            earnings: parseFloat(order.delivery_fee || 0),
+            distance: order.delivery_distance || null,
+            duration: null,
+            rating: order.delivery_rating || null,
+            tip: parseFloat(order.tip_amount || 0),
+          });
+        }
+      } catch (error) {
+        console.error('Erreur chargement détails livraison:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchDelivery();
+  }, [deliveryId]);
+
+  if (loading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Détails de la course</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (!delivery) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.header}>
+          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          </TouchableOpacity>
+          <Text style={styles.title}>Détails de la course</Text>
+          <View style={styles.placeholder} />
+        </View>
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <Text style={{ color: COLORS.textSecondary }}>Détails introuvables</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -58,49 +115,64 @@ export default function DeliveryDetailsScreen({ navigation, route }) {
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Mini Map */}
-        <View style={styles.mapContainer}>
-          <MapView
-            style={styles.map}
-            provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
-            initialRegion={{
-              latitude: (delivery.restaurant.latitude + delivery.customer.latitude) / 2,
-              longitude: (delivery.restaurant.longitude + delivery.customer.longitude) / 2,
-              latitudeDelta: 0.03,
-              longitudeDelta: 0.03,
-            }}
-            scrollEnabled={false}
-            zoomEnabled={false}
-          >
-            {/* Restaurant marker */}
-            <Marker coordinate={{ latitude: delivery.restaurant.latitude, longitude: delivery.restaurant.longitude }}>
-              <View style={styles.markerRestaurant}>
-                <Ionicons name="restaurant" size={16} color="#FFFFFF" />
-              </View>
-            </Marker>
-            {/* Customer marker */}
-            <Marker coordinate={{ latitude: delivery.customer.latitude, longitude: delivery.customer.longitude }}>
-              <View style={styles.markerCustomer}>
-                <Ionicons name="location" size={16} color="#FFFFFF" />
-              </View>
-            </Marker>
-            {/* Route line */}
-            <Polyline
-              coordinates={[
-                { latitude: delivery.restaurant.latitude, longitude: delivery.restaurant.longitude },
-                { latitude: delivery.customer.latitude, longitude: delivery.customer.longitude },
-              ]}
-              strokeColor={COLORS.primary}
-              strokeWidth={3}
-              lineDashPattern={[10, 5]}
-            />
-          </MapView>
-        </View>
+        {delivery.restaurant.latitude && delivery.customer.latitude ? (
+          <View style={styles.mapContainer}>
+            <MapView
+              style={styles.map}
+              provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
+              initialRegion={{
+                latitude: (delivery.restaurant.latitude + delivery.customer.latitude) / 2,
+                longitude: (delivery.restaurant.longitude + delivery.customer.longitude) / 2,
+                latitudeDelta: 0.03,
+                longitudeDelta: 0.03,
+              }}
+              scrollEnabled={false}
+              zoomEnabled={false}
+            >
+              <Marker coordinate={{ latitude: delivery.restaurant.latitude, longitude: delivery.restaurant.longitude }}>
+                <View style={styles.markerRestaurant}>
+                  <Ionicons name="restaurant" size={16} color="#FFFFFF" />
+                </View>
+              </Marker>
+              <Marker coordinate={{ latitude: delivery.customer.latitude, longitude: delivery.customer.longitude }}>
+                <View style={styles.markerCustomer}>
+                  <Ionicons name="location" size={16} color="#FFFFFF" />
+                </View>
+              </Marker>
+              <Polyline
+                coordinates={[
+                  { latitude: delivery.restaurant.latitude, longitude: delivery.restaurant.longitude },
+                  { latitude: delivery.customer.latitude, longitude: delivery.customer.longitude },
+                ]}
+                strokeColor={COLORS.primary}
+                strokeWidth={3}
+                lineDashPattern={[10, 5]}
+              />
+            </MapView>
+          </View>
+        ) : null}
 
         {/* Status Badge */}
-        <View style={styles.statusBadge}>
-          <Ionicons name="checkmark-circle" size={20} color={COLORS.success} />
-          <Text style={styles.statusText}>Livraison effectuée</Text>
-        </View>
+        {(() => {
+          const STATUS_CONFIG = {
+            new:                { label: 'Nouvelle', color: '#f59e0b', icon: 'time-outline' },
+            accepted:           { label: 'Acceptée', color: '#10b981', icon: 'checkmark-circle-outline' },
+            preparing:          { label: 'En préparation', color: '#f59e0b', icon: 'restaurant-outline' },
+            ready:              { label: 'Prête', color: '#3b82f6', icon: 'bag-check-outline' },
+            picked_up:          { label: 'Récupérée', color: '#3b82f6', icon: 'bicycle-outline' },
+            delivering:         { label: 'En livraison', color: '#0ea5e9', icon: 'navigate-outline' },
+            driver_at_customer: { label: 'À la porte', color: '#10b981', icon: 'location-outline' },
+            delivered:          { label: 'Livrée', color: '#10b981', icon: 'checkmark-circle' },
+            cancelled:          { label: 'Annulée', color: '#ef4444', icon: 'close-circle-outline' },
+          };
+          const cfg = STATUS_CONFIG[delivery.status] || { label: delivery.status || 'Inconnu', color: '#6b7280', icon: 'help-circle-outline' };
+          return (
+            <View style={[styles.statusBadge, { backgroundColor: cfg.color + '15' }]}>
+              <Ionicons name={cfg.icon} size={20} color={cfg.color} />
+              <Text style={[styles.statusText, { color: cfg.color }]}>{cfg.label}</Text>
+            </View>
+          );
+        })()}
 
         {/* Course Info */}
         <View style={styles.infoCard}>
@@ -116,14 +188,18 @@ export default function DeliveryDetailsScreen({ navigation, route }) {
             <Text style={styles.infoLabel}>Heure</Text>
             <Text style={styles.infoValue}>{delivery.time}</Text>
           </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Distance</Text>
-            <Text style={styles.infoValue}>{delivery.distance} km</Text>
-          </View>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>Durée</Text>
-            <Text style={styles.infoValue}>{delivery.duration} min</Text>
-          </View>
+          {delivery.distance != null && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Distance</Text>
+              <Text style={styles.infoValue}>{delivery.distance} km</Text>
+            </View>
+          )}
+          {delivery.duration != null && (
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Durée</Text>
+              <Text style={styles.infoValue}>{delivery.duration} min</Text>
+            </View>
+          )}
         </View>
 
         {/* Route Section */}
@@ -190,19 +266,21 @@ export default function DeliveryDetailsScreen({ navigation, route }) {
         </View>
 
         {/* Rating */}
-        <View style={styles.ratingCard}>
-          <Text style={styles.ratingLabel}>Note du client</Text>
-          <View style={styles.ratingStars}>
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Ionicons 
-                key={star}
-                name="star" 
-                size={24} 
-                color={star <= delivery.rating ? COLORS.rating : COLORS.border} 
-              />
-            ))}
+        {delivery.rating != null && (
+          <View style={styles.ratingCard}>
+            <Text style={styles.ratingLabel}>Note du client</Text>
+            <View style={styles.ratingStars}>
+              {[1, 2, 3, 4, 5].map((star) => (
+                <Ionicons
+                  key={star}
+                  name="star"
+                  size={24}
+                  color={star <= delivery.rating ? COLORS.rating : COLORS.border}
+                />
+              ))}
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={{ height: 40 }} />
       </ScrollView>
@@ -278,13 +356,11 @@ const styles = StyleSheet.create({
     marginHorizontal: 16,
     marginBottom: 16,
     paddingVertical: 12,
-    backgroundColor: COLORS.success + '15',
     borderRadius: 12,
   },
   statusText: {
     fontSize: 14,
     fontWeight: '600',
-    color: COLORS.success,
   },
   infoCard: {
     backgroundColor: COLORS.white,

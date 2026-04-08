@@ -4,11 +4,11 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   Alert,
   ActivityIndicator
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -24,6 +24,7 @@ const steps = [
 ];
 
 export default function PendingValidationScreen({ navigation }) {
+  const insets = useSafeAreaInsets();
   const [checking, setChecking] = useState(false);
   const { setPendingRegistration, login, logout } = useAuthStore();
 
@@ -151,7 +152,7 @@ export default function PendingValidationScreen({ navigation }) {
       </View>
 
       {/* Bottom */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         {/* Bouton Vérifier le statut */}
         <TouchableOpacity 
           style={styles.primaryButton}

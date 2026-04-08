@@ -52,7 +52,7 @@ const SendNotification = () => {
       <div className="max-w-4xl mx-auto space-y-8">
         {/* Header */}
         <div>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
             Envoyer une Notification
           </h1>
           <p className="text-slate-500 dark:text-slate-400 mt-1">

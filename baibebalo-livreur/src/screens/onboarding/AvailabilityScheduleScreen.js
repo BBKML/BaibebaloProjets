@@ -4,16 +4,17 @@ import {
   Text, 
   StyleSheet, 
   TouchableOpacity, 
-  SafeAreaView,
   StatusBar,
   ScrollView,
   Alert,
   ActivityIndicator
 } from 'react-native';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useAuthStore from '../../store/authStore';
 import { registerDelivery } from '../../api/auth';
+import { uploadDocument } from '../../api/delivery';
 
 const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
 const slots = [
@@ -23,7 +24,8 @@ const slots = [
 ];
 
 export default function AvailabilityScheduleScreen({ navigation }) {
-  const { updateRegistrationData, registrationData, setRegistrationStep, setPendingRegistration, clearRegistrationData } = useAuthStore();
+  const insets = useSafeAreaInsets();
+  const { updateRegistrationData, registrationData, setRegistrationStep, setPendingRegistration, clearRegistrationData, setToken } = useAuthStore();
   const [schedule, setSchedule] = useState(
     registrationData.schedule || 
     days.reduce((acc, day) => ({ ...acc, [day]: { morning: false, afternoon: false, evening: false } }), {})
@@ -114,13 +116,33 @@ export default function AvailabilityScheduleScreen({ navigation }) {
       console.log('Registration response:', response);
 
       if (response.success) {
-        // Inscription réussie - le livreur doit attendre la validation
-        // Marquer comme inscription en attente
+        const token = response.data?.accessToken || response.data?.token;
+        if (token) {
+          await setToken(token);
+          const docs = data.documents || {};
+          const profilePhoto = data.profilePhoto;
+          const toUpload = [
+            ...Object.entries(docs).filter(([, uri]) => uri && typeof uri === 'string'),
+            ...(profilePhoto ? [['profile_photo', profilePhoto]] : []),
+          ];
+          for (const [documentType, uri] of toUpload) {
+            try {
+              const filename = uri.split('/').pop() || `${documentType}_${Date.now()}.jpg`;
+              const ext = (filename.split('.').pop() || '').toLowerCase();
+              const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
+              const formData = new FormData();
+              formData.append('file', { uri, name: filename, type: mimeType });
+              formData.append('document_type', documentType);
+              await uploadDocument(formData);
+            } catch (err) {
+              console.warn('Upload document après inscription:', documentType, err?.message);
+            }
+          }
+          await setToken(null);
+        }
         await setPendingRegistration(true);
-        // Clear registration data
         await clearRegistrationData();
-        
-        // Navigate to pending validation
+
         Alert.alert(
           'Inscription réussie',
           response.message || 'Votre profil sera validé sous 24-48h.',
@@ -251,7 +273,7 @@ export default function AvailabilityScheduleScreen({ navigation }) {
       </ScrollView>
 
       {/* Bottom Button */}
-      <View style={styles.bottomContainer}>
+      <View style={[styles.bottomContainer, { paddingBottom: Math.max(insets.bottom, 32) }]}>
         <TouchableOpacity 
           style={[
             styles.primaryButton,

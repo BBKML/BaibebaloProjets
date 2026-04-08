@@ -1,3 +1,4 @@
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import apiClient from './client';
 import { API_CONFIG } from '../constants/api';
 
@@ -42,15 +43,14 @@ export const updateMyProfile = async (profileData) => {
   };
 
   const normalizeDateForApi = (date) => {
-    if (!date) return null;
-    if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-      return date;
-    }
-    if (/^\d{2}\/\d{2}\/\d{4}$/.test(date)) {
-      const [day, month, year] = date.split('/');
+    if (date == null || (typeof date === 'string' && date.trim() === '')) return null;
+    const d = typeof date === 'string' ? date.trim() : String(date);
+    if (/^\d{4}-\d{2}-\d{2}$/.test(d)) return d;
+    if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+      const [day, month, year] = d.split('/');
       return `${year}-${month}-${day}`;
     }
-    return date;
+    return null;
   };
 
   const normalizedProfileData = {
@@ -67,19 +67,34 @@ export const updateMyProfile = async (profileData) => {
 };
 
 /**
- * Upload photo de profil
+ * Upload photo de profil (FormData).
+ * Utilise fetch() pour le multipart (plus fiable qu'axios en React Native).
  */
 export const uploadProfilePicture = async (formData) => {
-  const response = await apiClient.post(
-    API_CONFIG.ENDPOINTS.USERS.PROFILE_PICTURE,
-    formData,
-    {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-      },
-    }
-  );
-  return response.data;
+  const token = await AsyncStorage.getItem('accessToken');
+  const baseURL = API_CONFIG.BASE_URL.replace(/\/$/, '');
+  const url = `${baseURL}${API_CONFIG.ENDPOINTS.USERS.PROFILE_PICTURE}`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+  const response = await fetch(url, {
+    method: 'POST',
+    headers: {
+      Authorization: token ? `Bearer ${token}` : '',
+    },
+    body: formData,
+    signal: controller.signal,
+  });
+  clearTimeout(timeoutId);
+
+  const data = await response.json();
+  if (!response.ok) {
+    const err = new Error(data?.error?.message || 'Échec de l\'upload');
+    err.response = { data, status: response.status };
+    throw err;
+  }
+  return data;
 };
 
 /**
@@ -103,14 +118,10 @@ export const getAddresses = async () => {
  */
 export const addAddress = async (addressData) => {
   const mappedData = mapAddressToApi(addressData);
-  console.log('📍 API addAddress - Données originales:', addressData);
-  console.log('📍 API addAddress - Données mappées:', mappedData);
-  
   const response = await apiClient.post(
     API_CONFIG.ENDPOINTS.USERS.ADDRESSES,
     mappedData
   );
-  console.log('📍 API addAddress - Réponse:', response.data);
   const payload = response.data?.data || response.data;
   return {
     ...response.data,

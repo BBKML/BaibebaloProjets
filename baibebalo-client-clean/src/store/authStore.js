@@ -3,14 +3,15 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { sendOTP, verifyOTP } from '../api/auth';
 import { getMyProfile } from '../api/users';
 import { setAuthStore } from './authStoreRef';
+import { getExpoPushToken } from '../services/notificationService';
 
 const useAuthStore = create((set, get) => ({
-  // État
+  // État (isLoading: true au démarrage = on n'affiche rien tant que le token n'est pas chargé)
   user: null,
   accessToken: null,
   refreshToken: null,
   isAuthenticated: false,
-  isLoading: false,
+  isLoading: true,
   phoneNumber: null,
   otpSent: false,
   otpAttempts: 0,
@@ -27,27 +28,19 @@ const useAuthStore = create((set, get) => ({
   },
 
   sendOTP: async (phoneNumber) => {
+    // Ne pas toucher isLoading ici — il contrôle le SplashScreen dans AppNavigator
+    // et le démonter pendant sendOTP casse la navigation
     set({
-      isLoading: true,
       phoneNumber,
       otpAttempts: 0,
       otpExpiresAt: Date.now() + 5 * 60 * 1000,
     });
     try {
       const response = await sendOTP(phoneNumber);
-      console.log('✅ Réponse API sendOTP complète:', JSON.stringify(response, null, 2));
-      
       const isSuccess = response?.success === true;
-      
-      console.log('📊 Analyse réponse:', {
-        isSuccess,
-        response,
-        success: response?.success,
-      });
-      
+
       if (isSuccess) {
-        console.log('✅ OTP envoyé avec succès');
-        console.log('✅ Retour du store: { success: true }');
+        if (__DEV__) console.log('✅ OTP envoyé avec succès');
         
         // ⚠️ NE PAS mettre isLoading à false ici
         // Le composant le fera après la navigation
@@ -60,12 +53,12 @@ const useAuthStore = create((set, get) => ({
         };
       } else {
         const errorMsg = response?.message || response?.error?.message || 'Erreur lors de l\'envoi du code';
-        console.error('❌ Réponse non réussie:', errorMsg);
-        set({ isLoading: false, otpSent: false });
+        if (__DEV__) console.warn('❌ Réponse non réussie:', errorMsg);
+        set({ otpSent: false });
         throw new Error(errorMsg);
       }
     } catch (error) {
-      set({ isLoading: false, otpSent: false });
+      set({ otpSent: false });
       
       let errorMessage = 'Erreur lors de l\'envoi du code';
       
@@ -77,7 +70,7 @@ const useAuthStore = create((set, get) => ({
       } else if (error.message?.includes('attendre') || error.message?.includes('minute')) {
         errorMessage = error.message;
       } else if (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error')) {
-        errorMessage = 'Impossible de se connecter au serveur. Vérifiez que le backend est démarré et que l\'URL de l\'API est correcte.';
+        errorMessage = 'Impossible de se connecter. Vérifiez votre connexion internet.';
       } else if (error.response?.data?.error?.message) {
         errorMessage = error.response.data.error.message;
       } else if (error.response?.data?.message) {
@@ -86,14 +79,7 @@ const useAuthStore = create((set, get) => ({
         errorMessage = error.message;
       }
       
-      console.error('❌ Erreur sendOTP:', {
-        error: error.message,
-        code: error.code,
-        status: error.response?.status,
-        url: error.config?.url,
-        baseURL: error.config?.baseURL,
-        response: error.response?.data,
-      });
+      if (__DEV__) console.warn('❌ Erreur sendOTP:', error?.message || error);
       
       return {
         success: false,
@@ -114,9 +100,12 @@ const useAuthStore = create((set, get) => ({
       return { success: false, error: 'Le code OTP a expiré. Veuillez demander un nouveau code.' };
     }
 
-    set({ isLoading: true });
     try {
-      const response = await verifyOTP(phoneNumber, code);
+      let fcmToken = null;
+      try {
+        fcmToken = await getExpoPushToken();
+      } catch (_) {}
+      const response = await verifyOTP(phoneNumber, code, null, null, fcmToken);
       const payload = response?.data ? response.data : response;
       const data = payload?.data ? payload.data : payload;
       const isNewUser = payload?.isNewUser ?? data?.isNewUser ?? false;
@@ -132,7 +121,6 @@ const useAuthStore = create((set, get) => ({
       set({
         user: userToSave,
         isAuthenticated: true,
-        isLoading: false,
         otpSent: false,
         otpAttempts: 0,
         otpExpiresAt: null,
@@ -141,7 +129,6 @@ const useAuthStore = create((set, get) => ({
       return { success: true, data: { ...(data || {}), isNewUser } };
     } catch (error) {
       set((state) => ({
-        isLoading: false,
         otpAttempts: state.otpAttempts + 1,
       }));
       return {
@@ -175,29 +162,19 @@ const useAuthStore = create((set, get) => ({
   loadAuth: async () => {
     set({ isLoading: true });
     try {
-      // Timeout de sécurité pour éviter un chargement infini
-      const timeoutPromise = new Promise((_, reject) =>
-        setTimeout(() => reject(new Error('Timeout')), 2000)
-      );
-
-      const storagePromise = AsyncStorage.multiGet([
+      const [[, accessTokenVal], [, refreshTokenVal], [, userStr]] = await AsyncStorage.multiGet([
         'accessToken',
         'refreshToken',
         'user',
       ]);
 
-      const [accessToken, refreshToken, userStr] = await Promise.race([
-        storagePromise,
-        timeoutPromise,
-      ]);
-
-      if (accessToken?.[1] && refreshToken?.[1] && userStr?.[1]) {
+      if (accessTokenVal && refreshTokenVal && userStr) {
         try {
-          const user = JSON.parse(userStr[1]);
+          const user = JSON.parse(userStr);
           set({
             user,
-            accessToken: accessToken[1],
-            refreshToken: refreshToken[1],
+            accessToken: accessTokenVal,
+            refreshToken: refreshTokenVal,
             isAuthenticated: true,
           });
 
@@ -222,15 +199,15 @@ const useAuthStore = create((set, get) => ({
               await AsyncStorage.setItem('user', JSON.stringify(mergedUser));
             }
           } catch (profileError) {
-            console.warn('Profil non rechargé (réseau ou token):', profileError?.message);
+            if (__DEV__) console.warn('Profil non rechargé (réseau ou token):', profileError?.message);
             // On garde l'utilisateur tel qu'en storage
           }
         } catch (parseError) {
-          console.error('Erreur lors du parsing de l\'utilisateur:', parseError);
+          if (__DEV__) console.warn('Erreur lors du parsing de l\'utilisateur:', parseError?.message || parseError);
         }
       }
     } catch (error) {
-      console.error('Erreur lors du chargement de l\'auth:', error);
+      if (__DEV__) console.warn('Erreur lors du chargement de l\'auth:', error?.message || error);
       // En cas d'erreur, on continue quand même
     } finally {
       set({ isLoading: false });

@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { formatCurrency } from '../utils/format';
 import { exportToCSV } from '../utils/export';
@@ -131,13 +132,18 @@ const TransactionHistory = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-          <div className="flex flex-col gap-1">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+          <div className="flex items-center gap-3">
+            <Link to="/finances" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
               Historique Complet des Transactions
             </h1>
             <p className="text-slate-500 dark:text-slate-400 text-sm font-medium">
-              Phase 4 Completion Finances • Data-heavy oversight
+              Suivi complet de toutes les transactions de la plateforme
             </p>
+            </div>
           </div>
           <div className="flex gap-3">
             <button

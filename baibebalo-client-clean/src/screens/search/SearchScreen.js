@@ -16,6 +16,7 @@ import { getRestaurants, getCategories, getPopularSearches } from '../../api/res
 import { searchCatalog } from '../../api/search';
 import SearchFiltersModal from './SearchFiltersModal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getImageUrl } from '../../utils/url';
 
 export default function SearchScreen({ navigation }) {
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
@@ -155,7 +156,7 @@ export default function SearchScreen({ navigation }) {
           name: dish.name || 'Plat',
           price: dish.price || 0,
           restaurantName: dish.restaurant_name || dish.restaurant || 'Restaurant',
-          image: dish.image_url || dish.photo || 'https://via.placeholder.com/100',
+          image: dish.image_url || dish.photo || null,
         }))
       );
       await saveRecentSearch(searchQuery);
@@ -260,7 +261,7 @@ export default function SearchScreen({ navigation }) {
       onPress={() => navigation.navigate('RestaurantDetail', { restaurantId: item.id })}
     >
       <Image
-        source={{ uri: item.banner || item.logo || item.image_url || 'https://via.placeholder.com/300' }}
+        source={{ uri: getImageUrl(item.banner || item.logo || item.image_url) || null }}
         style={styles.restaurantImage}
       />
       <View style={styles.restaurantInfo}>
@@ -281,7 +282,7 @@ export default function SearchScreen({ navigation }) {
     name: restaurant.featured_dish || restaurant.speciality || 'Plat populaire',
     price: restaurant.average_price || 3500,
     restaurantName: restaurant.name || 'Restaurant',
-    image: restaurant.banner || restaurant.logo || restaurant.image_url || 'https://via.placeholder.com/100',
+    image: restaurant.banner || restaurant.logo || restaurant.image_url || null,
   }));
   const dishResults = dishResultsFromApi.length > 0 ? dishResultsFromApi : fallbackDishResults;
 

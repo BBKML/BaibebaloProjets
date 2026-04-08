@@ -30,8 +30,13 @@ apiClient.interceptors.request.use(
       if (token) {
         config.headers.Authorization = `Bearer ${token}`;
       }
+      // FormData : ne pas fixer Content-Type pour que le boundary soit ajouté (multer côté backend)
+      const isFormData = config.data && typeof config.data.append === 'function';
+      if (isFormData) {
+        delete config.headers['Content-Type'];
+      }
     } catch (error) {
-      console.error('Erreur lors de la récupération du token:', error);
+      if (__DEV__) console.error('Erreur lors de la récupération du token:', error);
     }
     return config;
   },
@@ -48,13 +53,8 @@ apiClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // Améliorer les messages d'erreur pour le debug
-    if (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error')) {
-      console.error('❌ Erreur de connexion:', {
-        url: originalRequest?.url,
-        baseURL: API_CONFIG.BASE_URL,
-        message: 'Impossible de se connecter au serveur. Vérifiez que le backend est démarré.',
-      });
+    if (__DEV__ && (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error'))) {
+      console.warn('⚠️ Connexion indisponible (requête annulée ou réseau):', originalRequest?.url);
     }
 
     // Erreur 401 - Token expiré ou utilisateur inexistant
@@ -64,7 +64,7 @@ apiClient.interceptors.response.use(
       // Vérifier si c'est une erreur "utilisateur inexistant"
       const errorMessage = error.response?.data?.error?.message || '';
       if (errorMessage.includes('utilisateur inexistant') || errorMessage.includes('user not found')) {
-        console.warn('⚠️ Utilisateur inexistant - Déconnexion automatique');
+        if (__DEV__) console.warn('⚠️ Utilisateur inexistant - Déconnexion automatique');
         // Utilisateur supprimé ou inexistant - déconnexion complète
         await safeLogout();
         // Ne pas essayer de rafraîchir le token
@@ -87,7 +87,7 @@ apiClient.interceptors.response.use(
         }
       } catch (refreshError) {
         // Refresh token invalide - déconnexion
-        console.warn('⚠️ Refresh token invalide - Déconnexion automatique');
+        if (__DEV__) console.warn('⚠️ Refresh token invalide - Déconnexion automatique');
         await safeLogout();
         // Rediriger vers l'écran de connexion
         return Promise.reject(refreshError);

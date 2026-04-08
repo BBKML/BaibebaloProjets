@@ -179,7 +179,7 @@ const OrderDetails = () => {
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
             <div>
-              <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                 Détails Commande & Intervention
               </h1>
               {isDelayed && (
@@ -393,6 +393,41 @@ const OrderDetails = () => {
             </div>
           </div>
         </div>
+
+        {/* Photo preuve de livraison (commande livrée) */}
+        {order.status === 'delivered' && order.delivery_proof_photo && (
+          <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm p-6">
+            <h3 className="text-sm font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-4">
+              Photo preuve de livraison
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-4 items-start">
+              <a
+                href={order.delivery_proof_photo}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block rounded-lg overflow-hidden border border-slate-200 dark:border-slate-700 max-w-xs"
+              >
+                <img
+                  src={order.delivery_proof_photo}
+                  alt="Preuve de livraison"
+                  className="w-full h-48 object-cover"
+                />
+              </a>
+              <div className="text-sm text-slate-600 dark:text-slate-400">
+                <p>Photo prise par le livreur à la livraison.</p>
+                <a
+                  href={order.delivery_proof_photo}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-primary font-medium mt-2 inline-flex items-center gap-1"
+                >
+                  Ouvrir en grand
+                  <span className="material-symbols-outlined text-base">open_in_new</span>
+                </a>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Special Instructions */}
         {order.special_instructions && (

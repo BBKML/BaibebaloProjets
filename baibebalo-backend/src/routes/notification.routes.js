@@ -54,4 +54,25 @@ router.put(
   notificationController.markNotificationRead
 );
 
+/**
+ * @route   PUT /api/v1/notifications/read-all
+ * @desc    Marquer toutes les notifications comme lues
+ * @access  Private
+ */
+router.put('/read-all', notificationController.markAllNotificationsRead);
+
+/**
+ * @route   GET /api/v1/notifications/settings
+ * @desc    Obtenir les préférences de notifications
+ * @access  Private
+ */
+router.get('/settings', notificationController.getNotificationSettings);
+
+/**
+ * @route   PUT /api/v1/notifications/settings
+ * @desc    Mettre à jour les préférences de notifications
+ * @access  Private
+ */
+router.put('/settings', notificationController.updateNotificationSettings);
+
 module.exports = router;

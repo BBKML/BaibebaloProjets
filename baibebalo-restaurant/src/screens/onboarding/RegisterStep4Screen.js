@@ -85,11 +85,25 @@ export default function RegisterStep4Screen({ navigation, route }) {
         console.log('❌ Serveur inaccessible:', testError.message);
         Alert.alert(
           'Erreur de connexion',
-          'Impossible de joindre le serveur. Vérifiez votre connexion internet ou que le backend est accessible.',
+          'Impossible de joindre le serveur. Vérifiez votre connexion internet.',
           [{ text: 'OK' }]
         );
         setLoading(false);
         return;
+      }
+
+      // Normaliser le numéro de téléphone au format +225XXXXXXXXXX
+      const rawPhone = step1Data.phone?.trim().replace(/\s+/g, '');
+      let normalizedPhone = rawPhone;
+      if (rawPhone && !rawPhone.startsWith('+225')) {
+        if (rawPhone.startsWith('00225')) {
+          normalizedPhone = '+' + rawPhone.slice(2);
+        } else if (rawPhone.startsWith('225') && rawPhone.length >= 12) {
+          normalizedPhone = '+' + rawPhone;
+        } else {
+          // Numéro local (0XXXXXXXXX) → +2250XXXXXXXXX
+          normalizedPhone = '+225' + rawPhone;
+        }
       }
 
       // Préparer les données d'inscription
@@ -97,7 +111,7 @@ export default function RegisterStep4Screen({ navigation, route }) {
         // Étape 1
         name: step1Data.name,
         category: step1Data.type,
-        phone: step1Data.phone,
+        phone: normalizedPhone,
         email: step1Data.email,
         password: step1Data.password,
         
@@ -140,11 +154,16 @@ export default function RegisterStep4Screen({ navigation, route }) {
         navigation.navigate('PendingValidation');
       }
     } catch (error) {
-      console.error('❌ Erreur inscription:', error);
-      const errorMessage = error?.error?.message || error?.message || 'Erreur lors de l\'inscription';
+      console.error('❌ Erreur inscription:', JSON.stringify(error));
+      // Extraire le détail du premier champ invalide si dispo
+      const details = error?.error?.details;
+      const firstDetail = Array.isArray(details) && details[0];
+      const errorMessage = firstDetail
+        ? `${firstDetail.field}: ${firstDetail.message}`
+        : (error?.error?.message || error?.message || 'Erreur lors de l\'inscription');
       Toast.show({
         type: 'error',
-        text1: 'Erreur',
+        text1: 'Erreur d\'inscription',
         text2: errorMessage,
       });
     } finally {
@@ -252,7 +271,7 @@ export default function RegisterStep4Screen({ navigation, route }) {
           </View>
         </View>
 
-        <View style={styles.footer}>
+        <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 40) }]}>
           <TouchableOpacity
             style={[styles.submitButton, loading && styles.submitButtonDisabled]}
             onPress={handleSubmit}
@@ -280,7 +299,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 0,
   },
   header: {
     marginBottom: 20,

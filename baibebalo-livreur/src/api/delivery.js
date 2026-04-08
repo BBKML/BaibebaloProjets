@@ -23,10 +23,33 @@ export const updateProfile = async (data) => {
 
 export const uploadDocument = async (formData) => {
   const response = await apiClient.post(API_ENDPOINTS.DELIVERY.UPLOAD_DOCUMENT, formData, {
-    headers: {
-      'Content-Type': 'multipart/form-data',
-    },
+    timeout: 30000,
   });
+  return response.data;
+};
+
+/**
+ * Upload document en JSON (base64) pour éviter Network Error avec multipart sur mobile.
+ * Le backend accepte photo_base64 + document_type pour tous les types de documents.
+ */
+export const uploadDocumentBase64 = async (documentType, photoBase64) => {
+  const response = await apiClient.post(
+    API_ENDPOINTS.DELIVERY.UPLOAD_DOCUMENT,
+    { document_type: documentType, photo_base64: photoBase64 },
+    { timeout: 30000, headers: { 'Content-Type': 'application/json' } }
+  );
+  return response.data;
+};
+
+/**
+ * Envoi de la preuve de livraison en base64 (route dédiée, pas de multer)
+ */
+export const uploadDeliveryProofBase64 = async (photoBase64) => {
+  const response = await apiClient.post(
+    API_ENDPOINTS.DELIVERY.UPLOAD_DELIVERY_PROOF,
+    { photo_base64: photoBase64 },
+    { timeout: 60000 }
+  );
   return response.data;
 };
 
@@ -125,6 +148,11 @@ export const updateMobileMoneyAccount = async (operator, number, name) => {
   return response.data;
 };
 
+export const getPerformanceBonuses = async () => {
+  const response = await apiClient.get('/delivery/me/bonuses');
+  return response.data;
+};
+
 export default {
   getProfile,
   getCheckStatus,
@@ -145,4 +173,5 @@ export default {
   orderStarterKit,
   verifyMobileMoneyAccount,
   updateMobileMoneyAccount,
+  getPerformanceBonuses,
 };

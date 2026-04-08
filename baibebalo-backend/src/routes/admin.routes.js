@@ -56,6 +56,13 @@ router.put('/users/:id/activate',
   adminController.activateUser
 );
 
+// Supprimer un utilisateur (soft delete - statut deleted)
+router.delete('/users/:id', 
+  requireAdminPermission('manage_users'),
+  uuidValidator('id', 'User ID'),
+  adminController.deleteUser
+);
+
 // Actions en masse sur les utilisateurs
 router.post('/users/bulk-action', 
   requireAdminPermission('manage_users'),
@@ -224,7 +231,7 @@ router.post('/delivery-persons/:id/request-info',
 
 // Classement des livreurs
 router.get('/delivery-persons/leaderboard', 
-  requireAdminPermission('view_delivery_persons'),
+  requireAdminPermission('view_deliveries'),
   [
     query('period')
       .optional()
@@ -254,13 +261,20 @@ router.get('/orders',
 );
 
 // Exporter les commandes (CSV, Excel, PDF) - DOIT être avant /orders/:id
-router.get('/orders/export', 
+router.get('/orders/export',
   requireAdminPermission('view_orders'),
   adminController.exportOrders
 );
 
+// Obtenir les commandes problématiques - DOIT être avant /orders/:id
+router.get('/orders/problematic',
+  requireAdminPermission('view_orders'),
+  paginationValidator,
+  adminController.getProblematicOrders
+);
+
 // Détails d'une commande
-router.get('/orders/:id', 
+router.get('/orders/:id',
   requireAdminPermission('view_orders'),
   uuidValidator('id', 'Order ID'),
   adminController.getOrderById
@@ -280,7 +294,7 @@ router.patch('/orders/:id/status',
 );
 
 // Annuler une commande (en cas de litige)
-router.put('/orders/:id/cancel', 
+router.put('/orders/:id/cancel',
   requireAdminPermission('manage_orders'),
   uuidValidator('id', 'Order ID'),
   adminController.cancelOrder
@@ -294,17 +308,10 @@ router.put('/orders/:id/assign-delivery',
 );
 
 // Résoudre un litige
-router.put('/orders/:id/resolve-dispute', 
+router.put('/orders/:id/resolve-dispute',
   requireAdminPermission('manage_orders'),
   uuidValidator('id', 'Order ID'),
   adminController.resolveDispute
-);
-
-// Obtenir les commandes problématiques
-router.get('/orders/problematic', 
-  requireAdminPermission('view_orders'),
-  paginationValidator,
-  adminController.getProblematicOrders
 );
 
 /**
@@ -324,10 +331,16 @@ router.get('/finances/delivery-cash-owed',
   adminController.getDeliveryCashOwed
 );
 
-// Vue d'ensemble financière
+// Vue d'ensemble financière (query: period, date_from, date_to)
 router.get('/finances/overview', 
   requireAdminPermission('view_finances'),
   adminController.getFinancialOverview
+);
+
+// Bénéfices par période (par mois, par année, ou plage personnalisée)
+router.get('/finances/benefits-by-period',
+  requireAdminPermission('view_finances'),
+  adminController.getBenefitsByPeriod
 );
 
 // Obtenir les dépenses
@@ -344,17 +357,24 @@ router.get('/finances/transactions',
 );
 
 // Paiements des livreurs
-router.get('/finances/payments/delivery', 
+router.get('/finances/payments/delivery',
   requireAdminPermission('view_finances'),
   paginationValidator,
   adminController.getDeliveryPayments
 );
 
 // Paiements des restaurants
-router.get('/finances/payments/restaurants', 
+router.get('/finances/payments/restaurants',
   requireAdminPermission('view_finances'),
   paginationValidator,
   adminController.getRestaurantPayments
+);
+
+// Approuver un paiement (livreur ou restaurant)
+router.post('/finances/payments/:id/approve',
+  requireAdminPermission('process_payouts'),
+  uuidValidator('id', 'Payment ID'),
+  adminController.approvePayment
 );
 
 // Demandes de retrait (payouts)

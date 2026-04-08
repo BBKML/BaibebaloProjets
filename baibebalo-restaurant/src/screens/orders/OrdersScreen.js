@@ -7,8 +7,9 @@ import {
   TouchableOpacity,
   RefreshControl,
   ScrollView,
-  Alert,
   Animated,
+  Modal,
+  Pressable,
   Image,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
@@ -20,6 +21,10 @@ import { restaurantOrders } from '../../api/orders';
 import { getImageUrl } from '../../utils/url';
 import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
+import Toast from 'react-native-toast-message';
+
+// Temps de préparation suggérés (minutes)
+const PREP_TIMES = [10, 15, 20, 25, 30, 45, 60];
 
 export default function OrdersScreen({ navigation }) {
   const { orders, setOrders } = useRestaurantStore();
@@ -27,166 +32,89 @@ export default function OrdersScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [isConnected, setIsConnected] = useState(false);
   const [urgentOrderId, setUrgentOrderId] = useState(null);
+  const [acceptModal, setAcceptModal] = useState(null); // { orderId }
+  const [selectedPrepTime, setSelectedPrepTime] = useState(20);
+  const [accepting, setAccepting] = useState(false);
+  const [, setTick] = useState(0);
   const insets = useSafeAreaInsets();
-  
-  // Animation pour les alertes urgentes
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
-  // Initialiser le service audio au montage
+  // Timer pour commandes nouvelles
   useEffect(() => {
-    try {
-      soundService.initialize();
-    } catch (err) {
-      console.warn('⚠️ Erreur init audio:', err);
-    }
+    const newCount = orders.filter(o => o.status === 'new' || o.status === 'pending').length;
+    if (newCount === 0) return;
+    const interval = setInterval(() => setTick(t => t + 1), 1000);
+    return () => clearInterval(interval);
+  }, [orders.filter(o => o.status === 'new' || o.status === 'pending').length]);
+
+  useEffect(() => {
+    try { soundService.initialize(); } catch (_) {}
   }, []);
 
-  // Connecter Socket.IO et écouter les événements
   useEffect(() => {
-    // Connecter au socket (avec gestion d'erreur)
-    try {
-      socketService.connect();
-    } catch (err) {
-      console.warn('⚠️ Erreur connexion socket:', err);
-    }
+    try { socketService.connect(); } catch (_) {}
 
-    // Écouter le statut de connexion
-    const unsubscribeConnection = socketService.on('connection_status', ({ connected }) => {
-      setIsConnected(connected);
-    });
+    const unsubConn = socketService.on('connection_status', ({ connected }) => setIsConnected(connected));
 
-    // Écouter les nouvelles commandes
-    const unsubscribeNewOrder = socketService.on('new_order', (data) => {
-      console.log('📱 Nouvelle commande reçue dans OrdersScreen:', data);
-      const total = data.total ? `${Number(data.total).toLocaleString()} FCFA` : '';
-      const items = data.items_count ? `${data.items_count} article(s)` : '';
-      Alert.alert(
-        '🆕 Nouvelle commande !',
-        `${data.customer_name || 'Un client'} a passé une commande.\n\n${items ? items + '\n' : ''}${total ? 'Total: ' + total : ''}`,
-        [
-          {
-            text: 'Voir la commande',
-            onPress: () => {
-              setSelectedTab('new');
-              if (data.orderId || data.order_id) {
-                navigation.navigate('OrderDetails', { orderId: data.orderId || data.order_id });
-              }
-            },
-          },
-          { text: 'OK', style: 'cancel' },
-        ]
-      );
+    const unsubNew = socketService.on('new_order', () => {
       loadOrders();
       setSelectedTab('new');
     });
 
-    // Écouter les mises à jour de commandes
-    const unsubscribeOrderUpdate = socketService.on('order_update', (data) => {
-      console.log('📱 Mise à jour commande:', data);
-      loadOrders();
-    });
+    const unsubUpdate = socketService.on('order_update', () => loadOrders());
 
-    // Écouter les alertes urgentes
-    const unsubscribeUrgent = socketService.on('order_urgent_alert', ({ orderId, waitingMinutes }) => {
+    const unsubUrgent = socketService.on('order_urgent_alert', ({ orderId }) => {
       setUrgentOrderId(orderId);
-      // Animation de pulsation pour attirer l'attention
-      startPulseAnimation();
-      Alert.alert(
-        '⚠️ Commande en attente!',
-        `Une commande attend votre réponse depuis ${waitingMinutes} minutes!\n\nVeuillez l'accepter ou la refuser rapidement.`,
-        [
-          { 
-            text: 'Voir la commande', 
-            onPress: () => {
-              setSelectedTab('new');
-              soundService.stopSound('urgentOrder');
-            }
-          }
-        ]
-      );
+      startPulse();
     });
 
-    // Écouter les annulations de commande
-    const unsubscribeCancelled = socketService.on('order_cancelled', (data) => {
-      console.log('❌ Commande annulée reçue dans OrdersScreen:', data);
-      const cancelledOrderId = data.orderId || data.order_id;
-      Alert.alert(
-        '❌ Commande annulée',
-        `La commande #${data.orderNumber || cancelledOrderId?.substring(0, 8)} a été annulée par le client.\n\nRaison: ${data.reason || 'Non spécifiée'}`,
-        [{ text: 'OK' }]
-      );
-      // Recharger les commandes pour mettre à jour le statut
-      loadOrders();
-    });
+    const unsubCancelled = socketService.on('order_cancelled', () => loadOrders());
 
     return () => {
-      unsubscribeConnection();
-      unsubscribeNewOrder();
-      unsubscribeOrderUpdate();
-      unsubscribeUrgent();
-      unsubscribeCancelled();
+      unsubConn(); unsubNew(); unsubUpdate(); unsubUrgent(); unsubCancelled();
     };
   }, []);
 
-  // Animation de pulsation pour alertes urgentes
-  const startPulseAnimation = () => {
+  useEffect(() => {
+    loadOrders();
+    const interval = setInterval(loadOrders, 30000);
+    return () => clearInterval(interval);
+  }, [selectedTab]);
+
+  const startPulse = () => {
     Animated.loop(
       Animated.sequence([
-        Animated.timing(pulseAnim, { toValue: 1.1, duration: 300, useNativeDriver: true }),
+        Animated.timing(pulseAnim, { toValue: 1.05, duration: 300, useNativeDriver: true }),
         Animated.timing(pulseAnim, { toValue: 1, duration: 300, useNativeDriver: true }),
       ])
     ).start();
   };
 
-  const stopPulseAnimation = () => {
+  const stopPulse = () => {
     pulseAnim.stopAnimation();
     pulseAnim.setValue(1);
   };
 
-  useEffect(() => {
-    loadOrders();
-    
-    // Rafraîchissement automatique toutes les 30 secondes
-    const refreshInterval = setInterval(() => {
-      loadOrders();
-    }, 30000);
-
-    return () => clearInterval(refreshInterval);
-  }, [selectedTab]);
-
   const loadOrders = async () => {
     try {
       const statusMap = {
-        'new': 'new',
-        // Pour "En cours", charger tous les statuts pertinents
+        new: 'new',
         'in-progress': 'accepted,preparing,ready,picked_up,delivering',
-        'completed': 'delivered',
-        'all': undefined,
+        completed: 'delivered',
+        all: undefined,
       };
-      const status = statusMap[selectedTab];
-      const response = await restaurantOrders.getOrders({ status });
-      const ordersData = response.data?.orders || response.orders || [];
-      
-      // Normaliser les données pour correspondre au format attendu
-      const normalizedOrders = ordersData.map(order => ({
-        ...order,
-        orderNumber: order.orderNumber || order.order_number || (order.id ? order.id.slice(0, 8).toUpperCase() : null),
-        customerName: order.customerName || order.customer_name || 'Client',
-        itemsCount: order.itemsCount || order.items_count || order.items?.length || order.order_items?.length || 0,
-        createdAt: order.createdAt || order.created_at || order.placed_at || new Date().toISOString(),
-        total: order.total || order.total_amount || 0,
-        // Utiliser le revenu net au lieu du total pour l'affichage
-        netRevenue: order.netRevenue !== null && order.netRevenue !== undefined 
-          ? Number.parseFloat(order.netRevenue) 
-          : (order.net_revenue !== null && order.net_revenue !== undefined 
-            ? Number.parseFloat(order.net_revenue) 
-            : null),
+      const response = await restaurantOrders.getOrders({ status: statusMap[selectedTab] });
+      const raw = response.data?.orders || response.orders || [];
+      const normalized = raw.map(o => ({
+        ...o,
+        orderNumber: o.order_number || (o.id ? o.id.slice(0, 8).toUpperCase() : null),
+        customerName: o.customer_name || 'Client',
+        itemsCount: o.items_count || o.items?.length || o.order_items?.length || 0,
+        createdAt: o.created_at || o.placed_at || new Date().toISOString(),
+        netRevenue: o.net_revenue != null ? parseFloat(o.net_revenue) : null,
       }));
-      
-      setOrders(normalizedOrders);
-    } catch (error) {
-      console.error('Error loading orders:', error);
-    }
+      setOrders(normalized);
+    } catch (_) {}
   };
 
   const onRefresh = async () => {
@@ -195,335 +123,323 @@ export default function OrdersScreen({ navigation }) {
     setRefreshing(false);
   };
 
-  const filteredOrders = orders.filter(order => {
-    if (selectedTab === 'new') return order.status === 'pending' || order.status === 'new';
-    if (selectedTab === 'in-progress') return ['accepted', 'preparing', 'ready', 'picked_up', 'delivering'].includes(order.status);
-    if (selectedTab === 'completed') return order.status === 'delivered';
-    return true;
-  });
+  const handleOpenAcceptModal = (orderId) => {
+    setSelectedPrepTime(20);
+    setAcceptModal({ orderId });
+  };
+
+  const handleConfirmAccept = async () => {
+    if (!acceptModal || accepting) return;
+    setAccepting(true);
+    try {
+      await restaurantOrders.acceptOrder(acceptModal.orderId, selectedPrepTime);
+      setAcceptModal(null);
+      Toast.show({
+        type: 'success',
+        text1: '✅ Commande acceptée',
+        text2: `Temps de préparation : ${selectedPrepTime} min`,
+      });
+      loadOrders();
+    } catch (_) {
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible d\'accepter la commande' });
+    } finally {
+      setAccepting(false);
+    }
+  };
+
+  const handleRefuse = (orderId) => navigation.navigate('RefuseOrderModal', { orderId });
 
   const formatCurrency = (amount) => {
     if (!amount && amount !== 0) return '0 FCFA';
-    const value = Number.parseFloat(amount);
-    return value.toLocaleString('fr-FR', { 
-      minimumFractionDigits: 0, 
-      maximumFractionDigits: 0 
-    }) + ' FCFA';
+    return parseFloat(amount).toLocaleString('fr-FR', { maximumFractionDigits: 0 }) + ' FCFA';
+  };
+
+  const getNetRevenue = (item) => {
+    let net = item.netRevenue ?? item.net_revenue;
+    if (net == null) {
+      const sub = parseFloat(item.subtotal || 0);
+      const rate = parseFloat(item.commission_rate || 15);
+      const com = parseFloat(item.commission || 0);
+      net = Math.max(0, sub - (com > 0 ? com : (sub * rate) / 100));
+    }
+    return parseFloat(net);
+  };
+
+  const getTimeAgo = (ts) => {
+    if (!ts) return '';
+    const diff = Math.floor((Date.now() - new Date(ts).getTime()) / 60000);
+    if (diff < 1) return 'À l\'instant';
+    if (diff < 60) return `Il y a ${diff} min`;
+    return `Il y a ${Math.floor(diff / 60)}h`;
   };
 
   const getTimeRemaining = (order) => {
-    // Calculer le temps restant basé sur la date de création
-    if (order.createdAt || order.created_at || order.placed_at) {
-      const orderTime = new Date(order.createdAt || order.created_at || order.placed_at);
-      const now = new Date();
-      const diffMs = now - orderTime;
-      const diffMins = Math.floor(diffMs / 60000);
-      
-      // Temps maximum pour répondre : 5 minutes
-      const maxResponseTime = 5;
-      const remainingMins = Math.max(0, maxResponseTime - diffMins);
-      const remainingSecs = Math.max(0, 60 - Math.floor((diffMs % 60000) / 1000));
-      
-      return `${String(remainingMins).padStart(2, '0')}:${String(remainingSecs).padStart(2, '0')}`;
+    const ts = order.createdAt || order.placed_at;
+    if (!ts) return null;
+    const elapsed = Math.floor((Date.now() - new Date(ts).getTime()) / 1000);
+    const remaining = Math.max(0, 120 - elapsed);
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    return { display: `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`, isExpired: remaining <= 0, remaining };
+  };
+
+  const getStatusConfig = (status) => {
+    switch (status) {
+      case 'new': case 'pending': return { label: 'Nouveau', color: COLORS.warning, bg: '#fef3c7' };
+      case 'accepted': return { label: 'Accepté', color: '#3b82f6', bg: '#eff6ff' };
+      case 'preparing': return { label: 'En préparation', color: COLORS.primary, bg: COLORS.primary + '15' };
+      case 'ready': return { label: 'Prêt', color: '#10b981', bg: '#f0fdf4' };
+      case 'picking_up': case 'picked_up': return { label: 'Récupéré', color: '#8b5cf6', bg: '#f5f3ff' };
+      case 'delivering': return { label: 'En livraison', color: '#0ea5e9', bg: '#f0f9ff' };
+      case 'delivered': return { label: 'Livré', color: '#10b981', bg: '#f0fdf4' };
+      case 'cancelled': return { label: 'Annulé', color: COLORS.error, bg: '#fef2f2' };
+      default: return { label: status, color: COLORS.textSecondary, bg: COLORS.background };
     }
-    return '04:59';
   };
 
-  const getTimeAgo = (timestamp) => {
-    if (!timestamp) return 'Il y a 2 min';
-    const now = new Date();
-    const orderTime = new Date(timestamp);
-    const diffMs = now - orderTime;
-    const diffMins = Math.floor(diffMs / 60000);
-    if (diffMins < 1) return 'À l\'instant';
-    if (diffMins < 60) return `Il y a ${diffMins} min`;
-    const diffHours = Math.floor(diffMins / 60);
-    return `Il y a ${diffHours}h`;
-  };
+  const filteredOrders = orders.filter(o => {
+    if (selectedTab === 'new') return o.status === 'pending' || o.status === 'new';
+    if (selectedTab === 'in-progress') return ['accepted', 'preparing', 'ready', 'picked_up', 'picking_up', 'delivering'].includes(o.status);
+    if (selectedTab === 'completed') return o.status === 'delivered';
+    return true;
+  });
 
-  const getPriorityColor = (order) => {
-    if (order.status === 'new' || order.status === 'pending') {
-      const timeAgo = getTimeAgo(order.createdAt || order.created_at || order.placed_at);
-      if (timeAgo.includes('À l\'instant') || timeAgo.includes('1 min')) {
-        return COLORS.error; // Rouge pour urgent
-      }
-      return COLORS.warning; // Orange pour nouveau
-    }
-    return COLORS.textSecondary; // Gris pour autres
-  };
-
-  const handleAccept = async (orderId) => {
-    navigation.navigate('OrderDetails', { orderId });
-  };
-
-  const handleRefuse = (orderId) => {
-    navigation.navigate('RefuseOrderModal', { orderId });
-  };
+  const newCount = orders.filter(o => o.status === 'pending' || o.status === 'new').length;
+  const inProgressCount = orders.filter(o => ['accepted', 'preparing', 'ready', 'picked_up', 'delivering'].includes(o.status)).length;
 
   const tabs = [
-    { key: 'new', label: 'Nouvelles', count: orders.filter(o => o.status === 'pending' || o.status === 'new').length },
-    { key: 'in-progress', label: 'En cours', count: orders.filter(o => ['accepted', 'preparing', 'ready', 'picked_up', 'delivering'].includes(o.status)).length },
-    { key: 'completed', label: 'Complétées', count: orders.filter(o => o.status === 'delivered').length },
-    { key: 'all', label: 'Toutes' },
+    { key: 'new', label: 'Nouvelles', count: newCount },
+    { key: 'in-progress', label: 'En cours', count: inProgressCount },
+    { key: 'completed', label: 'Livrées', count: null },
+    { key: 'all', label: 'Toutes', count: null },
   ];
 
   const renderOrderItem = ({ item }) => {
-    const priorityColor = getPriorityColor(item);
-    const isUrgent = priorityColor === COLORS.error;
-    const timeRemaining = getTimeRemaining(item);
-    const timeAgo = getTimeAgo(item.createdAt || item.created_at || item.placed_at);
-    const itemsCount = item.itemsCount || 0;
-    const customerName = item.customerName || 'Client';
-    const orderNumber = item.orderNumber || item.order_number || (item.id ? item.id.slice(0, 8).toUpperCase() : 'N/A');
-    
-    // Utiliser le revenu net au lieu du total
-    // Si le revenu net n'est pas disponible, calculer à partir du subtotal et de la commission
-    let displayAmount = item.netRevenue !== null && item.netRevenue !== undefined 
-      ? Number.parseFloat(item.netRevenue) 
-      : (item.net_revenue !== null && item.net_revenue !== undefined 
-        ? Number.parseFloat(item.net_revenue) 
-        : null);
-    
-    // Si le revenu net n'est pas disponible, le calculer
-    if (displayAmount === null || displayAmount === undefined) {
-      const subtotal = Number.parseFloat(item.subtotal || 0);
-      const commission = Number.parseFloat(item.commission || 0);
-      const commissionRate = Number.parseFloat(item.commission_rate || 15);
-      
-      // Si la commission n'est pas disponible, la calculer
-      const actualCommission = commission > 0 ? commission : (subtotal * commissionRate) / 100;
-      displayAmount = Math.max(0, subtotal - actualCommission);
-    }
-    
-    const orderTotal = displayAmount;
-    
-    // Déterminer le label du statut
-    const getStatusLabel = () => {
-      if (item.status === 'new' || item.status === 'pending') {
-        return isUrgent ? 'Priorité Haute' : 'Nouveau';
-      }
-      if (item.status === 'accepted' || item.status === 'preparing') {
-        return 'En préparation';
-      }
-      if (item.status === 'ready') {
-        return item.delivery_person_id ? 'Livreur en route' : 'Prêt';
-      }
-      if (item.status === 'picked_up') {
-        return 'Récupérée';
-      }
-      if (item.status === 'delivering') {
-        return 'En livraison';
-      }
-      if (item.status === 'delivered') {
-        return 'Livré';
-      }
-      if (item.status === 'cancelled') {
-        return 'Annulé';
-      }
-      return 'Nouveau';
-    };
+    const statusCfg = getStatusConfig(item.status);
+    const isNew = item.status === 'new' || item.status === 'pending';
+    const timeR = isNew ? getTimeRemaining(item) : null;
+    const timeAgo = getTimeAgo(item.createdAt || item.placed_at);
+    const net = getNetRevenue(item);
+    const orderNum = item.orderNumber || (item.id ? item.id.slice(0, 8).toUpperCase() : 'N/A');
+    const isUrgent = urgentOrderId === item.id;
 
     return (
-      <View style={styles.orderCard}>
-        <View style={styles.orderCardContent}>
-          <View style={styles.orderHeader}>
-            <View style={styles.orderHeaderLeft}>
-              <Text style={[styles.orderStatusLabel, { color: isUrgent ? COLORS.primary : COLORS.textSecondary }]}>
-                #{orderNumber} • {getStatusLabel()}
-              </Text>
-            </View>
-            <View style={[styles.timerBadge, { backgroundColor: isUrgent ? COLORS.error + '1A' : COLORS.warning + '1A' }]}>
-              <Ionicons name="time" size={12} color={isUrgent ? COLORS.error : COLORS.warning} />
-              <Text style={[styles.timerText, { color: isUrgent ? COLORS.error : COLORS.warning }]}>
-                {timeRemaining}
-              </Text>
-            </View>
-          </View>
+      <Animated.View style={isUrgent ? { transform: [{ scale: pulseAnim }] } : {}}>
+        <TouchableOpacity
+          style={[styles.orderCard, isNew && styles.orderCardNew]}
+          onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
+          activeOpacity={0.85}
+        >
+          {/* Bandeau gauche coloré */}
+          <View style={[styles.orderAccent, { backgroundColor: statusCfg.color }]} />
 
           <View style={styles.orderBody}>
-            {item.firstItemImage ? (
-              <Image source={{ uri: getImageUrl(item.firstItemImage) }} style={styles.orderImage} />
-            ) : (
-              <View style={[styles.orderImage, styles.orderImagePlaceholder]}>
-                <Ionicons name="fast-food-outline" size={24} color={COLORS.textLight} />
+            {/* Ligne 1 : numéro + badge statut + timer */}
+            <View style={styles.orderRow}>
+              <Text style={styles.orderNum}>#{orderNum}</Text>
+              <View style={{ flex: 1 }} />
+              {isNew && timeR && (
+                <View style={[styles.timerPill, { backgroundColor: timeR.isExpired ? '#fef2f2' : '#fff7ed' }]}>
+                  <Ionicons name="time" size={12} color={timeR.isExpired ? COLORS.error : COLORS.warning} />
+                  <Text style={[styles.timerPillText, { color: timeR.isExpired ? COLORS.error : COLORS.warning }]}>
+                    {timeR.display}
+                  </Text>
+                </View>
+              )}
+              <View style={[styles.statusPill, { backgroundColor: statusCfg.bg }]}>
+                <Text style={[styles.statusPillText, { color: statusCfg.color }]}>{statusCfg.label}</Text>
               </View>
-            )}
-            <View style={styles.orderInfo}>
-              <Text style={styles.customerName} numberOfLines={1}>
-                {customerName}
-              </Text>
-              <Text style={styles.orderMeta} numberOfLines={1}>
-                {timeAgo} • {itemsCount} article{itemsCount > 1 ? 's' : ''}
-              </Text>
-              <Text style={styles.orderTotal}>
-                {formatCurrency(orderTotal)}
-              </Text>
             </View>
+
+            {/* Ligne 2 : client + image */}
+            <View style={styles.orderRow}>
+              <View style={styles.orderMeta}>
+                <Text style={styles.customerName} numberOfLines={1}>{item.customerName || 'Client'}</Text>
+                <Text style={styles.orderDetails}>
+                  {item.itemsCount || 0} article{(item.itemsCount || 0) > 1 ? 's' : ''} • {timeAgo}
+                </Text>
+              </View>
+              {item.firstItemImage ? (
+                <Image source={{ uri: getImageUrl(item.firstItemImage) }} style={styles.orderThumb} />
+              ) : (
+                <View style={styles.orderThumbEmpty}>
+                  <Ionicons name="fast-food-outline" size={20} color={COLORS.textSecondary} />
+                </View>
+              )}
+            </View>
+
+            {/* Montant */}
+            <Text style={styles.orderAmount}>{formatCurrency(net)}</Text>
+
+            {/* Boutons d'action */}
+            {isNew ? (
+              <View style={styles.actionRow}>
+                <TouchableOpacity
+                  style={styles.btnRefuse}
+                  onPress={() => handleRefuse(item.id)}
+                >
+                  <Ionicons name="close" size={16} color={COLORS.error} />
+                  <Text style={styles.btnRefuseText}>Refuser</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.btnAccept}
+                  onPress={() => handleOpenAcceptModal(item.id)}
+                >
+                  <Ionicons name="checkmark" size={16} color="#fff" />
+                  <Text style={styles.btnAcceptText}>Accepter</Text>
+                </TouchableOpacity>
+              </View>
+            ) : item.status === 'accepted' ? (
+              <TouchableOpacity
+                style={styles.btnPrimary}
+                onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
+              >
+                <Ionicons name="flame-outline" size={16} color="#fff" />
+                <Text style={styles.btnPrimaryText}>Démarrer la préparation</Text>
+              </TouchableOpacity>
+            ) : item.status === 'preparing' ? (
+              <TouchableOpacity
+                style={[styles.btnPrimary, { backgroundColor: '#10b981' }]}
+                onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
+              >
+                <Ionicons name="checkmark-done-outline" size={16} color="#fff" />
+                <Text style={styles.btnPrimaryText}>Marquer comme prête</Text>
+              </TouchableOpacity>
+            ) : null}
           </View>
-
-          {/* Boutons d'action selon le statut */}
-          {(item.status === 'pending' || item.status === 'new') ? (
-            <View style={styles.orderActions}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.acceptButton]}
-                onPress={() => handleAccept(item.id)}
-              >
-                <Text style={styles.acceptButtonText}>Accepter</Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.refuseButton]}
-                onPress={() => handleRefuse(item.id)}
-              >
-                <Text style={styles.refuseButtonText}>Refuser</Text>
-              </TouchableOpacity>
-            </View>
-          ) : item.status === 'accepted' ? (
-            <View style={styles.orderActions}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.startButton]}
-                onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
-              >
-                <Text style={styles.startButtonText}>Démarrer préparation</Text>
-              </TouchableOpacity>
-            </View>
-          ) : item.status === 'preparing' ? (
-            <View style={styles.orderActions}>
-              <TouchableOpacity
-                style={[styles.actionButton, styles.readyButton]}
-                onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
-              >
-                <Text style={styles.readyButtonText}>Marquer prête</Text>
-              </TouchableOpacity>
-            </View>
-          ) : null}
-
-          <TouchableOpacity
-            style={styles.detailsButton}
-            onPress={() => navigation.navigate('OrderDetails', { orderId: item.id })}
-          >
-            <Text style={styles.detailsButtonText}>Voir les détails</Text>
-            <Ionicons name="chevron-down" size={16} color={COLORS.textSecondary} />
-          </TouchableOpacity>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </Animated.View>
     );
   };
 
-  // Compter les commandes nouvelles
-  const newOrdersCount = orders.filter(o => o.status === 'pending' || o.status === 'new').length;
-  const hasUrgentOrders = urgentOrderId !== null;
-
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      {/* Bannière d'alerte urgente */}
-      {hasUrgentOrders && (
+      {/* Bannière urgente */}
+      {urgentOrderId && (
         <Animated.View style={[styles.urgentBanner, { transform: [{ scale: pulseAnim }] }]}>
-          <Ionicons name="warning" size={20} color="#FFF" />
-          <Text style={styles.urgentBannerText}>
-            Commande en attente! Veuillez répondre rapidement.
-          </Text>
-          <TouchableOpacity 
-            onPress={() => {
-              setUrgentOrderId(null);
-              stopPulseAnimation();
-              soundService.stopSound('urgentOrder');
-            }}
-          >
-            <Ionicons name="close" size={20} color="#FFF" />
+          <Ionicons name="warning" size={18} color="#fff" />
+          <Text style={styles.urgentText}>Commande en attente de réponse !</Text>
+          <TouchableOpacity onPress={() => { setUrgentOrderId(null); stopPulse(); }}>
+            <Ionicons name="close" size={18} color="#fff" />
           </TouchableOpacity>
         </Animated.View>
       )}
 
-      {/* Top Navigation Bar */}
-      <View style={styles.topBar}>
-        <View style={styles.topBarContent}>
-          <TouchableOpacity style={styles.menuButton}>
-            <Ionicons name="menu" size={24} color={COLORS.text} />
-          </TouchableOpacity>
-          <View style={styles.titleContainer}>
-            <Text style={styles.topBarTitle}>Commandes</Text>
-            {/* Indicateur de connexion temps réel */}
-            <View style={[styles.connectionIndicator, isConnected ? styles.connected : styles.disconnected]}>
-              <View style={[styles.connectionDot, isConnected ? styles.connectedDot : styles.disconnectedDot]} />
-              <Text style={styles.connectionText}>
-                {isConnected ? 'En direct' : 'Hors ligne'}
-              </Text>
-            </View>
-          </View>
-          <TouchableOpacity style={styles.notificationButton}>
-            <Ionicons name="notifications-outline" size={24} color={COLORS.text} />
-            {newOrdersCount > 0 && (
-              <View style={[styles.notificationBadge, hasUrgentOrders && styles.urgentBadge]}>
-                <Text style={styles.notificationBadgeText}>{newOrdersCount}</Text>
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Commandes</Text>
+        <View style={[styles.connBadge, isConnected ? styles.connBadgeOn : styles.connBadgeOff]}>
+          <View style={[styles.connDot, { backgroundColor: isConnected ? '#10b981' : '#ef4444' }]} />
+          <Text style={[styles.connText, { color: isConnected ? '#10b981' : '#ef4444' }]}>
+            {isConnected ? 'Temps réel' : 'Hors ligne'}
+          </Text>
+        </View>
+      </View>
+
+      {/* Tabs */}
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.tabsRow}
+        style={styles.tabsScroll}
+      >
+        {tabs.map(tab => (
+          <TouchableOpacity
+            key={tab.key}
+            style={[styles.tab, selectedTab === tab.key && styles.tabActive]}
+            onPress={() => {
+              setSelectedTab(tab.key);
+              if (tab.key === 'new') { setUrgentOrderId(null); stopPulse(); }
+            }}
+          >
+            <Text style={[styles.tabText, selectedTab === tab.key && styles.tabTextActive]}>
+              {tab.label}
+            </Text>
+            {tab.count != null && tab.count > 0 && (
+              <View style={[styles.tabBadge, selectedTab === tab.key && styles.tabBadgeActive]}>
+                <Text style={[styles.tabBadgeText, selectedTab === tab.key && styles.tabBadgeTextActive]}>
+                  {tab.count}
+                </Text>
               </View>
             )}
           </TouchableOpacity>
-        </View>
+        ))}
+      </ScrollView>
 
-        {/* Segmented Tabs */}
-        <ScrollView 
-          horizontal 
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.tabsContainer}
-        >
-          {tabs.map(tab => {
-            const isNewTab = tab.key === 'new';
-            const isUrgent = isNewTab && hasUrgentOrders;
-            
-            return (
-              <Animated.View 
-                key={tab.key}
-                style={isUrgent ? { transform: [{ scale: pulseAnim }] } : {}}
-              >
-                <TouchableOpacity
-                  style={[
-                    styles.tab, 
-                    selectedTab === tab.key && styles.tabActive,
-                    isUrgent && styles.tabUrgent
-                  ]}
-                  onPress={() => {
-                    setSelectedTab(tab.key);
-                    if (isNewTab) {
-                      setUrgentOrderId(null);
-                      stopPulseAnimation();
-                      soundService.stopSound('urgentOrder');
-                    }
-                  }}
-                >
-                  <Text style={[
-                    styles.tabText, 
-                    selectedTab === tab.key && styles.tabTextActive,
-                    isUrgent && styles.tabTextUrgent
-                  ]}>
-                    {tab.label}
-                  </Text>
-                  {tab.count !== undefined && tab.count > 0 && (
-                    <View style={[styles.tabBadge, isUrgent && styles.tabBadgeUrgent]}>
-                      <Text style={[styles.tabBadgeText, isUrgent && styles.tabBadgeTextUrgent]}>
-                        {tab.count}
-                      </Text>
-                    </View>
-                  )}
-                </TouchableOpacity>
-              </Animated.View>
-            );
-          })}
-        </ScrollView>
-      </View>
-
+      {/* Liste */}
       <FlatList
         data={filteredOrders}
         renderItem={renderOrderItem}
-        keyExtractor={item => item.id?.toString() || item.order_number}
-        contentContainerStyle={styles.list}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        keyExtractor={item => item.id?.toString() || item.order_number || Math.random().toString()}
+        contentContainerStyle={[styles.list, { paddingBottom: insets.bottom + 80 }]}
+        refreshControl={
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />
+        }
         ListEmptyComponent={
-          <View style={styles.emptyContainer}>
-            <Ionicons name="receipt-outline" size={64} color={COLORS.textLight} />
-            <Text style={styles.emptyText}>Aucune commande</Text>
+          <View style={styles.emptyBox}>
+            <View style={styles.emptyIcon}>
+              <Ionicons name="receipt-outline" size={40} color={COLORS.textSecondary} />
+            </View>
+            <Text style={styles.emptyTitle}>Aucune commande</Text>
+            <Text style={styles.emptySub}>
+              {selectedTab === 'new'
+                ? 'Les nouvelles commandes apparaîtront ici'
+                : selectedTab === 'in-progress'
+                ? 'Aucune commande en cours de préparation'
+                : 'Aucune commande dans cette catégorie'}
+            </Text>
           </View>
         }
       />
+
+      {/* Modal Acceptation avec choix temps de préparation */}
+      <Modal
+        visible={!!acceptModal}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setAcceptModal(null)}
+      >
+        <Pressable style={styles.modalOverlay} onPress={() => setAcceptModal(null)}>
+          <Pressable style={styles.modalSheet} onPress={e => e.stopPropagation()}>
+            <View style={styles.modalHandle} />
+            <Text style={styles.modalTitle}>Temps de préparation</Text>
+            <Text style={styles.modalSub}>Combien de temps faut-il pour préparer cette commande ?</Text>
+
+            <View style={styles.prepGrid}>
+              {PREP_TIMES.map(t => (
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.prepChip, selectedPrepTime === t && styles.prepChipActive]}
+                  onPress={() => setSelectedPrepTime(t)}
+                >
+                  <Text style={[styles.prepChipText, selectedPrepTime === t && styles.prepChipTextActive]}>
+                    {t} min
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+
+            <View style={styles.modalActions}>
+              <TouchableOpacity
+                style={styles.modalCancel}
+                onPress={() => setAcceptModal(null)}
+              >
+                <Text style={styles.modalCancelText}>Annuler</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.modalConfirm, accepting && styles.modalConfirmDisabled]}
+                onPress={handleConfirmAccept}
+                disabled={accepting}
+              >
+                <Ionicons name="checkmark" size={18} color="#fff" />
+                <Text style={styles.modalConfirmText}>
+                  {accepting ? 'En cours...' : `Accepter (${selectedPrepTime} min)`}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </View>
   );
 }
@@ -539,306 +455,296 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.background,
   },
-  topBar: {
-    backgroundColor: COLORS.background + 'CC',
+  urgentBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.error,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    gap: 10,
+  },
+  urgentText: { flex: 1, color: '#fff', fontWeight: '700', fontSize: 13 },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingVertical: 14,
+    backgroundColor: COLORS.white,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.border,
   },
-  topBarContent: {
+  headerTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text },
+  connBadge: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 5,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+  connBadgeOn: { backgroundColor: '#f0fdf4', borderColor: '#86efac' },
+  connBadgeOff: { backgroundColor: '#fef2f2', borderColor: '#fca5a5' },
+  connDot: { width: 6, height: 6, borderRadius: 3 },
+  connText: { fontSize: 11, fontWeight: '700' },
+  tabsScroll: {
+    backgroundColor: COLORS.white,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  tabsRow: {
     paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  menuButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  topBarTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-  },
-  notificationButton: {
-    width: 40,
-    height: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    position: 'relative',
-  },
-  notificationDot: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: COLORS.primary,
-  },
-  tabsContainer: {
-    paddingHorizontal: 16,
-    gap: 24,
-  },
-  tab: {
-    flexDirection: 'column',
-    alignItems: 'center',
-    paddingBottom: 8,
-    paddingTop: 4,
-    borderBottomWidth: 3,
-    borderBottomColor: 'transparent',
     gap: 4,
   },
-  tabActive: {
-    borderBottomColor: COLORS.primary,
+  tab: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderBottomWidth: 3,
+    borderBottomColor: 'transparent',
   },
-  tabText: {
-    fontSize: 14,
-    fontWeight: 'bold',
-    color: COLORS.textSecondary,
-  },
-  tabTextActive: {
-    color: COLORS.primary,
-  },
+  tabActive: { borderBottomColor: COLORS.primary },
+  tabText: { fontSize: 14, fontWeight: '600', color: COLORS.textSecondary },
+  tabTextActive: { color: COLORS.primary, fontWeight: '800' },
   tabBadge: {
-    backgroundColor: COLORS.primary + '33',
-    borderRadius: 999,
+    backgroundColor: COLORS.border,
+    borderRadius: 10,
     paddingHorizontal: 6,
-    paddingVertical: 2,
+    paddingVertical: 1,
     minWidth: 20,
     alignItems: 'center',
   },
-  tabBadgeText: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    color: COLORS.primary,
-  },
-  list: {
-    padding: 16,
-    paddingBottom: 100,
-  },
+  tabBadgeActive: { backgroundColor: COLORS.primary + '20' },
+  tabBadgeText: { fontSize: 11, fontWeight: '700', color: COLORS.textSecondary },
+  tabBadgeTextActive: { color: COLORS.primary },
+  list: { padding: 16, gap: 12 },
+
+  // Order card
   orderCard: {
-    borderRadius: 12,
     backgroundColor: COLORS.white,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    borderRadius: 16,
+    flexDirection: 'row',
+    overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.border,
-    overflow: 'hidden',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+    marginBottom: 0,
   },
-  orderCardContent: {
-    padding: 16,
+  orderCardNew: {
+    borderColor: COLORS.primary + '40',
+    shadowColor: COLORS.primary,
+    shadowOpacity: 0.12,
   },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    marginBottom: 8,
+  orderAccent: {
+    width: 4,
+    backgroundColor: COLORS.primary,
   },
-  orderHeaderLeft: {
+  orderBody: {
     flex: 1,
+    padding: 14,
+    gap: 8,
   },
-  orderStatusLabel: {
-    fontSize: 10,
-    fontWeight: 'bold',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
+  orderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  timerBadge: {
+  orderNum: {
+    fontSize: 13,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  timerPill: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
     paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
   },
-  timerText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+  timerPillText: { fontSize: 12, fontWeight: '800' },
+  statusPill: {
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 20,
   },
-  orderBody: {
-    flexDirection: 'row',
-    gap: 16,
-    marginBottom: 16,
-  },
-  orderImage: {
-    width: 64,
-    height: 64,
-    borderRadius: 8,
-    backgroundColor: COLORS.border,
-  },
-  orderImagePlaceholder: {
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  orderInfo: {
-    flex: 1,
-  },
+  statusPillText: { fontSize: 11, fontWeight: '700' },
+  orderMeta: { flex: 1 },
   customerName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  orderMeta: {
-    fontSize: 14,
-    color: COLORS.textSecondary,
-    marginBottom: 4,
-  },
-  orderTotal: {
     fontSize: 16,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  orderDetails: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 1,
+  },
+  orderThumb: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+  },
+  orderThumbEmpty: {
+    width: 52,
+    height: 52,
+    borderRadius: 10,
+    backgroundColor: COLORS.background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+  },
+  orderAmount: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.text,
+  },
+  actionRow: {
+    flexDirection: 'row',
+    gap: 10,
     marginTop: 4,
   },
-  orderActions: {
-    flexDirection: 'row',
-    gap: 12,
-    marginBottom: 8,
-  },
-  actionButton: {
+  btnRefuse: {
     flex: 1,
-    height: 40,
-    borderRadius: 8,
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1.5,
+    borderColor: COLORS.error + '50',
+    backgroundColor: '#fef2f2',
   },
-  acceptButton: {
+  btnRefuseText: { fontSize: 14, fontWeight: '700', color: COLORS.error },
+  btnAccept: {
+    flex: 2,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
     backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.3,
+    shadowRadius: 6,
+    elevation: 3,
   },
-  refuseButton: {
+  btnAcceptText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+  btnPrimary: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    marginTop: 4,
+  },
+  btnPrimaryText: { fontSize: 14, fontWeight: '700', color: '#fff' },
+
+  // Empty state
+  emptyBox: {
+    alignItems: 'center',
+    paddingVertical: 60,
+    paddingHorizontal: 32,
+  },
+  emptyIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: COLORS.white,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    marginBottom: 16,
+  },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
+  emptySub: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center' },
+
+  // Modal
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    gap: 16,
+  },
+  modalHandle: {
+    width: 40,
+    height: 4,
+    backgroundColor: COLORS.border,
+    borderRadius: 2,
+    alignSelf: 'center',
+    marginBottom: 4,
+  },
+  modalTitle: { fontSize: 20, fontWeight: '800', color: COLORS.text, textAlign: 'center' },
+  modalSub: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', marginTop: -8 },
+  prepGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    justifyContent: 'center',
+  },
+  prepChip: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
     backgroundColor: COLORS.background,
   },
-  acceptButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: 'bold',
+  prepChipActive: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary + '12',
   },
-  refuseButtonText: {
-    color: COLORS.text,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  startButton: {
-    backgroundColor: COLORS.primary,
-  },
-  startButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  readyButton: {
-    backgroundColor: COLORS.success,
-  },
-  readyButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  detailsButton: {
+  prepChipText: { fontSize: 15, fontWeight: '700', color: COLORS.textSecondary },
+  prepChipTextActive: { color: COLORS.primary },
+  modalActions: {
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 8,
-    gap: 4,
+    gap: 12,
+    marginTop: 4,
   },
-  detailsButtonText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: COLORS.textSecondary,
-  },
-  emptyContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 60,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
-    marginTop: 16,
-  },
-  // Bannière d'alerte urgente
-  urgentBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: '#E53E3E',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    gap: 10,
-  },
-  urgentBannerText: {
+  modalCancel: {
     flex: 1,
-    color: '#FFF',
-    fontWeight: 'bold',
-    fontSize: 13,
-  },
-  // Conteneur du titre avec indicateur
-  titleContainer: {
+    paddingVertical: 14,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.border,
     alignItems: 'center',
   },
-  // Indicateur de connexion temps réel
-  connectionIndicator: {
+  modalCancelText: { fontSize: 15, fontWeight: '700', color: COLORS.textSecondary },
+  modalConfirm: {
+    flex: 2,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
-    marginTop: 2,
-  },
-  connectionDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-  },
-  connected: {},
-  disconnected: {},
-  connectedDot: {
-    backgroundColor: '#48BB78',
-  },
-  disconnectedDot: {
-    backgroundColor: '#E53E3E',
-  },
-  connectionText: {
-    fontSize: 10,
-    color: COLORS.textSecondary,
-  },
-  // Badge de notification amélioré
-  notificationBadge: {
-    position: 'absolute',
-    top: 4,
-    right: 4,
-    minWidth: 18,
-    height: 18,
-    borderRadius: 9,
-    backgroundColor: COLORS.primary,
     justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 4,
+    gap: 8,
+    paddingVertical: 14,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
-  urgentBadge: {
-    backgroundColor: '#E53E3E',
-  },
-  notificationBadgeText: {
-    color: '#FFF',
-    fontSize: 10,
-    fontWeight: 'bold',
-  },
-  // Tab urgent
-  tabUrgent: {
-    borderBottomColor: '#E53E3E',
-  },
-  tabTextUrgent: {
-    color: '#E53E3E',
-  },
-  tabBadgeUrgent: {
-    backgroundColor: '#E53E3E',
-  },
-  tabBadgeTextUrgent: {
-    color: '#FFF',
-  },
+  modalConfirmDisabled: { opacity: 0.6 },
+  modalConfirmText: { fontSize: 15, fontWeight: '700', color: '#fff' },
 });

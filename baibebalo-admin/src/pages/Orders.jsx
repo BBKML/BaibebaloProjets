@@ -95,20 +95,29 @@ function SearchableSelect({ options, value, onChange, placeholder, label, id, cl
   );
 }
 
-// Libellés des statuts en français (alignés sur le backend)
 const STATUTS_FR = {
-  new: { label: 'Nouvelle', class: 'bg-semantic-amber/10 text-semantic-amber' },
-  pending: { label: 'En attente', class: 'bg-semantic-amber/10 text-semantic-amber' },
-  accepted: { label: 'Acceptée', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-  confirmed: { label: 'Confirmée', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-  preparing: { label: 'En préparation', class: 'bg-semantic-amber/10 text-semantic-amber' },
-  ready: { label: 'Prête', class: 'bg-primary/10 text-primary' },
-  picked_up: { label: 'Récupérée', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
-  delivering: { label: 'En livraison', class: 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500' },
-  driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500' },
-  delivered: { label: 'Livrée', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-  cancelled: { label: 'Annulée', class: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500' },
+  new:               { label: 'Nouvelle',       cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+  pending:           { label: 'En attente',     cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+  scheduled:         { label: 'Programmée',     cls: 'bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-400' },
+  accepted:          { label: 'Acceptée',       cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-500' },
+  confirmed:         { label: 'Confirmée',      cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-500' },
+  preparing:         { label: 'En préparation', cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+  ready:             { label: 'Prête',          cls: 'bg-primary/10 text-primary' },
+  picked_up:         { label: 'Récupérée',      cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500' },
+  delivering:        { label: 'En livraison',   cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-500' },
+  driver_at_customer:{ label: 'Livreur arrivé', cls: 'bg-purple-50 text-purple-700 dark:bg-purple-500/10 dark:text-purple-500' },
+  delivered:         { label: 'Livrée',         cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-500' },
+  cancelled:         { label: 'Annulée',        cls: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-500' },
 };
+
+// Groupes de filtres rapides
+const QUICK_FILTERS = [
+  { label: 'Toutes', value: '' },
+  { label: 'En attente', value: 'pending' },
+  { label: 'En cours', value: 'delivering' },
+  { label: 'Livrées', value: 'delivered' },
+  { label: 'Annulées', value: 'cancelled' },
+];
 
 const Orders = () => {
   const navigate = useNavigate();
@@ -150,9 +159,9 @@ const Orders = () => {
   const drivers = driversData?.data?.delivery_persons || driversData?.data?.delivery_persons || driversData?.data || [];
 
   const getStatusBadge = (status) => {
-    const config = STATUTS_FR[status] || { label: status || '—', class: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400' };
+    const config = STATUTS_FR[status] || { label: status || '—', cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-400' };
     return (
-      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${config.class}`}>
+      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-black uppercase tracking-wide ${config.cls}`}>
         {config.label}
       </span>
     );
@@ -204,31 +213,54 @@ const Orders = () => {
 
   return (
     <Layout>
-      <div className="space-y-6">
+      <div className="space-y-5">
         {/* Header */}
-        <div className="flex justify-between items-end">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Liste des Commandes</h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">Gérez et suivez toutes les commandes entrantes</p>
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">Commandes</h1>
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5">
+              {pagination.total
+                ? `${pagination.total.toLocaleString('fr-FR')} commandes au total`
+                : 'Toutes les commandes'}
+            </p>
           </div>
           <button
             onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors"
+            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-sm font-bold shadow-sm shadow-primary/20"
           >
-            <span className="material-symbols-outlined">file_download</span>
-            <span className="text-sm font-semibold">Exporter</span>
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>file_download</span>
+            Exporter CSV
           </button>
         </div>
 
-        {/* Export Modal */}
-        <ExportOrdersModal
-          isOpen={showExportModal}
-          onClose={() => setShowExportModal(false)}
-        />
+        <ExportOrdersModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} />
 
-        {/* Filtres : dates, client, livreur, restaurant, statut */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
-          <div className="flex flex-wrap items-end gap-4">
+        {/* Filtres rapides par statut (pills) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1">
+          {QUICK_FILTERS.map((f) => (
+            <button
+              key={f.value}
+              onClick={() => applyFilters({ status: f.value })}
+              className={`flex-shrink-0 px-4 py-2 rounded-full text-sm font-bold transition-all ${
+                filters.status === f.value
+                  ? 'bg-primary text-white shadow-sm'
+                  : 'bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:border-primary hover:text-primary'
+              }`}
+            >
+              {f.label}
+            </button>
+          ))}
+        </div>
+
+        {/* Filtres avancés */}
+        <details className="group">
+          <summary className="flex items-center gap-2 cursor-pointer list-none px-4 py-3 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 text-sm font-semibold text-slate-600 dark:text-slate-400 hover:text-primary transition-colors select-none">
+            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>tune</span>
+            Filtres avancés
+            <span className="material-symbols-outlined ml-auto transition-transform group-open:rotate-180" style={{ fontSize: '18px' }}>expand_more</span>
+          </summary>
+          <div className="mt-2 bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 p-4">
+            <div className="flex flex-wrap items-end gap-4">
             <div>
               <label className="block text-xs font-semibold text-slate-500 dark:text-slate-400 mb-1">Du</label>
               <input
@@ -299,92 +331,93 @@ const Orders = () => {
             <button
               type="button"
               onClick={() => setFilters({ status: '', date_from: '', date_to: '', user_id: '', delivery_person_id: '', restaurant_id: '', order_type: '', page: 1, limit: 20 })}
-              className="px-3 py-2 text-sm font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              className="flex items-center gap-1.5 px-3 py-2 text-sm font-medium text-slate-500 hover:text-primary hover:bg-slate-50 dark:hover:bg-slate-800 rounded-lg transition-colors"
             >
+              <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>restart_alt</span>
               Réinitialiser
             </button>
           </div>
-        </div>
+          </div>
+        </details>
 
         {/* Table */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[11px] font-black uppercase tracking-widest">
-                  <th className="px-6 py-4">ID Commande</th>
+                <tr className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 text-[10px] font-black uppercase tracking-[0.1em]">
+                  <th className="px-6 py-4">Commande</th>
                   <th className="px-6 py-4">Client</th>
-                  <th className="px-6 py-4">Restaurant</th>
-                  <th className="px-6 py-4">Livreur</th>
-                  <th className="px-6 py-4">Date</th>
+                  <th className="px-6 py-4 hidden md:table-cell">Restaurant / Type</th>
+                  <th className="px-6 py-4 hidden lg:table-cell">Livreur</th>
+                  <th className="px-6 py-4 hidden sm:table-cell">Date</th>
                   <th className="px-6 py-4 text-center">Statut</th>
                   <th className="px-6 py-4 text-right">Montant</th>
-                  <th className="px-6 py-4"></th>
+                  <th className="px-6 py-4 w-10"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                 {orders.length === 0 ? (
                   <tr>
-                    <td colSpan="8" className="px-6 py-8 text-center text-slate-500">
-                      Aucune commande trouvée
+                    <td colSpan="8" className="px-6 py-16 text-center">
+                      <span className="material-symbols-outlined text-5xl text-slate-200 dark:text-slate-700 block mb-3">inbox</span>
+                      <p className="text-slate-400 font-medium">Aucune commande trouvée</p>
+                      <p className="text-sm text-slate-300 dark:text-slate-600 mt-1">Modifiez les filtres ou attendez de nouvelles commandes</p>
                     </td>
                   </tr>
                 ) : (
                   orders.map((order) => {
-                    const initials = (order.client_name || 'N/A')
-                      .split(' ')
-                      .map(n => n[0])
-                      .join('')
-                      .toUpperCase()
-                      .slice(0, 2);
-                    
+                    const initials = (order.client_name || 'N')
+                      .split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
                     return (
-                      <tr 
-                        key={order.id} 
-                        className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
+                      <tr
+                        key={order.id}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer group"
                         onClick={() => navigate(`/orders/${order.id}`)}
                       >
-                        <td className="px-6 py-4 text-sm font-bold text-slate-900 dark:text-white">
-                          #{order.id.slice(0, 8)}
+                        <td className="px-6 py-4">
+                          <span className="text-sm font-black text-slate-900 dark:text-white font-mono">
+                            #{order.id.slice(0, 8).toUpperCase()}
+                          </span>
                         </td>
                         <td className="px-6 py-4">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-[10px] font-bold text-primary">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-primary/15 flex items-center justify-center text-[11px] font-black text-primary shrink-0">
                               {initials}
                             </div>
-                            <span className="text-sm font-medium text-slate-600 dark:text-slate-300">
+                            <span className="text-sm font-medium text-slate-700 dark:text-slate-300 truncate max-w-[110px]">
                               {order.client_name || 'N/A'}
                             </span>
                           </div>
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
+                        <td className="px-6 py-4 hidden md:table-cell">
                           {order.order_type === 'express' ? (
-                            <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded bg-primary/10 text-primary text-xs font-semibold">
-                              📦 Express
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-bold">
+                              <span className="material-symbols-outlined" style={{ fontSize: '13px' }}>deployed_code</span>
+                              Express
                             </span>
                           ) : (
-                            order.restaurant_name || '—'
+                            <span className="text-sm text-slate-600 dark:text-slate-400 truncate max-w-[130px] block">
+                              {order.restaurant_name || '—'}
+                            </span>
                           )}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-600 dark:text-slate-300">
-                          {order.delivery_name || '—'}
+                        <td className="px-6 py-4 hidden lg:table-cell text-sm text-slate-500 truncate max-w-[120px]">
+                          {order.delivery_name || <span className="text-slate-300 dark:text-slate-600">Non assigné</span>}
                         </td>
-                        <td className="px-6 py-4 text-sm text-slate-500">
+                        <td className="px-6 py-4 hidden sm:table-cell text-sm text-slate-400 whitespace-nowrap">
                           {formatDateShort(order.placed_at || order.created_at)}
                         </td>
                         <td className="px-6 py-4 text-center">
                           {getStatusBadge(order.status)}
                         </td>
-                        <td className="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">
+                        <td className="px-6 py-4 text-right text-sm font-black text-slate-900 dark:text-white whitespace-nowrap">
                           {formatCurrency(order.total || 0)}
                         </td>
-                        <td className="px-6 py-4 text-right" onClick={(e) => e.stopPropagation()}>
-                          <button 
-                            onClick={() => navigate(`/orders/${order.id}`)}
-                            className="material-symbols-outlined text-slate-400 hover:text-primary transition-colors"
-                          >
-                            visibility
-                          </button>
+                        <td className="px-6 py-4 text-right">
+                          <span className="material-symbols-outlined text-slate-300 group-hover:text-primary transition-colors" style={{ fontSize: '18px' }}>
+                            chevron_right
+                          </span>
                         </td>
                       </tr>
                     );
@@ -398,22 +431,27 @@ const Orders = () => {
           {pagination.pages > 1 && (
             <div className="px-6 py-4 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
               <p className="text-sm text-slate-500">
-                Page {pagination.page} sur {pagination.pages}
+                Page <span className="font-bold text-slate-700 dark:text-slate-300">{pagination.page}</span> sur {pagination.pages}
+                {pagination.total && (
+                  <span className="ml-2 text-slate-400">· {pagination.total.toLocaleString('fr-FR')} commandes</span>
+                )}
               </p>
               <div className="flex gap-2">
                 <button
                   onClick={() => setFilters({ ...filters, page: pagination.page - 1 })}
                   disabled={pagination.page === 1}
-                  className="px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-slate-700"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-200 dark:hover:bg-slate-700 text-sm font-medium transition-colors"
                 >
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_left</span>
                   Précédent
                 </button>
                 <button
                   onClick={() => setFilters({ ...filters, page: pagination.page + 1 })}
                   disabled={pagination.page === pagination.pages}
-                  className="px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-50 disabled:cursor-not-allowed hover:bg-primary/90"
+                  className="flex items-center gap-1.5 px-4 py-2 bg-primary text-white rounded-lg disabled:opacity-40 disabled:cursor-not-allowed hover:bg-primary/90 text-sm font-medium transition-colors"
                 >
                   Suivant
+                  <span className="material-symbols-outlined" style={{ fontSize: '16px' }}>chevron_right</span>
                 </button>
               </div>
             </div>

@@ -264,7 +264,7 @@ const DriverDetails = () => {
                 {initials}
               </div>
               <div>
-                <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                   {fullName}
                 </h1>
                 <div className="flex items-center gap-3 mt-2">

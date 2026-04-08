@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import toast from 'react-hot-toast';
 import { restaurantsAPI } from '../api/restaurants';
@@ -127,13 +127,18 @@ const SuspendedRestaurants = () => {
       <div className="space-y-8">
         {/* Header */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
-          <div>
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white">
-              Liste des Restaurants
-            </h1>
-            <p className="text-slate-500 dark:text-slate-400 mt-1">
-              Gérez et validez les restaurants
-            </p>
+          <div className="flex items-center gap-3">
+            <Link to="/restaurants" className="flex items-center justify-center size-9 rounded-full bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:text-primary hover:border-primary transition-colors shadow-sm">
+              <span className="material-symbols-outlined text-xl">arrow_back</span>
+            </Link>
+            <div>
+              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                Liste des Restaurants Suspendus
+              </h1>
+              <p className="text-slate-500 dark:text-slate-400 mt-1">
+                Gérez et validez les restaurants
+              </p>
+            </div>
           </div>
         </div>
 

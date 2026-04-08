@@ -6,6 +6,37 @@ const crypto = require('crypto');
 const fs = require('fs').promises;
 const config = require('../config');
 const logger = require('../utils/logger');
+const sharp = require('sharp');
+
+/**
+ * Compresser une image avec Sharp avant upload
+ * Réduit le poids sans perte visible de qualité
+ */
+async function compressImage(buffer, mimetype, options = {}) {
+  const isImage = /jpeg|jpg|png|webp/.test(mimetype);
+  if (!isImage) return buffer; // PDF et GIF non compressés
+
+  const { maxWidth = 1200, quality = 82 } = options;
+  try {
+    let pipeline = sharp(buffer).resize(maxWidth, null, { withoutEnlargement: true });
+
+    if (/jpeg|jpg/.test(mimetype)) {
+      pipeline = pipeline.jpeg({ quality, progressive: true });
+    } else if (/png/.test(mimetype)) {
+      pipeline = pipeline.png({ quality, compressionLevel: 8 });
+    } else if (/webp/.test(mimetype)) {
+      pipeline = pipeline.webp({ quality });
+    }
+
+    const compressed = await pipeline.toBuffer();
+    const savings = Math.round((1 - compressed.length / buffer.length) * 100);
+    if (savings > 0) logger.debug(`📸 Image compressée: -${savings}% (${buffer.length} → ${compressed.length} bytes)`);
+    return compressed;
+  } catch (err) {
+    logger.warn('Compression image ignorée:', err.message);
+    return buffer;
+  }
+}
 
 // Configuration AWS S3 Client (v3)
 // Ne créer le client que si S3 est configuré
@@ -101,8 +132,11 @@ class UploadService {
       const fileName = `${Date.now()}-${crypto.randomBytes(8).toString('hex')}${ext}`;
       const filePath = path.join(folderPath, fileName);
       
+      // Compresser l'image avant écriture
+      const fileBuffer = await compressImage(file.buffer, file.mimetype);
+
       // Écrire le fichier
-      await fs.writeFile(filePath, file.buffer);
+      await fs.writeFile(filePath, fileBuffer);
       
       // Construire l'URL publique
       // Utiliser l'URL de base de l'API depuis la config, ou construire depuis le port

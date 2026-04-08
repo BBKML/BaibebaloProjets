@@ -12,6 +12,7 @@ import {
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
+import { getImageUrl } from '../../utils/url';
 
 export default function DishInformationScreen({ navigation, route }) {
   const { dish, restaurantId, restaurantName } = route.params || {};
@@ -114,7 +115,7 @@ export default function DishInformationScreen({ navigation, route }) {
     <View style={styles.container}>
       <View style={styles.heroWrapper}>
         <Image
-          source={{ uri: dish.image_url || 'https://via.placeholder.com/400' }}
+          source={{ uri: getImageUrl(dish.image_url) || null }}
           style={styles.dishImage}
         />
         <View style={styles.heroGradient} />
