@@ -28,13 +28,14 @@ class SocketService {
       return;
     }
 
-    const getWebSocketURL = () => {
-      if (import.meta.env.DEV) {
-        const backendPort = import.meta.env.VITE_BACKEND_PORT || '5000';
-        return `http://localhost:${backendPort}`;
-      }
-      return window.location.origin;
-    };
+const getWebSocketURL = () => {
+  if (import.meta.env.DEV) {
+    const backendPort = import.meta.env.VITE_BACKEND_PORT || '5000';
+    return `http://localhost:${backendPort}`;
+  }
+  // ✅ Utiliser la variable d'environnement en production
+  return import.meta.env.VITE_BACKEND_URL || 'https://baibebaloprojets.onrender.com';
+};
 
     console.log('[AdminSocket] Connexion à:', getWebSocketURL());
 
