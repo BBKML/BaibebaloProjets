@@ -2,13 +2,14 @@
 # Exclure tout ce qui n'est pas nécessaire au build
 
 # Autres apps du monorepo (réduire la taille de l'archive)
-../baibebalo-backend/
-../baibebalo-admin/
-../baibebalo-restaurant/
-../baibebalo-livreur/
-../docs/
-../LOGOS/
-../*.md
+# Chemins relatifs à la RACINE du monorepo (EAS archive depuis git root)
+baibebalo-backend/
+baibebalo-admin/
+baibebalo-restaurant/
+baibebalo-livreur/
+docs/
+LOGOS/
+*.md
 
 .git/
 .gitignore

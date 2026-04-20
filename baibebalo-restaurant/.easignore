@@ -2,13 +2,14 @@
 # IMPORTANT: exclure les autres apps du monorepo pour éviter une archive trop lourde
 
 # Autres apps du monorepo (non nécessaires)
-../baibebalo-backend/
-../baibebalo-admin/
-../baibebalo-client-clean/
-../baibebalo-livreur/
-../docs/
-../LOGOS/
-../*.md
+# Chemins relatifs à la RACINE du monorepo (EAS archive depuis git root)
+baibebalo-backend/
+baibebalo-admin/
+baibebalo-client-clean/
+baibebalo-livreur/
+docs/
+LOGOS/
+*.md
 
 # Dépendances (EAS les installe lui-même)
 node_modules/
