@@ -1,14 +1,13 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   StatusBar,
   ScrollView,
   Image,
   Switch,
-  Platform,
   RefreshControl,
   ActivityIndicator,
   AppState,
@@ -16,8 +15,8 @@ import {
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Circle, PROVIDER_DEFAULT } from 'react-native-maps';
-import SafeMapView from '../../components/SafeMapView';
+// MapView retiré de l'accueil (crash natif sur certains APK Android sans clé Google Maps)
+// Les écrans de navigation (DeliveryDetails, NavigationToRestaurant, etc.) conservent MapView
 import { COLORS } from '../../constants/colors';
 import { getImageUrl } from '../../utils/url';
 import useAuthStore from '../../store/authStore';
@@ -70,15 +69,8 @@ export default function DeliveryHomeScreen({ navigation }) {
     error: dashboardError,
   } = useDeliveryStore();
   
-  const mapRef = useRef(null);
-  const [currentLocation, setCurrentLocation] = useState({
-    latitude: 9.4580,
-    longitude: -5.6294,
-  });
   const [selectedZone, setSelectedZone] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
-  // Retarder l’affichage de la carte pour que le reste de l’écran s’affiche d’abord (évite crash APK sur certains appareils)
-  const [showMap, setShowMap] = useState(false);
   const lastDashboardLoadRef = useRef(0);
   const pendingCancelRef = useRef(null);
   const DEBOUNCE_MS = 3000;
@@ -196,14 +188,6 @@ export default function DeliveryHomeScreen({ navigation }) {
   const completed = Number(dailyGoal?.completed) || 0;
   const progressPercent = target > 0 ? Math.min(100, (completed / target) * 100) : 0;
   const safeRecentDeliveries = Array.isArray(recentDeliveries) ? recentDeliveries : [];
-
-  const centerOnLocation = () => {
-    mapRef.current?.animateToRegion({
-      ...currentLocation,
-      latitudeDelta: 0.02,
-      longitudeDelta: 0.02,
-    }, 500);
-  };
 
   // Afficher le loading au premier chargement (accès sécurisé pour éviter crash APK)
   const showInitialLoading = Boolean(
@@ -378,117 +362,30 @@ export default function DeliveryHomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
         
-        <View style={styles.mapContainer}>
-          {!showMap ? (
-            <View style={[styles.map, styles.mapPlaceholder]}>
-              <Ionicons name="map-outline" size={48} color={COLORS.textLight} />
-              <Text style={styles.mapPlaceholderText}>Chargement de la carte…</Text>
-              <Text style={styles.mapPlaceholderSubtext}>Zones : Centre-ville, Marché, Zone commerciale, Résidentiel Nord</Text>
-            </View>
-          ) : (
-            <SafeMapView style={styles.map}>
-            <MapView
-              ref={mapRef}
-              style={styles.map}
-              provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
-              initialRegion={{
-                latitude: currentLocation.latitude,
-                longitude: currentLocation.longitude,
-                latitudeDelta: 0.025,
-                longitudeDelta: 0.025,
-              }}
-              showsUserLocation={false}
-              showsMyLocationButton={false}
+        <View style={styles.zonesContainer}>
+          {hotZones.map((zone) => (
+            <TouchableOpacity
+              key={zone.id}
+              style={[styles.zoneRow, selectedZone?.id === zone.id && styles.zoneRowSelected]}
+              onPress={() => setSelectedZone(selectedZone?.id === zone.id ? null : zone)}
+              activeOpacity={0.7}
             >
-              {/* Zones de forte demande (cercles colorés) */}
-              {hotZones.map((zone) => (
-                <Circle
-                  key={zone.id}
-                  center={{ latitude: zone.latitude, longitude: zone.longitude }}
-                  radius={zone.radius}
-                  fillColor={zoneColors[zone.intensity].fill}
-                  strokeColor={zoneColors[zone.intensity].stroke}
-                  strokeWidth={2}
-                  onPress={() => setSelectedZone(zone)}
+              <View style={[styles.zoneIconBg, { backgroundColor: zoneColors[zone.intensity].stroke }]}>
+                <Ionicons
+                  name={zone.intensity === 'high' ? 'flame' : zone.intensity === 'medium' ? 'trending-up' : 'remove'}
+                  size={16}
+                  color="#FFFFFF"
                 />
-              ))}
-
-              {/* Marqueurs pour les zones */}
-              {hotZones.map((zone) => (
-                <Marker
-                  key={`marker-${zone.id}`}
-                  coordinate={{ latitude: zone.latitude, longitude: zone.longitude }}
-                  onPress={() => setSelectedZone(zone)}
-                >
-                  <View style={[
-                    styles.zoneMarker,
-                    { backgroundColor: zoneColors[zone.intensity].stroke }
-                  ]}>
-                    <Ionicons 
-                      name={zone.intensity === 'high' ? 'flame' : zone.intensity === 'medium' ? 'trending-up' : 'remove'} 
-                      size={14} 
-                      color="#FFFFFF" 
-                    />
-                  </View>
-                </Marker>
-              ))}
-
-              {/* Position actuelle du livreur */}
-              <Marker
-                coordinate={currentLocation}
-                anchor={{ x: 0.5, y: 0.5 }}
-              >
-                <View style={styles.currentLocationMarker}>
-                  <View style={styles.locationPulseAnim} />
-                  <View style={styles.locationDotInner} />
-                </View>
-              </Marker>
-            </MapView>
-            </SafeMapView>
-          )}
-
-          {/* Légende */}
-          <View style={styles.mapLegend}>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: zoneColors.high.stroke }]} />
-              <Text style={styles.legendText}>Forte</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: zoneColors.medium.stroke }]} />
-              <Text style={styles.legendText}>Moyenne</Text>
-            </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, { backgroundColor: zoneColors.low.stroke }]} />
-              <Text style={styles.legendText}>Faible</Text>
-            </View>
-          </View>
-
-          {/* Bouton de localisation */}
-          <TouchableOpacity style={styles.locationButton} onPress={centerOnLocation}>
-            <Ionicons name="locate" size={24} color={COLORS.primary} />
-          </TouchableOpacity>
-
-          {/* Info zone sélectionnée */}
-          {selectedZone && (
-            <View style={styles.zoneInfoCard}>
-              <View style={styles.zoneInfoHeader}>
-                <Text style={styles.zoneInfoName}>{selectedZone.name}</Text>
-                <TouchableOpacity onPress={() => setSelectedZone(null)}>
-                  <Ionicons name="close" size={20} color={COLORS.textSecondary} />
-                </TouchableOpacity>
               </View>
-              <View style={styles.zoneInfoRow}>
-                <Ionicons 
-                  name={selectedZone.intensity === 'high' ? 'flame' : 'trending-up'} 
-                  size={16} 
-                  color={zoneColors[selectedZone.intensity].stroke} 
-                />
-                <Text style={styles.zoneInfoText}>
-                  Demande {selectedZone.intensity === 'high' ? 'très forte' : selectedZone.intensity === 'medium' ? 'moyenne' : 'faible'}
+              <View style={styles.zoneRowInfo}>
+                <Text style={styles.zoneRowName}>{zone.name}</Text>
+                <Text style={[styles.zoneRowBadge, { color: zoneColors[zone.intensity].stroke }]}>
+                  Demande {zone.intensity === 'high' ? 'très forte' : zone.intensity === 'medium' ? 'moyenne' : 'faible'}
                 </Text>
               </View>
-            </View>
-          )}
+              <View style={[styles.zoneRowDot, { backgroundColor: zoneColors[zone.intensity].fill, borderColor: zoneColors[zone.intensity].stroke }]} />
+            </TouchableOpacity>
+          ))}
         </View>
 
         {/* Recent Deliveries */}
@@ -1046,5 +943,50 @@ const styles = StyleSheet.create({
     fontSize: 12,
     width: '100%',
     textAlign: 'center',
+  },
+  zonesContainer: {
+    marginHorizontal: 16,
+    borderRadius: 16,
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.white,
+  },
+  zoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    gap: 12,
+  },
+  zoneRowSelected: {
+    backgroundColor: COLORS.primary + '10',
+  },
+  zoneIconBg: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  zoneRowInfo: {
+    flex: 1,
+    gap: 2,
+  },
+  zoneRowName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  zoneRowBadge: {
+    fontSize: 12,
+    fontWeight: '500',
+  },
+  zoneRowDot: {
+    width: 14,
+    height: 14,
+    borderRadius: 7,
+    borderWidth: 2,
   },
 });
