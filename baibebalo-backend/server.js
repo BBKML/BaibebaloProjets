@@ -34,7 +34,10 @@ const server = http.createServer(app);
 // Configuration Socket.IO pour le temps réel
 const io = socketIo(server, {
   cors: {
-    origin: config.cors.origin,
+    origin: [
+      "https://baibebalo-admin.onrender.com",
+      "http://localhost:5173"
+    ],
     methods: ['GET', 'POST'],
     credentials: true,
   },
@@ -46,7 +49,12 @@ app.set('io', io);
 // Middlewares de sécurité
 app.use(helmet());
 app.use(cors({
-  origin: config.cors.origin,
+  origin: [
+    "https://baibebalo-admin.onrender.com",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true,
 }));
 
