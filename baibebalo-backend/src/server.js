@@ -35,7 +35,7 @@ require('./jobs/cron');
 const app = express();
 const server = http.createServer(app);
 
-// Derrière un reverse proxy (Render, etc.) : utiliser X-Forwarded-Proto / Host pour les URLs publiques
+// Derrière un reverse proxy (Render, etc.)
 app.set('trust proxy', 1);
 
 // Configuration Socket.IO pour le temps réel
@@ -92,13 +92,15 @@ clientNamespace.on('connection', (socket) => {
 });
 app.set('clientIo', clientNamespace);
 
-// Middlewares de sécurité
+// ================================
+// MIDDLEWARES DE SÉCURITÉ
+// ================================
 app.use(helmet({
-  // Désactiver certaines protections pour permettre l'accès aux fichiers statiques
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  contentSecurityPolicy: false, // Désactiver CSP pour les fichiers statiques
+  contentSecurityPolicy: false,
 }));
-// ✅ Correction
+
+// ✅ CORRECTION CORS — methods + allowedHeaders ajoutés
 app.use(cors({
   origin: config.cors.origin,
   credentials: true,
@@ -106,9 +108,18 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization'],
 }));
 
-app.options('*', cors()); // ← INDISPENSABLE pour le preflight
+// ✅ CORRECTION PREFLIGHT — répond aux requêtes OPTIONS avant le rate limiter
+// Sans cette ligne, le navigateur bloque toutes les requêtes POST/PUT/DELETE
+app.options('*', cors({
+  origin: config.cors.origin,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+}));
 
-// Middlewares de parsing
+// ================================
+// MIDDLEWARES DE PARSING
+// ================================
 // Le rawBody est capturé pour la vérification HMAC des webhooks de paiement
 app.use(express.json({
   limit: '10mb',
@@ -123,19 +134,14 @@ if (config.upload?.provider === 'local') {
   const uploadDir = config.upload?.local?.uploadDir || './uploads';
   const publicPath = config.upload?.local?.publicPath || '/uploads';
   
-  // Résoudre le chemin absolu
   const absoluteUploadDir = path.resolve(uploadDir);
   
-  // Créer le dossier s'il n'existe pas
   if (!fs.existsSync(absoluteUploadDir)) {
     fs.mkdirSync(absoluteUploadDir, { recursive: true });
     logger.info(`Dossier upload créé: ${absoluteUploadDir}`);
   }
   
-  // Servir les fichiers statiques avec chemin absolu
-  // IMPORTANT: Ce middleware doit être AVANT les routes API pour éviter les conflits
   app.use(publicPath, express.static(absoluteUploadDir, {
-    // Options pour servir les fichiers
     dotfiles: 'ignore',
     etag: true,
     extensions: ['jpg', 'jpeg', 'png', 'gif', 'webp'],
@@ -143,7 +149,6 @@ if (config.upload?.provider === 'local') {
     maxAge: '1d',
     redirect: false,
     setHeaders: (res) => {
-      // Définir les headers CORS pour les images
       res.setHeader('Access-Control-Allow-Origin', '*');
       res.setHeader('Cache-Control', 'public, max-age=86400');
     }
@@ -164,6 +169,10 @@ if (config.env === 'development') {
 
 // Rate limiting global
 app.use(generalLimiter);
+
+// ================================
+// ROUTES
+// ================================
 
 // Route de santé
 app.get('/health', (req, res) => {
@@ -194,14 +203,14 @@ if (config.upload?.provider === 'local' && config.env === 'development') {
       uploadDir: uploadDir,
       adminProfilesDir: adminProfilesDir,
       exists: fs.existsSync(adminProfilesDir),
-      files: files.slice(0, 5), // Premiers 5 fichiers
+      files: files.slice(0, 5),
       publicPath: config.upload?.local?.publicPath || '/uploads',
       testUrl: `http://localhost:${config.port || 5000}${config.upload?.local?.publicPath || '/uploads'}/admin-profiles/${files[0] || 'test.jpg'}`,
     });
   });
 }
 
-// Routes API
+// Préfixe API
 const apiPrefix = `/api/${config.apiVersion}`;
 
 // Routes publiques (sans authentification) - AVANT les autres routes
@@ -226,7 +235,9 @@ app.use(notFound);
 // Gestionnaire d'erreurs global
 app.use(errorHandler);
 
-// Middleware d'authentification pour WebSocket
+// ================================
+// WEBSOCKET - Authentification middleware
+// ================================
 io.use(async (socket, next) => {
   try {
     const token = socket.handshake.auth?.token || socket.handshake.headers?.authorization?.replace('Bearer ', '');
@@ -236,17 +247,14 @@ io.use(async (socket, next) => {
       return next(new Error('Token manquant'));
     }
 
-    // Vérifier le token JWT
     const { verifyAccessToken } = require('./middlewares/auth');
     const decoded = verifyAccessToken(token);
 
-    // Vérifier que c'est un admin
     if (decoded.type !== 'admin') {
       logger.warn(`Tentative de connexion WebSocket non-admin: ${socket.id}, type: ${decoded.type}`);
       return next(new Error('Accès réservé aux administrateurs'));
     }
 
-    // Vérifier que l'admin existe et est actif
     const { query } = require('./database/db');
     const adminResult = await query(
       'SELECT id, email, status FROM admins WHERE id = $1',
@@ -263,7 +271,6 @@ io.use(async (socket, next) => {
       return next(new Error('Compte admin inactif'));
     }
 
-    // Attacher les informations de l'admin au socket
     socket.adminId = decoded.id;
     socket.adminType = decoded.type;
     socket.adminEmail = adminResult.rows[0].email;
@@ -276,7 +283,9 @@ io.use(async (socket, next) => {
   }
 });
 
-// Namespace pour les partenaires (restaurants) - pas besoin d'auth admin
+// ================================
+// WEBSOCKET - Namespace Partenaires
+// ================================
 const partnersNamespace = io.of('/partners');
 
 partnersNamespace.use(async (socket, next) => {
@@ -291,7 +300,6 @@ partnersNamespace.use(async (socket, next) => {
     const { verifyAccessToken } = require('./middlewares/auth');
     const decoded = verifyAccessToken(token);
 
-    // Accepter restaurant ou delivery
     if (decoded.type !== 'restaurant' && decoded.type !== 'delivery') {
       return next(new Error('Accès réservé aux partenaires'));
     }
@@ -310,40 +318,30 @@ partnersNamespace.use(async (socket, next) => {
 partnersNamespace.on('connection', (socket) => {
   logger.info(`Partenaire connecté: ${socket.id}, type: ${socket.userType}, id: ${socket.userId}`);
   
-  // Rejoindre automatiquement la room du partenaire
   socket.join(`${socket.userType}_${socket.userId}`);
   
-  // === HANDLERS COMMUNS ===
-  
-  // Rejoindre un ticket de support pour recevoir les messages en temps réel
   socket.on('join_support_ticket', (ticketId) => {
     socket.join(`support_ticket_${ticketId}`);
     logger.debug(`Partenaire ${socket.userId} a rejoint support_ticket_${ticketId}`);
   });
   
-  // Quitter un ticket de support
   socket.on('leave_support_ticket', (ticketId) => {
     socket.leave(`support_ticket_${ticketId}`);
     logger.debug(`Partenaire ${socket.userId} a quitté support_ticket_${ticketId}`);
   });
 
-  // === HANDLERS LIVREURS ===
-  
-  // Rejoindre la room d'une commande
   socket.on('join_order', (data) => {
     const orderId = data?.order_id || data;
     socket.join(`order_${orderId}`);
     logger.debug(`Livreur ${socket.userId} a rejoint order_${orderId}`);
   });
 
-  // Quitter la room d'une commande
   socket.on('leave_order', (data) => {
     const orderId = data?.order_id || data;
     socket.leave(`order_${orderId}`);
     logger.debug(`Livreur ${socket.userId} a quitté order_${orderId}`);
   });
 
-  // Mettre à jour le statut de disponibilité
   socket.on('update_availability', async (data) => {
     if (socket.userType !== 'delivery') return;
     
@@ -357,11 +355,8 @@ partnersNamespace.on('connection', (socket) => {
       );
       
       logger.debug(`Livreur ${socket.userId} disponibilité: ${newStatus}`);
-      
-      // Confirmer au livreur
       socket.emit('availability_updated', { status: newStatus });
 
-      // Notifier les admins du changement de statut
       io.to('admin_dashboard').emit('delivery_status_changed', {
         delivery_person_id: socket.userId,
         status: newStatus,
@@ -372,21 +367,18 @@ partnersNamespace.on('connection', (socket) => {
     }
   });
 
-  // Mise à jour de la position GPS du livreur
   socket.on('location_update', async (data) => {
     if (socket.userType !== 'delivery') return;
     
     try {
       const { latitude, longitude, order_id } = data;
       
-      // Sauvegarder la position
       const { query } = require('./database/db');
       await query(
         `UPDATE delivery_persons SET current_latitude = $1, current_longitude = $2, last_location_update = NOW() WHERE id = $3`,
         [latitude, longitude, socket.userId]
       );
       
-      // Si une commande est en cours, notifier le client (app) et les admins
       if (order_id) {
         const payload = {
           order_id,
@@ -400,7 +392,6 @@ partnersNamespace.on('connection', (socket) => {
         if (clientIo) clientIo.to(`order_${order_id}`).emit('delivery_location_updated', payload);
       }
 
-      // Notifier les admins qui suivent tous les livreurs
       io.to('all_deliveries_tracking').emit('delivery_location', {
         delivery_person_id: socket.userId,
         latitude,
@@ -408,7 +399,6 @@ partnersNamespace.on('connection', (socket) => {
         timestamp: new Date().toISOString(),
       });
 
-      // Notifier les admins qui suivent ce livreur spécifiquement
       io.to(`track_delivery_${socket.userId}`).emit('delivery_location', {
         delivery_person_id: socket.userId,
         latitude,
@@ -423,7 +413,6 @@ partnersNamespace.on('connection', (socket) => {
   socket.on('disconnect', () => {
     logger.info(`Partenaire déconnecté: ${socket.id}`);
     
-    // Si c'est un livreur, le marquer comme hors ligne
     if (socket.userType === 'delivery') {
       const { query } = require('./database/db');
       query(
@@ -431,7 +420,6 @@ partnersNamespace.on('connection', (socket) => {
         [socket.userId]
       ).catch(err => logger.error('Erreur mise à jour statut livreur:', err));
 
-      // Notifier les admins du changement de statut
       io.to('admin_dashboard').emit('delivery_status_changed', {
         delivery_person_id: socket.userId,
         status: 'offline',
@@ -439,7 +427,6 @@ partnersNamespace.on('connection', (socket) => {
       });
     }
 
-    // Si c'est un restaurant, notifier les admins
     if (socket.userType === 'restaurant') {
       io.to('admin_dashboard').emit('restaurant_status_changed', {
         restaurant_id: socket.userId,
@@ -450,21 +437,21 @@ partnersNamespace.on('connection', (socket) => {
   });
 });
 
-// Rendre le namespace partenaires accessible
 app.set('partnersIo', partnersNamespace);
 
-// Cron des propositions de course expirées (attribution auto type Glovo)
+// Cron des propositions de course expirées
 try {
   require('./jobs/cron').init(app);
 } catch (e) {
   logger.warn('Cron init (propositions livreur) ignoré:', e.message);
 }
 
-// Gestion WebSocket pour les mises à jour en temps réel (admins)
+// ================================
+// WEBSOCKET - Handlers Admin
+// ================================
 io.on('connection', (socket) => {
   logger.info(`Nouvelle connexion Socket.IO authentifiée: ${socket.id}, admin: ${socket.adminId}`);
 
-  // Admin rejoint la room du dashboard pour recevoir les mises à jour
   socket.on('join_admin_dashboard', () => {
     if (socket.adminId) {
       socket.join('admin_dashboard');
@@ -475,19 +462,16 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Rejoindre une room spécifique (commande)
   socket.on('join_order', (orderId) => {
     socket.join(`order_${orderId}`);
     logger.debug(`Socket ${socket.id} a rejoint order_${orderId}`);
   });
 
-  // Rejoindre une room livreur
   socket.on('join_delivery', (deliveryPersonId) => {
     socket.join(`delivery_${deliveryPersonId}`);
     logger.debug(`Socket ${socket.id} a rejoint delivery_${deliveryPersonId}`);
   });
 
-  // Admin: suivre un livreur spécifique
   socket.on('track_delivery', (data) => {
     if (!socket.adminId) return;
     const deliveryPersonId = data?.delivery_person_id || data;
@@ -495,7 +479,6 @@ io.on('connection', (socket) => {
     logger.debug(`Admin ${socket.adminId} suit le livreur ${deliveryPersonId}`);
   });
 
-  // Admin: arrêter de suivre un livreur
   socket.on('untrack_delivery', (data) => {
     if (!socket.adminId) return;
     const deliveryPersonId = data?.delivery_person_id || data;
@@ -503,13 +486,11 @@ io.on('connection', (socket) => {
     logger.debug(`Admin ${socket.adminId} arrête de suivre le livreur ${deliveryPersonId}`);
   });
 
-  // Admin: suivre tous les livreurs actifs
   socket.on('track_all_deliveries', async () => {
     if (!socket.adminId) return;
     socket.join('all_deliveries_tracking');
     logger.debug(`Admin ${socket.adminId} suit tous les livreurs`);
     
-    // Envoyer immédiatement les positions actuelles de tous les livreurs
     try {
       const { query } = require('./database/db');
       const result = await query(`
@@ -535,12 +516,10 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Livreur met à jour sa position
   socket.on('update_location', async (data) => {
     try {
       const { deliveryPersonId, latitude, longitude } = data;
       
-      // Mettre à jour dans la base de données
       const { query } = require('./database/db');
       await query(
         `UPDATE delivery_persons 
@@ -551,7 +530,6 @@ io.on('connection', (socket) => {
         [latitude, longitude, deliveryPersonId]
       );
 
-      // Notifier les clients qui suivent ce livreur
       socket.broadcast.emit('delivery_location_updated', {
         deliveryPersonId,
         latitude,
@@ -566,7 +544,6 @@ io.on('connection', (socket) => {
     }
   });
 
-  // Notification nouveau message
   socket.on('send_message', (data) => {
     const { orderId, message, sender } = data;
     io.to(`order_${orderId}`).emit('new_message', {
@@ -577,21 +554,20 @@ io.on('connection', (socket) => {
     });
   });
 
-  // Déconnexion
   socket.on('disconnect', () => {
     logger.info(`Déconnexion Socket.IO: ${socket.id}`);
   });
 
-  // Gestion des erreurs socket
   socket.on('error', (error) => {
     logger.error('Erreur Socket.IO:', error);
   });
 });
 
-// Fonction pour démarrer le serveur
+// ================================
+// DÉMARRAGE DU SERVEUR
+// ================================
 const startServer = async () => {
   try {
-    // Afficher la bannière
     logger.info('\n' +
       '╔════════════════════════════════════════════════════════════╗\n' +
       '║                                                            ║\n' +
@@ -601,7 +577,6 @@ const startServer = async () => {
       '╚════════════════════════════════════════════════════════════╝\n'
     );
 
-    // Tester la connexion à la base de données
     logger.info('📊 Test de connexion à la base de données...');
     const dbConnected = await testConnection();
     
@@ -617,8 +592,6 @@ const startServer = async () => {
       }
     }
 
-    // Synchroniser les paramètres depuis config/index.js vers app_settings
-    // (uniquement si la DB est connectée)
     if (dbConnected) {
       try {
         const { syncSettingsFromConfig } = require('./utils/syncSettings');
@@ -628,7 +601,6 @@ const startServer = async () => {
       }
     }
 
-    // Démarrer le serveur
     server.listen(config.port, () => {
       logger.info('\n' +
         '╔════════════════════════════════════════════════════════════╗\n' +
@@ -651,7 +623,6 @@ const startServer = async () => {
       logger.info('\n💡 Appuyez sur Ctrl+C pour arrêter le serveur\n');
     });
 
-    // Gérer les erreurs du serveur
     server.on('error', (error) => {
       if (error.code === 'EADDRINUSE') {
         logger.error(`❌ Port ${config.port} déjà utilisé`);
@@ -669,7 +640,9 @@ const startServer = async () => {
   }
 };
 
-// Gestion des erreurs non gérées
+// ================================
+// GESTION DES ERREURS GLOBALES
+// ================================
 process.on('unhandledRejection', (reason, promise) => {
   logger.error('🔥 Unhandled Rejection:', reason);
   logger.error('Promise:', promise);
@@ -685,16 +658,13 @@ process.on('uncaughtException', (error) => {
 const gracefulShutdown = async (signal) => {
   logger.info(`\n${signal} reçu, arrêt gracieux du serveur...`);
   
-  // Fermer le serveur HTTP
   server.close(async () => {
     logger.info('✅ Serveur HTTP fermé');
     
-    // Fermer les connexions Socket.IO
     io.close(() => {
       logger.info('✅ Socket.IO fermé');
     });
     
-    // Fermer le pool de base de données
     try {
       const { closePool } = require('./database/db');
       await closePool();
@@ -707,7 +677,6 @@ const gracefulShutdown = async (signal) => {
     process.exit(0);
   });
 
-  // Forcer l'arrêt après 10 secondes
   setTimeout(() => {
     logger.error('⚠️  Arrêt forcé après timeout');
     process.exit(1);
@@ -717,7 +686,6 @@ const gracefulShutdown = async (signal) => {
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// Exports
 module.exports = { 
   app, 
   server, 
