@@ -20,7 +20,6 @@ const config = {
   // ================================
   // BASE DE DONNÉES
   // ================================
-  // DATABASE_URL : prioritaire (Render, Railway, etc.) — ex. postgresql://user:pass@host/dbname
   database: {
     connectionString: process.env.DATABASE_URL || null,
     host: process.env.DB_HOST || 'localhost',
@@ -29,7 +28,7 @@ const config = {
     user: process.env.DB_USER || 'postgres',
     password: process.env.DB_PASSWORD || '',
     ssl: process.env.DB_SSL === 'true' || (process.env.DATABASE_URL && process.env.NODE_ENV === 'production'),
-    max: Math.min(parseInt(process.env.DB_POOL_MAX, 10) || 20, 50), // Taille max du pool (défaut 20, max 50)
+    max: Math.min(parseInt(process.env.DB_POOL_MAX, 10) || 20, 50),
     idleTimeoutMillis: parseInt(process.env.DB_IDLE_TIMEOUT, 10) || 30000,
     connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT, 10) || 5000,
   },
@@ -67,7 +66,7 @@ const config = {
   // RATE LIMITING
   // ================================
   rateLimit: {
-    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000, // 15 minutes
+    windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000,
     maxRequests: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 100,
   },
   
@@ -75,14 +74,18 @@ const config = {
   // CORS
   // ================================
   cors: {
-    // En développement : autoriser toutes les origines (pratique pour React Native/Expo)
-    // En production : utiliser CORS_ORIGIN pour restreindre
-    // Note: config.env sera défini plus haut, on utilise process.env.NODE_ENV directement
-    origin: (process.env.NODE_ENV || 'development') === 'development' 
-      ? true // Autoriser toutes les origines en dev (plus simple pour React Native)
-      : (process.env.CORS_ORIGIN 
+    // ✅ CORRECTION : ajout de https://baibebalo-admin.onrender.com dans le fallback production
+    // Si CORS_ORIGIN est défini dans les variables d'environnement Render, il sera utilisé.
+    // Sinon, le fallback inclut maintenant l'URL de l'admin en production.
+    origin: (process.env.NODE_ENV || 'development') === 'development'
+      ? true // Autoriser toutes les origines en dev (pratique pour React Native/Expo)
+      : (process.env.CORS_ORIGIN
           ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-          : ['http://localhost:5173', 'http://localhost:5174']),
+          : [
+              'http://localhost:5173',
+              'http://localhost:5174',
+              'https://baibebalo-admin.onrender.com', // ✅ AJOUT - Panel admin production
+            ]),
     credentials: true,
   },
   
@@ -90,74 +93,56 @@ const config = {
   // PAIEMENTS
   // ================================
   payment: {
-    // Méthodes de paiement activées
     enabledMethods: ['cash'],
     
-    // FedaPay
     fedapay: {
       apiKey: process.env.FEDAPAY_API_KEY || '',
       publicKey: process.env.FEDAPAY_PUBLIC_KEY || '',
-      environment: process.env.FEDAPAY_ENV || 'sandbox', // sandbox ou live
+      environment: process.env.FEDAPAY_ENV || 'sandbox',
       webhookSecret: process.env.FEDAPAY_WEBHOOK_SECRET || '',
     },
     
-    // Wave
     wave: {
       apiKey: process.env.WAVE_API_KEY || '',
       apiSecret: process.env.WAVE_API_SECRET || '',
       webhookSecret: process.env.WAVE_WEBHOOK_SECRET || '',
     },
     
-    // Orange Money
     orangeMoney: {
       enabled: false,
       endpoint: process.env.ORANGE_API_ENDPOINT || 'https://api.orange.com',
       merchantKey: process.env.ORANGE_MERCHANT_KEY || '',
       secret: process.env.ORANGE_MERCHANT_SECRET || '',
       merchantSecret: process.env.ORANGE_MERCHANT_SECRET || '',
-      // Secret HMAC pour valider la signature des webhooks entrants
       webhookSecret: process.env.ORANGE_WEBHOOK_SECRET || process.env.ORANGE_MERCHANT_SECRET || '',
     },
 
-    // MTN Mobile Money
     mtnMomo: {
       enabled: false,
       endpoint: process.env.MTN_API_ENDPOINT || 'https://proxy.momoapi.mtn.com',
       apiKey: process.env.MTN_API_KEY || '',
       apiSecret: process.env.MTN_API_SECRET || '',
       subscriptionKey: process.env.MTN_SUBSCRIPTION_KEY || '',
-      environment: process.env.MTN_ENVIRONMENT || 'sandbox', // sandbox ou production
-      // Secret HMAC pour valider la signature des callbacks entrants
+      environment: process.env.MTN_ENVIRONMENT || 'sandbox',
       webhookSecret: process.env.MTN_WEBHOOK_SECRET || '',
     },
     
-    // Moov Money
     moovMoney: {
       enabled: false,
     },
   },
   
   // ================================
-  // SMS (UNIQUEMENT POUR OTP - Authentification)
+  // SMS (UNIQUEMENT POUR OTP)
   // ================================
-  // ⚠️ OPTIMISATION COÛTS: Les SMS ne sont utilisés QUE pour les OTP
-  // Toutes les autres notifications utilisent les Push Notifications (gratuites)
-  // 
-  // Coûts estimés par SMS:
-  // - Twilio: ~50 FCFA
-  // - Nexah: ~15 FCFA
-  // - Orange: ~20 FCFA
-  // 
-  // Économie mensuelle estimée: 50 000 - 100 000 FCFA
   sms: {
-    provider: process.env.SMS_PROVIDER || 'dev', // dev (gratuit), twilio, africastalking, nexah, orange
-    // SMS uniquement pour OTP (authentification)
-    useOnlyForOTP: true, // Ne pas changer sauf si nécessaire
+    provider: process.env.SMS_PROVIDER || 'dev',
+    useOnlyForOTP: true,
     
     twilio: {
       accountSid: process.env.TWILIO_ACCOUNT_SID || '',
       authToken: process.env.TWILIO_AUTH_TOKEN || '',
-      phoneNumber: process.env.TWILIO_FROM || process.env.TWILIO_PHONE_NUMBER || '', // TWILIO_FROM ou TWILIO_PHONE_NUMBER
+      phoneNumber: process.env.TWILIO_FROM || process.env.TWILIO_PHONE_NUMBER || '',
     },
     
     africasTalking: {
@@ -181,7 +166,7 @@ const config = {
   },
 
   // ================================
-  // FIREBASE (Notifications push) - GRATUIT
+  // FIREBASE (Notifications push)
   // ================================
   firebase: {
     projectId: process.env.FIREBASE_PROJECT_ID || '',
@@ -192,51 +177,33 @@ const config = {
   // ================================
   // NOTIFICATIONS - Stratégie
   // ================================
-  // ⚠️ OPTIMISATION: Utiliser Push (gratuit) au lieu de SMS (payant)
   notifications: {
-    // Canaux de notification par type d'événement
-    // 'push' = Firebase Cloud Messaging (GRATUIT)
-    // 'sms' = SMS (PAYANT - éviter sauf OTP)
-    // 'websocket' = Temps réel in-app (GRATUIT)
     channels: {
-      // Authentification - SMS obligatoire pour OTP
       otp: 'sms',
-      
-      // Commandes - Push uniquement (économie ~15 FCFA/notification)
       order_confirmed: 'push',
       order_preparing: 'push',
       order_ready: 'push',
       order_delivering: 'push',
       order_delivered: 'push',
       order_cancelled: 'push',
-      
-      // Restaurant - Push + WebSocket
       new_order: 'push',
       order_accepted: 'push',
-      
-      // Livreur - Push + WebSocket
       delivery_assigned: 'push',
       delivery_nearby: 'push',
       delivery_completed: 'push',
-      
-      // Marketing - Push uniquement
       promotion: 'push',
       loyalty_reward: 'push',
       referral_bonus: 'push',
     },
-    
-    // Économie estimée par mois (basé sur 1000 commandes/mois)
-    // Avant: ~5 SMS/commande × 15 FCFA = 75 000 FCFA/mois
-    // Après: 0 SMS (sauf OTP) = économie ~70 000 FCFA/mois
-    estimatedMonthlySavings: 70000, // FCFA
+    estimatedMonthlySavings: 70000,
   },
 
   // ================================
-  // WHATSAPP (Cloud API)
+  // WHATSAPP
   // ================================
   whatsapp: {
-    enabled: false, // Désactivé - utiliser SMS Twilio uniquement
-    provider: 'dev', // Mode dev (pas Twilio)
+    enabled: false,
+    provider: 'dev',
     token: process.env.WHATSAPP_TOKEN || '',
     phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID || '',
     templateName: process.env.WHATSAPP_OTP_TEMPLATE || 'baibebalo_otp',
@@ -247,7 +214,7 @@ const config = {
   // EMAIL
   // ================================
   email: {
-    provider: process.env.EMAIL_PROVIDER || 'smtp', // smtp, sendgrid, mailgun
+    provider: process.env.EMAIL_PROVIDER || 'smtp',
     from: process.env.EMAIL_FROM || 'noreply@baibebalo.com',
     fromName: process.env.EMAIL_FROM_NAME || 'BAIBEBALO',
     
@@ -276,15 +243,15 @@ const config = {
     googleMapsApiKey: process.env.GOOGLE_MAPS_API_KEY || '',
     defaultCity: 'Korhogo',
     defaultCountry: 'CI',
-    deliveryRadius: parseInt(process.env.DELIVERY_RADIUS_KM, 10) || 10, // km
+    deliveryRadius: parseInt(process.env.DELIVERY_RADIUS_KM, 10) || 10,
   },
   
   // ================================
   // UPLOAD / STOCKAGE FICHIERS
   // ================================
   upload: {
-    provider: process.env.UPLOAD_PROVIDER || 'local', // local (gratuit), s3, cloudinary
-    maxSize: parseInt(process.env.UPLOAD_MAX_SIZE, 10) || 5 * 1024 * 1024, // 5MB
+    provider: process.env.UPLOAD_PROVIDER || 'local',
+    maxSize: parseInt(process.env.UPLOAD_MAX_SIZE, 10) || 5 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
     
     local: {
@@ -307,7 +274,7 @@ const config = {
   },
   
   // ================================
-  // REDIS (Cache / Sessions)
+  // REDIS
   // ================================
   redis: {
     enabled: process.env.REDIS_ENABLED === 'true',
@@ -315,7 +282,7 @@ const config = {
     port: parseInt(process.env.REDIS_PORT, 10) || 6379,
     password: process.env.REDIS_PASSWORD || '',
     db: parseInt(process.env.REDIS_DB, 10) || 0,
-    ttl: parseInt(process.env.REDIS_TTL, 10) || 3600, // 1 heure
+    ttl: parseInt(process.env.REDIS_TTL, 10) || 3600,
   },
   
   // ================================
@@ -324,16 +291,9 @@ const config = {
   enableCronJobs: process.env.ENABLE_CRON_JOBS === 'true',
   
   cronJobs: {
-    // Vérifier les commandes abandonnées (toutes les 5 minutes)
     checkAbandonedOrders: process.env.CRON_ABANDONED_ORDERS || '*/5 * * * *',
-    
-    // Nettoyer les anciennes sessions (tous les jours à 2h)
     cleanOldSessions: process.env.CRON_CLEAN_SESSIONS || '0 2 * * *',
-    
-    // Générer les rapports quotidiens (tous les jours à 23h)
     generateDailyReports: process.env.CRON_DAILY_REPORTS || '0 23 * * *',
-    
-    // Envoyer les notifications de rappel (toutes les heures)
     sendReminders: process.env.CRON_REMINDERS || '0 * * * *',
   },
   
@@ -341,96 +301,44 @@ const config = {
   // BUSINESS LOGIC
   // ================================
   business: {
-    // Frais de service (%) — désactivé : on se contente des frais livraison + commission restaurant
     serviceFee: parseFloat(process.env.SERVICE_FEE, 10) ?? 0,
-    
-    // TVA (%)
     vat: parseFloat(process.env.VAT, 10) || 18,
-    
-    // Montant minimum de commande (FCFA)
     minOrderAmount: parseInt(process.env.MIN_ORDER_AMOUNT, 10) || 1000,
-    
-    // Temps d'expiration du panier (minutes)
     cartExpirationMinutes: parseInt(process.env.CART_EXPIRATION, 10) || 30,
-    
-    // Temps maximum de préparation (minutes)
     maxPreparationTime: parseInt(process.env.MAX_PREPARATION_TIME, 10) || 60,
-    
-    // Temps maximum de livraison (minutes)
     maxDeliveryTime: parseInt(process.env.MAX_DELIVERY_TIME, 10) || 45,
-    
-    // Distance maximum de livraison (km) — max 20 km, défaut 15 km
     maxDeliveryDistance: parseInt(process.env.MAX_DELIVERY_DISTANCE, 10) || 20,
-    
-    // === FRAIS DE LIVRAISON ===
-    // Frais de base (FCFA) - appliqué pour les 5 premiers km
     baseDeliveryFee: parseInt(process.env.BASE_DELIVERY_FEE, 10) || 500,
-    
-    // Distance incluse dans les frais de base (km)
     freeDeliveryDistanceKm: parseInt(process.env.FREE_DELIVERY_DISTANCE_KM, 10) || 5,
-    
-    // Prix par km supplémentaire au-delà de la distance gratuite (FCFA)
     deliveryPricePerExtraKm: parseInt(process.env.DELIVERY_PRICE_PER_EXTRA_KM, 10) || 100,
-    
-    // Anciens paramètres (pour compatibilité)
     deliveryPricePerKm: parseInt(process.env.DELIVERY_PRICE_PER_KM, 10) || 200,
     minDeliveryPrice: parseInt(process.env.MIN_DELIVERY_PRICE, 10) || 500,
-    
-    // === RÉMUNÉRATION LIVREUR ===
-    // Pourcentage des frais de livraison pour le livreur (70%)
     deliveryPersonPercentage: parseInt(process.env.DELIVERY_PERSON_PERCENTAGE, 10) || 70,
-    
-    // Bonus distance longue (si distance > 5 km)
-    deliveryBonusLongDistanceThreshold: parseInt(process.env.DELIVERY_BONUS_LONG_DISTANCE_KM, 10) || 5, // km
-    deliveryBonusLongDistanceAmount: parseInt(process.env.DELIVERY_BONUS_LONG_DISTANCE_AMOUNT, 10) || 200, // FCFA
-    
-    // Bonus heure de pointe
-    deliveryBonusPeakHourAmount: parseInt(process.env.DELIVERY_BONUS_PEAK_HOUR_AMOUNT, 10) || 100, // FCFA
-    deliveryPeakHours: { // Heures de pointe
-      lunch: { start: 12, end: 14 },   // 12h - 14h
-      dinner: { start: 19, end: 21 },  // 19h - 21h
+    deliveryBonusLongDistanceThreshold: parseInt(process.env.DELIVERY_BONUS_LONG_DISTANCE_KM, 10) || 5,
+    deliveryBonusLongDistanceAmount: parseInt(process.env.DELIVERY_BONUS_LONG_DISTANCE_AMOUNT, 10) || 200,
+    deliveryBonusPeakHourAmount: parseInt(process.env.DELIVERY_BONUS_PEAK_HOUR_AMOUNT, 10) || 100,
+    deliveryPeakHours: {
+      lunch: { start: 12, end: 14 },
+      dinner: { start: 19, end: 21 },
     },
-    
-    // Bonus note parfaite (5 étoiles)
-    deliveryBonusPerfectRatingAmount: parseInt(process.env.DELIVERY_BONUS_PERFECT_RATING, 10) || 100, // FCFA
-    
-    // Bonus week-end (+10%)
-    deliveryBonusWeekendPercent: parseInt(process.env.DELIVERY_BONUS_WEEKEND_PERCENT, 10) || 10, // %
-    
-    // Bonus objectif quotidien
-    deliveryDailyGoalTarget: parseInt(process.env.DELIVERY_DAILY_GOAL_TARGET, 10) || 10, // courses
-    deliveryDailyGoalBonusAmount: parseInt(process.env.DELIVERY_DAILY_GOAL_BONUS, 10) || 2000, // FCFA
-    
-    // Numéro Baibebalo pour dépôt Mobile Money (remise espèces quotidienne)
+    deliveryBonusPerfectRatingAmount: parseInt(process.env.DELIVERY_BONUS_PERFECT_RATING, 10) || 100,
+    deliveryBonusWeekendPercent: parseInt(process.env.DELIVERY_BONUS_WEEKEND_PERCENT, 10) || 10,
+    deliveryDailyGoalTarget: parseInt(process.env.DELIVERY_DAILY_GOAL_TARGET, 10) || 10,
+    deliveryDailyGoalBonusAmount: parseInt(process.env.DELIVERY_DAILY_GOAL_BONUS, 10) || 2000,
     baibebaloMobileMoneyNumber: process.env.BAIBEBALO_MOBILE_MONEY_NUMBER || '+2250787097996',
-    baibebaloMobileMoneyProvider: process.env.BAIBEBALO_MOBILE_MONEY_PROVIDER || 'orange_money', // orange_money, mtn_money, waves
-
-    // Contacts support Baibebalo (05 85 67 09 40 / 07 87 09 79 96)
+    baibebaloMobileMoneyProvider: process.env.BAIBEBALO_MOBILE_MONEY_PROVIDER || 'orange_money',
     baibebaloContactPhone: process.env.BAIBEBALO_CONTACT_PHONE || '+2250787097996',
     baibebaloContactPhoneAlt: process.env.BAIBEBALO_CONTACT_PHONE_ALT || '+2250585670940',
-    
-    // Pénalités
-    deliveryPenaltyLateThreshold: parseInt(process.env.DELIVERY_PENALTY_LATE_MINUTES, 10) || 15, // minutes
-    deliveryPenaltyLateAmount: parseInt(process.env.DELIVERY_PENALTY_LATE_AMOUNT, 10) || 200, // FCFA
-    deliveryPenaltyCancellationAmount: parseInt(process.env.DELIVERY_PENALTY_CANCELLATION, 10) || 500, // FCFA
-
-    // Délai pour accepter/refuser une course proposée (secondes) — attribution automatique type Glovo
-    deliveryProposalExpirySeconds: parseInt(process.env.DELIVERY_PROPOSAL_EXPIRY_SECONDS, 10) || 120, // 2 min
-    
-    // === SEUIL LIVRAISON GRATUITE ===
-    // Si le sous-total dépasse ce montant, la livraison est gratuite
-    freeDeliveryThreshold: parseInt(process.env.FREE_DELIVERY_THRESHOLD, 10) || 20000, // FCFA
-    freeDeliveryEnabled: process.env.FREE_DELIVERY_ENABLED !== 'false', // Activé par défaut
-    // Gains livreur en cas de livraison gratuite (payés par Baibebalo)
-    freeDeliveryDriverFee: parseInt(process.env.FREE_DELIVERY_DRIVER_FEE, 10) || 500, // FCFA
-    
-    // === OFFRES GROUPÉES (BUNDLES) ===
-    // Réduction automatique quand plat + boisson sont commandés ensemble
-    bundleDiscountEnabled: process.env.BUNDLE_DISCOUNT_ENABLED !== 'false', // Activé par défaut
-    bundleDiscountPercent: parseInt(process.env.BUNDLE_DISCOUNT_PERCENT, 10) || 5, // % de réduction
-    // Catégories considérées comme "boissons" pour les bundles
+    deliveryPenaltyLateThreshold: parseInt(process.env.DELIVERY_PENALTY_LATE_MINUTES, 10) || 15,
+    deliveryPenaltyLateAmount: parseInt(process.env.DELIVERY_PENALTY_LATE_AMOUNT, 10) || 200,
+    deliveryPenaltyCancellationAmount: parseInt(process.env.DELIVERY_PENALTY_CANCELLATION, 10) || 500,
+    deliveryProposalExpirySeconds: parseInt(process.env.DELIVERY_PROPOSAL_EXPIRY_SECONDS, 10) || 120,
+    freeDeliveryThreshold: parseInt(process.env.FREE_DELIVERY_THRESHOLD, 10) || 20000,
+    freeDeliveryEnabled: process.env.FREE_DELIVERY_ENABLED !== 'false',
+    freeDeliveryDriverFee: parseInt(process.env.FREE_DELIVERY_DRIVER_FEE, 10) || 500,
+    bundleDiscountEnabled: process.env.BUNDLE_DISCOUNT_ENABLED !== 'false',
+    bundleDiscountPercent: parseInt(process.env.BUNDLE_DISCOUNT_PERCENT, 10) || 5,
     bundleDrinkCategories: (process.env.BUNDLE_DRINK_CATEGORIES || 'boissons,drinks,beverages,sodas,jus').split(','),
-    // Catégories considérées comme "plats" pour les bundles
     bundleFoodCategories: (process.env.BUNDLE_FOOD_CATEGORIES || 'plats,plat principal,entrées,grillades,poissons,viandes').split(','),
   },
   
@@ -438,8 +346,8 @@ const config = {
   // LOGGING
   // ================================
   logging: {
-    level: process.env.LOG_LEVEL || 'info', // error, warn, info, debug
-    format: process.env.LOG_FORMAT || 'json', // json, simple
+    level: process.env.LOG_LEVEL || 'info',
+    format: process.env.LOG_FORMAT || 'json',
     logToFile: process.env.LOG_TO_FILE === 'true',
     logDir: process.env.LOG_DIR || './logs',
   },
@@ -466,7 +374,6 @@ if (config.env === 'production') {
   if (!process.env.JWT_SECRET) {
     missing.push('JWT_SECRET');
   }
-  // Base de données : accepter soit DATABASE_URL (Render, Railway, etc.) soit DB_HOST + DB_NAME + DB_USER + DB_PASSWORD
   const hasDatabaseUrl = !!process.env.DATABASE_URL;
   const hasDbVars = !!(process.env.DB_HOST && process.env.DB_NAME && process.env.DB_USER && process.env.DB_PASSWORD);
   if (!hasDatabaseUrl && !hasDbVars) {
@@ -479,5 +386,4 @@ if (config.env === 'production') {
   }
 }
 
-// Exporter la configuration
 module.exports = config;
