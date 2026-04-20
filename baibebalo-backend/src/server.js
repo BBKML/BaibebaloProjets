@@ -104,7 +104,11 @@ app.use(cors({
 }));
 
 // Middlewares de parsing
-app.use(express.json({ limit: '10mb' }));
+// Le rawBody est capturé pour la vérification HMAC des webhooks de paiement
+app.use(express.json({
+  limit: '10mb',
+  verify: (req, _res, buf) => { req.rawBody = buf; },
+}));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Servir les fichiers uploadés localement (si provider = local)

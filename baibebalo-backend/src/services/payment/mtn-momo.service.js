@@ -270,57 +270,98 @@ class MTNMoMoService {
 
   /**
    * Gérer le callback de notification
+   * Sécurité :
+   *  1. Vérification du montant reçu vs montant attendu en DB
+   *  2. Idempotence : UPDATE uniquement si payment_status = 'pending'
    */
   async handleCallback(callbackData) {
     try {
       const {
-        // referenceId non utilisé mais présent dans les données
         status,
         externalId,
         financialTransactionId,
+        amount: callbackAmount,
       } = callbackData;
 
-      logger.info('Callback MTN MoMo reçu:', {
+      logger.info('Traitement callback MTN MoMo:', {
         externalId,
         status,
         financialTransactionId,
+        callbackAmount,
       });
 
       const { query } = require('../../database/db');
       const mappedStatus = this.mapStatus(status);
 
       if (mappedStatus === 'completed') {
-        await query(
-          `UPDATE orders 
-           SET payment_status = 'paid', paid_at = NOW(), payment_reference = $1, updated_at = NOW()
-           WHERE order_number = $2`,
-          [financialTransactionId, externalId]
-        );
-
-        await query(
-          `UPDATE transactions 
-           SET status = 'completed', payment_reference = $1, completed_at = NOW()
-           WHERE order_id = (SELECT id FROM orders WHERE order_number = $2)
-           AND transaction_type = 'order_payment'`,
-          [financialTransactionId, externalId]
-        );
-
-        logger.info(`Paiement MTN MoMo confirmé: ${externalId}`);
-      } else if (mappedStatus === 'failed') {
-        await query(
-          `UPDATE orders 
-           SET payment_status = 'failed'
-           WHERE order_number = $1`,
+        // --- Faille 2 : Vérifier le montant ---
+        const orderResult = await query(
+          `SELECT id, total, payment_status, order_number FROM orders WHERE order_number = $1`,
           [externalId]
         );
 
+        if (orderResult.rows.length === 0) {
+          logger.error(`Callback MTN MoMo: commande inconnue ${externalId}`);
+          return { success: false, error: 'Commande introuvable' };
+        }
+
+        const order = orderResult.rows[0];
+
+        // Tolérance de 1 FCFA pour les arrondis
+        if (callbackAmount !== undefined) {
+          const received = Math.round(Number(callbackAmount));
+          const expected = Math.round(Number(order.total));
+          if (Math.abs(received - expected) > 1) {
+            logger.error('FRAUDE DÉTECTÉE: montant callback MTN ne correspond pas', {
+              externalId,
+              montant_recu: received,
+              montant_attendu: expected,
+              financialTransactionId,
+            });
+            return { success: false, error: 'Montant invalide' };
+          }
+        } else {
+          logger.warn(`Callback MTN MoMo: champ amount absent pour ${externalId} — vérification ignorée`);
+        }
+
+        // --- Faille 3 : Idempotence — n'agit que si encore en attente ---
+        if (order.payment_status === 'paid') {
+          logger.info(`Callback MTN MoMo dupliqué ignoré (déjà payé): ${externalId}`);
+          return { success: true, status: 'already_paid' };
+        }
+
+        if (order.payment_status === 'cancelled') {
+          logger.warn(`Callback MTN MoMo: commande annulée ${externalId}`);
+          return { success: false, error: 'Commande annulée' };
+        }
+
+        await query(
+          `UPDATE orders
+           SET payment_status = 'paid', paid_at = NOW(), payment_reference = $1, updated_at = NOW()
+           WHERE order_number = $2 AND payment_status = 'pending'`,
+          [financialTransactionId, externalId]
+        );
+
+        await query(
+          `UPDATE transactions
+           SET status = 'completed', payment_reference = $1, completed_at = NOW()
+           WHERE order_id = $2 AND transaction_type = 'order_payment' AND status != 'completed'`,
+          [financialTransactionId, order.id]
+        );
+
+        logger.info(`Paiement MTN MoMo confirmé: ${externalId} — montant: ${order.total} FCFA`);
+
+      } else if (mappedStatus === 'failed') {
+        await query(
+          `UPDATE orders
+           SET payment_status = 'failed'
+           WHERE order_number = $1 AND payment_status = 'pending'`,
+          [externalId]
+        );
         logger.warn(`Paiement MTN MoMo échoué: ${externalId}`);
       }
 
-      return {
-        success: true,
-        status: mappedStatus,
-      };
+      return { success: true, status: mappedStatus };
     } catch (error) {
       logger.error('Erreur traitement callback MTN:', error);
       throw error;

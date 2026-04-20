@@ -109,18 +109,24 @@ const TicketDetails = () => {
         <aside className="w-80 flex-shrink-0 border-r border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 overflow-y-auto custom-scrollbar p-6">
           {/* Client Info Card */}
           <div className="mb-8">
+            {/* Label selon le type */}
             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-500 dark:text-slate-400 mb-4">
-              Profil Client
+              {ticket.user_type === 'restaurant' ? 'Profil Restaurant'
+                : ticket.user_type === 'delivery' ? 'Profil Livreur'
+                : 'Profil Client'}
             </h3>
             <div className="flex items-center gap-4 mb-4">
               <div className="w-14 h-14 rounded-2xl bg-primary/20 flex items-center justify-center text-primary text-xl font-bold">
-                {ticket.user_name?.charAt(0) || 'U'}
+                {(ticket.contact_name || ticket.user_name || ticket.restaurant_name)?.charAt(0)?.toUpperCase() || '?'}
               </div>
               <div>
                 <h4 className="font-bold text-base text-slate-900 dark:text-white">
-                  {ticket.user_name || 'N/A'}
+                  {ticket.contact_name || ticket.user_name || ticket.restaurant_name || ticket.delivery_name || 'N/A'}
                 </h4>
-                <p className="text-sm text-slate-500">{ticket.user_phone || 'N/A'}</p>
+                <p className="text-sm text-slate-500">{ticket.contact_phone || ticket.user_phone || ticket.restaurant_phone || ticket.delivery_phone || 'N/A'}</p>
+                {(ticket.contact_email || ticket.user_email || ticket.restaurant_email) && (
+                  <p className="text-xs text-slate-400 mt-0.5">{ticket.contact_email || ticket.user_email || ticket.restaurant_email}</p>
+                )}
               </div>
             </div>
             {ticket.related_order && (
@@ -284,12 +290,16 @@ const TicketDetails = () => {
                     ? 'bg-primary text-white'
                     : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300'
                 }`}>
-                  {msg.sender_type === 'admin' ? 'A' : 'R'}
+                  {msg.sender_type === 'admin' ? 'A'
+                    : msg.sender_name?.charAt(0)?.toUpperCase()
+                    || (msg.sender_type === 'restaurant' ? 'R'
+                        : msg.sender_type === 'delivery' ? 'L'
+                        : 'C')}
                 </div>
                 <div className={`flex-1 max-w-[85%] ${
                   msg.sender_type === 'admin' ? 'text-right' : 'text-left'
                 }`}>
-                  <div className={`inline-block w-full p-4 rounded-2xl ${
+                  <div className={`inline-block p-4 rounded-2xl max-w-full ${
                     msg.sender_type === 'admin'
                       ? 'bg-primary text-white rounded-tr-md'
                       : 'bg-slate-100 dark:bg-slate-800 text-slate-900 dark:text-white rounded-tl-md'

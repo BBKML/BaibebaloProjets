@@ -1,3 +1,8 @@
+# Environment (contient des IPs/secrets locaux)
+.env
+.env.local
+.env.production
+
 # Logs
 logs
 *.log

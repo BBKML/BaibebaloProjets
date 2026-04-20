@@ -14,7 +14,7 @@ export default defineConfig({
     port: 5173, // Port différent du backend
     proxy: {
       '/api': {
-        target: process.env.VITE_BACKEND_URL || 'http://192.168.1.13:5000', // En dev réseau : définir VITE_BACKEND_URL dans .env (IP affichée au démarrage du backend)
+        target: process.env.VITE_BACKEND_URL || 'http://192.168.1.11:5000', // En dev réseau : définir VITE_BACKEND_URL dans .env (IP affichée au démarrage du backend)
         changeOrigin: true,
         secure: false,
         ws: true, // Pour WebSocket si nécessaire

@@ -99,12 +99,21 @@ describe('Socket.IO - Communications temps réel', () => {
   }, 15000);
 
   afterAll((done) => {
-    if (server && server.listening) {
+    const io = serverModule && serverModule.io;
+    if (io) {
+      io.close(() => {
+        if (server && server.listening) {
+          server.close(() => done());
+        } else {
+          done();
+        }
+      });
+    } else if (server && server.listening) {
       server.close(() => done());
     } else {
       done();
     }
-  }, 5000);
+  }, 10000);
 
   afterEach(() => {
     jest.clearAllMocks();

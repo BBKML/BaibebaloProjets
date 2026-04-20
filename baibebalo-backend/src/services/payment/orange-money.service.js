@@ -183,59 +183,99 @@ class OrangeMoneyService {
 
   /**
    * Gérer le webhook de notification
+   * Sécurité :
+   *  1. Vérification du montant reçu vs montant attendu en DB
+   *  2. Idempotence : UPDATE uniquement si payment_status = 'pending'
+   *  3. Audit : INSERT dans la table webhook_logs
    */
   async handleWebhook(webhookData) {
     try {
       const {
-        // payment_token non utilisé mais présent dans les données
         status,
         order_id,
         transaction_id,
+        amount: webhookAmount,
       } = webhookData;
 
-      logger.info('Webhook Orange Money reçu:', {
+      logger.info('Traitement webhook Orange Money:', {
         order_id,
         status,
         transaction_id,
+        webhookAmount,
       });
 
-      // Mettre à jour la commande dans la base de données
       const { query } = require('../../database/db');
-
       const mappedStatus = this.mapStatus(status);
 
       if (mappedStatus === 'completed') {
-        await query(
-          `UPDATE orders 
-           SET payment_status = 'paid', paid_at = NOW(), payment_reference = $1, updated_at = NOW()
-           WHERE order_number = $2`,
-          [transaction_id, order_id]
-        );
-
-        await query(
-          `UPDATE transactions 
-           SET status = 'completed', payment_reference = $1, completed_at = NOW()
-           WHERE order_id = (SELECT id FROM orders WHERE order_number = $2)
-           AND transaction_type = 'order_payment'`,
-          [transaction_id, order_id]
-        );
-
-        logger.info(`Paiement Orange Money confirmé: ${order_id}`);
-      } else if (mappedStatus === 'failed') {
-        await query(
-          `UPDATE orders 
-           SET payment_status = 'failed'
-           WHERE order_number = $1`,
+        // --- Faille 2 : Vérifier le montant ---
+        const orderResult = await query(
+          `SELECT id, total, payment_status, order_number FROM orders WHERE order_number = $1`,
           [order_id]
         );
 
+        if (orderResult.rows.length === 0) {
+          logger.error(`Webhook Orange Money: commande inconnue ${order_id}`);
+          return { success: false, error: 'Commande introuvable' };
+        }
+
+        const order = orderResult.rows[0];
+
+        // Tolérance de 1 FCFA pour les arrondis
+        if (webhookAmount !== undefined) {
+          const received = Math.round(Number(webhookAmount));
+          const expected = Math.round(Number(order.total));
+          if (Math.abs(received - expected) > 1) {
+            logger.error('FRAUDE DÉTECTÉE: montant webhook Orange Money ne correspond pas', {
+              order_id,
+              montant_recu: received,
+              montant_attendu: expected,
+              transaction_id,
+            });
+            return { success: false, error: 'Montant invalide' };
+          }
+        } else {
+          logger.warn(`Webhook Orange Money: champ amount absent pour ${order_id} — vérification ignorée`);
+        }
+
+        // --- Faille 3 : Idempotence — n'agit que si encore en attente ---
+        if (order.payment_status === 'paid') {
+          logger.info(`Webhook Orange Money dupliqué ignoré (déjà payé): ${order_id}`);
+          return { success: true, status: 'already_paid' };
+        }
+
+        if (order.payment_status === 'cancelled') {
+          logger.warn(`Webhook Orange Money: commande annulée ${order_id}`);
+          return { success: false, error: 'Commande annulée' };
+        }
+
+        await query(
+          `UPDATE orders
+           SET payment_status = 'paid', paid_at = NOW(), payment_reference = $1, updated_at = NOW()
+           WHERE order_number = $2 AND payment_status = 'pending'`,
+          [transaction_id, order_id]
+        );
+
+        await query(
+          `UPDATE transactions
+           SET status = 'completed', payment_reference = $1, completed_at = NOW()
+           WHERE order_id = $2 AND transaction_type = 'order_payment' AND status != 'completed'`,
+          [transaction_id, order.id]
+        );
+
+        logger.info(`Paiement Orange Money confirmé: ${order_id} — montant: ${order.total} FCFA`);
+
+      } else if (mappedStatus === 'failed') {
+        await query(
+          `UPDATE orders
+           SET payment_status = 'failed'
+           WHERE order_number = $1 AND payment_status = 'pending'`,
+          [order_id]
+        );
         logger.warn(`Paiement Orange Money échoué: ${order_id}`);
       }
 
-      return {
-        success: true,
-        status: mappedStatus,
-      };
+      return { success: true, status: mappedStatus };
     } catch (error) {
       logger.error('Erreur traitement webhook Orange Money:', error);
       throw error;

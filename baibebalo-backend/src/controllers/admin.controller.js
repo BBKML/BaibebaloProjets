@@ -7958,13 +7958,33 @@ exports.getTicketById = async (req, res) => {
 
     // Récupérer le ticket avec les informations associées
     const ticketResult = await query(`
-      SELECT 
+      SELECT
         t.*,
+        -- Champs normalisés selon le type d'utilisateur
+        CASE
+          WHEN t.user_type = 'user'     THEN u.first_name || ' ' || u.last_name
+          WHEN t.user_type = 'restaurant' THEN r.name
+          WHEN t.user_type = 'delivery' THEN dp.first_name || ' ' || dp.last_name
+        END as contact_name,
+        CASE
+          WHEN t.user_type = 'user'     THEN u.phone
+          WHEN t.user_type = 'restaurant' THEN r.phone
+          WHEN t.user_type = 'delivery' THEN dp.phone
+        END as contact_phone,
+        CASE
+          WHEN t.user_type = 'user'     THEN u.email
+          WHEN t.user_type = 'restaurant' THEN r.email
+          WHEN t.user_type = 'delivery' THEN NULL
+        END as contact_email,
+        -- Champs bruts (rétrocompatibilité)
         u.first_name || ' ' || u.last_name as user_name,
         u.phone as user_phone,
         u.email as user_email,
         r.name as restaurant_name,
         r.phone as restaurant_phone,
+        r.email as restaurant_email,
+        dp.first_name || ' ' || dp.last_name as delivery_name,
+        dp.phone as delivery_phone,
         o.order_number,
         o.total as order_total,
         a.full_name as assigned_admin_name,
@@ -7972,6 +7992,7 @@ exports.getTicketById = async (req, res) => {
       FROM support_tickets t
       LEFT JOIN users u ON t.user_type = 'user' AND t.user_id = u.id
       LEFT JOIN restaurants r ON t.user_type = 'restaurant' AND t.user_id = r.id
+      LEFT JOIN delivery_persons dp ON t.user_type = 'delivery' AND t.user_id = dp.id
       LEFT JOIN orders o ON t.order_id = o.id
       LEFT JOIN admins a ON t.assigned_to = a.id
       WHERE t.id = $1
@@ -7984,11 +8005,27 @@ exports.getTicketById = async (req, res) => {
       });
     }
 
+    const ticket = ticketResult.rows[0];
+
+    // Récupérer l'historique des tickets du même utilisateur
+    const historyResult = ticket.user_id
+      ? await query(`
+          SELECT id, ticket_number, subject, status, created_at
+          FROM support_tickets
+          WHERE user_id = $1 AND user_type = $2 AND id != $3
+          ORDER BY created_at DESC
+          LIMIT 5
+        `, [ticket.user_id, ticket.user_type, id])
+      : { rows: [] };
+
+    ticket.history = historyResult.rows;
+    ticket.total_tickets = historyResult.rows.length + 1; // +1 pour le ticket courant
+
     // Récupérer les messages du ticket
     const messagesResult = await query(`
-      SELECT 
+      SELECT
         m.*,
-        CASE 
+        CASE
           WHEN m.sender_type = 'admin' THEN a.full_name
           WHEN m.sender_type = 'user' THEN u.first_name || ' ' || u.last_name
           WHEN m.sender_type = 'restaurant' THEN r.name
@@ -8006,7 +8043,7 @@ exports.getTicketById = async (req, res) => {
     res.json({
       success: true,
       data: {
-        ticket: ticketResult.rows[0],
+        ticket,
         messages: messagesResult.rows,
       },
     });

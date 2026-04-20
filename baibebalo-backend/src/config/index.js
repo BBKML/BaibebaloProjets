@@ -115,8 +115,10 @@ const config = {
       merchantKey: process.env.ORANGE_MERCHANT_KEY || '',
       secret: process.env.ORANGE_MERCHANT_SECRET || '',
       merchantSecret: process.env.ORANGE_MERCHANT_SECRET || '',
+      // Secret HMAC pour valider la signature des webhooks entrants
+      webhookSecret: process.env.ORANGE_WEBHOOK_SECRET || process.env.ORANGE_MERCHANT_SECRET || '',
     },
-    
+
     // MTN Mobile Money
     mtnMomo: {
       enabled: false,
@@ -125,6 +127,8 @@ const config = {
       apiSecret: process.env.MTN_API_SECRET || '',
       subscriptionKey: process.env.MTN_SUBSCRIPTION_KEY || '',
       environment: process.env.MTN_ENVIRONMENT || 'sandbox', // sandbox ou production
+      // Secret HMAC pour valider la signature des callbacks entrants
+      webhookSecret: process.env.MTN_WEBHOOK_SECRET || '',
     },
     
     // Moov Money
