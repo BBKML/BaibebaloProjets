@@ -1,6 +1,15 @@
 # Éviter l'échec "tar exited with non-zero code: 2" sur EAS (extraction Linux)
 # Exclure tout ce qui n'est pas nécessaire au build
 
+# Autres apps du monorepo (réduire la taille de l'archive)
+../baibebalo-backend/
+../baibebalo-admin/
+../baibebalo-restaurant/
+../baibebalo-livreur/
+../docs/
+../LOGOS/
+../*.md
+
 .git/
 .gitignore
 .expo/

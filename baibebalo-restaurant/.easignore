@@ -1,0 +1,51 @@
+# Exclure tout ce qui n'est pas nécessaire au build EAS
+# IMPORTANT: exclure les autres apps du monorepo pour éviter une archive trop lourde
+
+# Autres apps du monorepo (non nécessaires)
+../baibebalo-backend/
+../baibebalo-admin/
+../baibebalo-client-clean/
+../baibebalo-livreur/
+../docs/
+../LOGOS/
+../*.md
+
+# Dépendances (EAS les installe lui-même)
+node_modules/
+
+# Git
+.git/
+.gitignore
+
+# Expo local
+.expo/
+android/
+ios/
+
+# Logs
+*.log
+npm-debug.*
+yarn-debug.*
+yarn-error.*
+
+# Env (on utilise les variables EAS)
+.env
+.env.*
+!.env.example
+
+# Tests et docs
+*.md
+__tests__/
+*.test.js
+*.spec.js
+coverage/
+
+# Config éditeur / OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Build / générés
+dist/
+web-build/
