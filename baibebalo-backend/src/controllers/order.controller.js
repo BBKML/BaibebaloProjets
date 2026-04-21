@@ -847,6 +847,7 @@ exports.createOrder = async (req, res) => {
       let baseDeliveryFee = calculateDeliveryFee(distance);
       let originalDeliveryFee = baseDeliveryFee;
       let freeDeliveryApplied = false;
+      let delivery_fee = 0;
 
       // === CALCUL DES BONUS (À INCLURE DANS LES FRAIS DE LIVRAISON) ===
       // Les bonus sont payés par le client et inclus dans les frais de livraison
