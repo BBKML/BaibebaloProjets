@@ -1241,6 +1241,10 @@ const migrations = [
   `CREATE INDEX IF NOT EXISTS idx_promo_usage_promo ON promo_usage(promo_id)`,
   `CREATE INDEX IF NOT EXISTS idx_promo_usage_user ON promo_usage(user_id)`,
   `CREATE UNIQUE INDEX IF NOT EXISTS idx_promo_usage_promo_user ON promo_usage(promo_id, user_id)`,
+
+  // Colonne promo_code_id manquante dans orders (référence UUID vers promotions)
+  `ALTER TABLE orders ADD COLUMN IF NOT EXISTS promo_code_id UUID REFERENCES promotions(id) ON DELETE SET NULL`,
+  `CREATE INDEX IF NOT EXISTS idx_orders_promo_code ON orders(promo_code_id) WHERE promo_code_id IS NOT NULL`,
 ];
 
 // Fonction pour vérifier si une table existe

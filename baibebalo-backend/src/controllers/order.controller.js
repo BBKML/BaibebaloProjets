@@ -1296,8 +1296,7 @@ exports.createOrder = async (req, res) => {
       success: false,
       error: {
         code: 'ORDER_CREATION_ERROR',
-        message: `[${error.code || 'ERR'}] ${error.message || 'Erreur inconnue'}`,
-        detail: error.detail,
+        message: 'Erreur lors de la création de la commande',
       },
     });
   }
