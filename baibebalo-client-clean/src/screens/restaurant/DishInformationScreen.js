@@ -114,10 +114,16 @@ export default function DishInformationScreen({ navigation, route }) {
   return (
     <View style={styles.container}>
       <View style={styles.heroWrapper}>
-        <Image
-          source={{ uri: getImageUrl(dish.image_url) || null }}
-          style={styles.dishImage}
-        />
+        {dish.image_url ? (
+          <Image
+            source={{ uri: getImageUrl(dish.image_url) }}
+            style={styles.dishImage}
+          />
+        ) : (
+          <View style={[styles.dishImage, styles.dishImagePlaceholder]}>
+            <Ionicons name="restaurant-outline" size={48} color={COLORS.border} />
+          </View>
+        )}
         <View style={styles.heroGradient} />
         <TouchableOpacity style={styles.closeButton} onPress={() => navigation.goBack()}>
           <Ionicons name="close" size={20} color={COLORS.text} />
@@ -332,6 +338,11 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 280,
     backgroundColor: COLORS.border,
+  },
+  dishImagePlaceholder: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.background,
   },
   heroGradient: {
     position: 'absolute',

@@ -93,10 +93,8 @@ export default function DeliveryHomeScreen({ navigation }) {
         }
       }
     })();
-    const mapTimer = setTimeout(() => setShowMap(true), 1500);
     return () => {
       cancelled = true;
-      clearTimeout(mapTimer);
       pendingCancelRef.current = setTimeout(() => {
         cancelDashboardLoad();
         pendingCancelRef.current = null;
