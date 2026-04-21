@@ -43,13 +43,18 @@ async function compressImage(buffer, mimetype, options = {}) {
 let s3Client = null;
 if (config.upload?.s3?.bucket && config.upload?.s3?.accessKeyId && config.upload?.s3?.secretAccessKey) {
   try {
-    s3Client = new S3Client({
+    const s3Config = {
       region: config.upload?.s3?.region || 'eu-west-1',
       credentials: {
         accessKeyId: config.upload?.s3?.accessKeyId,
         secretAccessKey: config.upload?.s3?.secretAccessKey,
       },
-    });
+    };
+    if (config.upload?.s3?.endpoint) {
+      s3Config.endpoint = config.upload.s3.endpoint;
+      s3Config.forcePathStyle = true; // requis pour Backblaze B2 / MinIO
+    }
+    s3Client = new S3Client(s3Config);
     logger.info('Client S3 initialisé avec succès');
   } catch (error) {
     logger.warn('Erreur initialisation client S3:', error.message);
