@@ -282,7 +282,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
     Linking.openURL(url).catch(() => Linking.openURL(`https://www.google.com/maps/search/?api=1&query=${lat},${lng}`));
   };
 
-  const canShowNativeMap = showMap && !isExpoGo && MapView && Marker;
+  const canShowNativeMap = false; // MapView natif désactivé (clé API Google Maps non configurée)
 
   return (
     <ScrollView style={styles.container}>
