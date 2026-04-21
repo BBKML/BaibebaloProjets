@@ -799,24 +799,25 @@ exports.createOrder = async (req, res) => {
       }
 
       // Convertir les coordonnées en nombres si elles sont des strings
-      const lat = parseFloat(resolvedDeliveryAddress.latitude);
-      const lon = parseFloat(resolvedDeliveryAddress.longitude);
-
-      if (!lat || !lon || isNaN(lat) || isNaN(lon)) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'DELIVERY_COORDINATES_REQUIRED',
-            message: 'Coordonnées GPS de livraison requises et valides',
-          },
+      const rawLat = parseFloat(resolvedDeliveryAddress.latitude);
+      const rawLon = parseFloat(resolvedDeliveryAddress.longitude);
+      // Coordonnées par défaut : centre de Korhogo (utilisées si l'adresse n'a pas de GPS)
+      const KORHOGO_LAT = 9.4580;
+      const KORHOGO_LON = -5.6294;
+      const hasValidCoords = rawLat && rawLon && !isNaN(rawLat) && !isNaN(rawLon);
+      const lat = hasValidCoords ? rawLat : KORHOGO_LAT;
+      const lon = hasValidCoords ? rawLon : KORHOGO_LON;
+      if (!hasValidCoords) {
+        logger.warn('Adresse sans coordonnées GPS — utilisation coords Korhogo par défaut', {
+          address: resolvedDeliveryAddress,
         });
       }
 
       // 4. Calculer les frais de livraison (distance)
-      const restaurantLat = parseFloat(restaurant.latitude);
-      const restaurantLon = parseFloat(restaurant.longitude);
+      const restaurantLat = parseFloat(restaurant.latitude) || KORHOGO_LAT;
+      const restaurantLon = parseFloat(restaurant.longitude) || KORHOGO_LON;
       const deliveryRadius = parseFloat(restaurant.delivery_radius) || 15; // Par défaut 15 km
-      
+
       const distance = await calculateDistance(
         restaurantLat,
         restaurantLon,
