@@ -19,7 +19,7 @@ import useAuthStore from '../../store/authStore';
 
 export default function OTPVerificationScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
-  const { phone, isLogin } = route.params;
+  const { phone, isLogin } = route.params || {};
   const [otp, setOtp] = useState(['', '', '', '', '', '']);
   const [loading, setLoading] = useState(false);
   const [resendTimer, setResendTimer] = useState(45);

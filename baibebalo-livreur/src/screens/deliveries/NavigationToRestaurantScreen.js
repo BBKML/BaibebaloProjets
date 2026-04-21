@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, Alert, Act
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+// MapView natif désactivé (clé Google Maps API non configurée - crash APK)
 import { COLORS } from '../../constants/colors';
 import { arriveAtRestaurant, getOrderDetail, trackOrder } from '../../api/orders';
 import { orderToDeliveryShape } from '../../utils/orderToDelivery';
@@ -244,43 +244,8 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
 
   return (
     <SafeAreaView style={styles.container}>
-      {/* Map */}
+      {/* Navigation Card (remplace MapView natif) */}
       <View style={styles.mapContainer}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
-          initialRegion={{
-            latitude: (driverLocation.latitude + restaurantLocation.latitude) / 2,
-            longitude: (driverLocation.longitude + restaurantLocation.longitude) / 2,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-          }}
-        >
-          {/* Driver marker */}
-          <Marker coordinate={driverLocation}>
-            <View style={styles.driverMarker}>
-              <Ionicons name="bicycle" size={20} color="#FFFFFF" />
-            </View>
-          </Marker>
-
-          {/* Restaurant / Point de collecte marker */}
-          <Marker coordinate={restaurantLocation}>
-            <View style={styles.restaurantMarker}>
-              <Ionicons name={isExpress ? 'cube' : 'restaurant'} size={20} color="#FFFFFF" />
-            </View>
-          </Marker>
-
-          {/* Route line */}
-          <Polyline
-            coordinates={[driverLocation, restaurantLocation]}
-            strokeColor={COLORS.primary}
-            strokeWidth={4}
-            lineDashPattern={[0]}
-          />
-        </MapView>
-
-        {/* Top info bar */}
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color={COLORS.text} />
@@ -293,21 +258,13 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
             <Ionicons name="warning-outline" size={24} color={COLORS.warning} />
           </TouchableOpacity>
         </View>
-
-        {/* Navigation button */}
-        <TouchableOpacity style={styles.navButton} onPress={openExternalNavigation}>
-          <Ionicons name="navigate" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* Center on route button */}
-        <TouchableOpacity 
-          style={styles.centerButton}
-          onPress={() => mapRef.current?.fitToCoordinates([driverLocation, restaurantLocation], {
-            edgePadding: { top: 100, right: 50, bottom: 200, left: 50 },
-            animated: true,
-          })}
-        >
-          <Ionicons name="scan-outline" size={24} color={COLORS.text} />
+        <TouchableOpacity style={styles.mapFallback} onPress={openExternalNavigation} activeOpacity={0.8}>
+          <Ionicons name="navigate-circle" size={56} color={COLORS.primary} />
+          <Text style={styles.mapFallbackTitle}>Naviguer vers le restaurant</Text>
+          <Text style={styles.mapFallbackHint}>Appuyez pour ouvrir dans Google Maps</Text>
+          <Text style={styles.mapFallbackAddress} numberOfLines={2}>
+            {delivery?.restaurant?.address || 'Adresse de collecte'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -490,6 +447,34 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     position: 'relative',
+    backgroundColor: '#f0f4ff',
+  },
+  mapFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+  },
+  mapFallbackTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  mapFallbackHint: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  mapFallbackAddress: {
+    fontSize: 13,
+    color: COLORS.primary,
+    marginTop: 8,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   map: {
     ...StyleSheet.absoluteFillObject,

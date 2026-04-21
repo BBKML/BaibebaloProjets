@@ -23,7 +23,7 @@ import { formatDateTime, formatCurrency, calculateOrderTotal, calculateOrderSubt
 import { getImageUrl } from '../../utils/url';
 
 export default function OrderDetailsScreen({ route, navigation }) {
-  const { orderId } = route.params;
+  const { orderId } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [canEditReview, setCanEditReview] = useState(false);

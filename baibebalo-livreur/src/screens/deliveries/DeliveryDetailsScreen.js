@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Platform, ActivityIndicator, Linking, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+// MapView natif désactivé (clé Google Maps API non configurée - crash APK)
 import { COLORS } from '../../constants/colors';
 import apiClient from '../../api/client';
 import { API_ENDPOINTS } from '../../constants/api';
@@ -114,42 +114,20 @@ export default function DeliveryDetailsScreen({ navigation, route }) {
       </View>
 
       <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
-        {/* Mini Map */}
+        {/* Bouton itinéraire (remplace MapView natif) */}
         {delivery.restaurant.latitude && delivery.customer.latitude ? (
-          <View style={styles.mapContainer}>
-            <MapView
-              style={styles.map}
-              provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
-              initialRegion={{
-                latitude: (delivery.restaurant.latitude + delivery.customer.latitude) / 2,
-                longitude: (delivery.restaurant.longitude + delivery.customer.longitude) / 2,
-                latitudeDelta: 0.03,
-                longitudeDelta: 0.03,
-              }}
-              scrollEnabled={false}
-              zoomEnabled={false}
-            >
-              <Marker coordinate={{ latitude: delivery.restaurant.latitude, longitude: delivery.restaurant.longitude }}>
-                <View style={styles.markerRestaurant}>
-                  <Ionicons name="restaurant" size={16} color="#FFFFFF" />
-                </View>
-              </Marker>
-              <Marker coordinate={{ latitude: delivery.customer.latitude, longitude: delivery.customer.longitude }}>
-                <View style={styles.markerCustomer}>
-                  <Ionicons name="location" size={16} color="#FFFFFF" />
-                </View>
-              </Marker>
-              <Polyline
-                coordinates={[
-                  { latitude: delivery.restaurant.latitude, longitude: delivery.restaurant.longitude },
-                  { latitude: delivery.customer.latitude, longitude: delivery.customer.longitude },
-                ]}
-                strokeColor={COLORS.primary}
-                strokeWidth={3}
-                lineDashPattern={[10, 5]}
-              />
-            </MapView>
-          </View>
+          <TouchableOpacity
+            style={styles.mapContainer}
+            onPress={() => {
+              const url = `https://www.google.com/maps/dir/${delivery.restaurant.latitude},${delivery.restaurant.longitude}/${delivery.customer.latitude},${delivery.customer.longitude}`;
+              Linking.openURL(url).catch(() => Alert.alert('Erreur', 'Impossible d\'ouvrir la carte'));
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="navigate-circle" size={48} color={COLORS.primary} />
+            <Text style={styles.mapFallbackText}>Voir l'itinéraire</Text>
+            <Text style={styles.mapFallbackSub}>Appuyez pour ouvrir dans Google Maps</Text>
+          </TouchableOpacity>
         ) : null}
 
         {/* Status Badge */}
@@ -319,34 +297,27 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mapContainer: {
-    height: 160,
+    height: 120,
     marginHorizontal: 16,
     borderRadius: 16,
     overflow: 'hidden',
     marginBottom: 16,
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  markerRestaurant: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.primary,
+    backgroundColor: '#f0f4ff',
     alignItems: 'center',
     justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  markerCustomer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.error,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 2,
-    borderColor: '#FFFFFF',
+  mapFallbackText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.primary,
+    marginTop: 8,
+  },
+  mapFallbackSub: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 4,
   },
   statusBadge: {
     flexDirection: 'row',

@@ -56,7 +56,7 @@ const convertStoredOptionsToVariations = (storedOptions) => {
 };
 
 export default function EditMenuItemScreen({ navigation, route }) {
-  const { itemId } = route.params;
+  const { itemId } = route.params || {};
   const { menu, categories, updateMenuItem } = useRestaurantStore();
   const [formData, setFormData] = useState(null);
   const [errors, setErrors] = useState({});

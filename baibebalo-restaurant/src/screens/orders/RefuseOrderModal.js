@@ -26,7 +26,7 @@ const REFUSAL_REASONS = [
 ];
 
 export default function RefuseOrderModal({ navigation, route }) {
-  const { orderId } = route.params;
+  const { orderId } = route.params || {};
   const [selectedReason, setSelectedReason] = useState(null);
   const [otherReason, setOtherReason] = useState('');
   const [loading, setLoading] = useState(false);

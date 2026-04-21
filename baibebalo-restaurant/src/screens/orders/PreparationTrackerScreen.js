@@ -18,7 +18,7 @@ import soundService from '../../services/soundService';
 import socketService from '../../services/socketService';
 
 export default function PreparationTrackerScreen({ navigation, route }) {
-  const { orderId } = route.params;
+  const { orderId } = route.params || {};
   const [order, setOrder] = useState(null);
   const [elapsedTime, setElapsedTime] = useState(0);
   const [checkedItems, setCheckedItems] = useState({});

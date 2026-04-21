@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import MapView, { Circle, Marker, PROVIDER_DEFAULT } from 'react-native-maps';
+// MapView natif désactivé (clé Google Maps API non configurée - crash APK)
 import { COLORS } from '../../constants/colors';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { updateProfile, getProfile } from '../../api/delivery';
@@ -26,7 +26,6 @@ const demandColors = {
 };
 
 export default function WorkZonesScreen({ navigation }) {
-  const mapRef = useRef(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [selectedZones, setSelectedZones] = useState([1, 2, 3]); // Zones par défaut
@@ -97,15 +96,6 @@ export default function WorkZonesScreen({ navigation }) {
     }
   };
 
-  const focusOnZone = (zone) => {
-    mapRef.current?.animateToRegion({
-      latitude: zone.latitude,
-      longitude: zone.longitude,
-      latitudeDelta: 0.02,
-      longitudeDelta: 0.02,
-    }, 500);
-  };
-
   if (loading) {
     return (
       <SafeAreaView style={styles.container}>
@@ -139,67 +129,14 @@ export default function WorkZonesScreen({ navigation }) {
         </TouchableOpacity>
       </View>
 
-      {/* Carte */}
-      <View style={styles.mapContainer}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
-          initialRegion={{
-            latitude: 9.4580,
-            longitude: -5.6294,
-            latitudeDelta: 0.06,
-            longitudeDelta: 0.06,
-          }}
-        >
-          {availableZones.map((zone) => (
-            <React.Fragment key={zone.id}>
-              <Circle
-                center={{ latitude: zone.latitude, longitude: zone.longitude }}
-                radius={zone.radius}
-                fillColor={selectedZones.includes(zone.id) 
-                  ? demandColors[zone.demandLevel].fill 
-                  : 'rgba(150, 150, 150, 0.1)'}
-                strokeColor={selectedZones.includes(zone.id) 
-                  ? demandColors[zone.demandLevel].stroke 
-                  : '#999999'}
-                strokeWidth={selectedZones.includes(zone.id) ? 3 : 1}
-              />
-              <Marker
-                coordinate={{ latitude: zone.latitude, longitude: zone.longitude }}
-                onPress={() => toggleZone(zone.id)}
-              >
-                <View style={[
-                  styles.zoneMarker,
-                  selectedZones.includes(zone.id) && styles.zoneMarkerSelected,
-                  { borderColor: demandColors[zone.demandLevel].stroke }
-                ]}>
-                  <Ionicons 
-                    name={selectedZones.includes(zone.id) ? 'checkmark' : 'add'} 
-                    size={16} 
-                    color={selectedZones.includes(zone.id) ? COLORS.white : COLORS.textSecondary} 
-                  />
-                </View>
-              </Marker>
-            </React.Fragment>
-          ))}
-        </MapView>
-
-        {/* Légende */}
-        <View style={styles.legend}>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: demandColors.high.stroke }]} />
-            <Text style={styles.legendText}>Forte</Text>
+      {/* Légende niveaux de demande */}
+      <View style={styles.legendBar}>
+        {Object.entries(demandColors).map(([level, cfg]) => (
+          <View key={level} style={styles.legendItem}>
+            <View style={[styles.legendDot, { backgroundColor: cfg.stroke }]} />
+            <Text style={styles.legendText}>{cfg.label}</Text>
           </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: demandColors.medium.stroke }]} />
-            <Text style={styles.legendText}>Moyenne</Text>
-          </View>
-          <View style={styles.legendItem}>
-            <View style={[styles.legendDot, { backgroundColor: demandColors.low.stroke }]} />
-            <Text style={styles.legendText}>Faible</Text>
-          </View>
-        </View>
+        ))}
       </View>
 
       {/* Liste des zones */}
@@ -216,7 +153,6 @@ export default function WorkZonesScreen({ navigation }) {
                 selectedZones.includes(zone.id) && styles.zoneItemSelected
               ]}
               onPress={() => toggleZone(zone.id)}
-              onLongPress={() => focusOnZone(zone)}
             >
               <View style={styles.zoneItemLeft}>
                 <View style={[
@@ -230,10 +166,10 @@ export default function WorkZonesScreen({ navigation }) {
                 <View>
                   <Text style={styles.zoneName}>{zone.name}</Text>
                   <View style={styles.zoneDemand}>
-                    <Ionicons 
-                      name={zone.demandLevel === 'high' ? 'flame' : zone.demandLevel === 'medium' ? 'trending-up' : 'remove'} 
-                      size={12} 
-                      color={demandColors[zone.demandLevel].stroke} 
+                    <Ionicons
+                      name={zone.demandLevel === 'high' ? 'flame' : zone.demandLevel === 'medium' ? 'trending-up' : 'remove'}
+                      size={12}
+                      color={demandColors[zone.demandLevel].stroke}
                     />
                     <Text style={[styles.zoneDemandText, { color: demandColors[zone.demandLevel].stroke }]}>
                       {demandColors[zone.demandLevel].label}
@@ -241,9 +177,6 @@ export default function WorkZonesScreen({ navigation }) {
                   </View>
                 </View>
               </View>
-              <TouchableOpacity onPress={() => focusOnZone(zone)} style={styles.zoneLocateBtn}>
-                <Ionicons name="locate-outline" size={18} color={COLORS.primary} />
-              </TouchableOpacity>
             </TouchableOpacity>
           ))}
         </ScrollView>
@@ -283,44 +216,17 @@ const styles = StyleSheet.create({
   },
   placeholder: { width: 80 },
   loadingContainer: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  mapContainer: {
-    height: 280,
+  legendBar: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: 16,
     marginHorizontal: 16,
-    borderRadius: 16,
-    overflow: 'hidden',
+    marginBottom: 8,
+    paddingVertical: 8,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
     borderWidth: 1,
     borderColor: COLORS.border,
-  },
-  map: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  zoneMarker: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: COLORS.white,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 3,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 4,
-  },
-  zoneMarkerSelected: {
-    backgroundColor: COLORS.primary,
-  },
-  legend: {
-    position: 'absolute',
-    top: 12,
-    left: 12,
-    flexDirection: 'row',
-    backgroundColor: 'rgba(255, 255, 255, 0.95)',
-    borderRadius: 8,
-    paddingVertical: 6,
-    paddingHorizontal: 10,
-    gap: 12,
   },
   legendItem: {
     flexDirection: 'row',
@@ -398,12 +304,5 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: '500',
   },
-  zoneLocateBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    backgroundColor: COLORS.primary + '10',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
 });
+

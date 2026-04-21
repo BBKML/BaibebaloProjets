@@ -17,17 +17,9 @@ import { COLORS } from '../../constants/colors';
 import socketService from '../../services/socketService';
 import soundService from '../../services/soundService';
 
-// Import conditionnel de react-native-maps (nécessite un build de développement)
-let MapView, Marker;
-try {
-  const Maps = require('react-native-maps');
-  MapView = Maps.default;
-  Marker = Maps.Marker;
-} catch (error) {
-  // react-native-maps n'est pas disponible dans Expo Go
-  MapView = null;
-  Marker = null;
-}
+// MapView natif désactivé (clé Google Maps API non configurée - crash APK)
+const MapView = null;
+const Marker = null;
 import { restaurantOrders } from '../../api/orders';
 import useRestaurantStore from '../../store/restaurantStore';
 
@@ -72,7 +64,7 @@ const getStatusLabel = (order) => {
 };
 
 export default function OrderDetailsScreen({ navigation, route }) {
-  const { orderId } = route.params;
+  const { orderId } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showTimeModal, setShowTimeModal] = useState(false);

@@ -38,7 +38,7 @@ const MAP_HEIGHT = 200;
 const KORHOGO_REGION = { latitude: 9.4581, longitude: -5.6297, latitudeDelta: 0.05, longitudeDelta: 0.05 };
 
 export default function OrderTrackingScreen({ route, navigation }) {
-  const { orderId } = route.params;
+  const { orderId } = route.params || {};
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deliveryLocation, setDeliveryLocation] = useState(null);

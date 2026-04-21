@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, Alert, Act
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
-import MapView, { Marker, Polyline, PROVIDER_DEFAULT } from 'react-native-maps';
+// MapView natif désactivé (clé Google Maps API non configurée - crash APK)
 import { COLORS } from '../../constants/colors';
 import { arriveAtCustomer, getOrderDetail, trackOrder } from '../../api/orders';
 import { orderToDeliveryShape } from '../../utils/orderToDelivery';
@@ -212,39 +212,6 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
     <SafeAreaView style={styles.container}>
       {/* Map */}
       <View style={styles.mapContainer}>
-        <MapView
-          ref={mapRef}
-          style={styles.map}
-          provider={Platform.OS === 'android' ? PROVIDER_DEFAULT : undefined}
-          initialRegion={{
-            latitude: (driverLocation.latitude + customerLocation.latitude) / 2,
-            longitude: (driverLocation.longitude + customerLocation.longitude) / 2,
-            latitudeDelta: 0.02,
-            longitudeDelta: 0.02,
-          }}
-        >
-          {/* Driver marker */}
-          <Marker coordinate={driverLocation}>
-            <View style={styles.driverMarker}>
-              <Ionicons name="bicycle" size={20} color="#FFFFFF" />
-            </View>
-          </Marker>
-
-          {/* Customer marker */}
-          <Marker coordinate={customerLocation}>
-            <View style={styles.customerMarker}>
-              <Ionicons name="location" size={20} color="#FFFFFF" />
-            </View>
-          </Marker>
-
-          {/* Route line */}
-          <Polyline
-            coordinates={[driverLocation, customerLocation]}
-            strokeColor={COLORS.error}
-            strokeWidth={4}
-          />
-        </MapView>
-
         {/* Top info bar */}
         <View style={styles.topBar}>
           <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
@@ -258,27 +225,13 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
             <Ionicons name="warning-outline" size={24} color={COLORS.warning} />
           </TouchableOpacity>
         </View>
-
-        {/* Status badge */}
-        <View style={styles.statusBadge}>
-          <View style={styles.statusDot} />
-          <Text style={styles.statusText}>Commande en cours de livraison</Text>
-        </View>
-
-        {/* Navigation button */}
-        <TouchableOpacity style={styles.navButton} onPress={openExternalNavigation}>
-          <Ionicons name="navigate" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
-
-        {/* Center button */}
-        <TouchableOpacity 
-          style={styles.centerButton}
-          onPress={() => mapRef.current?.fitToCoordinates([driverLocation, customerLocation], {
-            edgePadding: { top: 100, right: 50, bottom: 250, left: 50 },
-            animated: true,
-          })}
-        >
-          <Ionicons name="scan-outline" size={24} color={COLORS.text} />
+        <TouchableOpacity style={styles.mapFallback} onPress={openExternalNavigation} activeOpacity={0.8}>
+          <Ionicons name="navigate-circle" size={56} color={COLORS.error} />
+          <Text style={styles.mapFallbackTitle}>Naviguer vers le client</Text>
+          <Text style={styles.mapFallbackHint}>Appuyez pour ouvrir dans Google Maps</Text>
+          <Text style={styles.mapFallbackAddress} numberOfLines={2}>
+            {delivery?.delivery_address?.address_line || delivery?.delivery_address?.street || 'Adresse de livraison'}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -489,6 +442,34 @@ const styles = StyleSheet.create({
   mapContainer: {
     flex: 1,
     position: 'relative',
+    backgroundColor: '#fff0f0',
+  },
+  mapFallback: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingTop: 60,
+  },
+  mapFallbackTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: 12,
+    textAlign: 'center',
+  },
+  mapFallbackHint: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginTop: 6,
+    textAlign: 'center',
+  },
+  mapFallbackAddress: {
+    fontSize: 13,
+    color: COLORS.error,
+    marginTop: 8,
+    textAlign: 'center',
+    fontWeight: '500',
   },
   map: {
     ...StyleSheet.absoluteFillObject,

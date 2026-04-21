@@ -18,7 +18,7 @@ import { addFavorite, removeFavorite, getFavorites } from '../../api/users';
 import useCartStore from '../../store/cartStore';
 
 export default function RestaurantDetailScreen({ route, navigation }) {
-  const { restaurantId, reorderItems } = route.params;
+  const { restaurantId, reorderItems } = route.params || {};
   const [restaurant, setRestaurant] = useState(null);
   const [menu, setMenu] = useState([]);
   const [categories, setCategories] = useState([]);

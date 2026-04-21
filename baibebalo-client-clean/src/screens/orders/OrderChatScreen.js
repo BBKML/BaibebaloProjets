@@ -19,7 +19,7 @@ import apiClient from '../../api/client';
 
 export default function OrderChatScreen({ route, navigation }) {
   const insets = useSafeAreaInsets();
-  const { orderId, restaurantName } = route.params;
+  const { orderId, restaurantName } = route.params || {};
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
