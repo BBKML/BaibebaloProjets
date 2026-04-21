@@ -4386,8 +4386,8 @@ exports.getRecommendedRestaurants = async (req, res) => {
       if (preferredCuisines.length > 0) {
         const recResult = await query(
           `SELECT r.id, r.name, r.cuisine_type, r.logo, r.banner,
-                  r.average_rating, r.delivery_radius, r.delivery_fee,
-                  r.is_open, r.average_price, r.speciality
+                  r.average_rating, r.delivery_radius,
+                  r.is_open, r.address, r.district
            FROM restaurants r
            WHERE r.status = 'active'
              AND r.cuisine_type = ANY($1::text[])
@@ -4408,8 +4408,8 @@ exports.getRecommendedRestaurants = async (req, res) => {
         const existingIds = restaurants.map((r) => r.id);
         const repeatResult = await query(
           `SELECT r.id, r.name, r.cuisine_type, r.logo, r.banner,
-                  r.average_rating, r.delivery_radius, r.delivery_fee,
-                  r.is_open, r.average_price, r.speciality,
+                  r.average_rating, r.delivery_radius,
+                  r.is_open, r.address, r.district,
                   COUNT(o.id) AS order_count
            FROM orders o
            JOIN restaurants r ON r.id = o.restaurant_id
@@ -4431,8 +4431,8 @@ exports.getRecommendedRestaurants = async (req, res) => {
       const existingIds = restaurants.map((r) => r.id);
       const topResult = await query(
         `SELECT id, name, cuisine_type, logo, banner,
-                average_rating, delivery_radius, delivery_fee,
-                is_open, average_price, speciality
+                average_rating, delivery_radius,
+                is_open, address, district
          FROM restaurants
          WHERE status = 'active'
            AND id <> ALL($1::uuid[])

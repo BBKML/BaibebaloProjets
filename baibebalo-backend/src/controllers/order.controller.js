@@ -1292,13 +1292,14 @@ exports.createOrder = async (req, res) => {
     }
   } catch (error) {
     logger.error('Erreur createOrder:', { message: error.message, stack: error.stack, code: error.code, detail: error.detail });
-    const isDev = process.env.NODE_ENV !== 'production';
     res.status(500).json({
       success: false,
       error: {
         code: 'ORDER_CREATION_ERROR',
         message: 'Erreur lors de la création de la commande',
-        ...(isDev && { debug: error.message, detail: error.detail }),
+        debug: error.message,
+        detail: error.detail,
+        pg_code: error.code,
       },
     });
   }

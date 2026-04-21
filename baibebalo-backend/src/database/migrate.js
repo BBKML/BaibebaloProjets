@@ -1226,6 +1226,21 @@ const migrations = [
   )`,
   `CREATE INDEX IF NOT EXISTS idx_bonus_delivery_person ON delivery_performance_bonuses(delivery_person_id)`,
   `CREATE INDEX IF NOT EXISTS idx_bonus_date ON delivery_performance_bonuses(bonus_date)`,
+
+  // ======================================
+  // Migration: Table promo_usage (suivi utilisation codes promo par utilisateur)
+  // ======================================
+  `CREATE TABLE IF NOT EXISTS promo_usage (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    promo_id UUID NOT NULL REFERENCES promotions(id) ON DELETE CASCADE,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+    discount_amount DECIMAL(10,2) DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  )`,
+  `CREATE INDEX IF NOT EXISTS idx_promo_usage_promo ON promo_usage(promo_id)`,
+  `CREATE INDEX IF NOT EXISTS idx_promo_usage_user ON promo_usage(user_id)`,
+  `CREATE UNIQUE INDEX IF NOT EXISTS idx_promo_usage_promo_user ON promo_usage(promo_id, user_id)`,
 ];
 
 // Fonction pour vérifier si une table existe
