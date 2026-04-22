@@ -1089,8 +1089,8 @@ exports.getGeographicData = async (req, res) => {
       SELECT 
         COALESCE(o.delivery_address->>'district', o.delivery_address->>'address_line') as zone,
         COUNT(*) as orders_count,
-        COALESCE(AVG((o.delivery_address->>'latitude')::DECIMAL), 0) as center_lat,
-        COALESCE(AVG((o.delivery_address->>'longitude')::DECIMAL), 0) as center_lng
+        COALESCE(AVG(CASE WHEN (o.delivery_address->>'latitude') ~ '^-?[0-9]+(\.[0-9]+)?$' THEN (o.delivery_address->>'latitude')::DECIMAL END), 0) as center_lat,
+        COALESCE(AVG(CASE WHEN (o.delivery_address->>'longitude') ~ '^-?[0-9]+(\.[0-9]+)?$' THEN (o.delivery_address->>'longitude')::DECIMAL END), 0) as center_lng
       FROM orders o
       WHERE o.placed_at >= CURRENT_DATE - INTERVAL '30 days'
         AND o.status = 'delivered'
@@ -1233,7 +1233,8 @@ exports.getSystemAlerts = async (req, res) => {
       `);
 
       rejectedOrders.rows.forEach((row) => {
-        const rejectionRate = (Number.parseInt(row.rejected_today) / Number.parseInt(row.total_today) * 100).toFixed(1);
+        const totalToday = Number.parseInt(row.total_today) || 0;
+        const rejectionRate = totalToday > 0 ? (Number.parseInt(row.rejected_today) / totalToday * 100).toFixed(1) : '0.0';
         alerts.push({
           id: `rejected_orders_${row.restaurant_id}`,
           type: 'warning',
@@ -2053,7 +2054,7 @@ exports.getAnalytics = async (req, res) => {
     `);
     const ltvStats = ltvData.rows[0] || {};
     const avgOrderValue = Number.parseFloat(stats.avg_order_value) || 0;
-    const avgOrdersPerMonth = Number.parseFloat(ltvStats.avg_order_count) / Math.max(1, Number.parseFloat(ltvStats.avg_months_active) || 1);
+    const avgOrdersPerMonth = (Number.parseFloat(ltvStats.avg_order_count) || 0) / Math.max(1, Number.parseFloat(ltvStats.avg_months_active) || 1);
     const estimatedLifetimeMonths = 12; // Durée de vie estimée: 12 mois
     const ltv = avgOrderValue * avgOrdersPerMonth * estimatedLifetimeMonths;
 

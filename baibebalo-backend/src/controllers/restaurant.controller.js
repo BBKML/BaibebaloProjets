@@ -895,8 +895,8 @@ exports.getRestaurantReviews = async (req, res) => {
     
     // Statistiques des notes
     const statsResult = await query(
-      `SELECT 
-        AVG(restaurant_rating) as avg_rating,
+      `SELECT
+        COALESCE(AVG(restaurant_rating), 0) as avg_rating,
         COUNT(*) as total_reviews,
         COUNT(CASE WHEN restaurant_rating = 5 THEN 1 END) as five_stars,
         COUNT(CASE WHEN restaurant_rating = 4 THEN 1 END) as four_stars,

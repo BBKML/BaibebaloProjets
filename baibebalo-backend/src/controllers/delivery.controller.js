@@ -249,14 +249,15 @@ exports.getAvailableOrders = async (req, res) => {
               r.address as restaurant_address,
               r.latitude as restaurant_latitude,
               r.longitude as restaurant_longitude,
-              CASE 
-                WHEN o.order_type = 'express' AND o.pickup_address IS NOT NULL 
-                     AND (o.pickup_address->>'latitude') IS NOT NULL AND (o.pickup_address->>'longitude') IS NOT NULL
+              CASE
+                WHEN o.order_type = 'express' AND o.pickup_address IS NOT NULL
+                     AND (o.pickup_address->>'latitude') ~ '^-?[0-9]+(\.[0-9]+)?$'
+                     AND (o.pickup_address->>'longitude') ~ '^-?[0-9]+(\.[0-9]+)?$'
                 THEN earth_distance(
                   ll_to_earth((o.pickup_address->>'latitude')::decimal, (o.pickup_address->>'longitude')::decimal),
                   ll_to_earth($1, $2)
                 ) / 1000
-                WHEN r.latitude IS NOT NULL AND r.longitude IS NOT NULL 
+                WHEN r.latitude IS NOT NULL AND r.longitude IS NOT NULL
                 THEN earth_distance(ll_to_earth(r.latitude, r.longitude), ll_to_earth($1, $2)) / 1000
                 ELSE COALESCE(o.delivery_distance, 0)
               END as distance_km
@@ -271,8 +272,9 @@ exports.getAvailableOrders = async (req, res) => {
          AND (
            $5 = true
            OR (
-             (o.order_type = 'express' AND o.pickup_address IS NOT NULL 
-              AND (o.pickup_address->>'latitude') IS NOT NULL AND (o.pickup_address->>'longitude') IS NOT NULL
+             (o.order_type = 'express' AND o.pickup_address IS NOT NULL
+              AND (o.pickup_address->>'latitude') ~ '^-?[0-9]+(\.[0-9]+)?$'
+              AND (o.pickup_address->>'longitude') ~ '^-?[0-9]+(\.[0-9]+)?$'
               AND earth_distance(
                 ll_to_earth((o.pickup_address->>'latitude')::decimal, (o.pickup_address->>'longitude')::decimal),
                 ll_to_earth($1, $2)
@@ -2413,8 +2415,8 @@ exports.getStatistics = async (req, res) => {
           ? "AND o.delivered_at >= DATE_TRUNC('year', CURRENT_DATE)"
           : "AND o.delivered_at >= DATE_TRUNC('month', CURRENT_DATE)";
     const ratingResult = await query(
-      `SELECT 
-        AVG(r.delivery_rating) as avg_rating,
+      `SELECT
+        COALESCE(AVG(r.delivery_rating), 0) as avg_rating,
         COUNT(*) as total_rated
        FROM reviews r
        INNER JOIN orders o ON o.id = r.order_id AND o.delivery_person_id = $1 ${ratingFilter}
@@ -2570,11 +2572,11 @@ exports.getMyReviews = async (req, res) => {
 
     // Calculer la note moyenne
     const avgResult = await query(
-      `SELECT 
-        AVG(delivery_rating) as average_rating,
+      `SELECT
+        COALESCE(AVG(delivery_rating), 0) as average_rating,
         COUNT(*) as total_reviews
-       FROM reviews 
-       WHERE delivery_person_id = $1 
+       FROM reviews
+       WHERE delivery_person_id = $1
        AND delivery_rating IS NOT NULL`,
       [req.user.id]
     );

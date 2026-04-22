@@ -1468,7 +1468,9 @@ exports.getOrderById = async (req, res) => {
     } : null;
     order.order_type = order.order_type || 'food';
     if (order.order_type === 'express' && order.pickup_address) {
-      order.pickup_address = typeof order.pickup_address === 'string' ? JSON.parse(order.pickup_address) : order.pickup_address;
+      if (typeof order.pickup_address === 'string') {
+        try { order.pickup_address = JSON.parse(order.pickup_address); } catch (e) { /* garder la valeur string */ }
+      }
     }
     
     // Logger pour déboguer
