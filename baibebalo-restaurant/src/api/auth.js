@@ -2,6 +2,7 @@ import axios from 'axios';
 import API_BASE_URL, { API_ENDPOINTS } from '../constants/api';
 import useAuthStore from '../store/authStore';
 import { getExpoPushToken } from '../services/notificationService';
+import { getErrorMessage } from '../utils/errorMessages';
 
 const api = axios.create({
   baseURL: API_BASE_URL.replace('/api/v1', ''), // Enlever /api/v1 car les endpoints l'incluent déjà
@@ -38,6 +39,9 @@ api.interceptors.response.use(
     // Marquer pour éviter tout retry ultérieur sur 4xx (client error)
     if (error.response?.status >= 400 && error.response?.status < 500 && error.config) {
       error.config.__noRetry = true;
+    }
+    if (!error.userMessage) {
+      error.userMessage = getErrorMessage(error);
     }
     throw error;
   }

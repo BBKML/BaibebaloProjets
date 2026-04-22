@@ -1,15 +1,15 @@
-import apiClient from './client';
+import apiClient, { retryRequest } from './client';
 
 export const ordersAPI = {
   // Obtenir toutes les commandes
   getOrders: async (params = {}) => {
-    const response = await apiClient.get('/admin/orders', { params });
+    const response = await retryRequest(() => apiClient.get('/admin/orders', { params }));
     return response.data;
   },
 
   // Obtenir les détails d'une commande
   getOrderDetails: async (id) => {
-    const response = await apiClient.get(`/admin/orders/${id}`);
+    const response = await retryRequest(() => apiClient.get(`/admin/orders/${id}`));
     return response.data;
   },
 

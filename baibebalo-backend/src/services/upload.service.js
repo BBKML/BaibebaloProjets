@@ -63,6 +63,28 @@ if (config.upload?.s3?.bucket && config.upload?.s3?.accessKeyId && config.upload
   logger.warn('S3 non configuré - les uploads S3 ne fonctionneront pas');
 }
 
+// Initialiser Cloudinary une fois au démarrage si credentials présents
+const hasCloudinary = config.upload?.cloudinary?.cloudName
+  && config.upload.cloudinary.cloudName !== 'your_cloudinary_name'
+  && config.upload?.cloudinary?.apiKey
+  && config.upload?.cloudinary?.apiSecret;
+
+if (hasCloudinary) {
+  try {
+    const cloudinary = require('cloudinary').v2;
+    cloudinary.config({
+      cloud_name: config.upload.cloudinary.cloudName,
+      api_key: config.upload.cloudinary.apiKey,
+      api_secret: config.upload.cloudinary.apiSecret,
+    });
+    logger.info('✅ Cloudinary initialisé — stockage persistant activé');
+  } catch (err) {
+    logger.warn('Erreur initialisation Cloudinary:', err.message);
+  }
+} else {
+  logger.warn('⚠️  Cloudinary non configuré — images sauvegardées localement (éphémères sur Render). Définissez CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY, CLOUDINARY_API_SECRET dans les variables d\'environnement Render.');
+}
+
 // Configuration Multer pour upload en mémoire
 const storage = multer.memoryStorage();
 

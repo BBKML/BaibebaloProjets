@@ -1,6 +1,33 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
 
+// Délai exponentiel pour les retries
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+// Retry sur erreurs réseau (cold start Render, DNS, timeout)
+async function retryRequest(fn, retries = 3, baseDelay = 2000) {
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      const isNetworkError =
+        !err.response &&
+        (err.code === 'ERR_NETWORK' ||
+          err.code === 'ECONNABORTED' ||
+          err.message?.includes('Network Error') ||
+          err.message?.includes('ERR_NAME_NOT_RESOLVED'));
+      if (!isNetworkError || attempt === retries) throw err;
+      const delay = baseDelay * 2 ** attempt;
+      if (attempt === 0) {
+        toast.loading('Serveur en démarrage, patientez...', { id: 'server-wakeup' });
+      }
+      await sleep(delay);
+    }
+  }
+}
+
+export { retryRequest };
+
 /**
  * Construit l'URL de base de l'API.
  *
@@ -115,19 +142,23 @@ apiClient.interceptors.response.use(
       throw error;
     }
 
+    // Fermer le toast "serveur en démarrage" si présent
+    toast.dismiss('server-wakeup');
+
     // Autres erreurs — afficher un toast
     if (error.response?.status !== 401) {
-      const message = error.response?.data?.error?.message;
-      if (message) {
-        toast.error(message);
-      } else if (error.message) {
-        const isNetworkError =
-          error.message.includes('Network Error') || error.message.includes('timeout');
-        toast.error(
-          isNetworkError
-            ? 'Erreur de connexion au serveur. Vérifiez que le backend est démarré.'
-            : error.message
-        );
+      const serverMsg = error.response?.data?.error?.message || error.response?.data?.message;
+      if (serverMsg) {
+        toast.error(serverMsg);
+      } else if (!error.response) {
+        // Erreur réseau / DNS
+        toast.error('Impossible de joindre le serveur. Vérifiez votre connexion ou attendez le démarrage du serveur.');
+      } else if (error.response.status >= 500) {
+        toast.error('Erreur serveur. Réessayez dans quelques instants.');
+      } else if (error.response.status === 403) {
+        toast.error('Accès refusé. Vous n\'avez pas les droits nécessaires.');
+      } else if (error.response.status === 404) {
+        toast.error('Ressource introuvable.');
       }
     }
 

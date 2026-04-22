@@ -2,6 +2,7 @@ const { query } = require('../database/db');
 const logger = require('../utils/logger');
 const config = require('../config');
 const { uploadService } = require('../services/upload.service');
+const { safeJsonParse } = require('../utils/safeJson');
 
 /**
  * Obtenir la liste des restaurants avec géolocalisation
@@ -2695,9 +2696,7 @@ exports.getMyOrderById = async (req, res) => {
     let deliveryLandmark = '';
     
     if (order.delivery_address) {
-      const deliveryAddr = typeof order.delivery_address === 'string' 
-        ? JSON.parse(order.delivery_address) 
-        : order.delivery_address;
+      const deliveryAddr = safeJsonParse(order.delivery_address) || order.delivery_address;
       
       deliveryAddress = [
         deliveryAddr.address_line,

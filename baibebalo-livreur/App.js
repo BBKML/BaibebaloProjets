@@ -4,6 +4,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import AppNavigator from './src/navigation/AppNavigator';
 import ErrorBoundary from './src/components/ErrorBoundary';
+import NetworkBanner from './src/components/NetworkBanner';
 
 // Ne pas importer expo-notifications au top : en APK le module natif peut faire planter l'app au démarrage.
 // On configure les notifications après le premier rendu (import dynamique).
@@ -32,6 +33,7 @@ function App() {
       <SafeAreaProvider>
         <StatusBar style="auto" />
         <AppNavigator />
+        <NetworkBanner />
         <Toast />
       </SafeAreaProvider>
     </ErrorBoundary>

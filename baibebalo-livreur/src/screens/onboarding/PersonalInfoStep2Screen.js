@@ -80,12 +80,12 @@ export default function PersonalInfoStep2Screen({ navigation }) {
   };
 
   const isValidForm = () => {
-    return profilePhoto && address.trim() && quartier.trim() && city.trim();
+    return address.trim() && quartier.trim() && city.trim();
   };
 
   const handleContinue = async () => {
     if (!isValidForm()) {
-      Alert.alert('Erreur', 'Veuillez remplir tous les champs et ajouter une photo');
+      Alert.alert('Erreur', 'Veuillez remplir votre adresse, quartier et ville');
       return;
     }
 
@@ -141,10 +141,10 @@ export default function PersonalInfoStep2Screen({ navigation }) {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode="on-drag"
       >
-        <Text style={styles.stepIndicator}>Étape 1/5</Text>
+        <Text style={styles.stepIndicator}>Étape 2/5</Text>
         <Text style={styles.title}>Photo et adresse</Text>
         <Text style={styles.subtitle}>
-          Ajoutez une photo de profil claire et votre adresse de résidence
+          Ajoutez une photo de profil et votre adresse de résidence
         </Text>
 
         {/* Profile Photo */}
@@ -162,6 +162,7 @@ export default function PersonalInfoStep2Screen({ navigation }) {
               <Ionicons name="pencil" size={16} color="#FFFFFF" />
             </View>
           </TouchableOpacity>
+          <Text style={styles.photoOptionalText}>Photo de profil (optionnelle)</Text>
         </View>
 
         {/* Form */}
@@ -316,6 +317,11 @@ const styles = StyleSheet.create({
     color: COLORS.primary,
     marginTop: 4,
     fontWeight: '500',
+  },
+  photoOptionalText: {
+    marginTop: 10,
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
   profileImage: {
     width: 120,

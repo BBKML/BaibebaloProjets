@@ -2,6 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_CONFIG } from '../constants/api';
 import { getAuthStore } from '../store/authStoreRef';
+import { getErrorMessage } from '../utils/errorMessages';
 
 // Créer l'instance Axios
 const apiClient = axios.create({
@@ -55,6 +56,11 @@ apiClient.interceptors.response.use(
 
     if (__DEV__ && (error.code === 'ECONNREFUSED' || error.message?.includes('Network Error'))) {
       console.warn('⚠️ Connexion indisponible (requête annulée ou réseau):', originalRequest?.url);
+    }
+
+    // Enrichir l'erreur avec un message lisible en français
+    if (!error.userMessage) {
+      error.userMessage = getErrorMessage(error);
     }
 
     // Erreur 401 - Token expiré ou utilisateur inexistant

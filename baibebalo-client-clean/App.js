@@ -4,8 +4,9 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
 import * as Notifications from 'expo-notifications';
 import AppNavigator from './src/navigation/AppNavigator';
+import ErrorBoundary from './src/components/ErrorBoundary';
+import NetworkBanner from './src/components/NetworkBanner';
 
-// Configurer le comportement des notifications par défaut (avec gestion d'erreur pour Expo Go)
 try {
   Notifications.setNotificationHandler({
     handleNotification: async () => ({
@@ -15,17 +16,18 @@ try {
     }),
   });
 } catch (error) {
-  // Dans Expo Go (SDK 53+), les notifications push ne sont pas supportées
-  // Pas de warning - c'est normal et attendu en Expo Go
-  // L'application fonctionnera normalement sans notifications push
+  console.log('Notifications non disponibles (Expo Go):', error?.message);
 }
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <StatusBar style="auto" />
-      <AppNavigator />
-      <Toast />
-    </SafeAreaProvider>
+    <ErrorBoundary>
+      <SafeAreaProvider>
+        <StatusBar style="auto" />
+        <AppNavigator />
+        <NetworkBanner />
+        <Toast />
+      </SafeAreaProvider>
+    </ErrorBoundary>
   );
 }

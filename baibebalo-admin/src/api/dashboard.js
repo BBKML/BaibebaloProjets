@@ -1,15 +1,15 @@
-import apiClient from './client';
+import apiClient, { retryRequest } from './client';
 
 export const dashboardAPI = {
   // Obtenir les données du dashboard
   getDashboard: async () => {
-    const response = await apiClient.get('/admin/dashboard');
+    const response = await retryRequest(() => apiClient.get('/admin/dashboard'));
     return response.data;
   },
 
   // Obtenir les commandes récentes
   getRecentOrders: async (params = {}) => {
-    const response = await apiClient.get('/admin/orders', { params: { limit: 10, ...params } });
+    const response = await retryRequest(() => apiClient.get('/admin/orders', { params: { limit: 10, ...params } }));
     return response.data;
   },
 

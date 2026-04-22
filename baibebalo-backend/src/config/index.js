@@ -250,15 +250,24 @@ const config = {
   // UPLOAD / STOCKAGE FICHIERS
   // ================================
   upload: {
-    provider: process.env.UPLOAD_PROVIDER || 'local',
+    // Auto-détection : Cloudinary si credentials présents, sinon S3, sinon local
+    get provider() {
+      if (process.env.UPLOAD_PROVIDER) return process.env.UPLOAD_PROVIDER;
+      const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && process.env.CLOUDINARY_CLOUD_NAME !== 'your_cloudinary_name'
+        && process.env.CLOUDINARY_API_KEY && process.env.CLOUDINARY_API_SECRET;
+      if (hasCloudinary) return 'cloudinary';
+      const hasS3 = process.env.AWS_S3_BUCKET && process.env.AWS_ACCESS_KEY_ID;
+      if (hasS3) return 's3';
+      return 'local';
+    },
     maxSize: parseInt(process.env.UPLOAD_MAX_SIZE, 10) || 5 * 1024 * 1024,
     allowedTypes: ['image/jpeg', 'image/png', 'image/jpg', 'image/webp'],
-    
+
     local: {
       uploadDir: process.env.UPLOAD_DIR || './uploads',
       publicPath: process.env.UPLOAD_PUBLIC_PATH || '/uploads',
     },
-    
+
     s3: {
       bucket: process.env.AWS_S3_BUCKET || '',
       region: process.env.AWS_S3_REGION || 'eu-west-1',
@@ -266,7 +275,7 @@ const config = {
       secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY || '',
       endpoint: process.env.AWS_S3_ENDPOINT || '',
     },
-    
+
     cloudinary: {
       cloudName: process.env.CLOUDINARY_CLOUD_NAME || '',
       apiKey: process.env.CLOUDINARY_API_KEY || '',

@@ -641,14 +641,28 @@ export default function OrderDetailsScreen({ navigation, route }) {
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Temps de préparation estimé</Text>
-            <Text style={styles.modalSubtitle}>Entrez le temps en minutes (5-180 min)</Text>
+            <Text style={styles.modalTitle}>Temps de préparation</Text>
+            <Text style={styles.modalSubtitle}>Combien de minutes pour préparer cette commande ?</Text>
+            <View style={styles.timeGrid}>
+              {['10', '15', '20', '30', '45', '60'].map((t) => (
+                <TouchableOpacity
+                  key={t}
+                  style={[styles.timeChip, estimatedTime === t && styles.timeChipSelected]}
+                  onPress={() => setEstimatedTime(t)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[styles.timeChipText, estimatedTime === t && styles.timeChipTextSelected]}>
+                    {t} min
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
             <TextInput
               style={styles.timeInput}
               value={estimatedTime}
               onChangeText={setEstimatedTime}
               keyboardType="numeric"
-              placeholder="20"
+              placeholder="Autre (minutes)"
               placeholderTextColor={COLORS.textSecondary}
             />
             <View style={styles.modalButtons}>
@@ -662,7 +676,7 @@ export default function OrderDetailsScreen({ navigation, route }) {
                 style={[styles.modalButton, styles.modalConfirmButton]}
                 onPress={confirmAccept}
               >
-                <Text style={styles.modalConfirmText}>Accepter</Text>
+                <Text style={styles.modalConfirmText}>Confirmer — {estimatedTime} min</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -1121,12 +1135,39 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginBottom: 20,
   },
+  timeGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 16,
+  },
+  timeChip: {
+    width: '30%',
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: 'center',
+    backgroundColor: COLORS.background,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+  },
+  timeChipSelected: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  timeChipText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  timeChipTextSelected: {
+    color: COLORS.white,
+  },
   timeInput: {
     borderWidth: 1,
     borderColor: COLORS.border,
     borderRadius: 12,
-    padding: 16,
-    fontSize: 16,
+    padding: 12,
+    fontSize: 15,
     color: COLORS.text,
     marginBottom: 20,
     backgroundColor: COLORS.background,

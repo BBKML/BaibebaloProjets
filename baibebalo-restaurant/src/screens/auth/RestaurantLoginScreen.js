@@ -17,6 +17,7 @@ import { COLORS } from '../../constants/colors';
 import { restaurantAuth } from '../../api/auth';
 import useAuthStore from '../../store/authStore';
 import Toast from 'react-native-toast-message';
+import { getErrorMessage } from '../../utils/errorMessages';
 
 export default function RestaurantLoginScreen({ navigation }) {
   const [phone, setPhone] = useState('');
@@ -49,7 +50,7 @@ export default function RestaurantLoginScreen({ navigation }) {
       Toast.show({
         type: 'error',
         text1: 'Erreur de connexion',
-        text2: error.message || 'Vérifiez vos identifiants',
+        text2: getErrorMessage(error),
       });
     } finally {
       setLoading(false);

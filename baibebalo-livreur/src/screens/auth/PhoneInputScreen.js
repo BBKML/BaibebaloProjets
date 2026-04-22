@@ -16,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { sendOTP } from '../../api/auth';
+import { getErrorMessage } from '../../utils/errorMessages';
 
 export default function PhoneInputScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
@@ -71,10 +72,7 @@ export default function PhoneInputScreen({ navigation, route }) {
       });
     } catch (error) {
       console.error('Error sending OTP:', error);
-      Alert.alert(
-        'Erreur',
-        error.response?.data?.message || 'Impossible d\'envoyer le code. Réessayez.'
-      );
+      Alert.alert('Erreur', getErrorMessage(error));
     } finally {
       setLoading(false);
     }

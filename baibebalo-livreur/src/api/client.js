@@ -2,6 +2,7 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import API_BASE_URL from '../constants/api';
 import useAuthStore from '../store/authStore';
+import { getErrorMessage } from '../utils/errorMessages';
 
 // Timeout 10s : éviter que l'app reste bloquée ; erreur gérée gracieusement (spinner + message)
 const requestTimeout = 10000;
@@ -59,9 +60,11 @@ apiClient.interceptors.response.use(
     if (status >= 400 && status < 500 && error.config) {
       error.config.__noRetry = true;
     }
+    if (!error.userMessage) {
+      error.userMessage = getErrorMessage(error);
+    }
     if (isTimeout) {
       error.isTimeout = true;
-      error.userMessage = 'Délai dépassé. Tirez pour réessayer.';
     }
     if (status === 401) {
       try {

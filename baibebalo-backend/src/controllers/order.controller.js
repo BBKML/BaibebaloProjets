@@ -3,6 +3,7 @@ const logger = require('../utils/logger');
 const crypto = require('crypto');
 const config = require('../config');
 const mapsService = require('../services/maps.service');
+const { safeJsonParse } = require('../utils/safeJson');
 const notificationService = require('../services/notification.service');
 
 /**
@@ -1395,10 +1396,7 @@ exports.getOrderById = async (req, res) => {
 
     // Formater les items pour le frontend
     const formattedItems = itemsResult.rows.map(item => {
-      const snapshot = typeof item.menu_item_snapshot === 'string' 
-        ? JSON.parse(item.menu_item_snapshot) 
-        : item.menu_item_snapshot;
-      
+      const snapshot = safeJsonParse(item.menu_item_snapshot);
       return {
         ...item,
         name: item.item_name || snapshot?.name || 'Article',
@@ -2305,10 +2303,7 @@ exports.trackOrder = async (req, res) => {
 
     // Formater les items pour le frontend (identique à getOrderById)
     const formattedItems = itemsResult.rows.map(item => {
-      const snapshot = typeof item.menu_item_snapshot === 'string' 
-        ? JSON.parse(item.menu_item_snapshot) 
-        : item.menu_item_snapshot;
-      
+      const snapshot = safeJsonParse(item.menu_item_snapshot);
       return {
         ...item,
         name: item.item_name || snapshot?.name || 'Article',

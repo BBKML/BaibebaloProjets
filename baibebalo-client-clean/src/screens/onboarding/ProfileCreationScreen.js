@@ -18,6 +18,7 @@ import { COLORS } from '../../constants/colors';
 import { updateMyProfile, uploadProfilePicture } from '../../api/users';
 import useAuthStore from '../../store/authStore';
 import { normalizeUploadUrl } from '../../utils/url';
+import { getErrorMessage } from '../../utils/errorMessages';
 
 export default function ProfileCreationScreen({ navigation, route }) {
   const insets = useSafeAreaInsets();
@@ -158,10 +159,7 @@ export default function ProfileCreationScreen({ navigation, route }) {
         routes: [{ name: 'MainTabs' }],
       });
     } catch (error) {
-      Alert.alert(
-        'Erreur',
-        error.response?.data?.error?.message || 'Erreur lors de la sauvegarde'
-      );
+      Alert.alert('Erreur', getErrorMessage(error));
     } finally {
       setLoading(false);
     }
@@ -192,10 +190,14 @@ export default function ProfileCreationScreen({ navigation, route }) {
       {/* Contenu */}
       <View style={styles.content}>
         <View style={styles.headerSection}>
-          <Text style={styles.title}>Parlez-nous de vous</Text>
+          <Text style={styles.title}>Bienvenue sur Baibebalo !</Text>
           <Text style={styles.subtitle}>
-            Complétez vos informations pour commencer à utiliser BAIBEBALO.
+            Juste votre nom et prénom pour commencer. Le reste est facultatif.
           </Text>
+          <View style={styles.welcomeBadge}>
+            <Ionicons name="checkmark-circle" size={18} color={COLORS.primary} />
+            <Text style={styles.welcomeBadgeText}>Inscription gratuite — moins de 1 minute</Text>
+          </View>
         </View>
 
         {/* Photo de profil */}
@@ -377,6 +379,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: COLORS.textSecondary,
     lineHeight: 22,
+    marginBottom: 12,
+  },
+  welcomeBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    backgroundColor: COLORS.primary + '15',
+    borderRadius: 20,
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    alignSelf: 'flex-start',
+  },
+  welcomeBadgeText: {
+    fontSize: 13,
+    color: COLORS.primary,
+    fontWeight: '600',
   },
   profilePhotoSection: {
     alignItems: 'center',

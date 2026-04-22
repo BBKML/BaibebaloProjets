@@ -2,6 +2,7 @@ const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const { uploadService } = require('../services/upload.service');
 const { generateAccessToken, generateRefreshToken } = require('../middlewares/auth');
+const { safeJsonParse } = require('../utils/safeJson');
 
 /** Timeout en ms pour éviter de laisser la requête sans réponse (ex: client APK qui coupe) */
 const HANDLER_TIMEOUT_MS = 10000;
@@ -3332,9 +3333,9 @@ exports.getTrainingModules = async (req, res) => {
       [req.user.id]
     );
     const dp = result.rows[0] || {};
-    const completedModules = dp.training_modules_completed
-      ? (typeof dp.training_modules_completed === 'string' ? JSON.parse(dp.training_modules_completed) : dp.training_modules_completed)
-      : [];
+    const completedModules = Array.isArray(dp.training_modules_completed)
+      ? dp.training_modules_completed
+      : (safeJsonParse(dp.training_modules_completed) || []);
 
     const modules = [
       { id: 'module_1', title: 'Bienvenue chez Baibebalo', description: 'Introduction à la plateforme', duration_minutes: 5, order: 1, completed: completedModules.includes('module_1') },
@@ -3373,9 +3374,9 @@ exports.completeModule = async (req, res) => {
     const { moduleId } = req.params;
     const result = await query('SELECT training_modules_completed FROM delivery_persons WHERE id = $1', [req.user.id]);
     const dp = result.rows[0] || {};
-    const completed = dp.training_modules_completed
-      ? (typeof dp.training_modules_completed === 'string' ? JSON.parse(dp.training_modules_completed) : dp.training_modules_completed)
-      : [];
+    const completed = Array.isArray(dp.training_modules_completed)
+      ? dp.training_modules_completed
+      : (safeJsonParse(dp.training_modules_completed) || []);
     if (!completed.includes(moduleId)) completed.push(moduleId);
     await query('UPDATE delivery_persons SET training_modules_completed = $1 WHERE id = $2', [JSON.stringify(completed), req.user.id]);
     res.json({ success: true, message: 'Module complété', data: { completed_modules: completed } });
