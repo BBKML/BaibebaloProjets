@@ -4560,15 +4560,7 @@ exports.getOrderById = async (req, res) => {
 
     // Récupérer les items de la commande
     const itemsResult = await query(
-      `SELECT oi.*,
-              COALESCE(oi.menu_item_snapshot->>'name', mi.name) as item_name,
-              COALESCE(
-                CASE WHEN (oi.menu_item_snapshot->>'price') ~ '^[0-9]+(\\.[0-9]+)?$'
-                     THEN (oi.menu_item_snapshot->>'price')::numeric
-                     ELSE NULL END,
-                mi.price,
-                oi.unit_price
-              ) as item_price
+      `SELECT oi.*, mi.name as menu_item_name, mi.price as menu_item_price
        FROM order_items oi
        LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
        WHERE oi.order_id = $1
@@ -4586,10 +4578,12 @@ exports.getOrderById = async (req, res) => {
       } catch (e) {
         snapshot = null;
       }
+      const name = snapshot?.name || item.menu_item_name || 'Article';
+      const price = Number.parseFloat(item.unit_price || snapshot?.price || item.menu_item_price || 0);
       return {
         ...item,
-        name: item.item_name || snapshot?.name || 'Article',
-        price: Number.parseFloat(item.unit_price || item.item_price || snapshot?.price || 0),
+        name,
+        price,
         quantity: item.quantity || 1,
       };
     });
