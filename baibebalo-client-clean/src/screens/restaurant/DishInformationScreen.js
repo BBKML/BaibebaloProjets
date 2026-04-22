@@ -10,16 +10,27 @@ import {
   Alert,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
 import { getImageUrl } from '../../utils/url';
 
+const parseOptions = (raw) => {
+  if (!raw) return [];
+  if (typeof raw === 'string') {
+    try { return JSON.parse(raw); } catch { return []; }
+  }
+  return Array.isArray(raw) ? raw : [];
+};
+
 export default function DishInformationScreen({ navigation, route }) {
   const { dish, restaurantId, restaurantName } = route.params || {};
+  const insets = useSafeAreaInsets();
   const addItem = useCartStore((s) => s.addItem);
   const [selectedOptions, setSelectedOptions] = useState({});
   const [quantity, setQuantity] = useState(1);
   const [notes, setNotes] = useState('');
+  const dishOptions = parseOptions(dish?.customization_options || dish?.options);
 
   if (!dish) {
     return (
@@ -30,9 +41,9 @@ export default function DishInformationScreen({ navigation, route }) {
   }
 
   const calculateOptionsTotal = () => {
-    if (!dish?.customization_options) return 0;
+    if (!dishOptions.length) return 0;
     let total = 0;
-    dish.customization_options.forEach((option) => {
+    dishOptions.forEach((option) => {
       const val = selectedOptions[option.key];
       if (val && option.choices) {
         if (Array.isArray(val)) {
@@ -130,7 +141,7 @@ export default function DishInformationScreen({ navigation, route }) {
         </TouchableOpacity>
       </View>
 
-      <ScrollView style={styles.content}>
+      <ScrollView style={styles.content} contentContainerStyle={{ paddingBottom: 100 }}>
         <View style={styles.dishHeader}>
           <View style={styles.tagBadge}>
             <Ionicons name="flame" size={12} color={COLORS.primary} />
@@ -167,10 +178,10 @@ export default function DishInformationScreen({ navigation, route }) {
         </View>
 
         {/* Options à cocher (accompagnement, épice, etc.) */}
-        {dish.customization_options && dish.customization_options.length > 0 && (
+        {dishOptions.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Choisir vos options</Text>
-            {dish.customization_options.map((option, index) => (
+            {dishOptions.map((option, index) => (
               <View key={index} style={styles.optionBlock}>
                 <Text style={styles.optionLabelTitle}>{option.label}</Text>
                 {(option.type === 'single' || option.type === 'radio') && option.choices?.map((choice) => {
@@ -229,7 +240,7 @@ export default function DishInformationScreen({ navigation, route }) {
         )}
 
         {/* Notes spéciales */}
-        {dish.customization_options?.length > 0 && (
+        {dishOptions.length > 0 && (
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Notes (optionnel)</Text>
             <TextInput
@@ -298,7 +309,7 @@ export default function DishInformationScreen({ navigation, route }) {
         )}
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 16) }]}>
         <View style={styles.quantityBlock}>
           <TouchableOpacity
             style={styles.qtyBtn}

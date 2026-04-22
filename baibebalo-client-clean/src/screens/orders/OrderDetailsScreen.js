@@ -16,6 +16,7 @@ import {
   Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import { STATUS_LABELS, STATUS_COLORS } from '../../constants/orderStatus';
 import { getOrderDetail, cancelOrder, reviewOrder } from '../../api/orders';
@@ -24,6 +25,7 @@ import { getImageUrl } from '../../utils/url';
 
 export default function OrderDetailsScreen({ route, navigation }) {
   const { orderId } = route.params || {};
+  const insets = useSafeAreaInsets();
   const [order, setOrder] = useState(null);
   const [loading, setLoading] = useState(true);
   const [canEditReview, setCanEditReview] = useState(false);
@@ -460,7 +462,7 @@ export default function OrderDetailsScreen({ route, navigation }) {
       </View>
 
       {/* Actions */}
-      <View style={styles.actions}>
+      <View style={[styles.actions, { paddingBottom: Math.max(insets.bottom, 24) }]}>
         {/* Bouton Suivre la commande - affiché si la commande n'est pas annulée ou livrée */}
         {order.status !== 'cancelled' && order.status !== 'delivered' && (
           <TouchableOpacity style={styles.primaryButton} onPress={handleTrackOrder}>

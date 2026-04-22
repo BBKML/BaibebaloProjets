@@ -11,8 +11,9 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system';
 import { COLORS } from '../../constants/colors';
-import { uploadDocument } from '../../api/delivery';
+import { uploadDeliveryProofBase64 } from '../../api/delivery';
 import { parseUploadResponse } from './deliveryProofUtils';
 
 export default function DeliveryProofPhotoScreen({ navigation, route }) {
@@ -47,13 +48,14 @@ export default function DeliveryProofPhotoScreen({ navigation, route }) {
     uploadDoneRef.current = true;
     setUploading(true);
     try {
-      const filename = uri.split('/').pop() || `proof_${Date.now()}.jpg`;
-      const ext = (filename.split('.').pop() || '').toLowerCase();
+      // Convertir en base64 pour éviter les erreurs multipart sur Android APK
+      const base64 = await FileSystem.readAsStringAsync(uri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      const ext = (uri.split('.').pop() || 'jpg').toLowerCase();
       const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';
-      const formData = new FormData();
-      formData.append('file', { uri, name: filename, type: mimeType });
-      formData.append('document_type', 'delivery_proof');
-      const res = await uploadDocument(formData);
+      const photoBase64 = `data:${mimeType};base64,${base64}`;
+      const res = await uploadDeliveryProofBase64(photoBase64);
       const photoUrl = parseUploadResponse(res);
       if (photoUrl) {
         navigation.replace('ConfirmationCode', { delivery, photoUrl });
