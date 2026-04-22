@@ -4560,9 +4560,15 @@ exports.getOrderById = async (req, res) => {
 
     // Récupérer les items de la commande
     const itemsResult = await query(
-      `SELECT oi.*, 
+      `SELECT oi.*,
               COALESCE(oi.menu_item_snapshot->>'name', mi.name) as item_name,
-              COALESCE((oi.menu_item_snapshot->>'price')::numeric, mi.price, oi.unit_price) as item_price
+              COALESCE(
+                CASE WHEN (oi.menu_item_snapshot->>'price') ~ '^[0-9]+(\\.[0-9]+)?$'
+                     THEN (oi.menu_item_snapshot->>'price')::numeric
+                     ELSE NULL END,
+                mi.price,
+                oi.unit_price
+              ) as item_price
        FROM order_items oi
        LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
        WHERE oi.order_id = $1
@@ -4572,10 +4578,14 @@ exports.getOrderById = async (req, res) => {
 
     // Formater les items pour le frontend
     const formattedItems = itemsResult.rows.map(item => {
-      const snapshot = typeof item.menu_item_snapshot === 'string' 
-        ? JSON.parse(item.menu_item_snapshot) 
-        : item.menu_item_snapshot;
-      
+      let snapshot = null;
+      try {
+        snapshot = typeof item.menu_item_snapshot === 'string'
+          ? JSON.parse(item.menu_item_snapshot)
+          : item.menu_item_snapshot;
+      } catch (e) {
+        snapshot = null;
+      }
       return {
         ...item,
         name: item.item_name || snapshot?.name || 'Article',
