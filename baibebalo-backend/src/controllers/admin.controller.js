@@ -4563,8 +4563,7 @@ exports.getOrderById = async (req, res) => {
       `SELECT oi.*, mi.name as menu_item_name, mi.price as menu_item_price
        FROM order_items oi
        LEFT JOIN menu_items mi ON oi.menu_item_id = mi.id
-       WHERE oi.order_id = $1
-       ORDER BY oi.created_at ASC`,
+       WHERE oi.order_id = $1`,
       [id]
     );
 
