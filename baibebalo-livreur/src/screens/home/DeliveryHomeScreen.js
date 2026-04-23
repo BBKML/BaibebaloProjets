@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { 
+import {
   View,
   Text,
   StyleSheet,
@@ -11,6 +11,8 @@ import {
   RefreshControl,
   ActivityIndicator,
   AppState,
+  Modal,
+  Alert,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -71,6 +73,9 @@ export default function DeliveryHomeScreen({ navigation }) {
   
   const [selectedZone, setSelectedZone] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [showPauseModal, setShowPauseModal] = useState(false);
+  const [pauseRemaining, setPauseRemaining] = useState(0);
+  const pauseTimerRef = useRef(null);
   const lastDashboardLoadRef = useRef(0);
   const pendingCancelRef = useRef(null);
   const DEBOUNCE_MS = 3000;
@@ -176,11 +181,51 @@ export default function DeliveryHomeScreen({ navigation }) {
   };
 
   const isAvailable = status === 'available';
+  const isPaused = status === 'pause';
 
   const handleToggleStatus = async () => {
-    const newStatus = isAvailable ? 'offline' : 'available';
-    await setStatus(newStatus);
+    if (status === 'on_delivery') return;
+    if (isAvailable) {
+      setShowPauseModal(true);
+    } else if (isPaused) {
+      clearInterval(pauseTimerRef.current);
+      setPauseRemaining(0);
+      await setStatus('available');
+    } else {
+      await setStatus('available');
+    }
   };
+
+  const startPause = async (minutes) => {
+    setShowPauseModal(false);
+    await setStatus('pause');
+    const totalSec = minutes * 60;
+    setPauseRemaining(totalSec);
+    clearInterval(pauseTimerRef.current);
+    pauseTimerRef.current = setInterval(async () => {
+      setPauseRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(pauseTimerRef.current);
+          setStatus('available');
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
+
+  const goOffline = async () => {
+    setShowPauseModal(false);
+    await setStatus('offline');
+  };
+
+  const formatPauseTime = (sec) => {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  };
+
+  useEffect(() => () => clearInterval(pauseTimerRef.current), []);
 
   const target = Number(dailyGoal?.target) || 10;
   const completed = Number(dailyGoal?.completed) || 0;
@@ -275,17 +320,46 @@ export default function DeliveryHomeScreen({ navigation }) {
               <Text style={[styles.statusText, { color: statusColors[status] || statusColors.offline }]}>
                 {statusLabels[status] || 'HORS LIGNE'}
               </Text>
+              {isPaused && pauseRemaining > 0 && (
+                <Text style={styles.pauseTimer}> · {formatPauseTime(pauseRemaining)}</Text>
+              )}
             </View>
           </View>
-          <Switch
-            value={isAvailable}
-            onValueChange={handleToggleStatus}
-            trackColor={{ false: COLORS.border, true: COLORS.primary + '50' }}
-            thumbColor={isAvailable ? COLORS.primary : COLORS.white}
-            ios_backgroundColor={COLORS.border}
+          <TouchableOpacity
+            style={[styles.statusToggleBtn, { backgroundColor: isAvailable ? COLORS.warning + '15' : COLORS.primary + '15' }]}
+            onPress={handleToggleStatus}
             disabled={status === 'on_delivery'}
-          />
+          >
+            <Text style={[styles.statusToggleBtnText, { color: isAvailable ? COLORS.warning : COLORS.primary }]}>
+              {isAvailable ? 'Pause / Fin' : isPaused ? 'Reprendre' : 'Disponible'}
+            </Text>
+          </TouchableOpacity>
         </View>
+
+        {/* Modal Pause */}
+        <Modal visible={showPauseModal} transparent animationType="slide">
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalSheet}>
+              <Text style={styles.modalTitle}>Que voulez-vous faire ?</Text>
+              <Text style={styles.modalSub}>Choisissez une durée de pause ou déconnectez-vous</Text>
+              {[15, 30, 45, 60].map((min) => (
+                <TouchableOpacity key={min} style={styles.pauseOption} onPress={() => startPause(min)}>
+                  <Ionicons name="pause-circle-outline" size={22} color={COLORS.warning} />
+                  <Text style={styles.pauseOptionText}>Pause {min} minutes</Text>
+                  <Ionicons name="chevron-forward" size={18} color={COLORS.textSecondary} />
+                </TouchableOpacity>
+              ))}
+              <TouchableOpacity style={[styles.pauseOption, styles.offlineOption]} onPress={goOffline}>
+                <Ionicons name="power" size={22} color={COLORS.error} />
+                <Text style={[styles.pauseOptionText, { color: COLORS.error }]}>Hors ligne (fin de journée)</Text>
+                <Ionicons name="chevron-forward" size={18} color={COLORS.error} />
+              </TouchableOpacity>
+              <TouchableOpacity style={styles.cancelBtn} onPress={() => setShowPauseModal(false)}>
+                <Text style={styles.cancelBtnText}>Annuler</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
 
         {/* Bouton courses disponibles (visible quand disponible) */}
         {isAvailable && (
@@ -325,32 +399,46 @@ export default function DeliveryHomeScreen({ navigation }) {
           </View>
         </View>
 
-        {/* Daily Goal */}
-        <View style={styles.goalCard}>
-          <View style={styles.goalHeader}>
-            <View>
-              <Text style={styles.goalTitle}>Objectif quotidien</Text>
-              <Text style={styles.goalSubtitle}>
-                Plus que {(dailyGoal?.target ?? 10) - (dailyGoal?.completed ?? 0)} courses !
-              </Text>
+        {/* Daily Goal + Bonus */}
+        {(() => {
+          const target = dailyGoal?.target ?? 10;
+          const completed = dailyGoal?.completed ?? 0;
+          const bonus = dailyGoal?.bonusAmount ?? 2000;
+          const remaining = Math.max(0, target - completed);
+          const percent = target > 0 ? Math.min(100, (completed / target) * 100) : 0;
+          const done = completed >= target;
+          return (
+            <View style={[styles.goalCard, done && styles.goalCardDone]}>
+              <View style={styles.goalHeader}>
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.goalTitle}>
+                    {done ? '🎉 Objectif atteint !' : 'Bonus du jour'}
+                  </Text>
+                  <Text style={[styles.goalSubtitle, done && { color: COLORS.success }]}>
+                    {done
+                      ? `+${bonus.toLocaleString()} FCFA débloqué !`
+                      : `Encore ${remaining} course${remaining > 1 ? 's' : ''} → +${bonus.toLocaleString()} FCFA`
+                    }
+                  </Text>
+                </View>
+                <View style={styles.goalBadge}>
+                  <Ionicons name="gift" size={16} color={done ? COLORS.success : COLORS.primary} />
+                  <Text style={[styles.goalBadgeText, { color: done ? COLORS.success : COLORS.primary }]}>
+                    {completed}/{target}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.progressBarBg}>
+                <View style={[styles.progressBarFill, { width: `${percent}%`, backgroundColor: done ? COLORS.success : COLORS.primary }]} />
+              </View>
+              {!done && (
+                <Text style={styles.bonusHint}>
+                  💡 Chaque course te rapproche du bonus
+                </Text>
+              )}
             </View>
-            <Text style={styles.goalProgress}>
-              {dailyGoal?.completed ?? 0}
-              <Text style={styles.goalTotal}>/{dailyGoal?.target ?? 10}</Text>
-            </Text>
-          </View>
-          <View style={styles.progressBarBg}>
-            <View style={[styles.progressBarFill, { width: `${Math.min(progressPercent, 100)}%` }]} />
-          </View>
-          {(dailyGoal?.completed ?? 0) >= (dailyGoal?.target ?? 10) && (
-            <View style={styles.bonusContainer}>
-              <Ionicons name="gift" size={16} color={COLORS.success} />
-              <Text style={styles.bonusText}>
-                Bonus de {(dailyGoal?.bonusAmount ?? 2000).toLocaleString()} FCFA débloqué !
-              </Text>
-            </View>
-          )}
-        </View>
+          );
+        })()}
 
         {/* Heat Map Section */}
         <View style={styles.sectionHeader}>
@@ -446,6 +534,99 @@ export default function DeliveryHomeScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  // ── Pause Modal ──────────────────────────────────────────────
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  modalSheet: {
+    backgroundColor: COLORS.white || '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  modalSub: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginBottom: 20,
+  },
+  pauseOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 14,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+    gap: 12,
+  },
+  offlineOption: {
+    borderBottomWidth: 0,
+    marginTop: 4,
+  },
+  pauseOptionText: {
+    flex: 1,
+    fontSize: 15,
+    color: COLORS.text,
+    fontWeight: '500',
+  },
+  cancelBtn: {
+    marginTop: 16,
+    alignItems: 'center',
+    paddingVertical: 12,
+    backgroundColor: COLORS.background,
+    borderRadius: 12,
+  },
+  cancelBtnText: {
+    fontSize: 15,
+    color: COLORS.textSecondary,
+    fontWeight: '600',
+  },
+  // ── Status Card ───────────────────────────────────────────────
+  statusToggleBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
+  },
+  statusToggleBtnText: {
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  pauseTimer: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.warning,
+  },
+  // ── Goal Card ─────────────────────────────────────────────────
+  goalCardDone: {
+    borderColor: COLORS.success + '40',
+    borderWidth: 1,
+  },
+  goalBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: COLORS.primary + '10',
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 20,
+  },
+  goalBadgeText: {
+    fontWeight: '700',
+    fontSize: 13,
+  },
+  bonusHint: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 8,
+  },
+  // ── Container ─────────────────────────────────────────────────
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

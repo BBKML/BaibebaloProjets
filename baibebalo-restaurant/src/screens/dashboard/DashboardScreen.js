@@ -17,6 +17,7 @@ import useAuthStore from '../../store/authStore';
 import useRestaurantStore from '../../store/restaurantStore';
 import { restaurantApi } from '../../api/restaurant';
 import { restaurantOrders } from '../../api/orders';
+import { restaurantMenu } from '../../api/menu';
 import Toast from 'react-native-toast-message';
 
 const ACCEPT_DEADLINE_SEC = 120;
@@ -35,6 +36,7 @@ export default function DashboardScreen({ navigation }) {
     weekRevenue: 0,
   });
   const [newOrders, setNewOrders] = useState([]);
+  const [unavailableItems, setUnavailableItems] = useState([]);
   const [, setTick] = useState(0);
   const insets = useSafeAreaInsets();
   const pulseAnim = useRef(new Animated.Value(1)).current;
@@ -93,6 +95,13 @@ export default function DashboardScreen({ navigation }) {
           ...prev,
           pendingCount: ordersData.length,
         }));
+      } catch (_) {}
+
+      // Plats indisponibles — alerte rupture
+      try {
+        const menuRes = await restaurantMenu.getMenu();
+        const items = menuRes.data?.items || menuRes.items || [];
+        setUnavailableItems(items.filter((i) => i.is_available === false));
       } catch (_) {}
     } catch (_) {}
   };
@@ -203,6 +212,21 @@ export default function DashboardScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         showsVerticalScrollIndicator={false}
       >
+        {/* Alerte rupture de stock */}
+        {unavailableItems.length > 0 && (
+          <TouchableOpacity
+            style={styles.stockAlertBanner}
+            onPress={() => navigation.navigate('Menu')}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="warning" size={18} color="#92400e" />
+            <Text style={styles.stockAlertText}>
+              {unavailableItems.length} plat{unavailableItems.length > 1 ? 's' : ''} indisponible{unavailableItems.length > 1 ? 's' : ''} — Appuyez pour gérer
+            </Text>
+            <Ionicons name="chevron-forward" size={16} color="#92400e" />
+          </TouchableOpacity>
+        )}
+
         {/* Open/Close Card — toujours en haut */}
         <View style={[styles.openCloseCard, isOpen ? styles.openCard : styles.closedCard]}>
           <View style={styles.openCloseLeft}>
@@ -489,6 +513,25 @@ export default function DashboardScreen({ navigation }) {
 }
 
 const styles = StyleSheet.create({
+  stockAlertBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    marginHorizontal: 16,
+    marginBottom: 12,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: '#fcd34d',
+  },
+  stockAlertText: {
+    flex: 1,
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#92400e',
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.background,

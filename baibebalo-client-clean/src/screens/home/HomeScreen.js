@@ -8,6 +8,11 @@ import {
   Image,
   ScrollView,
   RefreshControl,
+  Alert,
+  ActivityIndicator,
+  Clipboard,
+  ToastAndroid,
+  Platform,
 } from 'react-native';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -17,7 +22,6 @@ import { getRestaurants, getActivePromotions, getCategories, getRecommendedResta
 import { getOrderHistory } from '../../api/orders';
 import { getImageUrl } from '../../utils/url';
 import useCartStore from '../../store/cartStore';
-import { Alert, ActivityIndicator } from 'react-native';
 
 export default function HomeScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
@@ -29,6 +33,7 @@ export default function HomeScreen({ navigation }) {
   const [searchQuery, setSearchQuery] = useState('');
   const [lastOrder, setLastOrder] = useState(null);
   const [reordering, setReordering] = useState(false);
+  const [activePromoCode, setActivePromoCode] = useState(null);
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
   const { getItemCount } = useCartStore();
 
@@ -77,6 +82,10 @@ export default function HomeScreen({ navigation }) {
       setRestaurants(restaurantsRes.data?.restaurants || []);
       setRecommendedRestaurants(recommendedRes.data?.restaurants || []);
       
+      // Promo code actif à afficher sur l'accueil
+      const promoWithCode = (promotionsRes.data?.promotions || []).find((p) => p.code);
+      if (promoWithCode) setActivePromoCode(promoWithCode);
+
       // Mapper les promotions depuis l'API
       const apiPromotions = promotionsRes.data?.promotions || [];
       const mappedPromotions = apiPromotions.slice(0, 2).map((promo) => ({
@@ -182,6 +191,15 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const copyPromoCode = (code) => {
+    Clipboard.setString(code);
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(`Code "${code}" copié !`, ToastAndroid.SHORT);
+    } else {
+      Alert.alert('Copié !', `Le code "${code}" a été copié. Collez-le au moment du paiement.`);
+    }
+  };
+
   const isRestaurantClosed = (restaurant) => {
     return restaurant.is_closed || restaurant.status === 'closed' || restaurant.is_open === false;
   };
@@ -282,6 +300,28 @@ export default function HomeScreen({ navigation }) {
                 Rechercher un restaurant, un plat...
               </Text>
             </TouchableOpacity>
+
+            {/* Banner Code Promo actif */}
+            {activePromoCode && (
+              <TouchableOpacity
+                style={styles.promoBanner}
+                onPress={() => copyPromoCode(activePromoCode.code)}
+                activeOpacity={0.8}
+              >
+                <Ionicons name="pricetag" size={18} color="#065f46" />
+                <View style={{ flex: 1 }}>
+                  <Text style={styles.promoBannerTitle}>
+                    {activePromoCode.discount_type === 'percentage'
+                      ? `-${activePromoCode.discount_value}% de réduction`
+                      : `-${Number(activePromoCode.discount_value).toLocaleString('fr-FR')} FCFA`}
+                  </Text>
+                  <Text style={styles.promoBannerSub}>
+                    Code : <Text style={styles.promoBannerCode}>{activePromoCode.code}</Text> · Appuyer pour copier
+                  </Text>
+                </View>
+                <Ionicons name="copy-outline" size={18} color="#065f46" />
+              </TouchableOpacity>
+            )}
 
             {/* Section Re-commander */}
             {lastOrder && (
@@ -558,6 +598,33 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 24,
+  },
+  promoBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d1fae5',
+    borderRadius: 14,
+    marginHorizontal: 16,
+    marginBottom: 10,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    gap: 10,
+    borderWidth: 1,
+    borderColor: '#6ee7b7',
+  },
+  promoBannerTitle: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: '#065f46',
+  },
+  promoBannerSub: {
+    fontSize: 11,
+    color: '#047857',
+    marginTop: 1,
+  },
+  promoBannerCode: {
+    fontWeight: '800',
+    letterSpacing: 1,
   },
   reorderCard: {
     marginHorizontal: 16,
