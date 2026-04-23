@@ -13,9 +13,11 @@ import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
-import { getRestaurants, getActivePromotions, getCategories, getRecommendedRestaurants, getDailySpecials } from '../../api/restaurants';
+import { getRestaurants, getActivePromotions, getCategories, getRecommendedRestaurants, getDailySpecials, getReorderData } from '../../api/restaurants';
+import { getOrderHistory } from '../../api/orders';
 import { getImageUrl } from '../../utils/url';
 import useCartStore from '../../store/cartStore';
+import { Alert, ActivityIndicator } from 'react-native';
 
 export default function HomeScreen({ navigation }) {
   const [restaurants, setRestaurants] = useState([]);
@@ -25,6 +27,8 @@ export default function HomeScreen({ navigation }) {
   const [dailySpecials, setDailySpecials] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [lastOrder, setLastOrder] = useState(null);
+  const [reordering, setReordering] = useState(false);
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
   const { getItemCount } = useCartStore();
 
@@ -51,6 +55,12 @@ export default function HomeScreen({ navigation }) {
       } catch (_) {
         // Ignorer les erreurs de géolocalisation
       }
+
+      // Dernière commande pour "Re-commander"
+      getOrderHistory({ limit: 1, status: 'delivered' }).then((res) => {
+        const orders = res.data?.orders || res.data?.data?.orders || [];
+        if (orders.length > 0) setLastOrder(orders[0]);
+      }).catch(() => {});
 
       const [restaurantsRes, promotionsRes, categoriesRes, recommendedRes, dailySpecialsRes] = await Promise.all([
         getRestaurants({
@@ -134,6 +144,7 @@ export default function HomeScreen({ navigation }) {
     name: restaurant.speciality || 'Plat populaire',
     price: restaurant.average_price || 3500,
     restaurantName: restaurant.name || 'Restaurant',
+    restaurantId: restaurant.id,
     image: getImageUrl(restaurant.banner || restaurant.logo || restaurant.image_url) || null,
   }));
 
@@ -146,6 +157,30 @@ export default function HomeScreen({ navigation }) {
       subtitle: restaurant.cuisine_type || 'Cuisine variée',
       image: getImageUrl(restaurant.banner || restaurant.logo || restaurant.image_url) || null,
     }));
+
+  const handleReorder = async () => {
+    if (!lastOrder) return;
+    setReordering(true);
+    try {
+      const response = await getReorderData(lastOrder.id);
+      const data = response.data;
+      if (!data.restaurant.is_active || !data.restaurant.is_open) {
+        Alert.alert('Restaurant fermé', `${data.restaurant.name} est actuellement fermé.`);
+        return;
+      }
+      const cartStore = useCartStore.getState();
+      cartStore.clearCart();
+      cartStore.setRestaurant({ id: data.restaurant.id, name: data.restaurant.name });
+      (data.items || []).forEach((item) => {
+        if (item.available) cartStore.addItem(item, item.quantity || 1, item.selected_options || []);
+      });
+      navigation.navigate('ShoppingCart');
+    } catch {
+      Alert.alert('Erreur', 'Impossible de re-commander pour le moment.');
+    } finally {
+      setReordering(false);
+    }
+  };
 
   const isRestaurantClosed = (restaurant) => {
     return restaurant.is_closed || restaurant.status === 'closed' || restaurant.is_open === false;
@@ -247,6 +282,27 @@ export default function HomeScreen({ navigation }) {
                 Rechercher un restaurant, un plat...
               </Text>
             </TouchableOpacity>
+
+            {/* Section Re-commander */}
+            {lastOrder && (
+              <View style={styles.reorderCard}>
+                <View style={styles.reorderLeft}>
+                  <Ionicons name="refresh-circle" size={32} color={COLORS.primary} />
+                  <View style={{ flex: 1, marginLeft: 10 }}>
+                    <Text style={styles.reorderTitle}>Re-commander</Text>
+                    <Text style={styles.reorderSub} numberOfLines={1}>
+                      {lastOrder.restaurant_name || 'Votre dernière commande'} · {lastOrder.total?.toLocaleString('fr-FR')} FCFA
+                    </Text>
+                  </View>
+                </View>
+                <TouchableOpacity style={styles.reorderBtn} onPress={handleReorder} disabled={reordering}>
+                  {reordering
+                    ? <ActivityIndicator size="small" color={COLORS.white} />
+                    : <Text style={styles.reorderBtnText}>Commander</Text>
+                  }
+                </TouchableOpacity>
+              </View>
+            )}
 
             <ScrollView
               horizontal
@@ -368,12 +424,16 @@ export default function HomeScreen({ navigation }) {
                 </View>
                 <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.dishRow}>
                   {bestDishes.map((dish) => (
-                    <View key={dish.id} style={styles.dishCard}>
+                    <TouchableOpacity
+                      key={dish.id}
+                      style={styles.dishCard}
+                      onPress={() => dish.restaurantId && navigation.navigate('RestaurantDetail', { restaurantId: dish.restaurantId })}
+                    >
                       <Image source={{ uri: dish.image }} style={styles.dishImage} />
                       <Text style={styles.dishName} numberOfLines={1}>{dish.name}</Text>
                       <Text style={styles.dishRestaurant} numberOfLines={1}>{dish.restaurantName}</Text>
                       <Text style={styles.dishPrice}>{dish.price.toLocaleString('fr-FR')} FCFA</Text>
-                    </View>
+                    </TouchableOpacity>
                   ))}
                 </ScrollView>
               </View>
@@ -498,6 +558,52 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 24,
+  },
+  reorderCard: {
+    marginHorizontal: 16,
+    marginBottom: 12,
+    backgroundColor: COLORS.white,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  reorderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 10,
+  },
+  reorderTitle: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: COLORS.text,
+  },
+  reorderSub: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  reorderBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    minWidth: 90,
+    alignItems: 'center',
+  },
+  reorderBtnText: {
+    color: COLORS.white,
+    fontWeight: '700',
+    fontSize: 13,
   },
   promoRow: {
     paddingHorizontal: 16,

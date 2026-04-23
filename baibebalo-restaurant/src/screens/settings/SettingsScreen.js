@@ -8,7 +8,16 @@ import {
   Switch,
   Alert,
   ActivityIndicator,
+  Linking,
 } from 'react-native';
+
+const WHATSAPP_SUPPORT = '+2250700000000';
+const openWhatsApp = () => {
+  const msg = encodeURIComponent('Bonjour, j\'ai besoin d\'aide avec l\'application Baibebalo Restaurant.');
+  Linking.openURL(`whatsapp://send?phone=${WHATSAPP_SUPPORT}&text=${msg}`).catch(() =>
+    Linking.openURL(`https://wa.me/${WHATSAPP_SUPPORT}?text=${msg}`)
+  );
+};
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from '@react-navigation/native';
@@ -135,15 +144,15 @@ export default function SettingsScreen({ navigation }) {
   const restaurantName = restaurant?.name || 'Mon restaurant';
   const restaurantPhone = restaurant?.phone || '';
 
-  const SettingRow = ({ icon, iconBg, label, subtitle, onPress, right, danger }) => (
+  const SettingRow = ({ icon, iconBg, iconColor, label, subtitle, onPress, right, danger }) => (
     <TouchableOpacity
       style={styles.row}
       onPress={onPress}
       activeOpacity={onPress ? 0.7 : 1}
       disabled={!onPress}
     >
-      <View style={[styles.rowIcon, { backgroundColor: iconBg || COLORS.primary + '15' }]}>
-        <Ionicons name={icon} size={20} color={danger ? COLORS.error : COLORS.primary} />
+      <View style={[styles.rowIcon, { backgroundColor: iconBg || (iconColor ? iconColor + '15' : COLORS.primary + '15') }]}>
+        <Ionicons name={icon} size={20} color={danger ? COLORS.error : (iconColor || COLORS.primary)} />
       </View>
       <View style={styles.rowContent}>
         <Text style={[styles.rowLabel, danger && styles.rowLabelDanger]}>{label}</Text>
@@ -300,6 +309,14 @@ export default function SettingsScreen({ navigation }) {
             icon="warning-outline"
             label="Signaler un problème"
             onPress={() => navigation.navigate('ReportProblem')}
+          />
+          <View style={styles.separator} />
+          <SettingRow
+            icon="logo-whatsapp"
+            label="Support WhatsApp"
+            subtitle="Réponse rapide garantie"
+            onPress={openWhatsApp}
+            iconColor="#25D366"
           />
         </View>
 

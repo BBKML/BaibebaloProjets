@@ -8,7 +8,16 @@ import {
   Alert,
   Image,
   Clipboard,
+  Linking,
 } from 'react-native';
+
+const WHATSAPP_SUPPORT = '+2250700000000'; // Remplacer par votre numéro WhatsApp
+const openWhatsApp = () => {
+  const msg = encodeURIComponent('Bonjour, j\'ai besoin d\'aide avec l\'application Baibebalo.');
+  Linking.openURL(`whatsapp://send?phone=${WHATSAPP_SUPPORT}&text=${msg}`).catch(() =>
+    Linking.openURL(`https://wa.me/${WHATSAPP_SUPPORT}?text=${msg}`)
+  );
+};
 import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
@@ -141,6 +150,12 @@ export default function ProfileScreen({ navigation }) {
       icon: 'help-circle-outline',
       label: 'Aide & Support',
       onPress: () => navigation.navigate('HelpCenter'),
+    },
+    {
+      icon: 'logo-whatsapp',
+      label: 'Support WhatsApp',
+      onPress: openWhatsApp,
+      color: '#25D366',
     },
     {
       icon: 'document-text-outline',

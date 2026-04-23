@@ -1,14 +1,23 @@
 import React from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   StatusBar,
   ScrollView,
   Image,
-  Alert
+  Alert,
+  Linking,
 } from 'react-native';
+
+const WHATSAPP_SUPPORT = '+2250700000000';
+const openWhatsApp = () => {
+  const msg = encodeURIComponent('Bonjour, j\'ai besoin d\'aide avec l\'application Baibebalo Livreur.');
+  Linking.openURL(`whatsapp://send?phone=${WHATSAPP_SUPPORT}&text=${msg}`).catch(() =>
+    Linking.openURL(`https://wa.me/${WHATSAPP_SUPPORT}?text=${msg}`)
+  );
+};
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
@@ -69,6 +78,7 @@ export default function SettingsScreen({ navigation }) {
       items: [
         { icon: 'help-circle-outline', label: 'Centre d\'aide', screen: 'HelpCenter' },
         { icon: 'chatbubbles-outline', label: 'Contacter le support', screen: 'SupportChat' },
+        { icon: 'logo-whatsapp', label: 'Support WhatsApp', action: openWhatsApp, iconColor: '#25D366' },
       ],
     },
   ];
@@ -120,10 +130,10 @@ export default function SettingsScreen({ navigation }) {
                     styles.settingItem,
                     index < section.items.length - 1 && styles.settingItemBorder,
                   ]}
-                  onPress={() => navigation.navigate(item.screen)}
+                  onPress={() => item.action ? item.action() : navigation.navigate(item.screen)}
                 >
                   <View style={styles.settingIcon}>
-                    <Ionicons name={item.icon} size={22} color={COLORS.primary} />
+                    <Ionicons name={item.icon} size={22} color={item.iconColor || COLORS.primary} />
                   </View>
                   <Text style={styles.settingLabel}>{item.label}</Text>
                   <Ionicons name="chevron-forward" size={20} color={COLORS.textSecondary} />
