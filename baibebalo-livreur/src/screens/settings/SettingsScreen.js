@@ -11,11 +11,14 @@ import {
   Linking,
 } from 'react-native';
 
-const WHATSAPP_SUPPORT = '+2250700000000';
-const openWhatsApp = () => {
+import { getPublicSettings, getCompanyValue } from '../../services/settingsService';
+
+const openWhatsApp = async () => {
+  const settings = await getPublicSettings().catch(() => null);
+  const phone = (settings ? getCompanyValue(settings, 'company_whatsapp') : null) || '+2250700000000';
   const msg = encodeURIComponent('Bonjour, j\'ai besoin d\'aide avec l\'application Baibebalo Livreur.');
-  Linking.openURL(`whatsapp://send?phone=${WHATSAPP_SUPPORT}&text=${msg}`).catch(() =>
-    Linking.openURL(`https://wa.me/${WHATSAPP_SUPPORT}?text=${msg}`)
+  Linking.openURL(`whatsapp://send?phone=${phone}&text=${msg}`).catch(() =>
+    Linking.openURL(`https://wa.me/${phone}?text=${msg}`)
   );
 };
 import { SafeAreaView } from 'react-native-safe-area-context';
