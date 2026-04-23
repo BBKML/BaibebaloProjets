@@ -496,12 +496,12 @@ const AccountSettings = () => {
         </div>
 
         {/* Section Zone de Danger */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl border-2 border-slate-900 dark:border-slate-700 shadow-sm p-6">
+        <div className="bg-red-50/50 dark:bg-red-500/5 rounded-xl border border-red-200 dark:border-red-800/60 shadow-sm p-6">
           <div className="flex items-center gap-2 mb-4">
-            <span className="material-symbols-outlined text-slate-900 dark:text-white">warning</span>
-            <h2 className="text-xl font-bold text-slate-900 dark:text-white uppercase">ZONE DE DANGER</h2>
+            <span className="material-symbols-outlined text-red-600 dark:text-red-500">warning</span>
+            <h2 className="text-xl font-bold text-red-700 dark:text-red-400">Zone de danger</h2>
           </div>
-          
+
           <p className="text-slate-700 dark:text-slate-300 mb-6">
             La suppression de votre compte est <strong>permanente</strong>. Toutes vos données, projets et accès seront immédiatement révoqués sans possibilité de récupération.
           </p>
@@ -520,7 +520,7 @@ const AccountSettings = () => {
                 </button>
                 <button
                   onClick={() => setShowDeleteConfirm(false)}
-                  className="flex-1 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-900 dark:text-white font-bold py-3 px-6 rounded-lg transition-colors"
+                  className="flex-1 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-900 dark:text-white font-bold py-3 px-6 rounded-lg transition-colors"
                 >
                   Annuler
                 </button>
@@ -529,22 +529,12 @@ const AccountSettings = () => {
           ) : (
             <button
               onClick={() => setShowDeleteConfirm(true)}
-              className="w-full bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 dark:hover:bg-slate-700 text-white font-bold py-3 px-6 rounded-lg transition-colors border-2 border-white dark:border-slate-600 uppercase"
+              className="flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-900 border border-red-300 dark:border-red-700 text-red-600 dark:text-red-400 font-semibold rounded-lg hover:bg-red-600 hover:text-white dark:hover:bg-red-600 dark:hover:text-white transition-colors"
             >
+              <span className="material-symbols-outlined text-lg">delete_forever</span>
               Supprimer définitivement le compte
             </button>
           )}
-        </div>
-
-        {/* Footer avec informations système */}
-        <div className="mt-8 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span className="font-semibold">SECURITY LEVEL: HIGH</span>
-          <div className="flex gap-1">
-            <div className="w-1 h-4 bg-primary"></div>
-            <div className="w-1 h-4 bg-primary"></div>
-            <div className="w-1 h-4 bg-primary"></div>
-          </div>
-          <span className="font-semibold">SYSTEM V3.4.2</span>
         </div>
       </div>
     </Layout>

@@ -8,6 +8,7 @@ import { supportAPI } from '../api/support';
 import driversAPI from '../api/drivers';
 import { formatCurrency, formatDateShort } from '../utils/format';
 import TableSkeleton from '../components/common/TableSkeleton';
+import { getOrderStatusCls, getOrderStatusLabel } from '../constants/statusColors';
 
 const OrderDetails = () => {
   const { id } = useParams();
@@ -110,46 +111,7 @@ const OrderDetails = () => {
   const order = data?.data?.order || {};
   const isDelayed = order.status === 'delayed' || order.is_delayed;
 
-  // Fonction pour traduire les statuts de commande
-  const getOrderStatusLabel = (status) => {
-    switch (status) {
-      case 'new': return 'Nouvelle';
-      case 'pending': return 'En attente';
-      case 'accepted': return 'Acceptée';
-      case 'preparing': return 'En préparation';
-      case 'ready': return 'Prête';
-      case 'picked_up': return 'Récupérée';
-      case 'delivering': return 'En livraison';
-      case 'driver_at_customer': return 'Livreur arrivé';
-      case 'delivered': return 'Livrée';
-      case 'cancelled': return 'Annulée';
-      default: return status || 'Inconnu';
-    }
-  };
-
-  const getOrderStatusBadge = (status) => {
-    switch (status) {
-      case 'delivered':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      case 'picked_up':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'delivering':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'driver_at_customer':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'ready':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'preparing':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'accepted':
-      case 'pending':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      default:
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-    }
-  };
+  // getOrderStatusLabel et getOrderStatusCls importés depuis statusColors.js
 
   // Timeline steps
   const timelineSteps = [
@@ -204,7 +166,7 @@ const OrderDetails = () => {
             </div>
             <div>
               <p className="text-sm text-slate-500">Statut</p>
-              <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${getOrderStatusBadge(order.status)}`}>
+              <span className={`inline-flex px-3 py-1 rounded-full text-sm font-bold ${getOrderStatusCls(order.status)}`}>
                 {getOrderStatusLabel(order.status)}
               </span>
             </div>

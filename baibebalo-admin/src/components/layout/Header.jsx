@@ -64,7 +64,7 @@ const Header = ({ onMenuClick = () => {} }) => {
   const breadcrumb = getBreadcrumb();
   
   return (
-    <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-primary/10 dark:bg-primary/20 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
+    <header className="h-16 border-b border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-[#0d1528]/90 backdrop-blur-md flex items-center justify-between px-4 md:px-8 sticky top-0 z-10">
       {/* Left: Hamburger Menu + Breadcrumb */}
       <div className="flex items-center gap-4">
         {/* Bouton Hamburger Menu (visible sur mobile/tablette) */}
@@ -88,12 +88,12 @@ const Header = ({ onMenuClick = () => {} }) => {
       {/* Actions */}
       <div className="flex items-center gap-6">
         {/* Recherche */}
-        <div className="relative">
+        <div className="relative hidden md:block">
           <span className="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xl">search</span>
           <input
             type="text"
             placeholder="Rechercher..."
-            className="pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 w-64 transition-all"
+            className="pl-10 pr-4 py-1.5 bg-slate-100 dark:bg-slate-800 border-none rounded-lg text-sm focus:ring-2 focus:ring-primary/50 w-52 transition-all"
           />
         </div>
         
@@ -107,7 +107,7 @@ const Header = ({ onMenuClick = () => {} }) => {
         >
           <span className="material-symbols-outlined">notifications</span>
           {alertsCount > 0 && (
-            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900 animate-pulse">
+            <span className="absolute -top-1 -right-1 w-5 h-5 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center border-2 border-white dark:border-slate-900">
               {alertsCount > 9 ? '9+' : alertsCount}
             </span>
           )}
@@ -121,15 +121,14 @@ const Header = ({ onMenuClick = () => {} }) => {
           </div>
           <button
             onClick={() => setShowProfileMenu(!showProfileMenu)}
-            className="w-9 h-9 rounded-full bg-slate-200 dark:bg-slate-800 bg-cover bg-center ring-2 ring-slate-100 dark:ring-slate-700 flex items-center justify-center text-slate-600 dark:text-slate-300 font-semibold text-sm hover:ring-primary/50 transition-all cursor-pointer overflow-hidden"
-            style={admin.profile_picture ? {
-              backgroundImage: `url(${admin.profile_picture})`,
-              backgroundSize: 'cover',
-              backgroundPosition: 'center',
-            } : {}}
+            className="w-9 h-9 rounded-full ring-2 ring-slate-200 dark:ring-slate-700 hover:ring-primary/50 transition-all cursor-pointer overflow-hidden shrink-0 bg-slate-200 dark:bg-slate-800 flex items-center justify-center"
             title={admin.profile_picture ? 'Photo de profil' : 'Aucune photo'}
           >
-            {!admin.profile_picture && (admin.full_name?.charAt(0) || 'A')}
+            {admin.profile_picture ? (
+              <img src={admin.profile_picture} alt={admin.full_name || 'Admin'} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">{admin.full_name?.charAt(0)?.toUpperCase() || 'A'}</span>
+            )}
           </button>
           
           {/* Menu dropdown */}

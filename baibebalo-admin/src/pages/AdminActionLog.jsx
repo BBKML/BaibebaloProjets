@@ -14,6 +14,19 @@ const formatRelative = (ts) => {
 const formatAbsolute = (ts) =>
   new Date(ts).toLocaleString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
+// Fond coloré par type d'action pour différenciation visuelle
+const ACTION_BG = {
+  ORDER_CANCELLED:      'bg-red-100 dark:bg-red-500/15',
+  ORDER_REASSIGNED:     'bg-blue-100 dark:bg-blue-500/15',
+  ORDER_INTERVENED:     'bg-amber-100 dark:bg-amber-500/15',
+  STATUS_CHANGED:       'bg-indigo-100 dark:bg-indigo-500/15',
+  DRIVER_VALIDATED:     'bg-emerald-100 dark:bg-emerald-500/15',
+  DRIVER_SUSPENDED:     'bg-red-100 dark:bg-red-500/15',
+  RESTAURANT_VALIDATED: 'bg-emerald-100 dark:bg-emerald-500/15',
+  TICKET_CLOSED:        'bg-emerald-100 dark:bg-emerald-500/15',
+  REFUND_ISSUED:        'bg-purple-100 dark:bg-purple-500/15',
+};
+
 const AdminActionLog = () => {
   const [entries, setEntries] = useState([]);
   const [filterType, setFilterType] = useState('all');
@@ -70,19 +83,27 @@ const AdminActionLog = () => {
 
         {/* Filtres */}
         <div className="flex flex-wrap gap-2">
-          {typeOptions.map((opt) => (
+          {typeOptions.map((opt) => {
+            const count = opt.value === 'all' ? entries.length : entries.filter(e => e.type === opt.value).length;
+            return (
             <button
               key={opt.value}
               onClick={() => setFilterType(opt.value)}
-              className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
+              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold transition-colors ${
                 filterType === opt.value
                   ? 'bg-primary text-white'
                   : 'bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-primary/50'
               }`}
             >
               {opt.label}
+              {count > 0 && (
+                <span className={`text-[10px] font-black px-1.5 py-0.5 rounded-full min-w-[18px] text-center leading-none ${
+                  filterType === opt.value ? 'bg-white/20 text-white' : 'bg-slate-100 dark:bg-slate-700 text-slate-500 dark:text-slate-400'
+                }`}>{count}</span>
+              )}
             </button>
-          ))}
+            );
+          })}
         </div>
 
         {/* Liste */}
@@ -104,7 +125,7 @@ const AdminActionLog = () => {
                 return (
                   <div key={entry.id} className="flex items-start gap-4 p-4 hover:bg-slate-50 dark:hover:bg-slate-700/30 transition-colors">
                     {/* Icône */}
-                    <div className="w-9 h-9 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0 mt-0.5">
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${ACTION_BG[entry.type] || 'bg-slate-100 dark:bg-slate-700'}`}>
                       <span className={`material-symbols-outlined text-lg ${cfg.color}`}>{cfg.icon}</span>
                     </div>
 

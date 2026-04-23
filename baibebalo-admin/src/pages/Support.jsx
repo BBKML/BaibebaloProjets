@@ -7,6 +7,7 @@ import { formatDateShort } from '../utils/format';
 import { exportToCSV } from '../utils/export';
 import TableSkeleton from '../components/common/TableSkeleton';
 import toast from 'react-hot-toast';
+import { getTicketStatusCls, getTicketPriorityCls } from '../constants/statusColors';
 
 const Support = () => {
   const navigate = useNavigate();
@@ -281,28 +282,16 @@ const Support = () => {
                           <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">{ticket.description?.substring(0, 60)}...</p>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${
-                            ticket.priority === 'urgent' 
-                              ? 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500'
-                              : ticket.priority === 'high'
-                              ? 'bg-orange-100 text-orange-600 dark:bg-orange-500/10 dark:text-orange-500'
-                              : 'bg-blue-100 text-blue-600 dark:bg-blue-500/10 dark:text-blue-500'
-                          }`}>
-                            {ticket.priority === 'urgent' && <span className="size-1.5 rounded-full bg-red-600"></span>}
-                            {ticket.priority === 'high' && <span className="size-1.5 rounded-full bg-orange-600"></span>}
-                            {ticket.priority === 'normal' && <span className="size-1.5 rounded-full bg-blue-600"></span>}
-                            {ticket.priority === 'urgent' ? 'Urgent' : ticket.priority === 'high' ? 'Élevée' : 'Normale'}
+                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold ${getTicketPriorityCls(ticket.priority)}`}>
+                            {(ticket.priority === 'urgent' || ticket.priority === 'high') && (
+                              <span className="size-1.5 rounded-full bg-current opacity-70"></span>
+                            )}
+                            {ticket.priority === 'urgent' ? 'Urgent' : ticket.priority === 'high' ? 'Élevée' : ticket.priority === 'medium' ? 'Moyen' : 'Faible'}
                           </span>
                         </td>
                         <td className="px-6 py-4">
-                          <span className={`inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold ${
-                            ticket.status === 'open' 
-                              ? 'bg-primary/20 text-primary'
-                              : ticket.status === 'in_progress'
-                              ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
-                              : 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-400'
-                          }`}>
-                            {ticket.status === 'open' ? 'Nouveau' : ticket.status === 'in_progress' ? 'En cours' : 'Résolu'}
+                          <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getTicketStatusCls(ticket.status)}`}>
+                            {ticket.status === 'open' ? 'Ouvert' : ticket.status === 'in_progress' ? 'En cours' : ticket.status === 'resolved' ? 'Résolu' : 'Fermé'}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-xs text-slate-500 dark:text-slate-400 font-medium">
