@@ -9,6 +9,7 @@ import {
   Switch,
   Animated,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -19,8 +20,91 @@ import { restaurantApi } from '../../api/restaurant';
 import { restaurantOrders } from '../../api/orders';
 import { restaurantMenu } from '../../api/menu';
 import Toast from 'react-native-toast-message';
+import soundService from '../../services/soundService';
 
 const ACCEPT_DEADLINE_SEC = 120;
+
+function StockAlertCard({ items, onToggle, onManageAll }) {
+  const [expanded, setExpanded] = React.useState(false);
+  const visible = expanded ? items : items.slice(0, 2);
+  return (
+    <View style={stockStyles.card}>
+      <TouchableOpacity style={stockStyles.header} onPress={() => setExpanded((e) => !e)} activeOpacity={0.8}>
+        <Ionicons name="warning" size={18} color="#92400e" />
+        <Text style={stockStyles.title}>
+          {items.length} plat{items.length > 1 ? 's' : ''} indisponible{items.length > 1 ? 's' : ''}
+        </Text>
+        <Ionicons name={expanded ? 'chevron-up' : 'chevron-down'} size={16} color="#92400e" />
+      </TouchableOpacity>
+      {visible.map((item) => (
+        <View key={item.id} style={stockStyles.row}>
+          <Text style={stockStyles.itemName} numberOfLines={1}>{item.name}</Text>
+          <TouchableOpacity style={stockStyles.enableBtn} onPress={() => onToggle(item)}>
+            <Text style={stockStyles.enableBtnText}>Activer</Text>
+          </TouchableOpacity>
+        </View>
+      ))}
+      <View style={stockStyles.footer}>
+        {items.length > 2 && !expanded && (
+          <TouchableOpacity onPress={() => setExpanded(true)}>
+            <Text style={stockStyles.footerLink}>+{items.length - 2} autres</Text>
+          </TouchableOpacity>
+        )}
+        <TouchableOpacity onPress={onManageAll} style={stockStyles.manageBtn}>
+          <Text style={stockStyles.manageBtnText}>Gérer le menu</Text>
+          <Ionicons name="arrow-forward" size={13} color="#92400e" />
+        </TouchableOpacity>
+      </View>
+    </View>
+  );
+}
+
+const stockStyles = StyleSheet.create({
+  card: {
+    backgroundColor: '#fef3c7',
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: '#fbbf24',
+    marginBottom: 12,
+    overflow: 'hidden',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    padding: 14,
+  },
+  title: { flex: 1, fontSize: 13, fontWeight: '700', color: '#92400e' },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderTopWidth: 1,
+    borderTopColor: '#fbbf24' + '50',
+    gap: 10,
+  },
+  itemName: { flex: 1, fontSize: 13, color: '#78350f' },
+  enableBtn: {
+    backgroundColor: '#10b981',
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 5,
+  },
+  enableBtnText: { fontSize: 12, fontWeight: '700', color: '#fff' },
+  footer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    borderTopWidth: 1,
+    borderTopColor: '#fbbf24' + '50',
+  },
+  footerLink: { fontSize: 12, color: '#92400e', fontWeight: '600' },
+  manageBtn: { flexDirection: 'row', alignItems: 'center', gap: 4 },
+  manageBtnText: { fontSize: 12, color: '#92400e', fontWeight: '600' },
+});
 
 export default function DashboardScreen({ navigation }) {
   const { restaurant, updateRestaurant, setRestaurant } = useAuthStore();
@@ -38,6 +122,9 @@ export default function DashboardScreen({ navigation }) {
   const [newOrders, setNewOrders] = useState([]);
   const [unavailableItems, setUnavailableItems] = useState([]);
   const [, setTick] = useState(0);
+  const [acceptModal, setAcceptModal] = useState(null); // { orderId, orderNum }
+  const [acceptingId, setAcceptingId] = useState(null);
+  const [selectedPrepTime, setSelectedPrepTime] = useState(15);
   const insets = useSafeAreaInsets();
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
@@ -46,8 +133,19 @@ export default function DashboardScreen({ navigation }) {
   }, [restaurant?.is_open]);
 
   useEffect(() => {
+    soundService.initialize();
     loadDashboardData();
+    const autoRefresh = setInterval(loadDashboardData, 30000);
+    return () => clearInterval(autoRefresh);
   }, []);
+
+  const prevOrderCountRef = useRef(0);
+  useEffect(() => {
+    if (newOrders.length > prevOrderCountRef.current) {
+      soundService.newOrder();
+    }
+    prevOrderCountRef.current = newOrders.length;
+  }, [newOrders.length]);
 
   useEffect(() => {
     if (newOrders.length === 0) return;
@@ -137,8 +235,26 @@ export default function DashboardScreen({ navigation }) {
     }
   };
 
-  const handleAcceptOrder = (orderId) => {
-    navigation.navigate('OrderDetails', { orderId });
+  const handleAcceptOrder = (order) => {
+    const orderNum = order.order_number || order.id?.slice(0, 8) || '?';
+    setSelectedPrepTime(15);
+    setAcceptModal({ orderId: order.id, orderNum });
+  };
+
+  const confirmAcceptOrder = async () => {
+    if (!acceptModal || acceptingId) return;
+    setAcceptingId(acceptModal.orderId);
+    try {
+      await restaurantOrders.acceptOrder(acceptModal.orderId, selectedPrepTime * 60);
+      setNewOrders((prev) => prev.filter((o) => o.id !== acceptModal.orderId));
+      setDashboardData((prev) => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
+      Toast.show({ type: 'success', text1: '✅ Commande acceptée', text2: `Prêt en ${selectedPrepTime} min` });
+    } catch (_) {
+      Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible d\'accepter la commande' });
+    } finally {
+      setAcceptingId(null);
+      setAcceptModal(null);
+    }
   };
 
   const handleRefuseOrder = (orderId) => {
@@ -212,19 +328,21 @@ export default function DashboardScreen({ navigation }) {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
         showsVerticalScrollIndicator={false}
       >
-        {/* Alerte rupture de stock */}
+        {/* Alerte rupture de stock avec toggle rapide */}
         {unavailableItems.length > 0 && (
-          <TouchableOpacity
-            style={styles.stockAlertBanner}
-            onPress={() => navigation.navigate('Menu')}
-            activeOpacity={0.8}
-          >
-            <Ionicons name="warning" size={18} color="#92400e" />
-            <Text style={styles.stockAlertText}>
-              {unavailableItems.length} plat{unavailableItems.length > 1 ? 's' : ''} indisponible{unavailableItems.length > 1 ? 's' : ''} — Appuyez pour gérer
-            </Text>
-            <Ionicons name="chevron-forward" size={16} color="#92400e" />
-          </TouchableOpacity>
+          <StockAlertCard
+            items={unavailableItems}
+            onToggle={async (item) => {
+              try {
+                await restaurantMenu.updateItem(item.id, { is_available: true });
+                setUnavailableItems((prev) => prev.filter((i) => i.id !== item.id));
+                Toast.show({ type: 'success', text1: `${item.name} disponible` });
+              } catch (_) {
+                Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible de mettre à jour' });
+              }
+            }}
+            onManageAll={() => navigation.navigate('Menu')}
+          />
         )}
 
         {/* Open/Close Card — toujours en haut */}
@@ -329,10 +447,13 @@ export default function DashboardScreen({ navigation }) {
                       <Text style={styles.refuseBtnText}>Refuser</Text>
                     </TouchableOpacity>
                     <TouchableOpacity
-                      style={styles.acceptBtn}
-                      onPress={() => handleAcceptOrder(order.id)}
+                      style={[styles.acceptBtn, acceptingId === order.id && { opacity: 0.6 }]}
+                      onPress={() => handleAcceptOrder(order)}
+                      disabled={!!acceptingId}
                     >
-                      <Ionicons name="checkmark" size={18} color="#fff" />
+                      {acceptingId === order.id
+                        ? <ActivityIndicator size="small" color="#fff" />
+                        : <Ionicons name="checkmark" size={18} color="#fff" />}
                       <Text style={styles.acceptBtnText}>Accepter</Text>
                     </TouchableOpacity>
                   </View>
@@ -508,6 +629,40 @@ export default function DashboardScreen({ navigation }) {
           </View>
         )}
       </ScrollView>
+
+      {/* Modal acceptation commande */}
+      {acceptModal && (
+        <Modal visible transparent animationType="slide">
+          <TouchableOpacity style={styles.modalBackdrop} activeOpacity={1} onPress={() => setAcceptModal(null)}>
+            <View style={styles.prepModal} onStartShouldSetResponder={() => true}>
+              <Text style={styles.prepModalTitle}>Accepter commande #{acceptModal.orderNum}</Text>
+              <Text style={styles.prepModalSub}>Temps de préparation estimé</Text>
+              <View style={styles.prepGrid}>
+                {[10, 15, 20, 30, 45].map((min) => (
+                  <TouchableOpacity
+                    key={min}
+                    style={[styles.prepOption, selectedPrepTime === min && styles.prepOptionSelected]}
+                    onPress={() => setSelectedPrepTime(min)}
+                  >
+                    <Text style={[styles.prepOptionText, selectedPrepTime === min && styles.prepOptionTextSelected]}>
+                      {min} min
+                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+              <TouchableOpacity
+                style={[styles.prepConfirmBtn, acceptingId && { opacity: 0.6 }]}
+                onPress={confirmAcceptOrder}
+                disabled={!!acceptingId}
+              >
+                {acceptingId
+                  ? <ActivityIndicator color="#fff" />
+                  : <Text style={styles.prepConfirmText}>✓ Confirmer l'acceptation</Text>}
+              </TouchableOpacity>
+            </View>
+          </TouchableOpacity>
+        </Modal>
+      )}
     </View>
   );
 }
@@ -929,5 +1084,66 @@ const styles = StyleSheet.create({
     height: 6,
     backgroundColor: COLORS.primary,
     borderRadius: 3,
+  },
+  modalBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'flex-end',
+  },
+  prepModal: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    padding: 24,
+    paddingBottom: 40,
+  },
+  prepModalTitle: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  prepModalSub: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    marginBottom: 20,
+  },
+  prepGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    marginBottom: 24,
+  },
+  prepOption: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.background,
+  },
+  prepOptionSelected: {
+    borderColor: COLORS.primary,
+    backgroundColor: COLORS.primary + '12',
+  },
+  prepOptionText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.textSecondary,
+  },
+  prepOptionTextSelected: {
+    color: COLORS.primary,
+  },
+  prepConfirmBtn: {
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  prepConfirmText: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: '#fff',
   },
 });

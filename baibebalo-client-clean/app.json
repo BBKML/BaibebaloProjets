@@ -30,7 +30,7 @@
         "backgroundColor": "#22c38e"
       },
       "package": "ci.baibebalo.client",
-      "versionCode": 2,
+      "versionCode": 3,
       "permissions": [
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",

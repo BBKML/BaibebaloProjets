@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import Layout from '../components/layout/Layout';
 import { ordersAPI } from '../api/orders';
 import { usersAPI } from '../api/users';
@@ -224,13 +224,22 @@ const Orders = () => {
                 : 'Toutes les commandes'}
             </p>
           </div>
-          <button
-            onClick={() => setShowExportModal(true)}
-            className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-sm font-bold shadow-sm shadow-primary/20"
-          >
-            <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>file_download</span>
-            Exporter CSV
-          </button>
+          <div className="flex items-center gap-2">
+            <Link
+              to="/orders/active-monitor"
+              className="flex items-center gap-2 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 rounded-xl hover:border-primary/50 transition-colors text-sm font-bold"
+            >
+              <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+              Suivi temps réel
+            </Link>
+            <button
+              onClick={() => setShowExportModal(true)}
+              className="flex items-center gap-2 px-4 py-2.5 bg-primary text-white rounded-xl hover:bg-primary/90 transition-colors text-sm font-bold shadow-sm shadow-primary/20"
+            >
+              <span className="material-symbols-outlined" style={{ fontSize: '18px' }}>file_download</span>
+              Exporter CSV
+            </button>
+          </div>
         </div>
 
         <ExportOrdersModal isOpen={showExportModal} onClose={() => setShowExportModal(false)} />

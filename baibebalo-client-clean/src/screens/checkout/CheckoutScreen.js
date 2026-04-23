@@ -10,16 +10,23 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
+  ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { COLORS } from '../../constants/colors';
 import useCartStore from '../../store/cartStore';
 import useAuthStore from '../../store/authStore';
-import { getAddresses } from '../../api/users';
+import { getAddresses, validatePromoCode } from '../../api/users';
 import { createOrder, initiatePayment, calculateFees } from '../../api/orders';
-import { validatePromoCode } from '../../api/users';
 import { getImageUrl } from '../../utils/url';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+
+const PAYMENT_OPTIONS = [
+  { id: 'cash', label: 'Espèces', sublabel: 'Paiement à la livraison', icon: 'cash-outline', color: COLORS.primary },
+];
+const STORAGE_KEY_PAYMENT = '@baibebalo_last_payment';
 
 const FREE_DELIVERY_THRESHOLD = 20000; // FCFA — même seuil que le panier
 
@@ -33,7 +40,7 @@ export default function CheckoutScreen({ navigation, route }) {
   const [addresses, setAddresses] = useState([]);
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [paymentMethod, setPaymentMethod] = useState('cash');
-  const [paymentMethodSelected, setPaymentMethodSelected] = useState(false);
+  const [paymentMethodSelected, setPaymentMethodSelected] = useState(true);
   const [loading, setLoading] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(0);
@@ -54,6 +61,11 @@ export default function CheckoutScreen({ navigation, route }) {
 
   useEffect(() => {
     loadAddresses();
+    AsyncStorage.getItem(STORAGE_KEY_PAYMENT).then((saved) => {
+      if (saved && PAYMENT_OPTIONS.find((p) => p.id === saved)) {
+        setPaymentMethod(saved);
+      }
+    }).catch(() => {});
     const unsubscribe = navigation.addListener('focus', () => {
       loadAddresses();
     });
@@ -556,21 +568,31 @@ export default function CheckoutScreen({ navigation, route }) {
           )}
         </View>
 
-        {/* Payment Method */}
+        {/* Payment Method — inline chips */}
         <View style={styles.card}>
-          <View style={styles.cardHeader}>
-            <Text style={styles.cardTitle}>Méthode de paiement</Text>
-            <TouchableOpacity onPress={openPaymentSelection}>
-              <Text style={styles.cardAction}>
-                {paymentMethodSelected ? 'Modifier' : 'Choisir'}
-              </Text>
-            </TouchableOpacity>
-          </View>
-          <View style={styles.paymentSummary}>
-            <Ionicons name="wallet-outline" size={20} color={COLORS.primary} />
-            <Text style={styles.paymentSummaryText}>
-              {paymentMethod === 'cash' ? 'Espèces' : 'Mobile Money'}
-            </Text>
+          <Text style={styles.cardTitle}>Méthode de paiement</Text>
+          <View style={styles.paymentChips}>
+            {PAYMENT_OPTIONS.map((opt) => {
+              const selected = paymentMethod === opt.id;
+              return (
+                <TouchableOpacity
+                  key={opt.id}
+                  style={[styles.paymentChip, selected && { borderColor: opt.color, backgroundColor: opt.color + '10' }]}
+                  onPress={() => {
+                    setPaymentMethod(opt.id);
+                    setPaymentMethodSelected(true);
+                    AsyncStorage.setItem(STORAGE_KEY_PAYMENT, opt.id).catch(() => {});
+                  }}
+                >
+                  <Ionicons name={opt.icon} size={20} color={selected ? opt.color : COLORS.textSecondary} />
+                  <View style={styles.paymentChipInfo}>
+                    <Text style={[styles.paymentChipLabel, selected && { color: opt.color }]}>{opt.label}</Text>
+                    {opt.sublabel ? <Text style={styles.paymentChipSub}>{opt.sublabel}</Text> : null}
+                  </View>
+                  {selected && <Ionicons name="checkmark-circle" size={20} color={opt.color} />}
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -667,6 +689,17 @@ export default function CheckoutScreen({ navigation, route }) {
           </Text>
         </TouchableOpacity>
       </View>
+
+      {/* Overlay chargement commande */}
+      <Modal visible={loading} transparent animationType="fade">
+        <View style={styles.loadingOverlay}>
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={COLORS.primary} />
+            <Text style={styles.loadingTitle}>Confirmation en cours...</Text>
+            <Text style={styles.loadingSub}>Veuillez patienter</Text>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -1151,5 +1184,59 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
     fontStyle: 'italic',
+  },
+  paymentChips: {
+    gap: 8,
+    marginTop: 8,
+  },
+  paymentChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1.5,
+    borderColor: COLORS.border,
+    borderRadius: 12,
+    padding: 14,
+    backgroundColor: COLORS.white,
+  },
+  paymentChipInfo: { flex: 1 },
+  paymentChipLabel: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: COLORS.text,
+  },
+  paymentChipSub: {
+    fontSize: 11,
+    color: COLORS.textSecondary,
+    marginTop: 1,
+  },
+  loadingOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingCard: {
+    backgroundColor: '#fff',
+    borderRadius: 20,
+    paddingVertical: 36,
+    paddingHorizontal: 48,
+    alignItems: 'center',
+    gap: 12,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 8,
+  },
+  loadingTitle: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginTop: 8,
+  },
+  loadingSub: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
   },
 });

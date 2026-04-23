@@ -210,16 +210,27 @@ export default function AvailabilityScheduleScreen({ navigation }) {
           Quand êtes-vous disponible pour livrer?
         </Text>
 
-        {/* Flexible option */}
-        <TouchableOpacity style={styles.flexibleOption} onPress={toggleFlexible}>
-          <View style={[styles.checkbox, flexible && styles.checkboxChecked]}>
-            {flexible && <Ionicons name="checkmark" size={16} color="#FFFFFF" />}
+        {/* Flexible option — bouton principal */}
+        <TouchableOpacity
+          style={[styles.flexibleCard, flexible && styles.flexibleCardActive]}
+          onPress={toggleFlexible}
+          activeOpacity={0.8}
+        >
+          <View style={[styles.flexibleIconWrap, flexible && styles.flexibleIconWrapActive]}>
+            <Ionicons name={flexible ? 'checkmark-circle' : 'flash-outline'} size={28} color={flexible ? '#fff' : COLORS.primary} />
           </View>
           <View style={styles.flexibleContent}>
-            <Text style={styles.flexibleTitle}>Je suis flexible</Text>
-            <Text style={styles.flexibleSubtitle}>Disponible à tout moment</Text>
+            <Text style={[styles.flexibleTitle, flexible && styles.flexibleTitleActive]}>
+              Disponible tout le temps
+            </Text>
+            <Text style={[styles.flexibleSubtitle, flexible && styles.flexibleSubtitleActive]}>
+              Recommandé — gagnez plus de courses
+            </Text>
           </View>
+          {flexible && <Ionicons name="checkmark-circle" size={22} color="#fff" />}
         </TouchableOpacity>
+
+        <Text style={styles.orLabel}>— ou choisissez vos créneaux —</Text>
 
         {/* Schedule Grid */}
         <View style={styles.scheduleContainer}>
@@ -356,41 +367,61 @@ const styles = StyleSheet.create({
     color: COLORS.textSecondary,
     marginBottom: 24,
   },
-  flexibleOption: {
+  flexibleCard: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 24,
-    borderWidth: 1,
-    borderColor: COLORS.border,
-  },
-  checkbox: {
-    width: 24,
-    height: 24,
-    borderRadius: 6,
+    borderRadius: 16,
+    padding: 18,
+    marginBottom: 8,
     borderWidth: 2,
-    borderColor: COLORS.border,
-    marginRight: 12,
+    borderColor: COLORS.primary + '30',
+    gap: 14,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  flexibleCardActive: {
+    backgroundColor: COLORS.primary,
+    borderColor: COLORS.primary,
+  },
+  flexibleIconWrap: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary + '15',
     alignItems: 'center',
     justifyContent: 'center',
   },
-  checkboxChecked: {
-    backgroundColor: COLORS.primary,
-    borderColor: COLORS.primary,
+  flexibleIconWrapActive: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
   },
   flexibleContent: {
     flex: 1,
   },
   flexibleTitle: {
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
     color: COLORS.text,
+  },
+  flexibleTitleActive: {
+    color: '#fff',
   },
   flexibleSubtitle: {
     fontSize: 12,
     color: COLORS.textSecondary,
+    marginTop: 2,
+  },
+  flexibleSubtitleActive: {
+    color: 'rgba(255,255,255,0.8)',
+  },
+  orLabel: {
+    textAlign: 'center',
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginVertical: 16,
   },
   scheduleContainer: {
     backgroundColor: COLORS.white,

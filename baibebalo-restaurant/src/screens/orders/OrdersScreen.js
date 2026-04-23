@@ -378,16 +378,30 @@ export default function OrdersScreen({ navigation }) {
         ListEmptyComponent={
           <View style={styles.emptyBox}>
             <View style={styles.emptyIcon}>
-              <Ionicons name="receipt-outline" size={40} color={COLORS.textSecondary} />
+              <Ionicons
+                name={selectedTab === 'new' ? 'storefront-outline' : selectedTab === 'completed' ? 'checkmark-circle-outline' : 'receipt-outline'}
+                size={48}
+                color={COLORS.textSecondary}
+              />
             </View>
-            <Text style={styles.emptyTitle}>Aucune commande</Text>
+            <Text style={styles.emptyTitle}>
+              {selectedTab === 'new' ? 'Pas encore de commandes' : selectedTab === 'in-progress' ? 'Aucune commande en cours' : selectedTab === 'completed' ? 'Aucune commande livrée' : 'Aucune commande'}
+            </Text>
             <Text style={styles.emptySub}>
               {selectedTab === 'new'
-                ? 'Les nouvelles commandes apparaîtront ici'
+                ? 'Vérifiez que votre restaurant est ouvert et que vos plats sont disponibles.'
                 : selectedTab === 'in-progress'
-                ? 'Aucune commande en cours de préparation'
-                : 'Aucune commande dans cette catégorie'}
+                ? 'Acceptez une nouvelle commande pour qu\'elle apparaisse ici.'
+                : selectedTab === 'completed'
+                ? 'Les commandes livrées apparaîtront ici.'
+                : 'Aucune commande dans cette catégorie.'}
             </Text>
+            {selectedTab === 'new' && (
+              <TouchableOpacity style={styles.emptyAction} onPress={() => navigation.navigate('Settings')}>
+                <Ionicons name="settings-outline" size={16} color={COLORS.primary} />
+                <Text style={styles.emptyActionText}>Vérifier les paramètres</Text>
+              </TouchableOpacity>
+            )}
           </View>
         }
       />
@@ -671,7 +685,19 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginBottom: 6 },
-  emptySub: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center' },
+  emptySub: { fontSize: 14, color: COLORS.textSecondary, textAlign: 'center', lineHeight: 20 },
+  emptyAction: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 16,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.primary,
+  },
+  emptyActionText: { fontSize: 14, fontWeight: '600', color: COLORS.primary },
 
   // Modal
   modalOverlay: {

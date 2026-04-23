@@ -9,6 +9,7 @@ const NAV_GROUPS = [
     items: [
       { label: 'Tableau de bord', path: '/', icon: 'dashboard' },
       { label: 'Commandes', path: '/orders', icon: 'shopping_cart', badgeKey: 'pending_orders' },
+      { label: 'Suivi temps réel', path: '/orders/active-monitor', icon: 'radar', badgeKey: 'alert_orders' },
       { label: 'Restaurants', path: '/restaurants', icon: 'restaurant', badgeKey: 'pending_restaurants' },
       { label: 'Livreurs', path: '/drivers', icon: 'delivery_dining', badgeKey: 'pending_drivers' },
       { label: 'Clients', path: '/users', icon: 'group' },
@@ -19,7 +20,6 @@ const NAV_GROUPS = [
     items: [
       { label: 'Support', path: '/support', icon: 'support_agent', badgeKey: 'open_tickets' },
       { label: 'Finances', path: '/finances', icon: 'account_balance_wallet' },
-      { label: 'Codes Promo', path: '/settings/promo-codes', icon: 'local_offer' },
     ],
   },
   {
@@ -33,8 +33,15 @@ const NAV_GROUPS = [
   },
 ];
 
+const SETTINGS_ITEMS = [
+  { label: 'Plateforme', path: '/settings/platform', icon: 'tune' },
+  { label: 'Contacts & Liens', path: '/settings/company-contact', icon: 'contacts' },
+  { label: 'Commissions', path: '/settings/commissions', icon: 'percent' },
+  { label: 'Codes Promo', path: '/settings/promo-codes', icon: 'local_offer' },
+];
+
 const FOOTER_ITEMS = [
-  { label: 'Paramètres', path: '/settings/platform', icon: 'settings' },
+  { label: 'Journal d\'actions', path: '/admin/action-log', icon: 'history' },
   { label: 'Mon compte', path: '/settings/account', icon: 'manage_accounts' },
 ];
 
@@ -55,6 +62,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         pending_restaurants: comparisons.pending_validations || 0,
         pending_drivers: comparisons.pending_driver_validations || 0,
         open_tickets: comparisons.open_tickets || 0,
+        alert_orders: comparisons.alert_orders || 0,
       };
     },
   });
@@ -86,7 +94,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         {/* Logo */}
         <div className="px-5 py-5 flex items-center justify-between border-b border-slate-700/40">
           <div className="flex items-center gap-3">
-            <img src={logoIcon} alt="Baibebalo" className="h-9 w-auto flex-shrink-0" />
+            <img src={logoIcon} alt="Baibebalo" className="h-9 w-auto shrink-0" />
             <div>
               <h1 className="text-base font-black tracking-wide text-white uppercase leading-none">
                 BAIBEBALO
@@ -123,8 +131,8 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                       className={`
                         flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all relative
                         ${active
-                          ? 'bg-primary/15 text-white border-l-2 border-primary pl-[10px]'
-                          : 'text-slate-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent pl-[10px]'
+                          ? 'bg-primary/15 text-white border-l-2 border-primary pl-2.5'
+                          : 'text-slate-400 hover:text-white hover:bg-white/5 border-l-2 border-transparent pl-2.5'
                         }
                       `}
                     >
@@ -150,8 +158,31 @@ const Sidebar = ({ isOpen = false, onClose }) => {
           ))}
         </nav>
 
+        {/* Paramètres */}
+        <div className="px-3 py-3 border-t border-slate-700/40">
+          <p className="px-3 mb-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">Paramètres</p>
+          <div className="space-y-0.5">
+            {SETTINGS_ITEMS.map((item) => {
+              const active = isActive(item.path);
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-lg transition-all border-l-2 pl-2.5 ${
+                    active ? 'bg-primary/15 text-white border-primary' : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'
+                  }`}
+                >
+                  <span className={`material-symbols-outlined ${active ? 'text-primary' : ''}`} style={{ fontSize: '18px' }}>{item.icon}</span>
+                  <span className="text-sm font-medium">{item.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+        </div>
+
         {/* Pied de page */}
-        <div className="px-3 pb-4 pt-3 border-t border-slate-700/40 space-y-0.5">
+        <div className="px-3 pb-4 pt-2 border-t border-slate-700/40 space-y-0.5">
           {FOOTER_ITEMS.map((item) => {
             const active = isActive(item.path);
             return (
@@ -160,7 +191,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
                 to={item.path}
                 onClick={onClose}
                 className={`
-                  flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all border-l-2 pl-[10px]
+                  flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all border-l-2 pl-2.5
                   ${active
                     ? 'bg-primary/15 text-white border-primary'
                     : 'text-slate-400 hover:text-white hover:bg-white/5 border-transparent'

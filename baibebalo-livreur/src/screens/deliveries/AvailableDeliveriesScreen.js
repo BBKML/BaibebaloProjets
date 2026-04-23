@@ -178,16 +178,24 @@ export default function AvailableDeliveriesScreen({ navigation }) {
         </View>
       ) : orders.length === 0 ? (
         <View style={styles.empty}>
-          <Ionicons name="bicycle-outline" size={64} color={COLORS.textLight} />
-          <Text style={styles.emptyTitle}>Aucune course disponible</Text>
+          <View style={styles.emptyIconWrap}>
+            <Ionicons name="bicycle-outline" size={56} color={COLORS.primary} />
+          </View>
+          <Text style={styles.emptyTitle}>Aucune course pour l'instant</Text>
           <Text style={styles.emptySubtitle}>
-            Les demandes de course (restaurant et express) apparaissent ici.
-            Passez en mode « Disponible » sur l'accueil pour recevoir des notifications.
+            Les nouvelles courses apparaissent ici automatiquement.{'\n'}
+            Assurez-vous d'être en mode <Text style={styles.emptyHighlight}>Disponible</Text> sur l'accueil.
           </Text>
-          <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
-            <Ionicons name="refresh" size={20} color="#FFF" />
-            <Text style={styles.refreshText}>Actualiser</Text>
-          </TouchableOpacity>
+          <View style={styles.emptyActions}>
+            <TouchableOpacity style={styles.refreshBtn} onPress={onRefresh}>
+              <Ionicons name="refresh" size={18} color={COLORS.primary} />
+              <Text style={styles.refreshText}>Actualiser</Text>
+            </TouchableOpacity>
+            <TouchableOpacity style={styles.homeBtn} onPress={() => navigation.navigate('Home')}>
+              <Ionicons name="home-outline" size={18} color="#fff" />
+              <Text style={styles.homeBtnText}>Accueil</Text>
+            </TouchableOpacity>
+          </View>
         </View>
       ) : (
         <FlatList
@@ -224,15 +232,41 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     padding: 24,
   },
-  emptyTitle: { fontSize: 18, fontWeight: '600', color: COLORS.text, marginTop: 16 },
+  emptyIconWrap: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    backgroundColor: COLORS.primary + '12',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
+  },
+  emptyTitle: { fontSize: 18, fontWeight: '700', color: COLORS.text, marginTop: 8, textAlign: 'center' },
   emptySubtitle: {
     fontSize: 14,
     color: COLORS.textSecondary,
     textAlign: 'center',
     marginTop: 8,
-    lineHeight: 20,
+    lineHeight: 22,
+  },
+  emptyHighlight: { fontWeight: '700', color: COLORS.primary },
+  emptyActions: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 24,
   },
   refreshBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    borderWidth: 1.5,
+    borderColor: COLORS.primary,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+  },
+  refreshText: { color: COLORS.primary, fontWeight: '600' },
+  homeBtn: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -240,9 +274,8 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingVertical: 12,
     borderRadius: 12,
-    marginTop: 24,
   },
-  refreshText: { color: '#FFF', fontWeight: '600' },
+  homeBtnText: { color: '#fff', fontWeight: '600' },
   list: { padding: 16 },
   card: {
     backgroundColor: COLORS.white,

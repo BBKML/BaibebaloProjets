@@ -15,7 +15,7 @@ import { COLORS } from '../../constants/colors';
 import { useSafeAreaPadding } from '../../hooks/useSafeAreaPadding';
 import useCartStore from '../../store/cartStore';
 import { getSuggestedItems } from '../../api/restaurants';
-import { validatePromoCode } from '../../api/users';
+import { validatePromoCode, getAddresses } from '../../api/users';
 import { getImageUrl } from '../../utils/url';
 
 // Configuration des seuils (doit correspondre au backend)
@@ -65,11 +65,18 @@ export default function ShoppingCartScreen({ navigation }) {
     }
   };
 
-  const handleCheckout = () => {
+  const handleCheckout = async () => {
     if (items.length === 0) return;
-    navigation.navigate('AddressSelection', {
-      nextRouteName: 'Checkout',
-    });
+    try {
+      const response = await getAddresses();
+      const addresses = response.data?.addresses || response.data?.data?.addresses || response.addresses || [];
+      if (addresses.length > 0) {
+        const defaultAddress = addresses.find((a) => a.is_default) || addresses[0];
+        navigation.navigate('Checkout', { selectedAddressId: defaultAddress.id });
+        return;
+      }
+    } catch (_) {}
+    navigation.navigate('AddressSelection', { nextRouteName: 'Checkout' });
   };
 
   return (

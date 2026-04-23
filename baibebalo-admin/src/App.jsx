@@ -55,6 +55,8 @@ import RestaurantStatistics from './pages/RestaurantStatistics';
 import RealTimeDriverTracking from './pages/RealTimeDriverTracking';
 import ValidateDriver from './pages/ValidateDriver';
 import OrderIntervention from './pages/OrderIntervention';
+import ActiveOrdersMonitor from './pages/ActiveOrdersMonitor';
+import AdminActionLog from './pages/AdminActionLog';
 import DriverLeaderboard from './pages/DriverLeaderboard';
 import PaymentMethodDetails from './pages/PaymentMethodDetails';
 import KnowledgeBaseArticle from './pages/KnowledgeBaseArticle';
@@ -542,6 +544,22 @@ function App() {
             element={
               <ProtectedRoute>
                 <OrderIntervention />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/orders/active-monitor"
+            element={
+              <ProtectedRoute>
+                <ActiveOrdersMonitor />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin/action-log"
+            element={
+              <ProtectedRoute>
+                <AdminActionLog />
               </ProtectedRoute>
             }
           />

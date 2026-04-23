@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, Alert, ActivityIndicator, Image } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Linking, Platform, Alert, ActivityIndicator, Image, ScrollView } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
@@ -269,7 +269,8 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
       </View>
 
       {/* Info Panel */}
-      <View style={[styles.infoPanel, { paddingBottom: Math.max(insets.bottom, 32) }]}>
+      <View style={styles.infoPanel}>
+        <ScrollView style={styles.infoPanelScroll} showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 12 }}>
         <View style={styles.infoPanelHeader}>
           <View style={styles.stepIndicator}>
             <View style={[styles.stepDot, styles.stepDotActive]} />
@@ -410,7 +411,9 @@ export default function NavigationToRestaurantScreen({ navigation, route }) {
           )}
         </View>
 
-        <TouchableOpacity 
+        </ScrollView>
+
+        <TouchableOpacity
           style={[styles.arrivedButton, arriving && styles.arrivedButtonDisabled]}
           onPress={handleArrived}
           disabled={arriving}
@@ -595,17 +598,20 @@ const styles = StyleSheet.create({
     shadowRadius: 4,
     elevation: 3,
   },
-  infoPanel: { 
-    backgroundColor: COLORS.white, 
-    padding: 20,
-    paddingBottom: 32,
-    borderTopLeftRadius: 24, 
+  infoPanel: {
+    backgroundColor: COLORS.white,
+    borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     shadowColor: '#000',
     shadowOffset: { width: 0, height: -4 },
     shadowOpacity: 0.1,
     shadowRadius: 8,
     elevation: 10,
+    maxHeight: '55%',
+  },
+  infoPanelScroll: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
   },
   infoPanelHeader: {
     flexDirection: 'row',
@@ -860,14 +866,16 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: COLORS.info,
   },
-  arrivedButton: { 
+  arrivedButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 10,
-    backgroundColor: COLORS.primary, 
-    paddingVertical: 16, 
+    backgroundColor: COLORS.primary,
+    paddingVertical: 16,
     borderRadius: 14,
+    marginHorizontal: 20,
+    marginVertical: 16,
   },
   arrivedButtonDisabled: {
     backgroundColor: COLORS.primary + '80',
