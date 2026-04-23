@@ -353,11 +353,11 @@ class UploadService {
   async uploadToCloudinary(file, folder = 'general') {
     try {
       const cloudinary = require('cloudinary').v2;
-      
+
       cloudinary.config({
-        cloud_name: config.cloudinary.cloudName,
-        api_key: config.cloudinary.apiKey,
-        api_secret: config.cloudinary.apiSecret,
+        cloud_name: config.upload.cloudinary.cloudName,
+        api_key: config.upload.cloudinary.apiKey,
+        api_secret: config.upload.cloudinary.apiSecret,
       });
 
       // Upload en base64
@@ -388,11 +388,11 @@ class UploadService {
   async deleteFromCloudinary(publicId) {
     try {
       const cloudinary = require('cloudinary').v2;
-      
+
       cloudinary.config({
-        cloud_name: config.cloudinary.cloudName,
-        api_key: config.cloudinary.apiKey,
-        api_secret: config.cloudinary.apiSecret,
+        cloud_name: config.upload.cloudinary.cloudName,
+        api_key: config.upload.cloudinary.apiKey,
+        api_secret: config.upload.cloudinary.apiSecret,
       });
 
       await cloudinary.uploader.destroy(publicId);
