@@ -76,19 +76,31 @@
     font-variation-settings: 'FILL' 1, 'wght' 500;
   }
 
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: transparent transparent;
+    transition: scrollbar-color 0.2s;
+  }
+  .custom-scrollbar:hover {
+    scrollbar-color: #cbd5e1 transparent;
+  }
   .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-    height: 6px;
+    width: 5px;
+    height: 5px;
   }
   .custom-scrollbar::-webkit-scrollbar-track {
     background: transparent;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: #94a3b8;
+    background: transparent;
     border-radius: 10px;
+    transition: background 0.2s;
+  }
+  .custom-scrollbar:hover::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
   }
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: #64748b;
+    background: #94a3b8;
   }
 
   /* Styles pour Leaflet */
