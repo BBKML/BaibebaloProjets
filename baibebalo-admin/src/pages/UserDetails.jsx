@@ -6,6 +6,7 @@ import { usersAPI } from '../api/users';
 import { formatCurrency, formatDateShort } from '../utils/format';
 import { getImageUrl } from '../utils/url';
 import TableSkeleton from '../components/common/TableSkeleton';
+import { getOrderStatusCls, getOrderStatusLabel } from '../constants/statusColors';
 import LineChart from '../components/charts/LineChart';
 
 const UserDetails = () => {
@@ -38,13 +39,13 @@ const UserDetails = () => {
     { name: 'Mar', value: stats.orders_mar || 0 },
   ];
 
-  const getStatusBadge = (status) => {
-    if (user.is_suspended) return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-    if (status === 'active' || user.is_active) return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-    return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
+  const getUserStatusCls = () => {
+    if (user.is_suspended) return 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400';
+    if (user.is_active !== false) return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400';
+    return 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
   };
 
-  const getStatusLabel = () => {
+  const getUserStatusLabel = () => {
     if (user.is_suspended) return 'Suspendu';
     if (user.is_active !== false) return 'Actif';
     return 'Inactif';
@@ -101,30 +102,19 @@ const UserDetails = () => {
             </button>
             <div className="flex items-center gap-4">
               {/* Avatar */}
-              {user.profile_picture ? (
-                <img 
-                  src={getImageUrl(user.profile_picture)} 
-                  alt={user.first_name || 'User'}
-                  className="w-14 h-14 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <div 
-                className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl"
-                style={{ display: user.profile_picture ? 'none' : 'flex' }}
-              >
-                {(user.first_name?.[0] || user.name?.[0] || 'U').toUpperCase()}
+              <div className="w-14 h-14 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 bg-primary/10 flex items-center justify-center shrink-0">
+                {user.profile_picture
+                  ? <img src={getImageUrl(user.profile_picture)} alt={user.first_name || 'User'} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  : <span className="text-primary font-bold text-xl">{(user.first_name?.[0] || user.name?.[0] || 'U').toUpperCase()}</span>
+                }
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                   {user.full_name || `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.name || 'Utilisateur'}
                 </h1>
                 <div className="flex items-center gap-3 mt-1">
-                  <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${getStatusBadge(user.status)}`}>
-                    {getStatusLabel()}
+                  <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${getUserStatusCls()}`}>
+                    {getUserStatusLabel()}
                   </span>
                   <span className="text-sm text-slate-500">{user.phone}</span>
                 </div>
@@ -242,8 +232,8 @@ const UserDetails = () => {
                         Statut
                       </label>
                       <div className="mt-1">
-                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${getStatusBadge(user.status)}`}>
-                          {getStatusLabel()}
+                        <span className={`inline-flex px-2.5 py-1 rounded-full text-xs font-bold ${getUserStatusCls()}`}>
+                          {getUserStatusLabel()}
                         </span>
                       </div>
                     </div>
@@ -334,23 +324,9 @@ const UserDetails = () => {
                     </thead>
                     <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                       {recentOrders && recentOrders.length > 0 ? (
-                        recentOrders.map((order) => {
-                          const statusConfig = {
-                            delivered: { label: 'Livré', class: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-500' },
-                            preparing: { label: 'En préparation', class: 'bg-blue-100 text-blue-600' },
-                            ready: { label: 'Prêt', class: 'bg-purple-100 text-purple-600' },
-                            picked_up: { label: 'Récupérée', class: 'bg-blue-100 text-blue-600' },
-                            delivering: { label: 'En livraison', class: 'bg-indigo-100 text-indigo-600' },
-                            driver_at_customer: { label: 'Livreur arrivé', class: 'bg-purple-100 text-purple-600 dark:bg-purple-500/10 dark:text-purple-500' },
-                            in_progress: { label: 'En cours', class: 'bg-semantic-amber/10 text-semantic-amber' },
-                            cancelled: { label: 'Annulé', class: 'bg-red-100 text-red-600 dark:bg-red-500/10 dark:text-red-500' },
-                            new: { label: 'Nouveau', class: 'bg-blue-100 text-blue-600' },
-                          };
-                          const status = statusConfig[order.status] || { label: order.status, class: 'bg-slate-100 text-slate-600' };
-                          
-                          return (
-                            <tr 
-                              key={order.id} 
+                        recentOrders.map((order) => (
+                            <tr
+                              key={order.id}
                               className="hover:bg-slate-50 dark:hover:bg-slate-800/40 transition-colors cursor-pointer"
                               onClick={() => navigate(`/orders/${order.id}`)}
                             >
@@ -364,16 +340,15 @@ const UserDetails = () => {
                                 {formatDateShort(order.created_at || order.placed_at)}
                               </td>
                               <td className="px-6 py-4 text-center">
-                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[11px] font-bold uppercase ${status.class}`}>
-                                  {status.label}
+                                <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold ${getOrderStatusCls(order.status)}`}>
+                                  {getOrderStatusLabel(order.status)}
                                 </span>
                               </td>
                               <td className="px-6 py-4 text-right text-sm font-bold text-slate-900 dark:text-white">
                                 {formatCurrency(order.total || 0)}
                               </td>
                             </tr>
-                          );
-                        })
+                          ))
                       ) : (
                         <tr>
                           <td colSpan="5" className="px-6 py-8 text-center text-slate-500">

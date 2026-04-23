@@ -7,6 +7,7 @@ import TableSkeleton from '../components/common/TableSkeleton';
 import { formatDateShort, formatCurrency } from '../utils/format';
 import { getImageUrl } from '../utils/url';
 import toast from 'react-hot-toast';
+import { getDriverStatusCls, getDriverStatusLabel, getOrderStatusCls, getOrderStatusLabel } from '../constants/statusColors';
 
 const DriverDetails = () => {
   const { id } = useParams();
@@ -118,96 +119,7 @@ const DriverDetails = () => {
   const lng = driver.current_longitude != null ? Number(driver.current_longitude) : null;
   const hasPosition = lat != null && lng != null && !Number.isNaN(lat) && !Number.isNaN(lng);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'active':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-      case 'pending':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'suspended':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      case 'rejected':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
-    }
-  };
-
-  const getStatusLabel = (status) => {
-    switch (status) {
-      case 'active': return 'Actif';
-      case 'pending': return 'En attente';
-      case 'suspended': return 'Suspendu';
-      case 'rejected': return 'Rejeté';
-      case 'offline': return 'Hors ligne';
-      default: return status;
-    }
-  };
-
-  const getDeliveryStatusBadge = (status) => {
-    switch (status) {
-      case 'available':
-        return 'bg-emerald-100 text-emerald-700';
-      case 'busy':
-        return 'bg-blue-100 text-blue-700';
-      case 'on_break':
-        return 'bg-amber-100 text-amber-700';
-      case 'offline':
-        return 'bg-slate-100 text-slate-700';
-      default:
-        return 'bg-slate-100 text-slate-700';
-    }
-  };
-
-  const getDeliveryStatusLabel = (status) => {
-    switch (status) {
-      case 'available': return 'Disponible';
-      case 'busy': return 'En course';
-      case 'on_break': return 'En pause';
-      case 'offline': return 'Hors ligne';
-      default: return status || 'Inconnu';
-    }
-  };
-
-  const getOrderStatusLabel = (status) => {
-    switch (status) {
-      case 'new': return 'Nouvelle';
-      case 'pending': return 'En attente';
-      case 'accepted': return 'Acceptée';
-      case 'preparing': return 'En préparation';
-      case 'ready': return 'Prête';
-      case 'picked_up': return 'Récupérée';
-      case 'delivering': return 'En livraison';
-      case 'driver_at_customer': return 'Livreur arrivé';
-      case 'delivered': return 'Livrée';
-      case 'cancelled': return 'Annulée';
-      default: return status || 'Inconnu';
-    }
-  };
-
-  const getOrderStatusBadge = (status) => {
-    switch (status) {
-      case 'delivered':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-      case 'cancelled':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      case 'picked_up':
-        return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
-      case 'delivering':
-        return 'bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400';
-      case 'driver_at_customer':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'ready':
-        return 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
-      case 'preparing':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'pending':
-      case 'accepted':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
-    }
-  };
+  // getDriverStatusCls, getDriverStatusLabel, getOrderStatusCls, getOrderStatusLabel importés depuis statusColors.js
 
   const getVehicleIcon = (vehicle) => {
     switch (vehicle?.toLowerCase()) {
@@ -246,33 +158,22 @@ const DriverDetails = () => {
               <span className="material-symbols-outlined">arrow_back</span>
             </button>
             <div className="flex items-center gap-4">
-              {profilePicture ? (
-                <img 
-                  src={profilePicture} 
-                  alt={fullName}
-                  className="w-16 h-16 rounded-full object-cover border-2 border-slate-200 dark:border-slate-700"
-                  onError={(e) => {
-                    e.target.style.display = 'none';
-                    e.target.nextSibling.style.display = 'flex';
-                  }}
-                />
-              ) : null}
-              <div 
-                className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl"
-                style={{ display: profilePicture ? 'none' : 'flex' }}
-              >
-                {initials}
+              <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-slate-200 dark:border-slate-700 bg-primary/10 flex items-center justify-center shrink-0">
+                {profilePicture
+                  ? <img src={profilePicture} alt={fullName} className="w-full h-full object-cover" onError={(e) => { e.currentTarget.style.display = 'none'; }} />
+                  : <span className="text-primary font-bold text-xl">{initials}</span>
+                }
               </div>
               <div>
                 <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
                   {fullName}
                 </h1>
                 <div className="flex items-center gap-3 mt-2">
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(driver.status)}`}>
-                    {getStatusLabel(driver.status)}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getDriverStatusCls(driver.status)}`}>
+                    {getDriverStatusLabel(driver.status)}
                   </span>
-                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getDeliveryStatusBadge(driver.delivery_status)}`}>
-                    {getDeliveryStatusLabel(driver.delivery_status)}
+                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getDriverStatusCls(driver.delivery_status)}`}>
+                    {getDriverStatusLabel(driver.delivery_status)}
                   </span>
                 </div>
               </div>
@@ -535,8 +436,8 @@ const DriverDetails = () => {
                         <span className="material-symbols-outlined text-slate-400 mt-0.5">verified_user</span>
                         <div>
                           <p className="text-xs text-slate-500">Statut du compte</p>
-                          <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getStatusBadge(driver.status)}`}>
-                            {getStatusLabel(driver.status)}
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getDriverStatusCls(driver.status)}`}>
+                            {getDriverStatusLabel(driver.status)}
                           </span>
                         </div>
                       </div>
@@ -544,8 +445,8 @@ const DriverDetails = () => {
                         <span className="material-symbols-outlined text-slate-400 mt-0.5">schedule</span>
                         <div>
                           <p className="text-xs text-slate-500">Disponibilité</p>
-                          <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getDeliveryStatusBadge(driver.delivery_status)}`}>
-                            {getDeliveryStatusLabel(driver.delivery_status)}
+                          <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getDriverStatusCls(driver.delivery_status)}`}>
+                            {getDriverStatusLabel(driver.delivery_status)}
                           </span>
                         </div>
                       </div>
@@ -640,7 +541,7 @@ const DriverDetails = () => {
                           <td className="py-3 text-sm">{delivery.restaurant_name || 'Restaurant'}</td>
                           <td className="py-3 text-sm text-slate-500">{formatDateShort(delivery.delivered_at || delivery.created_at)}</td>
                           <td className="py-3">
-                            <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${getOrderStatusBadge(delivery.status)}`}>
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getOrderStatusCls(delivery.status)}`}>
                               {getOrderStatusLabel(delivery.status)}
                             </span>
                           </td>

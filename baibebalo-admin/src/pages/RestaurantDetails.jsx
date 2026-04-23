@@ -7,6 +7,7 @@ import TableSkeleton from '../components/common/TableSkeleton';
 import { formatDateShort, formatCurrency } from '../utils/format';
 import { getImageUrl } from '../utils/url';
 import toast from 'react-hot-toast';
+import { getRestaurantStatusCls, getOrderStatusCls, getOrderStatusLabel } from '../constants/statusColors';
 
 const RestaurantDetails = () => {
   const { id } = useParams();
@@ -116,42 +117,10 @@ const RestaurantDetails = () => {
   const currentCommission = restaurant.commission_rate != null ? Number(restaurant.commission_rate) : 15;
   const commissionInputValue = commissionInput !== '' ? commissionInput : String(currentCommission);
 
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case 'active':
-        return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
-      case 'pending':
-        return 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400';
-      case 'suspended':
-        return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400';
-      default:
-        return 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-400';
-    }
-  };
-
+  // getRestaurantStatusCls, getOrderStatusCls, getOrderStatusLabel importés depuis statusColors.js
   const getStatusLabel = (status) => {
-    switch (status) {
-      case 'active': return 'Actif';
-      case 'pending': return 'En attente';
-      case 'suspended': return 'Suspendu';
-      default: return status;
-    }
-  };
-
-  const getOrderStatusLabel = (status) => {
-    switch (status) {
-      case 'pending': return 'En attente';
-      case 'confirmed': return 'Confirmée';
-      case 'preparing': return 'En préparation';
-      case 'ready': return 'Prête';
-      case 'picked_up': return 'Récupérée';
-      case 'out_for_delivery':
-      case 'delivering': return 'En livraison';
-      case 'driver_at_customer': return 'Livreur arrivé';
-      case 'delivered': return 'Livrée';
-      case 'cancelled': return 'Annulée';
-      default: return status || 'Inconnu';
-    }
+    const labels = { active: 'Actif', pending: 'En attente', suspended: 'Suspendu', inactive: 'Inactif' };
+    return labels[status] ?? status ?? 'Inconnu';
   };
 
   // Horaires : structure { monday: { open, close, isOpen }, ... }
@@ -218,14 +187,14 @@ const RestaurantDetails = () => {
                 {restaurant.name || 'Restaurant'}
               </h1>
               <div className="flex items-center gap-3 mt-2">
-                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getStatusBadge(restaurant.status)}`}>
+                <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-bold ${getRestaurantStatusCls(restaurant.status)}`}>
                   {getStatusLabel(restaurant.status)}
                 </span>
                 {/* Indicateur Ouvert/Fermé */}
                 <span className={`inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                  restaurant.is_open 
-                    ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400'
-                    : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
+                  restaurant.is_open
+                    ? 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400'
+                    : 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400'
                 }`}>
                   <span className={`w-2 h-2 rounded-full ${restaurant.is_open ? 'bg-emerald-500 animate-pulse' : 'bg-red-500'}`}></span>
                   {restaurant.is_open ? 'Ouvert' : 'Fermé'}
@@ -574,21 +543,7 @@ const RestaurantDetails = () => {
                           <td className="py-3 text-sm">{order.customer_name || 'Client'}</td>
                           <td className="py-3 text-sm text-slate-500">{formatDateShort(order.created_at)}</td>
                           <td className="py-3">
-                            <span className={`inline-flex px-2 py-1 rounded text-xs font-bold ${
-                              order.status === 'delivered' 
-                                ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400' 
-                                : order.status === 'cancelled'
-                                ? 'bg-red-100 text-red-700 dark:bg-red-500/20 dark:text-red-400'
-                                : order.status === 'pending'
-                                ? 'bg-amber-100 text-amber-700 dark:bg-amber-500/20 dark:text-amber-400'
-                                : order.status === 'preparing'
-                                ? 'bg-blue-100 text-blue-700 dark:bg-blue-500/20 dark:text-blue-400'
-                                : order.status === 'ready'
-                                ? 'bg-purple-100 text-purple-700 dark:bg-purple-500/20 dark:text-purple-400'
-                                : order.status === 'out_for_delivery'
-                                ? 'bg-indigo-100 text-indigo-700 dark:bg-indigo-500/20 dark:text-indigo-400'
-                                : 'bg-slate-100 text-slate-700 dark:bg-slate-500/20 dark:text-slate-400'
-                            }`}>
+                            <span className={`inline-flex px-2 py-1 rounded-full text-xs font-bold ${getOrderStatusCls(order.status)}`}>
                               {getOrderStatusLabel(order.status)}
                             </span>
                           </td>

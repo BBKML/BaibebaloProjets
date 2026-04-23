@@ -16,13 +16,16 @@ export const ORDER_STATUS = {
 };
 
 export const DRIVER_STATUS = {
-  active:    { label: 'Actif',     cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
-  inactive:  { label: 'Inactif',   cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
-  suspended: { label: 'Suspendu',  cls: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400' },
-  pending:   { label: 'En attente',cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
-  online:    { label: 'En ligne',  cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
-  offline:   { label: 'Hors ligne',cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
-  busy:      { label: 'Occupé',    cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' },
+  active:     { label: 'Actif',       cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
+  inactive:   { label: 'Inactif',     cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
+  suspended:  { label: 'Suspendu',    cls: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400' },
+  rejected:   { label: 'Rejeté',      cls: 'bg-red-50 text-red-700 dark:bg-red-500/10 dark:text-red-400' },
+  pending:    { label: 'En attente',  cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
+  online:     { label: 'En ligne',    cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
+  available:  { label: 'Disponible',  cls: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400' },
+  offline:    { label: 'Hors ligne',  cls: 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300' },
+  busy:       { label: 'En course',   cls: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-400' },
+  on_break:   { label: 'En pause',    cls: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-400' },
 };
 
 export const RESTAURANT_STATUS = {
@@ -55,6 +58,9 @@ export const getOrderStatusLabel = (status) =>
 
 export const getDriverStatusCls = (status) =>
   DRIVER_STATUS[status]?.cls ?? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
+
+export const getDriverStatusLabel = (status) =>
+  DRIVER_STATUS[status]?.label ?? status ?? 'Inconnu';
 
 export const getRestaurantStatusCls = (status) =>
   RESTAURANT_STATUS[status]?.cls ?? 'bg-slate-100 text-slate-600 dark:bg-slate-700 dark:text-slate-300';
