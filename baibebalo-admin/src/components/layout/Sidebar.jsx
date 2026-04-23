@@ -113,7 +113,7 @@ const Sidebar = ({ isOpen = false, onClose }) => {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 overflow-y-auto py-4 px-3 space-y-5">
+        <nav className="flex-1 overflow-y-auto custom-scrollbar py-4 px-3 space-y-5">
           {NAV_GROUPS.map((group) => (
             <div key={group.label}>
               <p className="px-3 mb-1.5 text-[10px] font-black uppercase tracking-[0.15em] text-slate-500">
