@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  Platform,
+  ToastAndroid,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -226,11 +228,18 @@ export default function RestaurantDetailScreen({ route, navigation }) {
                 currentRestaurantName,
                 { force: true }
               );
+              if (Platform.OS === 'android') {
+                ToastAndroid.show(`${item.name} ajouté au panier`, ToastAndroid.SHORT);
+              }
             },
           },
         ]
       );
       return;
+    }
+
+    if (Platform.OS === 'android') {
+      ToastAndroid.show(`${item.name} ajouté au panier`, ToastAndroid.SHORT);
     }
   };
 
@@ -300,7 +309,7 @@ export default function RestaurantDetailScreen({ route, navigation }) {
   return (
     <ScrollView
       style={styles.container}
-      contentContainerStyle={{ paddingBottom: getItemCount() > 0 ? 180 : 24 }}
+      contentContainerStyle={{ paddingBottom: getItemCount() > 0 ? 120 + insets.bottom : 24 + insets.bottom }}
     >
       <View style={styles.heroWrapper}>
         <Image

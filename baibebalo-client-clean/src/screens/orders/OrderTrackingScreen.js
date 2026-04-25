@@ -202,6 +202,16 @@ export default function OrderTrackingScreen({ route, navigation }) {
     ? ['ready', 'picked_up', 'delivering', 'delivered']
     : ['new', 'accepted', 'preparing', 'ready', 'picked_up', 'delivering', 'delivered'];
 
+  const TIMELINE_CONFIG = {
+    new:       { icon: 'receipt-outline',       desc: 'En attente d\'acceptation' },
+    accepted:  { icon: 'checkmark-circle-outline', desc: 'Le restaurant prépare votre commande' },
+    preparing: { icon: 'restaurant-outline',    desc: 'Votre repas est en cours de préparation' },
+    ready:     { icon: 'bag-check-outline',     desc: 'Commande prête, livreur en route' },
+    picked_up: { icon: 'bicycle-outline',       desc: 'Le livreur a récupéré votre commande' },
+    delivering:{ icon: 'navigate-outline',      desc: 'Votre livreur est en chemin vers vous' },
+    delivered: { icon: 'home-outline',          desc: 'Commande livrée avec succès !' },
+  };
+
   // Mapper les statuts pour la timeline (accepted peut être considéré comme confirmed)
   // driver_at_customer = livreur arrivé → considérer comme delivered pour afficher toutes les étapes complétées
   const getStatusForTimeline = (status) => {
@@ -370,6 +380,7 @@ export default function OrderTrackingScreen({ route, navigation }) {
           const isCompleted = index <= currentStatusIndex;
           const isCurrent = index === currentStatusIndex;
           const isLast = index === statusSteps.length - 1;
+          const config = TIMELINE_CONFIG[status] || {};
 
           return (
             <View key={status} style={styles.timelineItem}>
@@ -381,28 +392,35 @@ export default function OrderTrackingScreen({ route, navigation }) {
                     isCurrent && styles.timelineDotCurrent,
                   ]}
                 >
-                  {isCompleted && (
-                    <Ionicons name="checkmark" size={16} color={COLORS.white} />
-                  )}
+                  <Ionicons
+                    name={isCompleted && !isCurrent ? 'checkmark' : (config.icon || 'ellipse-outline')}
+                    size={16}
+                    color={isCompleted ? COLORS.white : COLORS.border}
+                  />
                 </View>
                 {!isLast && (
                   <View
                     style={[
                       styles.timelineLine,
-                      isCompleted && styles.timelineLineCompleted,
+                      isCompleted && !isCurrent && styles.timelineLineCompleted,
+                      isCurrent && styles.timelineLineCurrent,
                     ]}
                   />
                 )}
               </View>
-              <View style={styles.timelineLabel}>
+              <View style={[styles.timelineLabel, { paddingBottom: isLast ? 0 : 16 }]}>
                 <Text
                   style={[
                     styles.timelineLabelText,
                     isCompleted && styles.timelineLabelTextCompleted,
+                    isCurrent && styles.timelineLabelTextCurrent,
                   ]}
                 >
                   {STATUS_LABELS[status]}
                 </Text>
+                {isCurrent && config.desc ? (
+                  <Text style={styles.timelineLabelDesc}>{config.desc}</Text>
+                ) : null}
               </View>
             </View>
           );
@@ -899,6 +917,19 @@ const styles = StyleSheet.create({
   timelineLabelTextCompleted: {
     color: COLORS.text,
     fontWeight: '600',
+  },
+  timelineLabelTextCurrent: {
+    color: COLORS.primary,
+    fontWeight: '700',
+    fontSize: 15,
+  },
+  timelineLineCurrent: {
+    backgroundColor: COLORS.border,
+  },
+  timelineLabelDesc: {
+    fontSize: 12,
+    color: COLORS.textSecondary,
+    marginTop: 2,
   },
   primaryButton: {
     flexDirection: 'row',

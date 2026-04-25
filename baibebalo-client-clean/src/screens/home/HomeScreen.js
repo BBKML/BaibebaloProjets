@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -34,12 +34,29 @@ export default function HomeScreen({ navigation }) {
   const [lastOrder, setLastOrder] = useState(null);
   const [reordering, setReordering] = useState(false);
   const [activePromoCode, setActivePromoCode] = useState(null);
+  const [activePromoIndex, setActivePromoIndex] = useState(0);
+  const promoScrollRef = useRef(null);
   const { paddingTop, paddingBottom } = useSafeAreaPadding({ withTabBar: true });
-  const { getItemCount } = useCartStore();
+  const { getItemCount, getTotal } = useCartStore();
+
+  const FREE_DELIVERY_THRESHOLD = 3000;
 
   useEffect(() => {
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (promoCards.length < 2) return;
+    const CARD_WIDTH = 312; // 300px + 12px gap
+    const interval = setInterval(() => {
+      setActivePromoIndex((prev) => {
+        const next = (prev + 1) % promoCards.length;
+        promoScrollRef.current?.scrollTo({ x: next * CARD_WIDTH, animated: true });
+        return next;
+      });
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [promoCards.length]);
 
   const loadData = async () => {
     try {
@@ -179,9 +196,20 @@ export default function HomeScreen({ navigation }) {
       }
       const cartStore = useCartStore.getState();
       cartStore.clearCart();
-      cartStore.setRestaurant({ id: data.restaurant.id, name: data.restaurant.name });
       (data.items || []).forEach((item) => {
-        if (item.available) cartStore.addItem(item, item.quantity || 1, item.selected_options || []);
+        if (item.available && item.menu_item_id) {
+          cartStore.addItem(
+            {
+              id: item.menu_item_id,
+              name: item.name,
+              price: item.price,
+              image_url: item.image_url,
+              customizations: item.selected_options || {},
+            },
+            data.restaurant.id,
+            data.restaurant.name
+          );
+        }
       });
       navigation.navigate('ShoppingCart');
     } catch {
@@ -345,9 +373,16 @@ export default function HomeScreen({ navigation }) {
             )}
 
             <ScrollView
+              ref={promoScrollRef}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.promoRow}
+              scrollEventThrottle={16}
+              onMomentumScrollEnd={(e) => {
+                const index = Math.round(e.nativeEvent.contentOffset.x / 312);
+                setActivePromoIndex(index);
+              }}
+              pagingEnabled={false}
             >
               {promoCards.map((card) => (
                 <View key={card.id} style={[styles.promoCard, { backgroundColor: card.accent }]}>
@@ -355,14 +390,12 @@ export default function HomeScreen({ navigation }) {
                     <Text style={styles.promoTag}>Offre spéciale</Text>
                     <Text style={styles.promoTitle}>{card.title}</Text>
                     <Text style={styles.promoSubtitle}>{card.subtitle}</Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={styles.promoButton}
                       onPress={() => {
                         if (card.restaurantId) {
-                          // Naviguer vers le restaurant spécifique si la promotion est liée
                           navigation.navigate('RestaurantDetail', { restaurantId: card.restaurantId });
                         } else {
-                          // Sinon, naviguer vers la recherche
                           navigation.navigate('Search');
                         }
                       }}
@@ -374,6 +407,39 @@ export default function HomeScreen({ navigation }) {
                 </View>
               ))}
             </ScrollView>
+            {promoCards.length > 1 && (
+              <View style={styles.promoDots}>
+                {promoCards.map((_, i) => (
+                  <View
+                    key={i}
+                    style={[styles.promoDot, i === activePromoIndex && styles.promoDotActive]}
+                  />
+                ))}
+              </View>
+            )}
+
+            {getItemCount() > 0 && getTotal() < FREE_DELIVERY_THRESHOLD && (
+              <View style={styles.deliveryProgressBanner}>
+                <Ionicons name="bicycle-outline" size={18} color={COLORS.primary} />
+                <View style={styles.deliveryProgressText}>
+                  <Text style={styles.deliveryProgressLabel}>
+                    Plus que{' '}
+                    <Text style={styles.deliveryProgressAmount}>
+                      {(FREE_DELIVERY_THRESHOLD - getTotal()).toLocaleString('fr-FR')} FCFA
+                    </Text>
+                    {' '}pour la livraison gratuite !
+                  </Text>
+                  <View style={styles.deliveryProgressTrack}>
+                    <View
+                      style={[
+                        styles.deliveryProgressFill,
+                        { width: `${Math.min((getTotal() / FREE_DELIVERY_THRESHOLD) * 100, 100)}%` },
+                      ]}
+                    />
+                  </View>
+                </View>
+              </View>
+            )}
 
             <View style={styles.sectionHeader}>
               <Text style={styles.sectionTitle}>Catégories</Text>
@@ -731,6 +797,61 @@ const styles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
     opacity: 0.9,
+  },
+  promoDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+    marginBottom: 4,
+  },
+  promoDot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: COLORS.border,
+  },
+  promoDotActive: {
+    width: 18,
+    backgroundColor: COLORS.primary,
+  },
+  deliveryProgressBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginHorizontal: 16,
+    marginTop: 12,
+    marginBottom: 4,
+    backgroundColor: COLORS.primary + '12',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+  },
+  deliveryProgressText: {
+    flex: 1,
+  },
+  deliveryProgressLabel: {
+    fontSize: 13,
+    color: COLORS.text,
+    marginBottom: 6,
+  },
+  deliveryProgressAmount: {
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  deliveryProgressTrack: {
+    height: 4,
+    backgroundColor: COLORS.border,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  deliveryProgressFill: {
+    height: '100%',
+    backgroundColor: COLORS.primary,
+    borderRadius: 4,
   },
   sectionHeader: {
     paddingHorizontal: 16,
