@@ -318,30 +318,45 @@ export default function DeliveryHomeScreen({ navigation }) {
           </TouchableOpacity>
         </View>
 
-        {/* Status Toggle */}
-        <View style={styles.statusCard}>
-          <View style={styles.statusInfo}>
-            <Text style={styles.statusLabel}>STATUT</Text>
-            <View style={styles.statusRow}>
-              <View style={[styles.statusDot, { backgroundColor: statusColors[status] || statusColors.offline }]} />
-              <Text style={[styles.statusText, { color: statusColors[status] || statusColors.offline }]}>
-                {statusLabels[status] || 'HORS LIGNE'}
-              </Text>
-              {isPaused && pauseRemaining > 0 && (
-                <Text style={styles.pauseTimer}> · {formatPauseTime(pauseRemaining)}</Text>
+        {/* Status Toggle — Glovo-style grande carte colorée */}
+        {(() => {
+          const bgColor = isAvailable ? COLORS.primary : isPaused ? '#F59E0B' : status === 'on_delivery' ? COLORS.info : '#64748B';
+          const statusSubtitle = isAvailable
+            ? 'Vous recevrez des nouvelles courses'
+            : isPaused
+            ? `Pause · ${pauseRemaining > 0 ? formatPauseTime(pauseRemaining) : 'en cours'}`
+            : status === 'on_delivery'
+            ? 'Livraison en cours'
+            : 'Vous ne recevrez pas de courses';
+          const toggleLabel = isAvailable ? 'Pause / Fin' : isPaused ? '▶ Reprendre' : '▶ Démarrer';
+          return (
+            <View style={[styles.statusCard, { backgroundColor: bgColor }]}>
+              <View style={styles.statusLeft}>
+                <View style={styles.statusIndicator}>
+                  <Ionicons
+                    name={isAvailable ? 'radio-button-on' : isPaused ? 'pause-circle' : status === 'on_delivery' ? 'bicycle' : 'power'}
+                    size={28}
+                    color="rgba(255,255,255,0.9)"
+                  />
+                </View>
+                <View style={styles.statusInfo}>
+                  <Text style={styles.statusText}>
+                    {statusLabels[status] || 'HORS LIGNE'}
+                  </Text>
+                  <Text style={styles.statusSubtitle}>{statusSubtitle}</Text>
+                </View>
+              </View>
+              {status !== 'on_delivery' && (
+                <TouchableOpacity
+                  style={styles.statusToggleBtn}
+                  onPress={handleToggleStatus}
+                >
+                  <Text style={styles.statusToggleBtnText}>{toggleLabel}</Text>
+                </TouchableOpacity>
               )}
             </View>
-          </View>
-          <TouchableOpacity
-            style={[styles.statusToggleBtn, { backgroundColor: isAvailable ? COLORS.warning + '15' : COLORS.primary + '15' }]}
-            onPress={handleToggleStatus}
-            disabled={status === 'on_delivery'}
-          >
-            <Text style={[styles.statusToggleBtnText, { color: isAvailable ? COLORS.warning : COLORS.primary }]}>
-              {isAvailable ? 'Pause / Fin' : isPaused ? 'Reprendre' : 'Disponible'}
-            </Text>
-          </TouchableOpacity>
-        </View>
+          );
+        })()}
 
         {/* Modal Pause */}
         <Modal visible={showPauseModal} transparent animationType="slide">
@@ -381,28 +396,40 @@ export default function DeliveryHomeScreen({ navigation }) {
           </TouchableOpacity>
         )}
 
-        {/* Stats Grid */}
+        {/* Stats Grid — Aujourd'hui */}
+        <Text style={styles.statsSectionLabel}>Aujourd'hui</Text>
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>GAINS</Text>
+          <View style={[styles.statCard, { borderTopColor: COLORS.primary, borderTopWidth: 3 }]}>
+            <View style={[styles.statIconBg, { backgroundColor: COLORS.primary + '15' }]}>
+              <Ionicons name="cash-outline" size={18} color={COLORS.primary} />
+            </View>
             <Text style={styles.statValue}>
-              {(Number(todayStats?.earnings) || 0).toLocaleString()} F
+              {(Number(todayStats?.earnings) || 0).toLocaleString()}
             </Text>
+            <Text style={styles.statUnit}>FCFA</Text>
+            <Text style={styles.statLabel}>Gains</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>COURSES</Text>
+          <View style={[styles.statCard, { borderTopColor: COLORS.info, borderTopWidth: 3 }]}>
+            <View style={[styles.statIconBg, { backgroundColor: COLORS.info + '15' }]}>
+              <Ionicons name="bicycle-outline" size={18} color={COLORS.info} />
+            </View>
             <Text style={styles.statValue}>{Number(todayStats?.deliveries) || 0}</Text>
+            <Text style={styles.statUnit}>courses</Text>
+            <Text style={styles.statLabel}>Livrées</Text>
           </View>
-          <View style={styles.statCard}>
-            <Text style={styles.statLabel}>NOTE</Text>
+          <View style={[styles.statCard, { borderTopColor: COLORS.rating, borderTopWidth: 3 }]}>
+            <View style={[styles.statIconBg, { backgroundColor: COLORS.rating + '15' }]}>
+              <Ionicons name="star-outline" size={18} color={COLORS.rating} />
+            </View>
             <View style={styles.ratingContainer}>
               <Text style={styles.statValue}>
-                {(todayStats?.rating != null && todayStats.rating > 0) 
-                  ? Number(todayStats.rating).toFixed(1) 
+                {(todayStats?.rating != null && todayStats.rating > 0)
+                  ? Number(todayStats.rating).toFixed(1)
                   : (user?.average_rating != null ? Number(user.average_rating).toFixed(1) : '–')}
               </Text>
-              <Ionicons name="star" size={16} color={COLORS.rating} />
             </View>
+            <Text style={styles.statUnit}>/ 5</Text>
+            <Text style={styles.statLabel}>Note</Text>
           </View>
         </View>
 
@@ -598,12 +625,16 @@ const styles = StyleSheet.create({
   // ── Status Card ───────────────────────────────────────────────
   statusToggleBtn: {
     paddingHorizontal: 14,
-    paddingVertical: 8,
+    paddingVertical: 10,
     borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
   },
   statusToggleBtnText: {
     fontWeight: '700',
     fontSize: 13,
+    color: '#FFFFFF',
   },
   pauseTimer: {
     fontSize: 14,
@@ -744,22 +775,39 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    backgroundColor: COLORS.white,
     marginHorizontal: 16,
     marginVertical: 8,
     padding: 20,
-    borderRadius: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    borderRadius: 20,
+  },
+  statusLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 14,
+    flex: 1,
+  },
+  statusIndicator: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   statusInfo: {
-    gap: 4,
+    flex: 1,
+    gap: 3,
   },
-  statusLabel: {
+  statusText: {
+    fontSize: 18,
+    fontWeight: '800',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
+  },
+  statusSubtitle: {
     fontSize: 12,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    letterSpacing: 1,
+    color: 'rgba(255,255,255,0.75)',
+    fontWeight: '500',
   },
   statusRow: {
     flexDirection: 'row',
@@ -771,35 +819,60 @@ const styles = StyleSheet.create({
     height: 8,
     borderRadius: 4,
   },
-  statusText: {
-    fontSize: 16,
-    fontWeight: '600',
+  statsSectionLabel: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: COLORS.textSecondary,
+    paddingHorizontal: 16,
+    marginTop: 4,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    letterSpacing: 0.5,
   },
   statsGrid: {
     flexDirection: 'row',
-    gap: 12,
+    gap: 10,
     paddingHorizontal: 16,
-    marginVertical: 8,
+    marginBottom: 8,
   },
   statCard: {
     flex: 1,
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    borderRadius: 14,
+    paddingVertical: 14,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+  statIconBg: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 8,
   },
   statLabel: {
     fontSize: 10,
     fontWeight: '600',
     color: COLORS.textSecondary,
     letterSpacing: 0.5,
-    marginBottom: 4,
+    marginTop: 2,
+  },
+  statUnit: {
+    fontSize: 10,
+    color: COLORS.textSecondary,
+    fontWeight: '500',
   },
   statValue: {
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: '800',
     color: COLORS.text,
+    lineHeight: 24,
   },
   ratingContainer: {
     flexDirection: 'row',
