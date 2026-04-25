@@ -208,212 +208,125 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
     );
   }
 
+  const customerName = delivery?.customer?.name
+    || (delivery?.client_first_name ? `${delivery.client_first_name} ${delivery.client_last_name || ''}`.trim() : 'Client');
+  const customerAddress = delivery?.customer?.address
+    || delivery?.delivery_address?.address_line
+    || delivery?.delivery_address?.street
+    || 'Adresse de livraison';
+  const customerArea = delivery?.customer?.area || delivery?.delivery_address?.district || delivery?.delivery_address?.area;
+  const customerLandmark = delivery?.customer?.landmark || delivery?.delivery_address?.landmark;
+
   return (
     <SafeAreaView style={styles.container}>
-      {/* Map */}
-      <View style={styles.mapContainer}>
-        {/* Top info bar */}
+      {/* Zone de Navigation — style Glovo (rouge pour livraison) */}
+      <View style={[styles.navZone, { backgroundColor: COLORS.error }]}>
         <View style={styles.topBar}>
-          <TouchableOpacity style={styles.backBtn} onPress={() => navigation.goBack()}>
-            <Ionicons name="arrow-back" size={24} color={COLORS.text} />
+          <TouchableOpacity style={styles.topBtn} onPress={() => navigation.goBack()}>
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
           </TouchableOpacity>
-          <View style={styles.etaContainer}>
-            <Ionicons name="time-outline" size={16} color={COLORS.error} />
-            <Text style={styles.etaText}>{estimatedTime || 5} min</Text>
+          <View style={styles.etaChip}>
+            <Ionicons name="time-outline" size={14} color="#FFFFFF" />
+            <Text style={styles.etaChipText}>~{estimatedTime || 5} min</Text>
           </View>
-          <TouchableOpacity style={styles.problemBtn} onPress={handleProblem}>
-            <Ionicons name="warning-outline" size={24} color={COLORS.warning} />
+          <TouchableOpacity style={styles.topBtn} onPress={handleProblem}>
+            <Ionicons name="warning-outline" size={22} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
-        <TouchableOpacity style={styles.mapFallback} onPress={openExternalNavigation} activeOpacity={0.8}>
-          <Ionicons name="navigate-circle" size={56} color={COLORS.error} />
-          <Text style={styles.mapFallbackTitle}>Naviguer vers le client</Text>
-          <Text style={styles.mapFallbackHint}>Appuyez pour ouvrir dans Google Maps</Text>
-          <Text style={styles.mapFallbackAddress} numberOfLines={2}>
-            {delivery?.delivery_address?.address_line || delivery?.delivery_address?.street || 'Adresse de livraison'}
-          </Text>
+
+        <View style={styles.navContent}>
+          <View style={styles.navIconBg}>
+            <Ionicons name="location" size={28} color={COLORS.error} />
+          </View>
+          <Text style={styles.navLabel}>EN ROUTE VERS LE CLIENT</Text>
+          <Text style={styles.navTitle} numberOfLines={1}>{customerName}</Text>
+          <Text style={styles.navAddress} numberOfLines={1}>{customerAddress}</Text>
+          {customerArea ? <Text style={styles.navArea} numberOfLines={1}>📍 {customerArea}</Text> : null}
+        </View>
+
+        <TouchableOpacity style={styles.gpsButton} onPress={openExternalNavigation} activeOpacity={0.85}>
+          <Ionicons name="navigate" size={18} color={COLORS.error} />
+          <Text style={[styles.gpsButtonText, { color: COLORS.error }]}>Ouvrir Google Maps</Text>
+          <Ionicons name="chevron-forward" size={16} color={COLORS.error} />
         </TouchableOpacity>
       </View>
 
-      {/* Info Panel */}
-      <View style={[styles.infoPanel, { paddingBottom: Math.max(insets.bottom, 32) }]}>
-        <View style={styles.infoPanelHeader}>
-          <View style={styles.stepIndicator}>
-            <View style={[styles.stepDot, styles.stepDotCompleted]}>
-              <Ionicons name="checkmark" size={8} color="#FFFFFF" />
+      {/* Barre de progression — étapes 1+2 complétées, étape 3 active */}
+      <View style={styles.progressBar}>
+        {[
+          { label: 'Départ', icon: 'bicycle-outline', active: false, done: true },
+          { label: 'Restaurant', icon: 'restaurant-outline', active: false, done: true },
+          { label: 'En route', icon: 'navigate-outline', active: true, done: false },
+          { label: 'Livré', icon: 'checkmark-circle-outline', active: false, done: false },
+        ].map((step, i, arr) => (
+          <React.Fragment key={step.label}>
+            <View style={styles.progressStep}>
+              <View style={[styles.progressBubble, step.active && styles.progressBubbleActive, step.done && styles.progressBubbleDone]}>
+                <Ionicons name={step.done ? 'checkmark' : step.icon} size={14} color={(step.active || step.done) ? '#FFFFFF' : COLORS.border} />
+              </View>
+              <Text style={[styles.progressLabel, step.active && styles.progressLabelActive, step.done && styles.progressLabelDone]}>{step.label}</Text>
             </View>
-            <View style={[styles.stepLine, styles.stepLineActive]} />
-            <View style={[styles.stepDot, styles.stepDotActive]} />
-          </View>
-          <View style={styles.stepLabels}>
-            <Text style={styles.stepLabelCompleted}>Récupération ✓</Text>
-            <Text style={styles.stepLabelActive}>Livraison</Text>
-          </View>
-        </View>
+            {i < arr.length - 1 && <View style={[styles.progressConnector, step.done && styles.progressConnectorDone]} />}
+          </React.Fragment>
+        ))}
+      </View>
 
-        <View style={styles.customerInfo}>
-          <View style={styles.customerIcon}>
-            <Ionicons name="person" size={24} color={COLORS.error} />
+      {/* Info Panel simplifié */}
+      <View style={[styles.infoPanel, { paddingBottom: Math.max(insets.bottom, 20) }]}>
+        {/* Card client */}
+        <View style={styles.destinationCard}>
+          <View style={[styles.destinationIconBg, { backgroundColor: COLORS.error + '15' }]}>
+            <Ionicons name="person" size={22} color={COLORS.error} />
           </View>
-          <View style={styles.customerDetails}>
-            <Text style={styles.customerName}>
-              {delivery?.customer?.name || delivery?.client_first_name && delivery?.client_last_name 
-                ? `${delivery.client_first_name} ${delivery.client_last_name}`.trim()
-                : 'Client'}
-            </Text>
-            {delivery?.customer?.address || delivery?.delivery_address?.address_line || delivery?.delivery_address?.address ? (
-              <Text style={styles.customerAddress}>
-                {delivery?.customer?.address || delivery?.delivery_address?.address_line || delivery?.delivery_address?.address}
-              </Text>
+          <View style={styles.destinationInfo}>
+            <Text style={styles.destinationName} numberOfLines={1}>{customerName}</Text>
+            <Text style={styles.destinationAddress} numberOfLines={1}>{customerAddress}</Text>
+            {customerLandmark ? (
+              <Text style={styles.destinationLandmark} numberOfLines={1}>Repère: {customerLandmark}</Text>
             ) : null}
-            {delivery?.customer?.area || delivery?.delivery_address?.district || delivery?.delivery_address?.area ? (
-              <Text style={styles.customerArea}>
-                Quartier: {delivery?.customer?.area || delivery?.delivery_address?.district || delivery?.delivery_address?.area}
-              </Text>
-            ) : null}
-            {delivery?.customer?.landmark || delivery?.delivery_address?.landmark ? (
-              <Text style={styles.customerLandmark}>
-                Repère: {delivery?.customer?.landmark || delivery?.delivery_address?.landmark}
-              </Text>
-            ) : null}
-            {(delivery?.customer?.phone || delivery?.client_phone) ? (
-              <Text style={styles.customerPhone}>
-                📞 {delivery?.customer?.phone || delivery?.client_phone}
-              </Text>
-            ) : (
-              <Text style={styles.customerPhoneMissing}>
-                ⚠️ Numéro non disponible
-              </Text>
-            )}
           </View>
-          <TouchableOpacity 
-            style={[styles.callButton, !(delivery?.customer?.phone || delivery?.client_phone) && styles.callButtonDisabled]} 
+          <TouchableOpacity
+            style={[styles.callBtn, { backgroundColor: COLORS.error }, !(delivery?.customer?.phone || delivery?.client_phone) && styles.callBtnDisabled]}
             onPress={callCustomer}
             disabled={!(delivery?.customer?.phone || delivery?.client_phone)}
           >
-            <Ionicons 
-              name="call" 
-              size={20} 
-              color={(delivery?.customer?.phone || delivery?.client_phone) ? COLORS.error : COLORS.textLight} 
-            />
+            <Ionicons name="call" size={20} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
-        <View style={styles.orderInfo}>
-          <Ionicons name="cube-outline" size={16} color={COLORS.textSecondary} />
-          <Text style={styles.orderInfoText}>
-            Commande #{delivery?.order_number || delivery?.id || 'BAIB-12345'} • {delivery?.order_type === 'express' ? 'Livraison express' : (delivery?.restaurant?.name || 'Restaurant')}
-          </Text>
-        </View>
-        
-        {/* Informations restaurant / point de collecte (optionnel, pour rappel) */}
-        {delivery?.restaurant?.name && (
-          <View style={styles.restaurantInfo}>
-            <View style={styles.restaurantIcon}>
-              {delivery?.order_type !== 'express' && delivery?.restaurant?.logo ? (
-                <Image 
-                  source={{ uri: normalizeImageUrl(delivery.restaurant.logo) }} 
-                  style={styles.restaurantLogo}
-                  resizeMode="cover"
-                  onError={() => {}}
-                />
-              ) : (
-                <Ionicons name={delivery?.order_type === 'express' ? 'cube' : 'restaurant'} size={18} color={COLORS.primary} />
-              )}
+        {/* Bannière espèces */}
+        {delivery?.payment_method === 'cash' && (
+          <View style={styles.cashBanner}>
+            <Ionicons name="cash" size={24} color="#FFFFFF" />
+            <View style={styles.cashBannerText}>
+              <Text style={styles.cashBannerTitle}>ESPÈCES À COLLECTER</Text>
+              <Text style={styles.cashBannerAmount}>{(delivery?.total || 0).toLocaleString('fr-FR')} FCFA</Text>
             </View>
-            <View style={styles.restaurantDetails}>
-              <Text style={styles.restaurantName}>
-                {delivery?.order_type === 'express' ? 'Point de collecte' : delivery.restaurant.name}
-              </Text>
-              {delivery?.restaurant?.address ? (
-                <Text style={styles.restaurantAddress}>{delivery.restaurant.address}</Text>
-              ) : (
-                <Text style={styles.restaurantAddressMissing}>⚠️ Adresse non disponible</Text>
-              )}
-              {(delivery?.restaurant?.phone || delivery?.client_phone) ? (
-                <Text style={styles.restaurantPhone}>📞 {delivery?.restaurant?.phone || delivery?.client_phone}</Text>
-              ) : (
-                <Text style={styles.restaurantPhoneMissing}>⚠️ Numéro non disponible</Text>
-              )}
-            </View>
-            {(delivery?.restaurant?.phone || delivery?.client_phone) && (
-              <TouchableOpacity 
-                style={styles.callRestaurantButton}
-                onPress={() => {
-                  const phone = delivery?.restaurant?.phone || delivery?.client_phone;
-                  if (phone) {
-                    Linking.openURL(`tel:${phone.replace(/\s/g, '')}`);
-                  }
-                }}
-              >
-                <Ionicons name="call" size={18} color={COLORS.primary} />
-              </TouchableOpacity>
-            )}
           </View>
         )}
 
-        {/* Montant total à payer (visible dans l'application client) */}
-        <View style={styles.orderTotalInfo}>
-          <View style={styles.totalHeader}>
-            <Ionicons name="receipt-outline" size={18} color={COLORS.textSecondary} />
-            <Text style={styles.totalTitle}>Montant total à payer</Text>
-          </View>
-          <View style={styles.totalAmountContainer}>
-            <Text style={styles.totalAmount}>
-              {Number.parseFloat(delivery?.total || 0).toLocaleString('fr-FR', { 
-                minimumFractionDigits: 2, 
-                maximumFractionDigits: 2 
-              })} FCFA
-            </Text>
-          </View>
-        </View>
-
-        {/* Mode de paiement */}
-        <View style={[
-          styles.paymentMethodInfo,
-          delivery?.payment_method === 'cash' 
-            ? { borderLeftColor: COLORS.warning }
-            : { borderLeftColor: COLORS.success }
-        ]}>
-          {delivery?.payment_method === 'cash' ? (
-            <>
-              <Ionicons name="cash-outline" size={18} color={COLORS.warning} />
-              <Text style={styles.paymentMethodText}>
-                <Text style={styles.paymentMethodLabel}>Paiement en espèces</Text>
-                {'\n'}
-                <Text style={styles.paymentMethodAmount}>Montant à collecter : {(delivery?.total || 0).toLocaleString('fr-FR')} FCFA</Text>
-              </Text>
-            </>
-          ) : (
-            <>
-              <Ionicons name="card-outline" size={18} color={COLORS.success} />
-              <Text style={styles.paymentMethodText}>
-                <Text style={styles.paymentMethodLabel}>Paiement déjà effectué</Text>
-                {'\n'}
-                <Text style={styles.paymentMethodSubtext}>
-                  {delivery?.payment_method === 'waves' ? 'Wave' : delivery?.payment_method === 'orange_money' ? 'Orange Money' : delivery?.payment_method === 'mtn_money' ? 'MTN MoMo' : delivery?.payment_method === 'moov_money' ? 'Moov Money' : 'Mobile Money'}
-                </Text>
-              </Text>
-            </>
-          )}
-        </View>
-
-        <View style={styles.earningsPreview}>
-          <Ionicons name="cash-outline" size={18} color={COLORS.success} />
+        {/* Gains */}
+        <View style={styles.earningsBadge}>
+          <Ionicons name="cash-outline" size={16} color={COLORS.success} />
           <Text style={styles.earningsText}>
-            Vous gagnerez <Text style={styles.earningsAmount}>{delivery?.earnings?.toLocaleString() || 1750} F</Text> à la livraison
+            Vous gagnerez{' '}
+            <Text style={styles.earningsAmount}>
+              +{delivery?.earnings ? (typeof delivery.earnings === 'number' ? delivery.earnings : Number.parseFloat(delivery.earnings)).toLocaleString('fr-FR') : '0'} FCFA
+            </Text>{' '}à la livraison
           </Text>
         </View>
 
-        <TouchableOpacity 
-          style={[styles.arrivedButton, arriving && styles.arrivedButtonDisabled]}
+        {/* Bouton arrivée */}
+        <TouchableOpacity
+          style={[styles.arrivedButton, { backgroundColor: COLORS.error }, arriving && styles.arrivedButtonDisabled]}
           onPress={handleArrived}
           disabled={arriving}
+          activeOpacity={0.85}
         >
           {arriving ? (
             <ActivityIndicator size="small" color="#FFFFFF" />
           ) : (
-            <Ionicons name="checkmark-circle" size={24} color="#FFFFFF" />
+            <Ionicons name="checkmark-circle" size={26} color="#FFFFFF" />
           )}
           <Text style={styles.arrivedButtonText}>
             {arriving ? 'SIGNALEMENT EN COURS...' : 'JE SUIS ARRIVÉ CHEZ LE CLIENT'}
@@ -425,20 +338,98 @@ export default function NavigationToCustomerScreen({ navigation, route }) {
 }
 
 const styles = StyleSheet.create({
-  container: { 
-    flex: 1, 
-    backgroundColor: COLORS.background 
+  container: { flex: 1, backgroundColor: COLORS.background },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', gap: 12 },
+  loadingText: { fontSize: 16, color: COLORS.textSecondary },
+
+  // ── Zone Navigation ───────────────────────────────────────────
+  navZone: { paddingTop: 8, paddingBottom: 16, paddingHorizontal: 20 },
+  topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 },
+  topBtn: {
+    width: 40, height: 40, borderRadius: 20,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center', justifyContent: 'center',
   },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 12,
+  etaChip: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    paddingHorizontal: 16, paddingVertical: 8, borderRadius: 20,
   },
-  loadingText: {
-    fontSize: 16,
-    color: COLORS.textSecondary,
+  etaChipText: { fontSize: 14, fontWeight: '700', color: '#FFFFFF' },
+  navContent: { alignItems: 'center', marginBottom: 16 },
+  navIconBg: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginBottom: 10,
   },
+  navLabel: { fontSize: 11, fontWeight: '700', color: 'rgba(255,255,255,0.75)', letterSpacing: 1.5, marginBottom: 4 },
+  navTitle: { fontSize: 20, fontWeight: '800', color: '#FFFFFF', textAlign: 'center', marginBottom: 4 },
+  navAddress: { fontSize: 13, color: 'rgba(255,255,255,0.85)', textAlign: 'center', marginBottom: 2 },
+  navArea: { fontSize: 12, color: 'rgba(255,255,255,0.7)', textAlign: 'center' },
+  gpsButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
+    backgroundColor: '#FFFFFF', paddingVertical: 12, borderRadius: 12,
+  },
+  gpsButtonText: { fontSize: 14, fontWeight: '700', flex: 1, textAlign: 'center' },
+
+  // ── Barre de progression ──────────────────────────────────────
+  progressBar: {
+    flexDirection: 'row', alignItems: 'center',
+    backgroundColor: COLORS.white, paddingVertical: 12, paddingHorizontal: 20,
+    borderBottomWidth: 1, borderBottomColor: COLORS.border,
+  },
+  progressStep: { alignItems: 'center', gap: 4 },
+  progressBubble: {
+    width: 30, height: 30, borderRadius: 15,
+    backgroundColor: COLORS.background, alignItems: 'center', justifyContent: 'center',
+    borderWidth: 2, borderColor: COLORS.border,
+  },
+  progressBubbleActive: { backgroundColor: COLORS.error, borderColor: COLORS.error },
+  progressBubbleDone: { backgroundColor: COLORS.success, borderColor: COLORS.success },
+  progressLabel: { fontSize: 9, color: COLORS.textLight, textAlign: 'center', maxWidth: 52 },
+  progressLabelActive: { color: COLORS.error, fontWeight: '700' },
+  progressLabelDone: { color: COLORS.success },
+  progressConnector: { flex: 1, height: 2, backgroundColor: COLORS.border, marginBottom: 16 },
+  progressConnectorDone: { backgroundColor: COLORS.success },
+
+  // ── Info Panel ────────────────────────────────────────────────
+  infoPanel: { flex: 1, backgroundColor: COLORS.white, padding: 20, gap: 12 },
+  destinationCard: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: COLORS.background, padding: 14, borderRadius: 14,
+  },
+  destinationIconBg: {
+    width: 48, height: 48, borderRadius: 24,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  destinationInfo: { flex: 1 },
+  destinationName: { fontSize: 16, fontWeight: '700', color: COLORS.text, marginBottom: 2 },
+  destinationAddress: { fontSize: 13, color: COLORS.textSecondary, marginBottom: 2 },
+  destinationLandmark: { fontSize: 12, color: COLORS.textLight },
+  callBtn: { width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center' },
+  callBtnDisabled: { opacity: 0.4 },
+  cashBanner: {
+    flexDirection: 'row', alignItems: 'center', gap: 12,
+    backgroundColor: '#F59E0B', padding: 16, borderRadius: 12,
+  },
+  cashBannerText: { flex: 1 },
+  cashBannerTitle: { fontSize: 11, fontWeight: '700', color: '#FFFFFF', letterSpacing: 1, marginBottom: 2 },
+  cashBannerAmount: { fontSize: 22, fontWeight: '800', color: '#FFFFFF' },
+  earningsBadge: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    backgroundColor: COLORS.success + '12', padding: 12, borderRadius: 10,
+    borderWidth: 1, borderColor: COLORS.success + '30',
+  },
+  earningsText: { fontSize: 13, color: COLORS.text, flex: 1 },
+  earningsAmount: { fontWeight: '700', color: COLORS.success },
+  arrivedButton: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 10,
+    paddingVertical: 18, borderRadius: 16, marginTop: 'auto',
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 8, elevation: 6,
+  },
+  arrivedButtonDisabled: { opacity: 0.6 },
+  arrivedButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '800', letterSpacing: 0.5 },
+  // (styles map/marker conservés pour compatibilité future)
+  mapContainer: { flex: 1, position: 'relative', backgroundColor: '#fff0f0' },
   mapContainer: {
     flex: 1,
     position: 'relative',
