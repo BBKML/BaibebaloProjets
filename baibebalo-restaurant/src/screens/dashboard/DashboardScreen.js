@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Switch,
   Animated,
   ActivityIndicator,
   Modal,
@@ -353,33 +352,33 @@ export default function DashboardScreen({ navigation }) {
           />
         )}
 
-        {/* Open/Close Card — toujours en haut */}
-        <View style={[styles.openCloseCard, isOpen ? styles.openCard : styles.closedCard]}>
-          <View style={styles.openCloseLeft}>
-            <View style={[styles.openDot, { backgroundColor: isOpen ? '#10b981' : '#ef4444' }]} />
+        {/* Statut restaurant — carte hero Glovo-style */}
+        <TouchableOpacity
+          style={[styles.statusHeroCard, isOpen ? styles.statusHeroOpen : styles.statusHeroClosed]}
+          onPress={() => !isToggling && handleToggleOpen(!isOpen)}
+          activeOpacity={0.88}
+          disabled={isToggling}
+        >
+          <View style={styles.statusHeroLeft}>
+            <View style={styles.statusHeroIconBg}>
+              <Ionicons name="storefront" size={26} color="#fff" />
+            </View>
             <View>
-              <Text style={styles.openCloseTitle}>
-                {isOpen ? 'Restaurant ouvert' : 'Restaurant fermé'}
-              </Text>
-              <Text style={styles.openCloseSub}>
-                {isOpen
-                  ? 'Vous recevez les commandes'
-                  : 'Aucune commande ne sera reçue'}
+              <Text style={styles.statusHeroLabel}>Statut restaurant</Text>
+              <Text style={styles.statusHeroTitle}>{isOpen ? 'OUVERT' : 'FERMÉ'}</Text>
+              <Text style={styles.statusHeroSub}>
+                {isOpen ? 'Vous recevez des commandes' : 'Aucune commande reçue'}
               </Text>
             </View>
           </View>
           {isToggling ? (
-            <ActivityIndicator size="small" color={COLORS.primary} />
+            <ActivityIndicator color="#fff" />
           ) : (
-            <Switch
-              value={isOpen}
-              onValueChange={handleToggleOpen}
-              trackColor={{ false: '#e2e8f0', true: COLORS.primary + '55' }}
-              thumbColor={isOpen ? COLORS.primary : '#94a3b8'}
-              ios_backgroundColor="#e2e8f0"
-            />
+            <View style={styles.statusToggleBtn}>
+              <Text style={styles.statusToggleBtnText}>{isOpen ? 'Fermer' : 'Ouvrir'}</Text>
+            </View>
           )}
-        </View>
+        </TouchableOpacity>
 
         {/* Nouvelles commandes — priorité max */}
         {newOrders.length > 0 && (
@@ -445,34 +444,33 @@ export default function DashboardScreen({ navigation }) {
                     </View>
                   </View>
 
-                  {/* Boutons Accepter / Refuser */}
+                  {/* Actions — style Glovo */}
                   <View style={styles.newOrderActions}>
                     <TouchableOpacity
-                      style={styles.refuseBtn}
+                      style={styles.refuseLink}
                       onPress={() => handleRefuseOrder(order.id)}
                     >
-                      <Ionicons name="close" size={18} color={COLORS.error} />
-                      <Text style={styles.refuseBtnText}>Refuser</Text>
+                      <Text style={styles.refuseLinkText}>Refuser cette commande</Text>
                     </TouchableOpacity>
-                    {/* Bouton personnaliser temps (⏱) */}
-                    <TouchableOpacity
-                      style={[styles.prepTimeBtn]}
-                      onPress={() => openPrepTimeModal(order)}
-                      disabled={!!acceptingId}
-                    >
-                      <Ionicons name="time-outline" size={18} color={COLORS.primary} />
-                    </TouchableOpacity>
-                    {/* Acceptation directe en 1 tap (15 min) */}
-                    <TouchableOpacity
-                      style={[styles.acceptBtn, acceptingId === order.id && { opacity: 0.6 }]}
-                      onPress={() => handleAcceptOrder(order)}
-                      disabled={!!acceptingId}
-                    >
-                      {acceptingId === order.id
-                        ? <ActivityIndicator size="small" color="#fff" />
-                        : <Ionicons name="checkmark" size={18} color="#fff" />}
-                      <Text style={styles.acceptBtnText}>Accepter</Text>
-                    </TouchableOpacity>
+                    <View style={styles.acceptRow}>
+                      <TouchableOpacity
+                        style={styles.prepTimeBtn}
+                        onPress={() => openPrepTimeModal(order)}
+                        disabled={!!acceptingId}
+                      >
+                        <Ionicons name="time-outline" size={20} color={COLORS.primary} />
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        style={[styles.acceptBtn, acceptingId === order.id && { opacity: 0.6 }]}
+                        onPress={() => handleAcceptOrder(order)}
+                        disabled={!!acceptingId}
+                      >
+                        {acceptingId === order.id
+                          ? <ActivityIndicator size="small" color="#fff" />
+                          : <Ionicons name="checkmark-circle" size={22} color="#fff" />}
+                        <Text style={styles.acceptBtnText}>ACCEPTER LA COMMANDE</Text>
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </Animated.View>
               );
@@ -748,43 +746,64 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   scrollContent: { padding: 16, gap: 16 },
 
-  // Open/Close card
-  openCloseCard: {
+  // Statut hero card
+  statusHeroCard: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 16,
-    borderWidth: 1.5,
+    borderRadius: 20,
+    padding: 20,
   },
-  openCard: {
-    backgroundColor: '#f0fdf4',
-    borderColor: '#86efac',
+  statusHeroOpen: {
+    backgroundColor: COLORS.primary,
   },
-  closedCard: {
-    backgroundColor: '#fef2f2',
-    borderColor: '#fca5a5',
+  statusHeroClosed: {
+    backgroundColor: '#ef4444',
   },
-  openCloseLeft: {
+  statusHeroLeft: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 12,
+    gap: 14,
     flex: 1,
   },
-  openDot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
+  statusHeroIconBg: {
+    width: 52,
+    height: 52,
+    borderRadius: 26,
+    backgroundColor: 'rgba(255,255,255,0.2)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  openCloseTitle: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.text,
+  statusHeroLabel: {
+    fontSize: 11,
+    fontWeight: '600',
+    color: 'rgba(255,255,255,0.75)',
+    marginBottom: 2,
   },
-  openCloseSub: {
+  statusHeroTitle: {
+    fontSize: 28,
+    fontWeight: '900',
+    color: '#fff',
+    letterSpacing: 1.5,
+    lineHeight: 32,
+  },
+  statusHeroSub: {
     fontSize: 12,
-    color: COLORS.textSecondary,
-    marginTop: 1,
+    color: 'rgba(255,255,255,0.75)',
+    marginTop: 2,
+  },
+  statusToggleBtn: {
+    backgroundColor: 'rgba(255,255,255,0.25)',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.4)',
+  },
+  statusToggleBtnText: {
+    fontSize: 14,
+    fontWeight: '700',
+    color: '#fff',
   },
 
   // Section
@@ -897,46 +916,55 @@ const styles = StyleSheet.create({
   timerLabel: { fontSize: 10, color: COLORS.primary, fontWeight: '600', marginTop: 2 },
   timerLabelExpired: { color: COLORS.error },
   newOrderActions: {
-    flexDirection: 'row',
     borderTopWidth: 1,
     borderTopColor: COLORS.border,
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+    gap: 8,
   },
-  refuseBtn: {
+  refuseLink: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  refuseLinkText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    textDecorationLine: 'underline',
+  },
+  acceptRow: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  prepTimeBtn: {
+    width: 52,
+    height: 52,
+    borderRadius: 12,
+    backgroundColor: COLORS.primary + '12',
+    borderWidth: 1,
+    borderColor: COLORS.primary + '30',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  acceptBtn: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRightWidth: 0.5,
-    borderRightColor: COLORS.border,
-  },
-  prepTimeBtn: {
-    paddingHorizontal: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderRightWidth: 0.5,
-    borderRightColor: COLORS.border,
-  },
-  refuseBtnText: {
-    fontSize: 15,
-    fontWeight: '700',
-    color: COLORS.error,
-  },
-  acceptBtn: {
-    flex: 2,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
+    gap: 8,
     backgroundColor: COLORS.primary,
+    borderRadius: 12,
+    paddingVertical: 14,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   acceptBtnText: {
     fontSize: 15,
-    fontWeight: '700',
+    fontWeight: '800',
     color: '#fff',
+    letterSpacing: 0.3,
   },
 
   // KPI Grid 2x2

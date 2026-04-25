@@ -92,66 +92,71 @@ export default function UrgentOrdersViewScreen({ navigation }) {
 
   const renderOrderItem = ({ item }) => {
     const timeRemaining = timers[item.id] || 0;
-    const isUrgent = timeRemaining < 30;
+    const isUrgent = timeRemaining < 30 && timeRemaining > 0;
     const isExpired = timeRemaining === 0;
+    const urgencyPct = Math.min(1, timeRemaining / 120);
+    const timerColor = isExpired ? COLORS.error : isUrgent ? '#F59E0B' : COLORS.primary;
 
     return (
       <View style={[styles.orderCard, isUrgent && styles.orderCardUrgent, isExpired && styles.orderCardExpired]}>
-        <View style={styles.urgentHeader}>
-          <View style={styles.urgentBadge}>
-            <Ionicons name="alert-circle" size={20} color={COLORS.error} />
-            <Text style={styles.urgentText}>URGENT</Text>
+        {/* Barre de progression urgence */}
+        <View style={styles.urgencyBar}>
+          <View style={[styles.urgencyFill, { width: `${urgencyPct * 100}%`, backgroundColor: timerColor }]} />
+        </View>
+
+        {/* Infos commande + timer */}
+        <View style={styles.cardBody}>
+          <View style={styles.cardLeft}>
+            <View style={styles.orderTopRow}>
+              <View style={styles.urgentBadge}>
+                <Text style={styles.urgentText}>URGENT</Text>
+              </View>
+              <Text style={styles.orderNumber}>#{item.orderNumber}</Text>
+              <Text style={styles.orderTime}>
+                {new Date(item.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}
+              </Text>
+            </View>
+            <Text style={styles.customerName}>{item.customerName}</Text>
+            <View style={styles.orderMeta}>
+              <View style={styles.metaItem}>
+                <Ionicons name="cube-outline" size={13} color={COLORS.textSecondary} />
+                <Text style={styles.metaText}>{item.itemsCount} articles</Text>
+              </View>
+              {item.deliveryAddress ? (
+                <View style={styles.metaItem}>
+                  <Ionicons name="location-outline" size={13} color={COLORS.textSecondary} />
+                  <Text style={styles.metaText} numberOfLines={1}>{item.deliveryAddress}</Text>
+                </View>
+              ) : null}
+            </View>
+            <Text style={styles.orderAmount}>{item.total} FCFA</Text>
           </View>
-          <View style={[styles.timerContainer, isUrgent && styles.timerUrgent, isExpired && styles.timerExpired]}>
-            <Ionicons name="time" size={16} color={isExpired ? COLORS.error : COLORS.white} />
-            <Text style={[styles.timerText, isExpired && styles.timerTextExpired]}>
-              {isExpired ? 'Expiré' : `Répondre dans : ${formatTime(timeRemaining)}`}
+
+          {/* Timer circulaire */}
+          <View style={[styles.timerBox, { borderColor: timerColor }]}>
+            <Text style={[styles.timerValue, { color: timerColor }]}>
+              {isExpired ? '--:--' : formatTime(timeRemaining)}
+            </Text>
+            <Text style={[styles.timerLabel, { color: timerColor }]}>
+              {isExpired ? 'Expiré' : 'Restant'}
             </Text>
           </View>
         </View>
 
-        <View style={styles.orderHeader}>
-          <View>
-            <Text style={styles.orderNumber}>#{item.orderNumber}</Text>
-            <Text style={styles.customerName}>{item.customerName}</Text>
-          </View>
-          <View style={styles.orderInfo}>
-            <Text style={styles.orderTime}>{new Date(item.createdAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}</Text>
-            <Text style={styles.orderAmount}>{item.total} FCFA</Text>
-          </View>
-        </View>
-
-        <View style={styles.orderDetails}>
-          <View style={styles.orderDetailItem}>
-            <Ionicons name="cube-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={styles.orderDetailText}>{item.itemsCount} articles</Text>
-          </View>
-          <View style={styles.orderDetailItem}>
-            <Ionicons name="location-outline" size={16} color={COLORS.textSecondary} />
-            <Text style={styles.orderDetailText} numberOfLines={1}>{item.deliveryAddress}</Text>
-          </View>
-        </View>
-
-        <View style={styles.orderActions}>
+        {/* Actions */}
+        <View style={styles.cardActions}>
           <TouchableOpacity
-            style={[styles.actionButton, styles.acceptButton]}
-            onPress={() => handleAccept(item.id)}
-          >
-            <Ionicons name="checkmark" size={18} color={COLORS.white} />
-            <Text style={styles.acceptButtonText}>ACCEPTER</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.actionButton, styles.refuseButton]}
+            style={styles.refuseLink}
             onPress={() => handleRefuse(item.id)}
           >
-            <Ionicons name="close" size={18} color={COLORS.white} />
-            <Text style={styles.refuseButtonText}>REFUSER</Text>
+            <Text style={styles.refuseLinkText}>Refuser cette commande</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={styles.detailsButton}
-            onPress={() => handleViewDetails(item.id)}
+            style={styles.acceptButton}
+            onPress={() => handleAccept(item.id)}
           >
-            <Ionicons name="eye-outline" size={18} color={COLORS.primary} />
+            <Ionicons name="checkmark-circle" size={22} color={COLORS.white} />
+            <Text style={styles.acceptButtonText}>ACCEPTER LA COMMANDE</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -272,145 +277,147 @@ const styles = StyleSheet.create({
   },
   orderCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 16,
     marginBottom: 16,
-    borderWidth: 2,
+    overflow: 'hidden',
+    borderWidth: 1.5,
     borderColor: COLORS.border,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+    elevation: 3,
   },
   orderCardUrgent: {
-    borderColor: COLORS.warning,
-    backgroundColor: COLORS.warning + '05',
+    borderColor: '#F59E0B',
   },
   orderCardExpired: {
     borderColor: COLORS.error,
-    backgroundColor: COLORS.error + '05',
   },
-  urgentHeader: {
+  urgencyBar: {
+    height: 4,
+    backgroundColor: COLORS.border,
+  },
+  urgencyFill: {
+    height: 4,
+  },
+  cardBody: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    padding: 16,
+    gap: 12,
+  },
+  cardLeft: {
+    flex: 1,
+    gap: 4,
+  },
+  orderTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 2,
   },
   urgentBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
     backgroundColor: COLORS.error + '15',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
   },
   urgentText: {
-    fontSize: 12,
-    fontWeight: 'bold',
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.error,
-  },
-  timerContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.primary,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    gap: 6,
-  },
-  timerUrgent: {
-    backgroundColor: COLORS.warning,
-  },
-  timerExpired: {
-    backgroundColor: COLORS.error,
-  },
-  timerText: {
-    fontSize: 12,
-    fontWeight: 'bold',
-    color: COLORS.white,
-  },
-  timerTextExpired: {
-    color: COLORS.white,
-  },
-  orderHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    letterSpacing: 0.8,
   },
   orderNumber: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.text,
-    marginBottom: 4,
-  },
-  customerName: {
     fontSize: 14,
-    color: COLORS.textSecondary,
-  },
-  orderInfo: {
-    alignItems: 'flex-end',
+    fontWeight: '700',
+    color: COLORS.text,
   },
   orderTime: {
     fontSize: 12,
     color: COLORS.textSecondary,
-    marginBottom: 4,
+    marginLeft: 'auto',
   },
-  orderAmount: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: COLORS.primary,
+  customerName: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
   },
-  orderDetails: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 16,
-    marginBottom: 16,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.border,
+  orderMeta: {
+    gap: 4,
+    marginTop: 2,
   },
-  orderDetailItem: {
+  metaItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 5,
   },
-  orderDetailText: {
+  metaText: {
     fontSize: 12,
     color: COLORS.textSecondary,
+    flex: 1,
   },
-  orderActions: {
-    flexDirection: 'row',
+  orderAmount: {
+    fontSize: 20,
+    fontWeight: '800',
+    color: COLORS.text,
+    marginTop: 4,
+  },
+  timerBox: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    borderWidth: 3,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.03)',
+  },
+  timerValue: {
+    fontSize: 18,
+    fontWeight: '800',
+    letterSpacing: 0.5,
+  },
+  timerLabel: {
+    fontSize: 9,
+    fontWeight: '600',
+    marginTop: 1,
+  },
+  cardActions: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+    paddingHorizontal: 14,
+    paddingBottom: 14,
     gap: 8,
   },
-  actionButton: {
-    flex: 1,
+  refuseLink: {
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  refuseLinkText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    textDecorationLine: 'underline',
+  },
+  acceptButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    borderRadius: 8,
-    gap: 6,
-  },
-  acceptButton: {
+    gap: 8,
     backgroundColor: COLORS.success,
-  },
-  refuseButton: {
-    backgroundColor: COLORS.error,
+    borderRadius: 12,
+    paddingVertical: 16,
+    shadowColor: COLORS.success,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   acceptButtonText: {
     color: COLORS.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  refuseButtonText: {
-    color: COLORS.white,
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  detailsButton: {
-    width: 48,
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: COLORS.primary + '15',
-    justifyContent: 'center',
-    alignItems: 'center',
+    fontSize: 16,
+    fontWeight: '800',
+    letterSpacing: 0.3,
   },
   emptyContainer: {
     alignItems: 'center',
