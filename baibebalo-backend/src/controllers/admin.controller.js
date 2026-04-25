@@ -2,6 +2,13 @@ const { query, transaction } = require('../database/db');
 const logger = require('../utils/logger');
 const bcrypt = require('bcrypt');
 
+// Colonnes sûres pour les utilisateurs (exclut password_hash, fcm_token, refresh_token)
+const SAFE_USER_COLS = `id, phone, email, first_name, last_name, status, profile_picture,
+  address, district, created_at, updated_at, last_login, total_orders, total_spent`;
+const SAFE_DELIVERY_COLS = `id, phone, email, first_name, last_name, status, delivery_status,
+  profile_picture, vehicle_type, vehicle_number, current_latitude, current_longitude,
+  last_location_update, total_deliveries, rating, created_at, updated_at`;
+
 /**
  * Dashboard - Statistiques globales
  */
@@ -266,7 +273,7 @@ exports.getUsers = async (req, res) => {
     const { page = 1, limit = 20, status, search } = req.query;
     const offset = (page - 1) * limit;
 
-    let queryText = 'SELECT * FROM users WHERE 1=1';
+    let queryText = `SELECT ${SAFE_USER_COLS} FROM users WHERE 1=1`;
     const values = [];
     let paramIndex = 1;
 
@@ -331,7 +338,7 @@ exports.getUserById = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const userResult = await query('SELECT * FROM users WHERE id = $1', [id]);
+    const userResult = await query(`SELECT ${SAFE_USER_COLS} FROM users WHERE id = $1`, [id]);
     
     if (userResult.rows.length === 0) {
       return res.status(404).json({
@@ -665,7 +672,7 @@ exports.getDeliveryPersons = async (req, res) => {
     const { page = 1, limit = 20, status, search } = req.query;
     const offset = (page - 1) * limit;
 
-    let queryText = 'SELECT * FROM delivery_persons WHERE 1=1';
+    let queryText = `SELECT ${SAFE_DELIVERY_COLS} FROM delivery_persons WHERE 1=1`;
     const values = [];
     let paramIndex = 1;
 
@@ -811,9 +818,17 @@ exports.getOrders = async (req, res) => {
     let paramIndex = 1;
 
     if (status) {
-      queryText += ` AND o.status = $${paramIndex}`;
-      values.push(status);
-      paramIndex++;
+      const statuses = String(status).split(',').map(s => s.trim()).filter(Boolean);
+      if (statuses.length === 1) {
+        queryText += ` AND o.status = $${paramIndex}`;
+        values.push(statuses[0]);
+        paramIndex++;
+      } else {
+        const placeholders = statuses.map((_, i) => `$${paramIndex + i}`).join(', ');
+        queryText += ` AND o.status IN (${placeholders})`;
+        values.push(...statuses);
+        paramIndex += statuses.length;
+      }
     }
 
     if (date_from) {

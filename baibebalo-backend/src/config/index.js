@@ -50,9 +50,9 @@ const config = {
   // ================================
   jwt: {
     secret: process.env.JWT_SECRET || 'baibebalo-secret-key-change-in-production',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d',
+    expiresIn: process.env.JWT_EXPIRES_IN || '2h',
     refreshSecret: process.env.JWT_REFRESH_SECRET || 'baibebalo-refresh-secret',
-    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '30d',
+    refreshExpiresIn: process.env.JWT_REFRESH_EXPIRES_IN || '7d',
   },
   
   // ================================
@@ -77,15 +77,18 @@ const config = {
     // ✅ CORRECTION : ajout de https://baibebalo-admin.onrender.com dans le fallback production
     // Si CORS_ORIGIN est défini dans les variables d'environnement Render, il sera utilisé.
     // Sinon, le fallback inclut maintenant l'URL de l'admin en production.
-    origin: (process.env.NODE_ENV || 'development') === 'development'
-      ? true // Autoriser toutes les origines en dev (pratique pour React Native/Expo)
-      : (process.env.CORS_ORIGIN
-          ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
-          : [
-              'http://localhost:5173',
-              'http://localhost:5174',
-              'https://baibebalo-admin.onrender.com', // ✅ AJOUT - Panel admin production
-            ]),
+    origin: process.env.CORS_ORIGIN
+      ? process.env.CORS_ORIGIN.split(',').map(o => o.trim())
+      : (process.env.NODE_ENV || 'development') === 'development'
+        ? [
+            'http://localhost:5173',
+            'http://localhost:5174',
+            'http://127.0.0.1:5173',
+            'http://127.0.0.1:5174',
+          ]
+        : [
+            'https://baibebalo-admin.onrender.com',
+          ],
     credentials: true,
   },
   

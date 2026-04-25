@@ -367,9 +367,15 @@ partnersNamespace.on('connection', (socket) => {
     }
   });
 
+  // Throttle : max 1 update de position par seconde par livreur
+  const _locationThrottle = new Map();
   socket.on('location_update', async (data) => {
     if (socket.userType !== 'delivery') return;
-    
+    const now = Date.now();
+    const last = _locationThrottle.get(socket.userId) || 0;
+    if (now - last < 1000) return;
+    _locationThrottle.set(socket.userId, now);
+
     try {
       const { latitude, longitude, order_id } = data;
       

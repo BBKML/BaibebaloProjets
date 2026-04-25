@@ -1931,20 +1931,20 @@ exports.acceptOrder = async (req, res) => {
 
     return await transaction(async (client) => {
       const orderResult = await client.query(
-        'SELECT * FROM orders WHERE id = $1 AND restaurant_id = $2 AND status = $3',
+        'SELECT id, restaurant_id, user_id, status FROM orders WHERE id = $1 AND restaurant_id = $2 AND status = $3 FOR UPDATE',
         [id, req.user.id, 'new']
       );
 
       if (orderResult.rows.length === 0) {
         return res.status(404).json({
           success: false,
-          error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée' },
+          error: { code: 'ORDER_NOT_FOUND', message: 'Commande non trouvée ou déjà acceptée' },
         });
       }
 
       await client.query(
-        `UPDATE orders 
-         SET status = 'accepted', 
+        `UPDATE orders
+         SET status = 'accepted',
              accepted_at = NOW(),
              estimated_delivery_time = $1
          WHERE id = $2`,

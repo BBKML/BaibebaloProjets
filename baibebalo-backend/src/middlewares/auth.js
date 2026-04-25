@@ -78,16 +78,24 @@ const verifyAccessToken = (token) => {
 /**
  * Vérifie un refresh token
  */
+const VALID_USER_TYPES = ['user', 'client', 'admin', 'restaurant', 'delivery_person'];
+
 const verifyRefreshToken = (token) => {
   try {
     if (tokenBlacklist.has(token)) {
       throw new Error('Token révoqué');
     }
 
-    return jwt.verify(token, config.jwt.refreshSecret, {
+    const decoded = jwt.verify(token, config.jwt.refreshSecret, {
       issuer: 'baibebalo-api',
       audience: 'baibebalo-client',
     });
+
+    if (!decoded.type || !VALID_USER_TYPES.includes(decoded.type)) {
+      throw new Error('Refresh token invalide');
+    }
+
+    return decoded;
   } catch (error) {
     if (error.name === 'TokenExpiredError') {
       throw new Error('Refresh token expiré');

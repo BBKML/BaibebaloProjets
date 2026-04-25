@@ -546,7 +546,8 @@ router.post('/notifications/promotional',
  */
 
 // Vue d'ensemble analytics
-router.get('/analytics/overview', 
+router.get('/analytics/overview',
+  requireAdminPermission('view_finances'),
   adminController.getAnalytics
 );
 
