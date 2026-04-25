@@ -43,7 +43,8 @@
         "android.permission.ACCESS_COARSE_LOCATION",
         "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.CAMERA",
-        "android.permission.RECORD_AUDIO"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.MODIFY_AUDIO_SETTINGS"
       ],
       "versionCode": 2
     },
@@ -76,10 +77,10 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "b0f1d162-8cbb-4866-9d32-61ff9c45dcca"
+        "projectId": "1d9548c3-b1c1-4895-8d45-0e670548a683"
       },
       "mapsProvider": "default"
     },
-    "owner": "entreprise-baibebalo"
+    "owner": "baibebalo-builds"
   }
 }

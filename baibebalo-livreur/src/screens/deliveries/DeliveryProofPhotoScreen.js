@@ -50,7 +50,7 @@ export default function DeliveryProofPhotoScreen({ navigation, route }) {
     try {
       // Convertir en base64 pour éviter les erreurs multipart sur Android APK
       const base64 = await FileSystem.readAsStringAsync(uri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
       const ext = (uri.split('.').pop() || 'jpg').toLowerCase();
       const mimeType = ext === 'png' ? 'image/png' : 'image/jpeg';

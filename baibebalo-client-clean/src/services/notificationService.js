@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { saveFcmToken } from '../api/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +19,35 @@ try {
 }
 
 const NOTIFICATION_TOKEN_KEY = 'expo_notification_token';
+
+/**
+ * Créer les canaux Android pour les notifications (requis Android 8+)
+ */
+export const setupAndroidChannels = async () => {
+  if (Platform.OS !== 'android') return;
+  try {
+    await Notifications.setNotificationChannelAsync('orders', {
+      name: 'Commandes',
+      importance: Notifications.AndroidImportance?.HIGH ?? 4,
+      sound: 'default',
+      vibrationPattern: [0, 250, 250, 250],
+      enableLights: true,
+      lightColor: '#22C55E',
+    });
+    await Notifications.setNotificationChannelAsync('promotions', {
+      name: 'Promotions',
+      importance: Notifications.AndroidImportance?.DEFAULT ?? 3,
+      sound: 'default',
+    });
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Général',
+      importance: Notifications.AndroidImportance?.DEFAULT ?? 3,
+      sound: 'default',
+    });
+  } catch (e) {
+    if (__DEV__) console.debug('[Notification] Channels error:', e?.message);
+  }
+};
 
 /**
  * Demander les permissions de notifications
@@ -126,6 +156,8 @@ export const registerNotificationToken = async () => {
       // En Expo Go, les notifications push ne fonctionnent pas - on retourne silencieusement
       return false;
     }
+
+    await setupAndroidChannels();
 
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {

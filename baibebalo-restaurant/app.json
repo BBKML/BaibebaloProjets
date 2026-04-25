@@ -47,10 +47,10 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "d9d9af0c-ace9-4859-99eb-8e42733c79fd"
+        "projectId": "65729dc1-bb74-4660-87fc-10729fd74239"
       },
       "mapsProvider": "default"
     },
-    "owner": "entreprise-baibebalo"
+    "owner": "baibebalo-builds"
   }
 }

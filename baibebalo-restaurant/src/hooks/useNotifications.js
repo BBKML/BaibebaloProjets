@@ -5,6 +5,7 @@ import {
   registerNotificationToken,
   setupNotificationListeners,
 } from '../services/notificationService';
+import soundService from '../services/soundService';
 import Toast from 'react-native-toast-message';
 
 /**
@@ -54,20 +55,17 @@ export const useNotifications = (isAuthenticated) => {
       // Notification reçue en avant-plan
       (notification) => {
         const { title, body, data } = notification.request.content;
-        
-        // Afficher un toast
+
+        if (data?.type === 'new_order') {
+          soundService.alertNewOrder();
+        }
+
         Toast.show({
-          type: 'info',
+          type: data?.type === 'new_order' ? 'success' : 'info',
           text1: title || 'Nouvelle notification',
           text2: body || '',
-          visibilityTime: 4000,
+          visibilityTime: 5000,
         });
-
-        // Si c'est une nouvelle commande, recharger les commandes
-        if (data?.type === 'new_order') {
-          // Optionnel : déclencher un rechargement des commandes
-          // Vous pouvez utiliser un store ou un événement global
-        }
       },
       // Notification tapée
       (response) => {

@@ -36,16 +36,16 @@ export default function FinancialDashboardScreen({ navigation }) {
       
       // Adapter les données au format attendu par l'écran
       const adaptedData = {
-        availableBalance: earningsData?.available_balance || earningsData?.balance || 0,
-        monthlyRevenue: earningsData?.total_revenue || earningsData?.revenue || 0,
-        monthlyCommission: earningsData?.total_commission || earningsData?.commission || 0,
-        monthlyWithdrawals: earningsData?.total_withdrawals || earningsData?.withdrawals || 0,
-        grossRevenue: earningsData?.gross_revenue || earningsData?.revenue || 0,
-        totalCommission: earningsData?.total_commission || earningsData?.commission || 0,
-        deliveryFees: earningsData?.delivery_fees || 0,
-        netRevenue: earningsData?.net_revenue || earningsData?.revenue || 0,
-        commissionRate: earningsData?.commission_rate || 15,
-        forecast: earningsData?.forecast || null,
+        availableBalance: earningsData?.balance ?? earningsData?.available_balance ?? 0,
+        monthlyRevenue: earningsData?.total_revenue ?? earningsData?.revenue ?? 0,
+        monthlyCommission: earningsData?.total_commission ?? earningsData?.commission ?? 0,
+        monthlyWithdrawals: earningsData?.total_withdrawals ?? earningsData?.withdrawals ?? 0,
+        grossRevenue: earningsData?.total_revenue ?? earningsData?.gross_revenue ?? 0,
+        totalCommission: earningsData?.total_commission ?? earningsData?.commission ?? 0,
+        deliveryFees: earningsData?.delivery_fees ?? 0,
+        netRevenue: earningsData?.net_earnings ?? earningsData?.net_revenue ?? earningsData?.total_revenue ?? 0,
+        commissionRate: earningsData?.commission_rate ?? 15,
+        forecast: earningsData?.forecast ?? null,
       };
       
       setLocalFinancialData(adaptedData);

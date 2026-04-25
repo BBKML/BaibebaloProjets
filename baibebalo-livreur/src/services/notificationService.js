@@ -1,3 +1,4 @@
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { saveFCMToken } from '../api/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -11,6 +12,41 @@ function getNotifications() {
     return null;
   }
 }
+
+/**
+ * Créer les canaux Android pour les notifications importantes
+ * (requis Android 8+ pour le son et l'importance MAX)
+ */
+export const setupAndroidChannels = async () => {
+  if (Platform.OS !== 'android') return;
+  const Notifications = getNotifications();
+  if (!Notifications?.setNotificationChannelAsync) return;
+  try {
+    await Notifications.setNotificationChannelAsync('deliveries', {
+      name: 'Nouvelles courses',
+      importance: Notifications.AndroidImportance?.MAX ?? 5,
+      sound: 'default',
+      vibrationPattern: [0, 250, 250, 250],
+      enableLights: true,
+      lightColor: '#22C55E',
+      bypassDnd: true,
+      lockscreenVisibility: 1,
+    });
+    await Notifications.setNotificationChannelAsync('orders', {
+      name: 'Commandes en cours',
+      importance: Notifications.AndroidImportance?.HIGH ?? 4,
+      sound: 'default',
+      vibrationPattern: [0, 200, 100, 200],
+    });
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Général',
+      importance: Notifications.AndroidImportance?.DEFAULT ?? 3,
+      sound: 'default',
+    });
+  } catch (e) {
+    if (__DEV__) console.debug('[Notification] Channels error:', e?.message);
+  }
+};
 
 const NOTIFICATION_TOKEN_KEY = 'delivery_notification_token';
 

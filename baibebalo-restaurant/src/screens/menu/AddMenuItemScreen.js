@@ -412,7 +412,7 @@ export default function AddMenuItemScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 0) + 20 }]}>
         <TouchableOpacity
           style={[styles.submitButton, loading && styles.submitButtonDisabled]}
           onPress={handleSubmit}
@@ -662,7 +662,9 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   footer: {
-    padding: 20,
+    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

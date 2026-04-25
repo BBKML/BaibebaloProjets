@@ -111,6 +111,9 @@ const useDeliveryStore = create((set, get) => ({
           ? rawDeliveries.filter(d => isToday(d.delivered_at || d.created_at)).length
           : 0;
         const avgRating = profile?.average_rating != null ? parseFloat(profile.average_rating) : null;
+        const restoredStatus = profile?.delivery_status && ['available', 'busy', 'offline'].includes(profile.delivery_status)
+          ? profile.delivery_status
+          : null;
         set({
           earningsData: {
             available_balance: earningsData.available_balance ?? 0,
@@ -128,6 +131,7 @@ const useDeliveryStore = create((set, get) => ({
           },
           activeOrders: ordersList,
           currentDelivery: ordersList.length > 0 ? ordersList[0] : null,
+          ...(restoredStatus && get().status === 'offline' ? { status: restoredStatus } : {}),
         });
         if (rawDeliveries.length > 0) {
           const mapped = rawDeliveries.map(d => ({

@@ -535,7 +535,7 @@ export default function EditMenuItemScreen({ navigation, route }) {
         </View>
       </ScrollView>
 
-      <View style={styles.footer}>
+      <View style={[styles.footer, { paddingBottom: Math.max(insets.bottom, 0) + 20 }]}>
         <TouchableOpacity
           style={[styles.saveButton, saving && styles.saveButtonDisabled]}
           onPress={handleSave}
@@ -832,7 +832,9 @@ const styles = StyleSheet.create({
     fontWeight: '600',
   },
   footer: {
-    padding: 20,
+    paddingTop: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     backgroundColor: COLORS.white,
     borderTopWidth: 1,
     borderTopColor: COLORS.border,

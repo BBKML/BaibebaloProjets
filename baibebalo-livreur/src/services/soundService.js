@@ -9,6 +9,8 @@ class SoundService {
   constructor() {
     this._soundErrorLogged = false;
     this._initialized = false;
+    this._loopingPlayer = null;
+    this._loopingInterval = null;
   }
 
   async initialize() {
@@ -88,6 +90,35 @@ class SoundService {
   async alert() {
     this.vibrate('alert');
     await this.playSound('alert');
+  }
+
+  /**
+   * Démarrer une alerte sonore en boucle (nouvelle course)
+   * Rejoue le son toutes les 4 secondes jusqu'à stopLoopingAlert()
+   */
+  async startLoopingAlert() {
+    this.stopLoopingAlert();
+    this.vibrate('newDelivery');
+    await this.playSound('newDelivery');
+    this._loopingInterval = setInterval(async () => {
+      this.vibrate('newDelivery');
+      await this.playSound('newDelivery');
+    }, 4000);
+  }
+
+  /**
+   * Arrêter l'alerte sonore en boucle
+   */
+  stopLoopingAlert() {
+    if (this._loopingInterval) {
+      clearInterval(this._loopingInterval);
+      this._loopingInterval = null;
+    }
+    if (this._loopingPlayer) {
+      try { this._loopingPlayer.remove(); } catch (_) {}
+      this._loopingPlayer = null;
+    }
+    Vibration.cancel();
   }
 }
 

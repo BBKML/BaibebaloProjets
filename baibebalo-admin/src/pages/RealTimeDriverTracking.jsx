@@ -1,8 +1,9 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import Layout from '../components/layout/Layout';
 import driversAPI from '../api/drivers';
+import socketService from '../services/socketService';
 import 'leaflet/dist/leaflet.css';
 
 // Fix Leaflet default marker icons (webpack asset issue)
@@ -29,6 +30,10 @@ const RealTimeDriverTracking = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedDriver, setSelectedDriver] = useState(null);
   const [MapComponents, setMapComponents] = useState(null);
+  const [driverStatusOverrides, setDriverStatusOverrides] = useState({});
+  const [driverLocationOverrides, setDriverLocationOverrides] = useState({});
+  const [socketConnected, setSocketConnected] = useState(false);
+  const socketConnectedRef = useRef(false);
 
   // Load Leaflet components lazily (SSR-safe)
   useEffect(() => {
@@ -45,7 +50,46 @@ const RealTimeDriverTracking = () => {
     retry: 2,
   });
 
-  const allDrivers = data?.data?.delivery_persons || [];
+  // WebSocket pour mises à jour temps réel
+  useEffect(() => {
+    const token = localStorage.getItem('accessToken');
+    if (!token || socketConnectedRef.current) return;
+    socketConnectedRef.current = true;
+    socketService.connect(token);
+    socketService.trackAllDeliveryPersons();
+
+    const unsubConn = socketService.on('connection_status', (ev) => setSocketConnected(ev?.connected ?? false));
+
+    const unsubStatus = socketService.on('delivery_status_changed', (event) => {
+      const id = event?.delivery_person_id;
+      const status = event?.status;
+      if (!id || !status) return;
+      setDriverStatusOverrides((prev) => ({ ...prev, [String(id)]: status }));
+    });
+
+    const unsubLocation = socketService.on('delivery_location', (event) => {
+      const id = event?.delivery_person_id;
+      if (!id || event?.latitude == null || event?.longitude == null) return;
+      setDriverLocationOverrides((prev) => ({
+        ...prev,
+        [String(id)]: { lat: event.latitude, lng: event.longitude },
+      }));
+    });
+
+    return () => {
+      unsubConn();
+      unsubStatus();
+      unsubLocation();
+    };
+  }, []);
+
+  const rawDrivers = data?.data?.delivery_persons || [];
+  const allDrivers = rawDrivers.map((d) => ({
+    ...d,
+    delivery_status: driverStatusOverrides[String(d.id)] ?? d.delivery_status,
+    current_latitude: driverLocationOverrides[String(d.id)]?.lat ?? d.current_latitude,
+    current_longitude: driverLocationOverrides[String(d.id)]?.lng ?? d.current_longitude,
+  }));
 
   // Only drivers with known GPS coordinates
   const driversWithLocation = allDrivers.filter(
@@ -103,9 +147,15 @@ const RealTimeDriverTracking = () => {
               <span className="material-symbols-outlined text-xl">arrow_back</span>
             </Link>
             <div>
-              <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
-                Suivi Temps Réel Livreurs
-              </h1>
+              <div className="flex items-center gap-2">
+                <h1 className="text-2xl font-black tracking-tight text-slate-900 dark:text-white">
+                  Suivi Temps Réel Livreurs
+                </h1>
+                <span className={`flex items-center gap-1 text-xs font-bold px-2 py-0.5 rounded-full ${socketConnected ? 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400' : 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400'}`}>
+                  <span className={`size-1.5 rounded-full ${socketConnected ? 'bg-emerald-500 animate-pulse' : 'bg-slate-400'}`} />
+                  {socketConnected ? 'En direct' : 'Polling'}
+                </span>
+              </div>
               <p className="text-slate-500 dark:text-slate-400 text-sm mt-0.5">
                 {driversWithLocation.length} livreur{driversWithLocation.length !== 1 ? 's' : ''} avec position GPS active
               </p>

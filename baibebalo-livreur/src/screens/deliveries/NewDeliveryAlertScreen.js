@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { 
-  View, 
-  Text, 
-  StyleSheet, 
-  TouchableOpacity, 
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
   StatusBar,
   Vibration,
   Alert,
@@ -14,6 +14,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { COLORS } from '../../constants/colors';
 import useDeliveryStore from '../../store/deliveryStore';
 import { acceptOrder, declineOrder } from '../../api/orders';
+import soundService from '../../services/soundService';
 
 export default function NewDeliveryAlertScreen({ navigation, route }) {
   const { clearPendingAlert, setCurrentDelivery } = useDeliveryStore();
@@ -67,7 +68,9 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
   }, [orderId, deliveryFee, restaurantName, restaurantAddress, customerArea, landmark, estimatedTime, clearPendingAlert, setCurrentDelivery, navigation]);
 
   useEffect(() => {
-    Vibration.vibrate([0, 500, 200, 500]);
+    // Démarrer l'alerte sonore en boucle (son + vibration)
+    soundService.startLoopingAlert();
+
     const interval = setInterval(() => {
       setTimeLeft((prev) => {
         if (prev <= 1) {
@@ -78,9 +81,10 @@ export default function NewDeliveryAlertScreen({ navigation, route }) {
         return prev - 1;
       });
     }, 1000);
+
     return () => {
       clearInterval(interval);
-      Vibration.cancel();
+      soundService.stopLoopingAlert();
     };
   }, [handleDecline]);
 

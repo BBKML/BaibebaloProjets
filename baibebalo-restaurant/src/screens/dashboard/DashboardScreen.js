@@ -142,7 +142,7 @@ export default function DashboardScreen({ navigation }) {
   const prevOrderCountRef = useRef(0);
   useEffect(() => {
     if (newOrders.length > prevOrderCountRef.current) {
-      soundService.newOrder();
+      soundService.alertNewOrder();
     }
     prevOrderCountRef.current = newOrders.length;
   }, [newOrders.length]);
@@ -235,26 +235,34 @@ export default function DashboardScreen({ navigation }) {
     }
   };
 
-  const handleAcceptOrder = (order) => {
-    const orderNum = order.order_number || order.id?.slice(0, 8) || '?';
-    setSelectedPrepTime(15);
-    setAcceptModal({ orderId: order.id, orderNum });
-  };
-
-  const confirmAcceptOrder = async () => {
-    if (!acceptModal || acceptingId) return;
-    setAcceptingId(acceptModal.orderId);
+  // Acceptation directe en 1 tap (15 min par défaut)
+  const handleAcceptOrder = async (order, customPrepTime) => {
+    if (acceptingId) return;
+    const prepTime = customPrepTime ?? selectedPrepTime;
+    setAcceptingId(order.id);
     try {
-      await restaurantOrders.acceptOrder(acceptModal.orderId, selectedPrepTime * 60);
-      setNewOrders((prev) => prev.filter((o) => o.id !== acceptModal.orderId));
+      await restaurantOrders.acceptOrder(order.id, prepTime * 60);
+      setNewOrders((prev) => prev.filter((o) => o.id !== order.id));
       setDashboardData((prev) => ({ ...prev, pendingCount: Math.max(0, prev.pendingCount - 1) }));
-      Toast.show({ type: 'success', text1: '✅ Commande acceptée', text2: `Prêt en ${selectedPrepTime} min` });
+      Toast.show({ type: 'success', text1: '✅ Commande acceptée', text2: `Prêt en ${prepTime} min` });
     } catch (_) {
       Toast.show({ type: 'error', text1: 'Erreur', text2: 'Impossible d\'accepter la commande' });
     } finally {
       setAcceptingId(null);
       setAcceptModal(null);
     }
+  };
+
+  // Acceptation avec choix du temps de préparation (modal)
+  const openPrepTimeModal = (order) => {
+    const orderNum = order.order_number || order.id?.slice(0, 8) || '?';
+    setSelectedPrepTime(15);
+    setAcceptModal({ orderId: order.id, orderNum, order });
+  };
+
+  const confirmAcceptOrder = async () => {
+    if (!acceptModal || acceptingId) return;
+    await handleAcceptOrder(acceptModal.order, selectedPrepTime);
   };
 
   const handleRefuseOrder = (orderId) => {
@@ -446,6 +454,15 @@ export default function DashboardScreen({ navigation }) {
                       <Ionicons name="close" size={18} color={COLORS.error} />
                       <Text style={styles.refuseBtnText}>Refuser</Text>
                     </TouchableOpacity>
+                    {/* Bouton personnaliser temps (⏱) */}
+                    <TouchableOpacity
+                      style={[styles.prepTimeBtn]}
+                      onPress={() => openPrepTimeModal(order)}
+                      disabled={!!acceptingId}
+                    >
+                      <Ionicons name="time-outline" size={18} color={COLORS.primary} />
+                    </TouchableOpacity>
+                    {/* Acceptation directe en 1 tap (15 min) */}
                     <TouchableOpacity
                       style={[styles.acceptBtn, acceptingId === order.id && { opacity: 0.6 }]}
                       onPress={() => handleAcceptOrder(order)}
@@ -891,6 +908,14 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
     paddingVertical: 14,
+    borderRightWidth: 0.5,
+    borderRightColor: COLORS.border,
+  },
+  prepTimeBtn: {
+    paddingHorizontal: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    justifyContent: 'center',
     borderRightWidth: 0.5,
     borderRightColor: COLORS.border,
   },

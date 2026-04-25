@@ -74,6 +74,7 @@ export default function DeliveryHomeScreen({ navigation }) {
   const [selectedZone, setSelectedZone] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [showPauseModal, setShowPauseModal] = useState(false);
+  const statusSentRef = useRef(false);
   const [pauseRemaining, setPauseRemaining] = useState(0);
   const pauseTimerRef = useRef(null);
   const lastDashboardLoadRef = useRef(0);
@@ -159,15 +160,21 @@ export default function DeliveryHomeScreen({ navigation }) {
       }
     });
 
-    // Mettre à jour le statut de disponibilité sur le serveur
-    socketService.updateAvailability(status === 'available');
-
     return () => {
       unsubscribeNewDelivery();
       unsubscribeOrderCancelled();
       unsubscribeOrderDelivered?.();
     };
   }, [status, navigation, loadDashboardData]);
+
+  // Synchroniser la disponibilité via socket quand le statut change (skip le premier rendu)
+  useEffect(() => {
+    if (!statusSentRef.current) {
+      statusSentRef.current = true;
+      return;
+    }
+    socketService.updateAvailability(status === 'available');
+  }, [status]);
 
   // Rafraîchir les données
   const handleRefresh = async () => {

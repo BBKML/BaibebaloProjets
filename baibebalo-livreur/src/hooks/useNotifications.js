@@ -3,6 +3,7 @@ import { useNavigation } from '@react-navigation/native';
 import {
   registerNotificationToken,
   setupNotificationListeners,
+  setupAndroidChannels,
 } from '../services/notificationService';
 import Toast from 'react-native-toast-message';
 
@@ -18,9 +19,10 @@ export const useNotifications = (isAuthenticated) => {
       return;
     }
 
-    // Enregistrer le token au démarrage
+    // Initialiser canaux Android + token
     const initNotifications = async () => {
       try {
+        await setupAndroidChannels();
         await registerNotificationToken();
       } catch (error) {
         if (__DEV__) {
@@ -35,9 +37,23 @@ export const useNotifications = (isAuthenticated) => {
     const removeListeners = setupNotificationListeners(
       // Notification reçue en avant-plan
       (notification) => {
-        const { title, body, data } = notification.request.content;
-        
-        // Afficher un toast
+        const { title, body, data: notifData } = notification.request.content;
+
+        // Proposition de course : naviguer directement vers l'écran d'alerte
+        if (notifData?.type === 'order_proposed' && notifData?.order_id) {
+          navigation.navigate('NewDeliveryAlert', {
+            proposal: {
+              order_id: notifData.order_id,
+              order_number: notifData.order_number,
+              restaurant_name: notifData.restaurant_name,
+              delivery_fee: Number(notifData.delivery_fee || 0),
+              expires_in_seconds: Number(notifData.expires_in_seconds || 120),
+            },
+          });
+          return;
+        }
+
+        // Autres notifications : afficher un toast
         Toast.show({
           type: 'info',
           text1: title || 'Nouvelle notification',
@@ -45,20 +61,26 @@ export const useNotifications = (isAuthenticated) => {
           visibilityTime: 4000,
         });
       },
-      // Notification tapée
+      // Notification tapée (app en arrière-plan ou fermée)
       (response) => {
-        const { data } = response.notification.request.content;
-        
-        // Naviguer selon le type de notification
-        if (data?.type === 'new_delivery' && data?.order_id) {
-          navigation.navigate('AvailableDeliveries');
-        } else if (data?.orderId) {
-          navigation.navigate('NavigationToRestaurant', { orderId: data.orderId });
-        } else if (data?.type === 'payout_completed' || data?.screen === 'Earnings') {
-          // Paiement reçu : aller à l'onglet Gains (solde à jour)
+        const { data: notifData } = response.notification.request.content;
+
+        if (notifData?.type === 'order_proposed' && notifData?.order_id) {
+          navigation.navigate('NewDeliveryAlert', {
+            proposal: {
+              order_id: notifData.order_id,
+              order_number: notifData.order_number,
+              restaurant_name: notifData.restaurant_name,
+              delivery_fee: Number(notifData.delivery_fee || 0),
+              expires_in_seconds: Number(notifData.expires_in_seconds || 120),
+            },
+          });
+        } else if (notifData?.type === 'payout_completed' || notifData?.screen === 'Earnings') {
           navigation.navigate('Main', { screen: 'Earnings' });
-        } else if (data?.screen) {
-          navigation.navigate(data.screen, data.params || {});
+        } else if (notifData?.order_id) {
+          navigation.navigate('AvailableDeliveries');
+        } else if (notifData?.screen) {
+          navigation.navigate(notifData.screen, notifData.params || {});
         }
       }
     );

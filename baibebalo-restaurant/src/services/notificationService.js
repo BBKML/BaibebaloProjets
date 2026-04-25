@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 import { restaurantNotifications } from '../api/notifications';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -18,6 +19,42 @@ try {
 }
 
 const NOTIFICATION_TOKEN_KEY = 'expo_notification_token';
+
+/**
+ * Créer les canaux Android pour les notifications (requis Android 8+)
+ */
+export const setupAndroidChannels = async () => {
+  if (Platform.OS !== 'android') return;
+  try {
+    await Notifications.setNotificationChannelAsync('orders', {
+      name: 'Nouvelles commandes',
+      importance: Notifications.AndroidImportance?.MAX ?? 5,
+      sound: 'default',
+      vibrationPattern: [0, 400, 200, 400],
+      enableLights: true,
+      lightColor: '#22C55E',
+      bypassDnd: true,
+      lockscreenVisibility: 1,
+    });
+    await Notifications.setNotificationChannelAsync('urgent', {
+      name: 'Alertes urgentes',
+      importance: Notifications.AndroidImportance?.MAX ?? 5,
+      sound: 'default',
+      vibrationPattern: [0, 500, 100, 500, 100, 500],
+      enableLights: true,
+      lightColor: '#EF4444',
+      bypassDnd: true,
+      lockscreenVisibility: 1,
+    });
+    await Notifications.setNotificationChannelAsync('default', {
+      name: 'Général',
+      importance: Notifications.AndroidImportance?.DEFAULT ?? 3,
+      sound: 'default',
+    });
+  } catch (e) {
+    if (__DEV__) console.debug('[Notification] Channels error:', e?.message);
+  }
+};
 
 /**
  * Demander les permissions de notifications
@@ -116,6 +153,8 @@ export const registerNotificationToken = async () => {
       // En Expo Go, les notifications push ne fonctionnent pas - on retourne silencieusement
       return false;
     }
+
+    await setupAndroidChannels();
 
     const hasPermission = await requestNotificationPermissions();
     if (!hasPermission) {

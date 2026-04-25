@@ -1188,6 +1188,7 @@ exports.getDashboard = async (req, res) => {
           dp.total_earnings,
           dp.total_deliveries,
           dp.average_rating,
+          dp.delivery_status,
           (SELECT COALESCE(SUM(amount), 0) FROM transactions
            WHERE to_user_id = $1 AND to_user_type = 'delivery' AND transaction_type = 'delivery_fee' AND created_at >= CURRENT_DATE) AS today_fees,
           (SELECT COUNT(*)::int FROM orders
@@ -1227,7 +1228,7 @@ exports.getDashboard = async (req, res) => {
       if (!row) {
         return {
           earnings: { available_balance: 0, total_earnings: 0, total_deliveries: 0, today: 0, today_deliveries: 0, this_week: 0, this_month: 0, cash_to_remit: 0 },
-          profile: { average_rating: 0 },
+          profile: { average_rating: 0, delivery_status: 'offline' },
           orders: [],
           deliveries: [],
           pagination: { page: 1, limit: 5, total: 0, pages: 1 },
@@ -1255,7 +1256,7 @@ exports.getDashboard = async (req, res) => {
           this_month: month,
           cash_to_remit: cashToRemit,
         },
-        profile: { average_rating: parseFloat(row.average_rating) || 0 },
+        profile: { average_rating: parseFloat(row.average_rating) || 0, delivery_status: row.delivery_status || 'offline' },
         orders,
         deliveries,
         pagination: { page: 1, limit: 5, total: deliveries.length, pages: 1 },
