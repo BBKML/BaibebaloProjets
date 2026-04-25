@@ -18,6 +18,8 @@ async function sendViaExpoPush(token, notification) {
     title: notification.title || '',
     body: notification.body || notification.message || '',
     sound: 'default',
+    priority: 'high',
+    channelId: notification.channel || 'default',
     data: notification.data || {},
   };
   const res = await fetch(EXPO_PUSH_URL, {
