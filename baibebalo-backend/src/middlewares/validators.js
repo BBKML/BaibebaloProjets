@@ -162,11 +162,11 @@ const paginationValidator = [
 ];
 
 /**
- * Rate limiter général (100 req/15min par IP)
+ * Rate limiter général (500 req/15min par IP)
  */
 const generalLimiter = rateLimit({
   windowMs: config.rateLimit.windowMs || 15 * 60 * 1000,
-  max: config.rateLimit.maxRequests || 300,
+  max: config.rateLimit.maxRequests || 500,
   message: {
     success: false,
     error: {
@@ -178,10 +178,11 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
   validate: { xForwardedForHeader: false }, // évite ERR_ERL_UNEXPECTED_X_FORWARDED_FOR derrière proxy (Render)
   skip: (req) => {
-    // Ne pas limiter les routes admin (le rate limiter tourne avant l'auth, req.user est vide)
-    if (req.path.includes('/admin/')) return true;
-    // Fallback si req.user est déjà peuplé par un autre middleware
-    return req.user?.type === 'admin';
+    // Ne pas limiter les routes admin — vérifier path ET originalUrl (Render proxy peut modifier req.path)
+    const url = req.originalUrl || req.path || '';
+    if (url.includes('/admin')) return true;
+    if (req.user?.type === 'admin') return true;
+    return false;
   },
 });
 

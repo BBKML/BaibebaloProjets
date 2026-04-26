@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { ordersAPI } from '../api/orders';
 import adminSound from '../utils/adminSound';
 
-const POLL_INTERVAL = 15000;
+const POLL_INTERVAL = 30000;
 const STORAGE_KEY = '@baibebalo_admin_seen_orders';
 
 const getSeenIds = () => {

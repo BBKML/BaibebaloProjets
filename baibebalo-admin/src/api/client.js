@@ -4,7 +4,7 @@ import toast from 'react-hot-toast';
 // Délai exponentiel pour les retries
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-// Retry sur erreurs réseau (cold start Render, DNS, timeout)
+// Retry sur erreurs réseau (cold start Render, DNS, timeout) + 429 rate limit
 async function retryRequest(fn, retries = 3, baseDelay = 2000) {
   for (let attempt = 0; attempt <= retries; attempt++) {
     try {
@@ -16,14 +16,26 @@ async function retryRequest(fn, retries = 3, baseDelay = 2000) {
           err.code === 'ECONNABORTED' ||
           err.message?.includes('Network Error') ||
           err.message?.includes('ERR_NAME_NOT_RESOLVED'));
-      if (!isNetworkError || attempt === retries) throw err;
-      const delay = baseDelay * 2 ** attempt;
+      const isRateLimit = err.response?.status === 429;
+
+      if ((!isNetworkError && !isRateLimit) || attempt === retries) throw err;
+
+      // Délai : respecter Retry-After si présent (rate limit), sinon exponentiel
+      const retryAfter = isRateLimit
+        ? (parseInt(err.response?.headers?.['retry-after'] || '0', 10) * 1000 || baseDelay * 2 ** attempt)
+        : baseDelay * 2 ** attempt;
+
       if (attempt === 0) {
-        toast.loading('Serveur en démarrage, patientez...', { id: 'server-wakeup' });
+        if (isRateLimit) {
+          toast.loading('Trop de requêtes, nouvelle tentative...', { id: 'rate-limit-retry' });
+        } else {
+          toast.loading('Serveur en démarrage, patientez...', { id: 'server-wakeup' });
+        }
       }
-      await sleep(delay);
+      await sleep(retryAfter);
     }
   }
+  toast.dismiss('rate-limit-retry');
 }
 
 export { retryRequest };
